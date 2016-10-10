@@ -2,7 +2,7 @@
 
 (in-package :cl-patterns)
 
-d(defgeneric play (item))
+(defgeneric play (item))
 
 (defmethod play ((item cons))
   (output "It's a cons, yo."))
