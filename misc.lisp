@@ -1,6 +1,6 @@
 ;; midi stuff
 
-(ql:quickload :midi) ;; FIX
+(ql:quickload :midi)
 
 (defmethod play ((item midi:note-on-message))
   (output "It's a midi message, yo."))
@@ -15,34 +15,6 @@
       (next-n (pbind :instrument :kik :note (prand #[30 40 50 70 80 90])) 3))
 
 (play '(:foo 1 :bar 2))
-
-;; old versions
-
-;; (defmethod next :around ((pattern pattern)) ;; OLD
-;;   (labels ((get-value (pattern)
-;;              (incf (slot-value pattern 'number))
-;;              (let ((res (funcall (slot-value pattern 'stream))))
-;;                (typecase res
-;;                  (pattern (next res))
-;;                  (t res)))))
-;;     (if (null (slot-value pattern 'remaining))
-;;         (get-value pattern)
-;;         (when (> (slot-value pattern 'remaining) 0)
-;;           (decf (slot-value pattern 'remaining))
-;;           (get-value pattern)))))
-
-;; (defun pseq (list &optional repeats) ;; OLD
-;;   (make-instance 'pseq
-;;                  :list list
-;;                  :remaining (when repeats (* repeats (length list)))
-;;                  :stream
-;;                  (let ((list-2 list))
-;;                    (lambda ()
-;;                      (let ((res (car list-2)))
-;;                        (setf list-2 (append (cdr list-2) (list (car list-2))))
-;;                        res)))))
-
-;; sc stuff
 
 ;; sc stuff
 
