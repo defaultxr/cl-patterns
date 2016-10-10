@@ -1,5 +1,5 @@
 (defpackage #:cl-patterns
-  (:use #:cl #:utilities)
+  (:use #:cl)
   ;; (:import-from :utilities #:)
   (:export
    #:plist-keys

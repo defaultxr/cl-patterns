@@ -14,41 +14,6 @@
 (defdelim #\[ #\] (&rest args)
   `(list ,@args))
 
-;; (ql:quickload '(:series))
-
-;; (defun pseq (list &optional (repeats 1))
-;;   "Pseq"
-;;   (let ((current -1))
-;;     (lambda ()
-;;       (setf current (+ current 1))
-;;       (nth current list))))
-
-;; (defclass pattern ()
-;;   (;; (length :initform 1)
-;;    (length :accessor pattern-length :initarg :length :initform 1 :type (or null number))
-;;    (series :accessor series :initarg :series :initform (series:scan (list)))))
-
-;; (defun pseq (list &optional (repeats 1))
-;;   (make-instance 'pattern
-;;                  :length (* (length list) repeats)
-;;                  :series (series:scan list)))
-
-;; (defgeneric as-series (item))
-
-;; (defmethod as-series ((item pattern))
-;;   (series item))
-
-;; (defun next-in-pattern (pattern)
-;;   "Gets the next value in a pattern."
-;;   (funcall pattern))
-
-;; (setf foo (scan-fn 'number
-;;                    (lambda () (random-choice (list 1 2 3)))
-;;                    (lambda (x) (+ 2 x))
-;;                    (lambda (x) (< 15 x))))
-
-;;;;
-
 (defun repeat (item num)
   "Returns a list containing 'num' items. If 'item' is a function, return a list of 'num' of the result of that function."
   (when (> num 0)
@@ -127,9 +92,6 @@
              (print result)
              (sleep (or (getf result :sleep) 1))))))
 
-;; (defmacro pbind (&rest pairs)
-;;   `(pbind-accumulator ',pairs (list)))
-
 (defun pbind (&rest pairs)
   (labels ((pbind-accumulator (pairs chash)
              (setf (getf chash (as-keyword (car pairs)))
@@ -142,12 +104,8 @@
 (defparameter *patterns* (list))
 
 (defmacro defpattern (name arguments &body body)
-  (let ((dash-pat (intern (concat (write-to-string name) "-PAT"))))
+  (let ((dash-pat (intern (format nil "~a~a" (write-to-string name) "-PAT"))))
     `(progn
-       ;; (defun ,dash-pat ,arguments
-       ;;   ,@body)
-       ;; (defun ,name ,arguments
-       ;;   (list ',dash-pat ,@arguments))
        (defun ,name ,arguments
          ,@body)
        (push ',name *patterns*))))
@@ -155,8 +113,6 @@
 (defpattern pk (key &optional (default 1))
   (lambda ()
     (or (getf *event* key) default)))
-
-;; (defun ) ;; function to limit other patterns
 
 (defpattern pseq (list &optional repeats)
   (let ((list-2 list)
@@ -176,8 +132,8 @@
       (if length
           (when (> length 0)
             (decf length)
-            (random-choice list))
-          (random-choice list)))))
+            (alexandria:random-elt list))
+          (alexandria:random-elt list)))))
 
 (defpattern pxrand (list &optional length)
   (assert (> (length list) 1))
@@ -186,8 +142,8 @@
       (if length
           (when (> length 0)
             (decf length)
-            (random-choice list))
-          (random-choice list)))))
+            (alexandria:random-elt list))
+          (alexandria:random-elt list)))))
 
 (defpattern pfunc (lambda)
   lambda)
