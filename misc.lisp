@@ -16,6 +16,8 @@
 
 (play '(:foo 1 :bar 2))
 
+(slot-value (make-instance 'event :amp 3) 'amp)
+
 ;; sc stuff
 
 (in-package :sc)
@@ -32,25 +34,31 @@
 (setf *s* (make-external-server "localhost" :port 4444))
 (setf *s* (make-external-server "localhost" :port 57110 :just-connect-p t))
 (server-boot *s*)
+
 (setf foo (play (sin-osc.ar [440 441] 0 .2)))
 
+(server-quit *s*)
+
 (stop)
+;; to free a node, use the #'bye function.
 
 (defsynth sine-wave ((note 60))
   (let* ((freq (midicps note))
          (sig (sin-osc.ar [freq (+ freq 2)] 0 .2)))
     (out.ar 0 sig)))
 
-(defsynth kik ((note 60))
-  (let* ((freq (midicps note))
-         (env (env-gen.kr (env (list 0 1 0) (list 0.001 1)) :act :free))
+(kik)
+
+(defsynth kik ((freq 440))
+  (let* ((env (env-gen.kr (env (list 0 1 0) (list 0.001 1)) :act :free))
          (fenv (env-gen.kr (env (list 1 0) (list 1)) :level-scale freq))
          (sig (sin-osc.ar [fenv fenv] 0 .2)))
     (out.ar 0 (* env sig))))
 
-(ql:quickload :utilities)
-
-(use-package :utilities)
+(defsynth fmp ((gate 1) (freq 440))
+  (let* ((env (env-gen.kr (adsr 0.01 0.2 0.5 0.9) :gate gate :act :free))
+         (sig (sin-osc.ar [freq (+ freq 1)] 0 .2)))
+    (out.ar 0 (* env sig))))
 
 (defparameter *go* nil)
 
@@ -94,3 +102,10 @@
 
 (ctrl (proxy :sinesynth) :gate 0)
 
+(proxy :sine
+       (pan2.ar (sin-osc.ar 440 0 (env-gen.kr (perc .0 .4 .2) :gate (impulse.kr (mouse-x)))))
+       :fade-time 0)
+
+(stop)
+
+(print (perc 0 .2 .4))

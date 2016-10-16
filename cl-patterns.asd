@@ -6,4 +6,6 @@
   :depends-on (#:alexandria)
   :serial t
   :components ((:file "package")
-	       (:file "patterns")))
+               (:file "pat-utilities")
+               (:file "patterns")
+               (:file "event")))
