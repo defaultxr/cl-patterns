@@ -1,19 +1,5 @@
 (in-package #:cl-patterns)
 
-(defmacro defdelim (left right parms &body body)
-  `(ddfn ,left ,right #'(lambda ,parms ,@body)))
-
-(let ((rpar (get-macro-character #\) )))
-  (defun ddfn (left right fn)
-    (set-macro-character right rpar)
-    (set-dispatch-macro-character #\# left
-                                  (lambda (stream char1 char2)
-                                      (apply fn
-                                             (read-delimited-list right stream t))))))
-
-(defdelim #\[ #\] (&rest args)
-  `(list ,@args))
-
 (defun pat-eval (code)
   (let ((res (eval code)))
     (if (eq 'function (type-of res))
