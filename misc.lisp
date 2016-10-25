@@ -42,6 +42,21 @@
 (stop)
 ;; to free a node, use the #'bye function.
 
+(proxy :fltr
+       (with-controls ((speed 0.3) (out 0))
+         (let ((sig (rlpf.ar (in.ar out 2) (range (sin-osc.kr speed) 20 2000) 0.3)))
+           (replace-out.ar out sig))))
+
+(defsynth saw ((gate 1) (freq 440) (sustain 1) (tempo 1) (amp 0.5) (pan 0) (out 0))
+  (let* ((env (env-gen.kr (adsr 0.001 0.1 0.5 0.25) :gate gate :act :free))
+         (sig (saw.ar [freq freq])))
+    (out.ar out (b2 sig pan (* env amp)))))
+
+(defun b2 (in &optional (pan 0) (level 1))
+  (if (eq 'cons (type-of in))
+      (balance2.ar (car in) (cadr in) pan level)
+      (pan2.ar in pan level)))
+
 (defsynth sine-wave ((note 60))
   (let* ((freq (midicps note))
          (sig (sin-osc.ar [freq (+ freq 2)] 0 .2)))
@@ -109,3 +124,75 @@
 (stop)
 
 (print (perc 0 .2 .4))
+
+;; mapping
+
+;; (defun linlin)
+
+	;; linlin { arg inMin, inMax, outMin, outMax, clip=\minmax;
+	;; 	// linear to linear mapping
+	;; 	switch(clip,
+	;; 		\minmax, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		},
+	;; 		\min, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 		},
+	;; 		\max, {
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		}
+	;; 	);
+	;; 	^(this-inMin)/(inMax-inMin) * (outMax-outMin) + outMin;
+	;; }
+
+	;; linexp { arg inMin, inMax, outMin, outMax, clip=\minmax;
+	;; 	// linear to exponential mapping
+	;; 	switch(clip,
+	;; 		\minmax, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		},
+	;; 		\min, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 		},
+	;; 		\max, {
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		}
+	;; 	);
+	;; 	^pow(outMax/outMin, (this-inMin)/(inMax-inMin)) * outMin
+	;; }
+
+	;; explin { arg inMin, inMax, outMin, outMax, clip=\minmax;
+	;; 	// exponential to linear mapping
+	;; 	switch(clip,
+	;; 		\minmax, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		},
+	;; 		\min, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 		},
+	;; 		\max, {
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		}
+	;; 	);
+	;; 	^(log(this/inMin)) / (log(inMax/inMin)) * (outMax-outMin) + outMin;
+	;; }
+
+	;; expexp { arg inMin, inMax, outMin, outMax, clip=\minmax;
+	;; 	// exponential to exponential mapping
+	;; 	switch(clip,
+	;; 		\minmax, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		},
+	;; 		\min, {
+	;; 			if (this <= inMin, { ^outMin });
+	;; 		},
+	;; 		\max, {
+	;; 			if (this >= inMax, { ^outMax });
+	;; 		}
+	;; 	);
+	;; 	^pow(outMax/outMin, log(this/inMin) / log(inMax/inMin)) * outMin;
+	;; }
