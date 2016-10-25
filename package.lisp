@@ -4,14 +4,16 @@
   (:export
    #:plist-keys
    #:as-stream
+   #:next
    #:next-n
-   #:play-plist
-   #:play-pattern
+   #:play
 
-   #:defpattern
+   #:event
+
+   ;; #:defpattern
    
    #:pbind
-   #:pk
    #:pseq
+   #:pk
    #:prand
    #:pfunc))

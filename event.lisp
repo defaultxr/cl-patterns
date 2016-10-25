@@ -1,5 +1,7 @@
 (in-package :cl-patterns)
 
+;; FIX - maybe need to export instrument, group, out, amp, etc...
+
 (defclass event ()
   ((instrument :initarg :instrument :accessor :instrument :initform :default)
    (group :initarg :group :accessor :group :initform 0)
@@ -17,7 +19,8 @@
    (other-params :initarg :other-params :accessor :other-params :initform (make-hash-table)))
   (:documentation "Class representing a musical event."))
 
-(defparameter *event-output-type* :sc)
+(defparameter *event-output-type* :sc
+  (:documentation "Says what method to use to `play' an event."))
 
 (defmethod play ((item event))
   (if (eq *event-output-type* :sc)
@@ -27,7 +30,8 @@
 ;; (defmethod print-object ((item event) stream)
 ;;   (format stream "Event."))
 
-(defmacro event-method (name &optional (slot-name name))
+(defmacro event-method (name &optional (slot-name name)) ;; FIX - add argument for documentation, maybe remove slot-name?
+  "Creates the generic functions and the methods for reading and writing to the NAME slot for an event."
   `(progn
      (defgeneric ,name (item))
      (defmethod ,name ((item event))
@@ -49,9 +53,9 @@
 ;;   )
 
 (defmethod (setf db) (value (item event))
-  (setf (slot-value item 'amp) (* 2 value)))
+  (setf (slot-value item 'amp) (* 2 value))) ;; FIX - this is just dummy code to test. make actual amp-db conversions.
 
-(defun event (&rest pairs)
+(defun event (&rest pairs) ;; FIX
   )
 
 (event-method instrument)
