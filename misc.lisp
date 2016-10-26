@@ -1,3 +1,19 @@
+;; macro for k---s--- shit
+
+(defmacro ds (&key map &rest items)
+  (let ((res (mapcar #'symbol-name items)))
+    `(list ,@res)))
+
+(print (ds k - - -
+           s - - -
+           k - - -
+           s - - -))
+
+(pb :foo
+    :parent :xx
+    :instrument :bar
+    :fuck 'baz)
+
 ;; midi stuff
 
 (ql:quickload :midi)

@@ -52,4 +52,15 @@ Ideas/TODO
   * interally, an Event only keeps track of `amp` and just converts to whatever type you request, or converts whatever type you give it to `amp`.
 * more metadata in patterns and streams so that it's easier to write functions that process streams/patterns/etc
 * use the `prove` library to write tests for the patterns.
-
+* make it easy to combine patterns by "injecting" the results of an event pattern into its parent event pattern
+  * i.e.:
+  `(pbind :foo (pseq '(hey how are ya)) :inject (pbind :bar (pseq '(1 2 3))))`
+  results in:
+  `'((:foo hey :bar 1) (:foo how :bar 2) (:foo are :bar 3))`
+* make it possible to really easily create lfos (i.e. maybe embedding a sc:defsynth as the value for a pbind's key?)
+* make it possible to send out values at a specific key at a different rate
+  * i.e.:
+  `(pbind :dur 1 :foo (pseq '(1 2 3)) :bar (pbind :dur 1/2 :val (pseq '(9 8 7))))`
+  results in `:foo` being set to 1, then 2, then 3 on every beat, while `:bar` is set to 9, then 8, then 7 on every half beat.
+  effectively, the :bar sub-pattern is independent from the main pbind, it's just launched at the same time.
+* make macros to quickly write out patterns with symbols, i.e. k---s---k---s--- for a kick/snare/kick/snare pattern or the like.
