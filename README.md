@@ -13,8 +13,6 @@ In addition to emulating most of SuperCollider's patterns system, another goal i
 Intro
 =====
 
-(This code won't work yet - still have to fix a few things)
-
 Create a pattern like so:
 
 ```
@@ -39,7 +37,7 @@ In the future I'll write information on how you can make `play` actually cause s
 Tour
 ====
 
-* event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-type*`, etc)
+* event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
 * ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
 * misc.lisp - where i put my code when i'm just messing around with stuff. might be useful as example code, but could also have outdated stuff in it.
 * package.lisp - the package.lisp file.

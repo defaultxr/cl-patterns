@@ -4,7 +4,6 @@
 
 (defgeneric play-sc (item))
 
-(defmethod play-sc ((item event))
+(defmethod play-sc ((item t))
   (eval (append (list (re-intern (instrument item) :sc)))))
 
-;;

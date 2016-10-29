@@ -8,4 +8,5 @@
   :components ((:file "package")
                (:file "pat-utilities")
                (:file "patterns")
-               (:file "event")))
+               (:file "event")
+               (:file "supercollider")))
