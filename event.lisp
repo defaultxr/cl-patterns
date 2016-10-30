@@ -3,18 +3,18 @@
 ;; FIX - maybe need to export instrument, group, out, amp, etc...
 
 (defclass event ()
-  ((instrument :initarg :instrument :accessor :instrument :initform :default)
+  ((instrument :initarg :instrument :accessor :instrument)
    (group :initarg :group :accessor :group)
    (out :initarg :out :accessor :out)
    (amp :initarg :amp :accessor :amp)
    (pan :initarg :pan :accessor :pan)
    (tempo :initarg :tempo :accessor :tempo)
-   (delta :initarg :delta :accessor :delta :initform 1)
-   (sustain :initarg :sustain :accessor :sustain :initform 1)
+   (delta :initarg :delta :accessor :delta)
+   (sustain :initarg :sustain :accessor :sustain)
    (timing-offset :initarg :timing-offset :accessor :timing-offset)
    ;; (strum )
-   (freq :initarg :freq :accessor :freq :initform 440)
-   (steps-per-octave :initarg :steps-per-octave :accessor :steps-per-octave :initform 12)
+   (freq :initarg :freq :accessor :freq)
+   (steps-per-octave :initarg :steps-per-octave :accessor :steps-per-octave)
    ;; may need to keep more keys to determine the note from the freq????
    (other-params :initarg :other-params :accessor :other-params :initform (list)))
   (:documentation "Class representing a musical event."))
@@ -31,15 +31,21 @@
 (defun set-event-val (event slot value)
   (if (position slot *event-basic-parameters*)
       (funcall (fdefinition (list 'setf slot)) value event)
-      (setf (getf (slot-value event 'other-params) slot) value)))
+      (setf (getf (slot-value event 'other-params) (as-keyword slot)) value)))
 
 (defun get-event-val (event slot)
   (if (and (fboundp slot)
            (eq 'standard-generic-function (type-of (fdefinition slot))))
       (funcall slot event)
-      (getf (slot-value event 'other-params) slot)))
+      (getf (slot-value event 'other-params) (as-keyword slot))))
 
-(defparameter *event-output-function* 'play-sc
+(defun combine-events (event1 event2)
+  "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist.")
+
+(defun play-test (item)
+  (format t "Playing: ~s~%" item))
+
+(defparameter *event-output-function* 'play-test
   "Which function to `play' an event with.")
 
 (defmethod play ((item event))
@@ -74,38 +80,40 @@
   (let ((plist '()))
     (loop :for i in (keys event)
        :do (when (not (null i))
-             (setf plist (plist-set plist i (get-event-val event i)))))
+             (setf plist (plist-set plist (as-keyword i) (get-event-val event i)))))
     plist))
 
 (defmethod print-object ((item event) stream)
-  (format stream "(EVENT~{ :~s ~s~})" (event-plist item)))
+  (format stream "(EVENT~{ ~s ~s~})" (event-plist item)))
 
 (defparameter *event-basic-parameters* nil
   "The list of all the \"basic\" parameters that can be set on an event. Everything else gets shoved into the other-params slot.")
 
-(defmacro event-method (name &optional documentation)
+(defmacro event-method (name default &optional documentation)
   "Creates the generic functions and the methods for reading and writing to the NAME slot for an event and reading it from a plist."
   `(progn
      (setf *event-basic-parameters* (append *event-basic-parameters* (list ',name)))
      (defgeneric ,name (item) (:documentation ,documentation))
      (defmethod ,name ((item event))
-       (slot-value item ',name))
+       (if (slot-boundp item ',name)
+           (slot-value item ',name)
+           ,default))
      (defmethod ,name ((item cons)) ;; unfortunately it's only possible to get the value from a plist, not set it...
        (getf item ,(as-keyword name)))
      (defgeneric (setf ,name) (value item))
      (defmethod (setf ,name) (value (item event))
        (setf (slot-value item ',name) value))))
 
-(defmacro event-translation-method (name1 name2)
-  (let ((sname1 (symbol-name name1))
-        (sname2 (symbol-name name2)))
+(defmacro event-translation-method (destination source)
+  (let ((sdestination (symbol-name destination))
+        (ssource (symbol-name source)))
     `(progn
-       (setf *event-basic-parameters* (append *event-basic-parameters* (list ',name1)))
-       (defgeneric ,name1 (item))
-       (defmethod ,name1 ((item event))
-         (,(intern (string-upcase (concatenate 'string sname2 "-" sname1))) (,name2 item)))
-       (defmethod (setf ,name1) (value (item event))
-         (setf (slot-value item ',name2) (,(intern (string-upcase (concatenate 'string sname1 "-" sname2))) value))))))
+       (setf *event-basic-parameters* (append *event-basic-parameters* (list ',destination)))
+       (defgeneric ,destination (item))
+       (defmethod ,destination ((item event))
+         (,(intern (string-upcase (concatenate 'string ssource "-" sdestination))) (,source item)))
+       (defmethod (setf ,destination) (value (item event))
+         (setf (slot-value item ',source) (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))))))
 
 ;; (defgeneric db (item))
 
@@ -128,21 +136,21 @@
 ;; (defmethod (setf db) (value (item event))
 ;;   (setf (slot-value item 'amp) (db-amp value)))
 
-(event-method instrument)
+(event-method instrument :default)
 
-(event-method group)
+(event-method group 0)
 
-(event-method out)
+(event-method out 0)
 
-(event-method amp)
+(event-method amp 0.5)
 
-(event-method pan)
+(event-method pan 0)
 
-(event-method tempo)
+(event-method tempo 1)
 
-(event-method delta)
+(event-method delta 1)
 
-(event-method sustain)
+(event-method sustain 1)
 
 (defgeneric legato (item))
 
@@ -155,11 +163,11 @@
 (defmethod (setf legato) (value (item event))
   (setf (sustain item) (* (delta item) value)))
 
-(event-method timing-offset)
+(event-method timing-offset 0)
 
-(event-method freq)
+(event-method freq 440)
 
-(event-method steps-per-octave)
+(event-method steps-per-octave 12)
 
 (defun midinote-freq (midinote)
   "Convert a midi note number to a frequency."
@@ -171,4 +179,12 @@
 
 (event-translation-method midinote freq)
 
-(event-method other-params)
+(event-method other-params (list))
+
+;;
+
+(defun gete (list key)
+  "Get a list of the value of KEY for each element in LIST."
+  (mapcar (lambda (event)
+            (get-event-val event key))
+          list))

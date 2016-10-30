@@ -3,7 +3,8 @@
   :author "modula t. defaultxr@gmail.com"
   :description "SuperCollider-inspired patterns library for Common Lisp."
   :version "0.1"
-  :depends-on (#:alexandria)
+  :depends-on (#:alexandria
+               #:bordeaux-threads)
   :serial t
   :components ((:file "package")
                (:file "pat-utilities")

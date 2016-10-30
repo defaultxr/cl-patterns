@@ -6,7 +6,7 @@
 (in-package :cl-patterns)
 
 (defparameter *event* nil
-  "The default event.")
+  "The event special variable. Can be referenced inside a pattern's code.")
 
 (defun make-default-event ()
   (make-instance 'event))
@@ -14,14 +14,36 @@
 (defgeneric play (item)
   (:documentation "Plays an item (typically an event) according to the current *event-output-function*."))
 
-(defmethod play ((item cons))
-  (output "It's a cons, yo."))
+;; (defmethod play ((item cons))
+;;   (output "It's a cons, yo."))
+
+(defparameter *tempo* 1
+  "The current tempo in beats per second.")
+
+(defmethod play ((item pattern))
+  (let ((cev (next item)))
+    (loop :while (not (null cev))
+       :do (progn
+             (play cev)
+             (sleep (/ (delta cev) *tempo*))
+             (setf cev (next item))))))
+
+(defgeneric fork (item))
+
+(defmethod fork ((item pattern))
+  (bt:make-thread (lambda () (play item))))
 
 (defclass pattern ()
-  ((stream :initarg :stream :accessor :stream)
-   (remaining :initarg :remaining :accessor :remaining :initform nil)
+  ((remaining :initarg :remaining :accessor :remaining :initform nil)
    (number :accessor :number :initform 0))
   (:documentation "Abstract pattern superclass."))
+
+;; (defmacro defpattern (name slots args &body next-func)
+;;   `(progn
+;;      (defclass ,name (pattern)
+;;        ,slots)
+;;      (defun ,name ,args
+;;        (make-instance ',name))))
 
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process."))
@@ -47,6 +69,20 @@
 (defmethod next ((pattern t))
   pattern)
 
+(defclass pstream (pattern)
+  (;; (pattern :initarg :pattern :accessor :pattern)
+   (remaining :initarg :remaining :accessor :remaining :initform nil)
+   (number :accessor :number :initform 0))
+  (:documentation "Pattern stream class."))
+
+(defun make-pstream (pattern)
+  (make-instance 'pstream
+                 ;; :pattern pattern
+                 :remaining (slot-value pattern 'remaining)))
+
+(defmethod next ((pattern pstream))
+  (next pattern))
+
 (defgeneric next-n (pattern n)
   (:documentation "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."))
 
@@ -64,22 +100,14 @@
   (make-instance 'pbind
                  :pairs pairs))
 
-(defmethod next ((pattern pbind)) ;; list version
+(defmethod next ((pattern pbind)) ;; FIX: this doesn't work: (let ((*event* (event :bar 3))) (next-n (x) 2)) - no :bar in results!!
   (labels ((pbind-accumulator (pairs)
-             (setf (getf *event* (as-keyword (car pairs)))
-                   (next (cadr pairs)))
-             (if (not (null (cddr pairs)))
-                 (pbind-accumulator (cddr pairs))
-                 *event*)))
-    (let ((*event* (list)))
-      (pbind-accumulator (slot-value pattern 'pairs)))))
-
-(defmethod next ((pattern pbind))
-  (labels ((pbind-accumulator (pairs)
-             (set-event-val *event* (re-intern (car pairs)) (next (cadr pairs)))
-             (if (not (null (cddr pairs)))
-                 (pbind-accumulator (cddr pairs))
-                 *event*)))
+             (let ((next-cadr (next (cadr pairs))))
+               (set-event-val *event* (re-intern (car pairs)) next-cadr)
+               (when (not (null next-cadr)) ;; drop out if one of the values is nil - end of pattern!
+                 (if (not (null (cddr pairs)))
+                     (pbind-accumulator (cddr pairs))
+                     *event*)))))
     (let ((*event* (make-default-event)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
 
@@ -97,6 +125,15 @@
   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
        (slot-value pattern 'list)))
 
+(defclass pseq-pstream (pseq pstream)
+  ())
+
+(defgeneric as-pstream (pattern))
+
+(defmethod next ((pattern pseq-pstream))
+  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
+       (slot-value pattern 'list)))
+
 (defclass pk (pattern)
   ((key :initarg :key :accessor :key)
    (default :initarg :default :accessor :default :initform 1))
@@ -106,13 +143,11 @@
   "Create an instance of the PK class."
   (make-instance 'pk
                  :key key
-                 :default default
-                 :stream ;; FIX - create a `next' method instead of using this.
-                 (lambda ()
-                   (or (getf *event* key) default))))
+                 :default default))
 
 (defmethod next ((pattern pk))
-  (or (getf *event* (slot-value pattern 'key)) (slot-value pattern 'default)))
+  (or (get-event-val *event* (slot-value pattern 'key))
+      (slot-value pattern 'default)))
 
 (defclass prand (pattern)
   ((list :initarg :list :accessor :list))
@@ -142,8 +177,8 @@
 (defclass pr (pattern)
   ((pattern :initarg :pattern :accessor :pattern)
    (repeats :initarg :repeats :accessor :repeats :initarg :inf)
-   (cv) ;; current value
-   (crr) ;; current repeats remaining
+   (cv :initform nil) ;; current value
+   (crr :initform nil) ;; current repeats remaining
    )
   (:documentation "A pr repeats a value from PATTERN REPEATS times before moving on to the next value from PATTERN."))
 
@@ -162,3 +197,58 @@
       (progn
         (decf (slot-value pattern 'crr))
         (slot-value pattern 'cv))))
+
+(defclass pdef (pattern)
+  ((key :initarg :key :accessor :key)
+   (pattern :initarg :pattern :accessor :pattern))
+  (:documentation "A named pattern."))
+
+;; (defparameter *pdef-dictionary* '()
+;;   "The global pdef dictionary.")
+
+;; (defun pdef-ref (key &optional value)
+;;   "Retrieve a value from the global pdef dictionary, or set it if VALUE is provided."
+;;   (let ((key (as-keyword key)))
+;;     (if (null value)
+;;         (getf *pdef-dictionary* key)
+;;         (setf (getf *pdef-dictionary* key) value))))
+
+(defmacro create-global-dictionary (name)
+  (let* ((name-name (symbol-name name))
+         (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
+    `(progn
+       (defparameter ,dict-symbol '()
+         ,(concatenate 'string "The global" name-name "dictionary."))
+       (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
+         ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
+         (let ((key (as-keyword key)))
+           (if (null value)
+               (getf ,dict-symbol key)
+               (setf (getf ,dict-symbol key) value)))))))
+
+(create-global-dictionary pdef)
+
+(defun pdef (key &optional value)
+  (pdef-ref key value)
+  (make-instance 'pdef
+                 :key key
+                 :pattern value))
+
+(defmethod next ((pattern pdef))
+  (next (pdef-ref (slot-value pattern 'key))))
+
+(defclass plazy (pattern)
+  ((func :initarg :func :accessor :func)
+   ;; (repeats :initarg :repeats :accessor :repeats)
+   (cp :initform nil)))
+
+(defun plazy (func)
+  (make-instance 'plazy
+                 :func func))
+
+(defmethod next ((pattern plazy))
+  (if (null (slot-value pattern 'cp))
+      (progn
+        (setf (slot-value pattern 'cp) (funcall (slot-value pattern 'func)))
+        (next (slot-value pattern 'cp)))
+      (next (slot-value pattern 'cp))))
