@@ -34,10 +34,11 @@
       (setf (getf (slot-value event 'other-params) (as-keyword slot)) value)))
 
 (defun get-event-val (event slot)
-  (if (and (fboundp slot)
-           (eq 'standard-generic-function (type-of (fdefinition slot))))
-      (funcall slot event)
-      (getf (slot-value event 'other-params) (as-keyword slot))))
+  (let ((slot (re-intern slot)))
+    (if (and (fboundp slot)
+             (eq 'standard-generic-function (type-of (fdefinition slot))))
+        (funcall slot event)
+        (getf (slot-value event 'other-params) (as-keyword slot)))))
 
 (defun combine-events (event1 event2)
   "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist.")
@@ -84,7 +85,7 @@
     plist))
 
 (defmethod print-object ((item event) stream)
-  (format stream "(EVENT~{ ~s ~s~})" (event-plist item)))
+  (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
 (defparameter *event-basic-parameters* nil
   "The list of all the \"basic\" parameters that can be set on an event. Everything else gets shoved into the other-params slot.")
