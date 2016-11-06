@@ -3,8 +3,8 @@
 A library for writing SuperCollider-esque patterns in Lisp. Aims to emulate most of the patterns that are part of SuperCollider, but make them more robust, expressive, consistent, reflective, and lispy.
 
 * robust - strongly prefer coercing values into something "correct" rather than failing or giving an error.
-* expressive - make writing music as easy and "natural" as possible, so that patterns can be built in real-time, in performance settings, without having to think so hard about how to bend the library to your will. i feel this is a big weakness of SuperCollider.
-* consistent - edge cases minimized, arguments for functions in a consistent order. pretty self-explanatory.
+* expressive - make writing music as easy and "natural" as possible, so that patterns can be built in real-time, in performance settings, without having to think so hard about how to bend the library to your will. i feel this is a weakness of SuperCollider.
+* consistent - edge cases minimized, arguments for the various functions in an intuitive order. pretty self-explanatory.
 * reflective - store more data about the stream state and more metadata about the patterns. make it easier for a pattern to access the values of another pattern, for patterns to affect other patterns, etc.
 * lispy - prefer lisp idioms rather than direct translations of the SuperCollider way of doing things (while still keeping things relatively similar so it's not a huge adjustment for SC users to make).
 

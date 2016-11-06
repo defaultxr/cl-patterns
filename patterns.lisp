@@ -47,7 +47,7 @@
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process."))
 
-(defmethod next :around ((pattern pattern))
+(defmethod next :around ((pattern pattern)) ;; FIX: this should be a method for pstream, not pattern. pattern should call as-pstream on itself when 'next' is called on it.
   (labels ((get-value (pattern)
              (let ((res (call-next-method)))
                (typecase res
