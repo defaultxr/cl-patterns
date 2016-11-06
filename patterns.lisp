@@ -42,7 +42,9 @@
   #+bordeaux-threads
   (bt:make-thread (lambda () (play item)) :name (format nil "fork: ~s" item))
   #-bordeaux-threads
-  (lambda () (play item)))
+  (let ((func (lambda () (play item))))
+    (funcall func)
+    func))
 
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process."))
@@ -73,7 +75,7 @@
 
 (defmethod next-n (pattern (n number))
   (loop
-     :for i from 0 below n
+     :for i :from 0 :below n
      :collect (next pattern)))
 
 ;;; pstream
@@ -153,20 +155,6 @@
 
 (define-pbind-special-key inject
   value)
-
-(defmethod next ((pattern pbind)) ;; OLD
-  (labels ((pbind-accumulator (pairs)
-             (if (position (car pairs) (keys *pbind-special-keys*))
-                 (let ((result (funcall (getf *pbind-special-keys* (car pairs)) (cadr pairs))))
-                   (setf *event* (combine-events *event* result)))
-                 (let ((next-cadr (next (cadr pairs))))
-                   (set-event-val *event* (re-intern (car pairs)) next-cadr)
-                   (when (not (null next-cadr)) ;; drop out if one of the values is nil - end of pattern!
-                     (if (not (null (cddr pairs)))
-                         (pbind-accumulator (cddr pairs))
-                         *event*))))))
-    (let ((*event* (make-default-event)))
-      (pbind-accumulator (slot-value pattern 'pairs)))))
 
 (defmethod next ((pattern pbind))
   (labels ((pbind-accumulator (pairs)

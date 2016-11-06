@@ -1,6 +1,6 @@
 (in-package :cl-patterns)
 
-;; FIX - maybe need to export instrument, group, out, amp, etc...
+;; FIX: maybe just put everything in other-params instead of having them as slots in event. more consistent, simpler, etc.
 
 (defclass event ()
   ((instrument :initarg :instrument :accessor :instrument)
@@ -9,8 +9,10 @@
    (amp :initarg :amp :accessor :amp)
    (pan :initarg :pan :accessor :pan)
    (tempo :initarg :tempo :accessor :tempo)
-   (delta :initarg :delta :accessor :delta)
-   (sustain :initarg :sustain :accessor :sustain)
+   (dur :initarg :dur :accessor :dur)
+   (legato :initarg :legato :accessor :legato)
+   ;; (delta :initarg :delta :accessor :delta)
+   ;; (sustain :initarg :sustain :accessor :sustain)
    (timing-offset :initarg :timing-offset :accessor :timing-offset)
    ;; (strum )
    (freq :initarg :freq :accessor :freq)
@@ -48,7 +50,7 @@
     result))
 
 (defun play-test (item)
-  (format t "Playing: ~s~%" item))
+  (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
 
 (defparameter *event-output-function* 'play-test
   "Which function to `play' an event with.")
@@ -120,14 +122,6 @@
        (defmethod (setf ,destination) (value (item event))
          (setf (slot-value item ',source) (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))))))
 
-;; (defgeneric db (item))
-
-;; (defmethod db ((item event))
-;;   (amp-db (amp item)))
-
-;; (defmethod db ((item number))
-;;   (amp-db item))
-
 (defun amp-db (amp)
   "Convert amplitude to dB."
   (* 20 (log amp 10)))
@@ -137,9 +131,6 @@
   (expt 10 (* db 0.05)))
 
 (event-translation-method db amp)
-
-;; (defmethod (setf db) (value (item event))
-;;   (setf (slot-value item 'amp) (db-amp value)))
 
 (event-method instrument :default)
 
@@ -153,7 +144,7 @@
 
 (event-method tempo 1)
 
-(event-method delta 1)
+(event-method dur 1)
 
 (defun delta-dur (delta)
   delta)
@@ -161,20 +152,20 @@
 (defun dur-delta (dur)
   dur)
 
-(event-translation-method dur delta)
+(event-translation-method delta dur)
 
-(event-method sustain 1)
+(event-method legato 0.8)
 
-(defgeneric legato (item))
+(defgeneric sustain (item))
 
-(defmethod legato ((item event))
-  (* (slot-value item 'delta)
-     (slot-value item 'sustain)))
+(defmethod sustain ((item event))
+  (* (legato item)
+     (dur item)))
 
-(defgeneric (setf legato) (value item))
+(defgeneric (setf sustain) (value item))
 
-(defmethod (setf legato) (value (item event))
-  (setf (sustain item) (* (delta item) value)))
+(defmethod (setf sustain) (value (item event))
+  (setf (legato item) (/ value (dur item))))
 
 (event-method timing-offset 0)
 
@@ -193,12 +184,3 @@
 (event-translation-method midinote freq)
 
 (event-method other-params (list))
-
-;;
-
-(defun gete (list key)
-  "Get a list of the value of KEY for each element in LIST."
-  (mapcar (lambda (event)
-            (unless (null event)
-              (get-event-val event key)))
-          list))

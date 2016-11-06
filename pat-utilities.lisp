@@ -27,3 +27,10 @@
 (defun as-keyword (symbol)
   "Turns a symbol into a keyword."
   (re-intern symbol :keyword))
+
+(defun gete (list key)
+  "Get a list of the value of KEY for each element in LIST."
+  (mapcar (lambda (event)
+            (unless (null event)
+              (get-event-val event key)))
+          list))

@@ -8,12 +8,39 @@
    #:next-n
    #:play
 
-   #:event
-
-   ;; #:defpattern
+   #:defpattern
    
    #:pbind
    #:pseq
    #:pk
    #:prand
-   #:pfunc))
+   #:pfunc
+   
+   #:event
+
+   #:instrument
+   #:group
+   #:out
+
+   #:amp
+   #:db
+   #:amp-db
+   #:db-amp
+   
+   #:pan
+   
+   #:tempo
+   #:dur
+   #:legato
+   #:sustain
+   #:delta
+   #:timing-offset
+   #:delta-dur
+   #:dur-delta
+   
+   #:freq
+   #:midinote
+   #:steps-per-octave
+   #:other-params
+
+   #:gete))
