@@ -63,7 +63,7 @@
 (defmethod keys ((item event))
   (append
    (remove-if-not (lambda (x) (slot-boundp item (re-intern x)))
-                  (list 'instrument 'group 'out 'amp 'pan 'tempo 'delta 'sustain 'timing-offset 'freq 'steps-per-octave))
+                  (list 'instrument 'group 'out 'amp 'pan 'tempo 'dur 'legato 'timing-offset 'freq 'steps-per-octave))
    (keys (slot-value item 'other-params))))
 
 (defmethod keys ((item cons))
