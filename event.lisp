@@ -25,17 +25,17 @@
   (let ((ev (make-instance 'event)))
     (labels ((accumulator (pairs)
                (when (not (null (car pairs)))
-                 (set-event-val ev (re-intern (car pairs)) (cadr pairs))
+                 (set-event-value ev (re-intern (car pairs)) (cadr pairs))
                  (accumulator (cddr pairs)))))
       (accumulator params)
       ev)))
 
-(defun set-event-val (event slot value)
+(defun set-event-value (event slot value)
   (if (position slot *event-basic-parameters*)
       (funcall (fdefinition (list 'setf slot)) value event)
       (setf (getf (slot-value event 'other-params) (as-keyword slot)) value)))
 
-(defun get-event-val (event slot)
+(defun get-event-value (event slot)
   (let ((slot (re-intern slot)))
     (if (and (fboundp slot)
              (eq 'standard-generic-function (type-of (fdefinition slot))))
@@ -46,7 +46,7 @@
   "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist."
   (let ((result event1))
     (loop :for key :in (keys event2)
-       :do (set-event-val result key (get-event-val event2 key)))
+       :do (set-event-value result key (get-event-value event2 key)))
     result))
 
 (defun play-test (item)
@@ -87,7 +87,7 @@
   (let ((plist '()))
     (loop :for i in (keys event)
        :do (when (not (null i))
-             (setf plist (plist-set plist (as-keyword i) (get-event-val event i)))))
+             (setf plist (plist-set plist (as-keyword i) (get-event-value event i)))))
     plist))
 
 (defmethod print-object ((item event) stream)

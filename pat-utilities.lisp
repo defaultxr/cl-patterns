@@ -32,5 +32,5 @@
   "Get a list of the value of KEY for each element in LIST."
   (mapcar (lambda (event)
             (unless (null event)
-              (get-event-val event key)))
+              (get-event-value event key)))
           list))
