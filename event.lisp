@@ -22,6 +22,7 @@
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
+  "Create an event, using the PARAMS as its keys/values."
   (let ((ev (make-instance 'event)))
     (labels ((accumulator (pairs)
                (when (not (null (car pairs)))
@@ -31,11 +32,13 @@
       ev)))
 
 (defun set-event-value (event slot value)
+  "Set the value of SLOT to VALUE in EVENT."
   (if (position slot *event-basic-parameters*)
       (funcall (fdefinition (list 'setf slot)) value event)
-      (setf (getf (slot-value event 'other-params) (as-keyword slot)) value)))
+      (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (as-keyword slot) value))))
 
 (defun get-event-value (event slot)
+  "Return the value of SLOT in EVENT."
   (let ((slot (re-intern slot)))
     (if (and (fboundp slot)
              (eq 'standard-generic-function (type-of (fdefinition slot))))
@@ -50,6 +53,7 @@
     result))
 
 (defun play-test (item)
+  "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."
   (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
 
 (defparameter *event-output-function* 'play-test
@@ -76,7 +80,7 @@
 (defmethod keys ((item null))
   nil)
 
-(defun plist-set (plist key val) ;; FIX: use this to add keys to plists so that their order isn't changed
+(defun plist-set (plist key val)
   (if (getf plist key)
       (progn
         (setf (getf plist key) val)
