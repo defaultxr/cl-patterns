@@ -20,11 +20,11 @@
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
-  (labels ((accumulator (pairs)
-             (when (not (null (car pairs)))
+  (let ((ev (make-instance 'event)))
+    (labels ((accumulator (pairs)
+               (when (not (null (car pairs)))
                  (set-event-val ev (re-intern (car pairs)) (cadr pairs))
-                   (accumulator (cddr pairs)))))
-    (let ((ev (make-instance 'event)))
+                 (accumulator (cddr pairs)))))
       (accumulator params)
       ev)))
 
@@ -41,7 +41,11 @@
         (getf (slot-value event 'other-params) (as-keyword slot)))))
 
 (defun combine-events (event1 event2)
-  "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist.")
+  "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist."
+  (let ((result event1))
+    (loop :for key :in (keys event2)
+       :do (set-event-val result key (get-event-val event2 key)))
+    result))
 
 (defun play-test (item)
   (format t "Playing: ~s~%" item))
@@ -151,6 +155,14 @@
 
 (event-method delta 1)
 
+(defun delta-dur (delta)
+  delta)
+
+(defun dur-delta (dur)
+  dur)
+
+(event-translation-method dur delta)
+
 (event-method sustain 1)
 
 (defgeneric legato (item))
@@ -187,5 +199,6 @@
 (defun gete (list key)
   "Get a list of the value of KEY for each element in LIST."
   (mapcar (lambda (event)
-            (get-event-val event key))
+            (unless (null event)
+              (get-event-val event key)))
           list))
