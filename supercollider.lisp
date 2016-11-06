@@ -5,5 +5,7 @@
 (defgeneric play-sc (item))
 
 (defmethod play-sc ((item t))
-  (eval (append (list (re-intern (instrument item) :sc)))))
+  (let ((params (event-plist item)))
+    (remf params :instrument)
+    (sc:synth (instrument item) params)))
 

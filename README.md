@@ -20,10 +20,16 @@ Create a pattern like so:
                          :bar (prand '(9 8 7) 5)))
 ```
 
-Then, you can get results from the pattern one at a time with `next`, or many at a time with `next-n`:
+Since patterns are basically "templates", you need to turn them into `pstream` objects in order to actually get output from them:
 
 ```
-(defparameter list (next-n pat 7))
+(defparameter pstream (as-pstream pat))
+```
+
+Then, you can get results from the pstream one at a time with `next`, or many at a time with `next-n`:
+
+```
+(defparameter list (next-n pstream 7))
 ```
 
 You can play an event using the `play` function:
@@ -32,7 +38,45 @@ You can play an event using the `play` function:
 (play (car list))
 ```
 
-In the future I'll write information on how you can make `play` actually cause sound output from the SuperCollider server.
+Or you can play the pattern itself:
+
+```
+(play pat)
+```
+
+If you want to actually hear sound output, you'll need to either use SuperCollider or Incudine for that, as `cl-patterns` doesn't create sound on its own:
+
+```
+(load #P"/path/to/cl-patterns/supercollider.lisp")
+
+(load #P"/path/to/cl-patterns/supercollider-example.lisp")
+
+(setf *event-output-function* 'play-sc)
+
+(play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
+```
+
+In the future, you'll be able to do something like this to use Incudine as the output:
+
+```
+(load #P"/path/to/cl-patterns/incudine.lisp")
+
+(load #P"/path/to/cl-patterns/incudine-example.lisp")
+
+(setf *event-output-function* 'play-incudine)
+
+(play (pbind :id 1 :freq (pseq '(100 200 400 800) 1)))
+```
+
+...But right now that doesn't work!
+
+If you have access to the `bordeaux-threads` library for threading, you can also fork a pattern:
+
+```
+(fork (pbind :instrument :kik :freq (pseq '(100 200 400 800) 4)))
+```
+
+That way your REPL won't be tied up as it's playing. For now, the only way to stop a forked pattern is using SLIME's thread manager (`C-c C-x t` or `M-x slime-list-threads`) or by using `(bt:destroy-thread THREAD)` where THREAD is the object returned by the `fork` function.
 
 Tour
 ====
@@ -46,7 +90,8 @@ Tour
 * patterns-series.lisp - the previous version of patterns.lisp which used the `SERIES` library to write patterns in a generator style.
 * pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use `alexandria`.
 * README.md - this file. self-expanatory, i'd hope.
-* supercollider.lisp - code to interface `cl-patterns` with the `cl-collider` library.
+* supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/defaultxr/cl-collider) library.
+* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
 
 Ideas/TODO
 ==========
@@ -59,7 +104,6 @@ Ideas/TODO
   * the same should be true for when you set the values - setting `db` and then accessing `amp` will return the value of the `db` you set converted to `amp`
   * interally, an Event only keeps track of `amp` and just converts to whatever type you request, or converts whatever type you give it to `amp`.
 * more metadata in patterns and streams so that it's easier to write functions that process streams/patterns/etc
-* use the `prove` library to write tests for the patterns.
 * make it easy to combine patterns by "injecting" the results of an event pattern into its parent event pattern
   * i.e.:
   `(next-n (pbind :foo (pseq '(hey how are ya)) :inject (pbind :bar (pseq '(1 2 3)))) 3)`
@@ -73,3 +117,4 @@ Ideas/TODO
 * make it possible to send out values at a specific key at a different rate
   * i.e.: `(pbind :dur 1 :foo (pseq '(1 2 3)) :bar (pbind :dur 1/2 :val (pseq '(9 8 7))))` results in `:foo` being set to 1, then 2, then 3 on every beat, while `:bar` is set to 9, then 8, then 7 on every half beat. effectively, the :bar sub-pattern is independent from the main pbind, it's just launched at the same time and ends at the same time.
 * make macros to quickly write out patterns with symbols, i.e. k---s---k---s--- for a kick/snare/kick/snare pattern or the like - see `ds` in `misc.lisp`
+* add more tests to `tests.lisp`

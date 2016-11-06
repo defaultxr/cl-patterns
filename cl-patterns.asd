@@ -4,8 +4,8 @@
   :description "SuperCollider-inspired patterns library for Common Lisp."
   :version "0.1"
   :depends-on (#:alexandria
-               #:bordeaux-threads
                #:closer-mop)
+  :weakly-depends-on (#:bordeaux-threads)
   :serial t
   :components ((:file "package")
                (:file "pat-utilities")
