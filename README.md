@@ -96,7 +96,7 @@ Tour
 * misc.lisp - where i put my code when i'm just messing around with stuff. might be useful as example code, but could also have outdated stuff in it.
 
 * supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/defaultxr/cl-collider) library.
-* supercollider-example.lisp - 
+* supercollider-example.lisp - example code to get started with the `cl-collider` library.
 * incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
 
 Ideas/TODO
