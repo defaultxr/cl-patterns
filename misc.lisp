@@ -1,10 +1,13 @@
+(in-package :cl-patterns)
+
 ;; macro for k---s--- shit
 
-(defmacro ds (&key map &rest items)
+(defmacro ds (map &rest items)
   (let ((res (mapcar #'symbol-name items)))
     `(list ,@res)))
 
-(print (ds k - - -
+(print (ds '(:foo :bar)
+           k - - -
            s - - -
            k - - -
            s - - -))
@@ -13,6 +16,51 @@
     :parent :xx
     :instrument :bar
     :fuck 'baz)
+
+;; dur macro
+
+(defmacro d (&rest items)
+  `(duration ',items))
+
+;; duration converts a list of symbols into a duration in beats
+;; 1b = 1 beat (dur of 1)
+;; 1B = 1 bar (depends on current tempoclock's beats-per-bar)
+;; 1s = 1 second
+;; 1m = 1 minute
+;; (duration '1b1s) = 1 beat + 1 second
+;; (duration 1) = 1 beat
+;; (duration '(1 b)) = 1 beat
+;; (duration '(1B 1s)) = 1 bar + 1 second
+;; (duration '(1/2 1s)) = 0.5 beats + 1 second
+(defun duration (&rest items) ;; FIX
+  )
+
+;; FIX: is it possible to temporarily change the behavior of a character when a macro is being read?
+;; i.e. so that newlines can be converted to symbols within a macro
+;; so that a tracker-style macro pattern generator can be written
+;; i.e. for something like
+;; (tracker
+;; kick 400
+;; snare 300
+;; kick 200
+;; snare 100)
+;; so that the program can tell that 'kick 400' and 'snare 300' should be grouped, and that the newline has different meaning than regular spaces
+;; https://gist.github.com/chaitanyagupta/9324402
+;; maybe it'd be possible to just change the macro character for \n just in a package, and treat it normally everywhere but inside that macro?
+;; sounds difficult though..
+
+(defun semicolon-reader (stream char)
+  (declare (ignore char))
+  ;; First swallow the rest of the current input line.
+  ;; End-of-file is acceptable for terminating the comment.
+  (do () ((char= (read-char stream nil #\Newline t) #\Newline)))
+  ;; Return zero values.
+  (values))
+
+(set-macro-character #\; #'semicolon-reader)
+
+(defmacro foo (&body bar)
+  `(write-to-string ',bar))
 
 ;; midi stuff
 

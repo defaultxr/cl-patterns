@@ -49,20 +49,20 @@
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process."))
 
-(defmethod next :around ((pattern pattern)) ;; FIX: this should be a method for pstream, not pattern. pattern should call as-pstream on itself when 'next' is called on it.
-  (labels ((get-value (pattern)
-             (let ((res (call-next-method)))
-               (typecase res
-                 (pattern (next res))
-                 (t res)))))
-    (if (null (slot-value pattern 'remaining))
-        (get-value pattern)
-        (when (> (slot-value pattern 'remaining) 0)
-          (decf (slot-value pattern 'remaining))
-          (get-value pattern)))))
+;; (defmethod next :around ((pattern pattern)) ;; FIX: this should be a method for pstream, not pattern. pattern should call as-pstream on itself when 'next' is called on it.
+;;   (labels ((get-value (pattern)
+;;              (let ((res (call-next-method)))
+;;                (typecase res
+;;                  (pattern (next res))
+;;                  (t res)))))
+;;     (if (null (slot-value pattern 'remaining))
+;;         (get-value pattern)
+;;         (when (> (slot-value pattern 'remaining) 0)
+;;           (decf (slot-value pattern 'remaining))
+;;           (get-value pattern)))))
 
-(defmethod next :after ((pattern pattern))
-  (incf (slot-value pattern 'number)))
+(defmethod next ((pattern pattern))
+  (next (as-pstream pattern)))
 
 (defmethod next ((pattern function))
   (funcall pattern))
@@ -73,10 +73,8 @@
 (defgeneric next-n (pattern n)
   (:documentation "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."))
 
-(defmethod next-n (pattern (n number))
-  (loop
-     :for i :from 0 :below n
-     :collect (next pattern)))
+(defmethod next-n ((pattern pattern) (n number))
+  (next-n (as-pstream pattern) n))
 
 ;;; pstream
 
@@ -97,8 +95,28 @@
   (make-instance 'pstream
                  :remaining (slot-value pattern 'remaining)))
 
+(defmethod next :around ((pattern pstream))
+  (labels ((get-value (pattern)
+             (let ((res (call-next-method)))
+               (typecase res
+                 (pattern (next res))
+                 (t res)))))
+    (if (null (slot-value pattern 'remaining))
+        (get-value pattern)
+        (when (> (slot-value pattern 'remaining) 0)
+          (decf (slot-value pattern 'remaining))
+          (get-value pattern)))))
+
+(defmethod next :after ((pattern pstream))
+  (incf (slot-value pattern 'number)))
+
 (defmethod next ((pattern pstream))
   (next pattern))
+
+(defmethod next-n ((pattern pstream) (n number))
+  (loop
+     :for i :from 0 :below n
+     :collect (next pattern)))
 
 (defgeneric as-pstream (pattern))
 
@@ -157,6 +175,23 @@
   value)
 
 (defmethod next ((pattern pbind))
+  (next (as-pstream pattern)))
+
+;; (defmethod next ((pattern pbind))
+;;   (labels ((pbind-accumulator (pairs)
+;;              (let ((next-cadr (next (cadr pairs))))
+;;                (if (position (car pairs) (keys *pbind-special-keys*))
+;;                    (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
+;;                      (setf *event* (combine-events *event* result)))
+;;                    (set-event-value *event* (re-intern (car pairs)) next-cadr))
+;;                (when (not (null next-cadr)) ;; drop out if one of the values is nil - end of pattern!
+;;                  (if (not (null (cddr pairs)))
+;;                      (pbind-accumulator (cddr pairs))
+;;                      *event*)))))
+;;     (let ((*event* (make-default-event)))
+;;       (pbind-accumulator (slot-value pattern 'pairs)))))
+
+(defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
              (let ((next-cadr (next (cadr pairs))))
                (if (position (car pairs) (keys *pbind-special-keys*))
@@ -187,6 +222,9 @@
                  :remaining (when repeats (* repeats (length list)))))
 
 (defmethod next ((pattern pseq))
+  (next (as-pstream pattern)))
+
+(defmethod next ((pattern pseq-pstream))
   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
        (slot-value pattern 'list)))
 
