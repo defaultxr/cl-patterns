@@ -49,18 +49,6 @@
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process."))
 
-;; (defmethod next :around ((pattern pattern)) ;; FIX: this should be a method for pstream, not pattern. pattern should call as-pstream on itself when 'next' is called on it.
-;;   (labels ((get-value (pattern)
-;;              (let ((res (call-next-method)))
-;;                (typecase res
-;;                  (pattern (next res))
-;;                  (t res)))))
-;;     (if (null (slot-value pattern 'remaining))
-;;         (get-value pattern)
-;;         (when (> (slot-value pattern 'remaining) 0)
-;;           (decf (slot-value pattern 'remaining))
-;;           (get-value pattern)))))
-
 (defmethod next ((pattern pattern))
   (next (as-pstream pattern)))
 
@@ -109,9 +97,6 @@
 
 (defmethod next :after ((pattern pstream))
   (incf (slot-value pattern 'number)))
-
-(defmethod next ((pattern pstream))
-  (next pattern))
 
 (defmethod next-n ((pattern pstream) (n number))
   (loop
@@ -174,23 +159,6 @@
 (define-pbind-special-key inject
   value)
 
-(defmethod next ((pattern pbind))
-  (next (as-pstream pattern)))
-
-;; (defmethod next ((pattern pbind))
-;;   (labels ((pbind-accumulator (pairs)
-;;              (let ((next-cadr (next (cadr pairs))))
-;;                (if (position (car pairs) (keys *pbind-special-keys*))
-;;                    (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
-;;                      (setf *event* (combine-events *event* result)))
-;;                    (set-event-value *event* (re-intern (car pairs)) next-cadr))
-;;                (when (not (null next-cadr)) ;; drop out if one of the values is nil - end of pattern!
-;;                  (if (not (null (cddr pairs)))
-;;                      (pbind-accumulator (cddr pairs))
-;;                      *event*)))))
-;;     (let ((*event* (make-default-event)))
-;;       (pbind-accumulator (slot-value pattern 'pairs)))))
-
 (defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
              (let ((next-cadr (next (cadr pairs))))
@@ -207,10 +175,6 @@
 
 ;;; pseq
 
-;; (defclass pseq (pattern)
-;;   ((list :initarg :list :accessor :list))
-;;   (:documentation "A pseq yields values from its list in the same order they were provided."))
-
 (defpattern pseq (pattern)
   ((list :initarg :list :accessor :list))
   "A pseq yields values from its list in the same order they were provided.")
@@ -221,26 +185,11 @@
                  :list list
                  :remaining (when repeats (* repeats (length list)))))
 
-(defmethod next ((pattern pseq))
-  (next (as-pstream pattern)))
-
 (defmethod next ((pattern pseq-pstream))
   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
        (slot-value pattern 'list)))
 
-;; (defclass pseq-pstream (pseq pstream)
-;;   ())
-
-;; (defmethod next ((pattern pseq-pstream))
-;;   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
-;;        (slot-value pattern 'list)))
-
 ;;; pk
-
-;; (defclass pk (pattern)
-;;   ((key :initarg :key :accessor :key)
-;;    (default :initarg :default :accessor :default :initform 1))
-;;   (:documentation "A pk returns a value from the current *event* context, returning DEFAULT if that value is nil."))
 
 (defpattern pk (pattern)
   ((key :initarg :key :accessor :key)
@@ -253,18 +202,11 @@
                  :key key
                  :default default))
 
-(defmethod next ((pattern pk))
+(defmethod next ((pattern pk-pstream))
   (or (get-event-value *event* (slot-value pattern 'key))
       (slot-value pattern 'default)))
 
-;; (defclass pk-pstream (pk pstream)
-;;   ())
-
 ;;; prand
-
-;; (defclass prand (pattern)
-;;   ((list :initarg :list :accessor :list))
-;;   (:documentation "A prand returns a random value from LIST."))
 
 (defpattern prand (pattern)
   ((list :initarg :list :accessor :list))
@@ -276,14 +218,10 @@
                  :list list
                  :remaining remaining))
 
-(defmethod next ((pattern prand))
+(defmethod next ((pattern prand-pstream))
   (alexandria:random-elt (slot-value pattern 'list)))
 
 ;;; pfunc
-
-;; (defclass pfunc (pattern)
-;;   ((func :initarg :func :accessor :func))
-;;   (:documentation "A pfunc returns the result of the provided function FUNC."))
 
 (defpattern pfunc (pattern)
   ((func :initarg :func :accessor :func))
@@ -294,24 +232,16 @@
   (make-instance 'pfunc
                  :func func))
 
-(defmethod next ((pattern pfunc))
+(defmethod next ((pattern pfunc-pstream))
   (funcall (slot-value pattern 'func)))
 
 ;;; pr
 
-;; (defclass pr (pattern)
-;;   ((pattern :initarg :pattern :accessor :pattern)
-;;    (repeats :initarg :repeats :accessor :repeats :initarg :inf)
-;;    (cv :initform nil) ;; current value
-;;    (crr :initform nil) ;; current repeats remaining
-;;    )
-;;   (:documentation "A pr repeats a value from PATTERN REPEATS times before moving on to the next value from PATTERN."))
-
 (defpattern pr (pattern)
   ((pattern :initarg :pattern :accessor :pattern)
    (repeats :initarg :repeats :accessor :repeats :initarg :inf)
-   (cv :initform nil) ;; current value
-   (crr :initform nil) ;; current repeats remaining
+   (cv :initarg :cv :initform nil) ;; current value
+   (crr :initarg :crr :initform nil) ;; current repeats remaining
    )
   "A pr repeats a value from PATTERN REPEATS times before moving on to the next value from PATTERN.")
 
@@ -320,7 +250,7 @@
                  :pattern pattern
                  :repeats repeats))
 
-(defmethod next ((pattern pr))
+(defmethod next ((pattern pr-pstream))
   (if (or (null (slot-value pattern 'cv))
           (<= (slot-value pattern 'crr) 0))
       (progn
@@ -333,18 +263,10 @@
 
 ;;; pdef
 
-;; (defclass pdef (pattern)
-;;   ((key :initarg :key :accessor :key)
-;;    (pattern :initarg :pattern :accessor :pattern))
-;;   (:documentation "A named pattern."))
-
 (defpattern pdef (pattern)
   ((key :initarg :key :accessor :key)
    (pattern :initarg :pattern :accessor :pattern))
   "A named pattern.")
-
-;; (defparameter *pdef-dictionary* '()
-;;   "The global pdef dictionary.")
 
 ;; (defun pdef-ref (key &optional value)
 ;;   "Retrieve a value from the global pdef dictionary, or set it if VALUE is provided."
@@ -374,24 +296,20 @@
                  :key key
                  :pattern value))
 
-(defmethod next ((pattern pdef))
+(defmethod next ((pattern pdef-pstream))
   (next (pdef-ref (slot-value pattern 'key))))
 
 ;; plazy
 
-;; (defclass plazy (pattern)
-;;   ((func :initarg :func :accessor :func)
-;;    (cp :initform nil)))
-
 (defpattern plazy (pattern)
   ((func :initarg :func :accessor :func)
-   (cp :initform nil)))
+   (cp :initarg :cp :initform nil)))
 
 (defun plazy (func)
   (make-instance 'plazy
                  :func func))
 
-(defmethod next ((pattern plazy))
+(defmethod next ((pattern plazy-pstream))
   (if (null (slot-value pattern 'cp))
       (progn
         (setf (slot-value pattern 'cp) (funcall (slot-value pattern 'func)))
@@ -399,12 +317,6 @@
       (next (slot-value pattern 'cp))))
 
 ;;; plazyn
-
-;; (defclass plazyn (pattern)
-;;   ((func :initarg :func :accessor :func)
-;;    (repeats :initarg :repeats :accessor :repeats)
-;;    (cp :initform nil)
-;;    (crr :initarg :crr :initform nil)))
 
 (defpattern plazyn (pattern)
   ((func :initarg :func :accessor :func)
@@ -418,7 +330,7 @@
                  :repeats repeats
                  :crr repeats))
 
-(defmethod next ((pattern plazyn))
+(defmethod next ((pattern plazyn-pstream))
   (labels ((maybe-funcall ()
              (when (or (eq :inf (slot-value pattern 'crr))
                        (> (slot-value pattern 'crr) 0))
