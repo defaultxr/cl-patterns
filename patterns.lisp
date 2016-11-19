@@ -159,6 +159,9 @@
 (define-pbind-special-key inject
   value)
 
+(define-pbind-special-key pdef ;; FIX
+  nil)
+
 (defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
              (let ((next-cadr (next (cadr pairs))))

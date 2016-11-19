@@ -104,6 +104,8 @@ Ideas/TODO
 
 * implement rests.
 * `tsubseq` function for getting a subsequence based on start and end times of events.
+* `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.
+  * i.e. `(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)` returns `(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))`
 * do "static" things to "dynamic" patterns - i.e. `(pshift (pseq '(1 2 3)) 1)` results in `'(3 1 2 3 1 2 3 ...)` or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
 * automatically convert between different ways to represent the same thing in events
   * for example, if you set an event's `amp` but then try to access its `db`, it calculates the `db` based on the `amp` value.

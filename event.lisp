@@ -3,20 +3,20 @@
 ;; FIX: maybe just put everything in other-params instead of having them as slots in event. more consistent, simpler, etc.
 
 (defclass event ()
-  ((instrument :initarg :instrument :accessor :instrument)
-   (group :initarg :group :accessor :group)
-   (out :initarg :out :accessor :out)
-   (amp :initarg :amp :accessor :amp)
-   (pan :initarg :pan :accessor :pan)
-   (tempo :initarg :tempo :accessor :tempo)
-   (dur :initarg :dur :accessor :dur)
-   (legato :initarg :legato :accessor :legato)
+  (;; +(instrument :initarg :instrument :accessor :instrument)
+   ;; +(group :initarg :group :accessor :group)
+   ;; +(out :initarg :out :accessor :out)
+   ;; +(amp :initarg :amp :accessor :amp)
+   ;; +(pan :initarg :pan :accessor :pan)
+   ;; +(tempo :initarg :tempo :accessor :tempo)
+   ;; +(dur :initarg :dur :accessor :dur)
+   ;; +(legato :initarg :legato :accessor :legato)
    ;; (delta :initarg :delta :accessor :delta)
    ;; (sustain :initarg :sustain :accessor :sustain)
-   (timing-offset :initarg :timing-offset :accessor :timing-offset)
+   ;; +(timing-offset :initarg :timing-offset :accessor :timing-offset)
    ;; (strum )
-   (freq :initarg :freq :accessor :freq)
-   (steps-per-octave :initarg :steps-per-octave :accessor :steps-per-octave)
+   ;; +(freq :initarg :freq :accessor :freq)
+   ;; +(steps-per-octave :initarg :steps-per-octave :accessor :steps-per-octave)
    ;; may need to keep more keys to determine the note from the freq????
    (other-params :initarg :other-params :accessor :other-params :initform (list)))
   (:documentation "Class representing a musical event."))
@@ -31,19 +31,31 @@
       (accumulator params)
       ev)))
 
+(defun raw-set-event-value (event slot value)
+  "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
+  (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (as-keyword slot) value)))
+
 (defun set-event-value (event slot value)
-  "Set the value of SLOT to VALUE in EVENT."
-  (if (position slot *event-basic-parameters*)
+  "Set the value of SLOT to VALUE in EVENT, running any conversion functions that exist."
+  (if (fboundp (list 'setf slot))
       (funcall (fdefinition (list 'setf slot)) value event)
-      (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (as-keyword slot) value))))
+      (raw-set-event-value event slot value)))
+
+(defun remove-event-value (event slot)
+  "Removes SLOT from EVENT."
+  (setf (slot-value event 'other-params) (alexandria:remove-from-plist (slot-value event 'other-params) (as-keyword slot))))
+
+(defun raw-get-event-value (event slot)
+  "Get the value of SLOT in EVENT without running any conversion functions."
+  (getf (slot-value event 'other-params) (as-keyword slot)))
 
 (defun get-event-value (event slot)
-  "Return the value of SLOT in EVENT."
+  "Return the value of SLOT in EVENT, running any necessary conversion functions."
   (let ((slot (re-intern slot)))
     (if (and (fboundp slot)
              (eq 'standard-generic-function (type-of (fdefinition slot))))
         (funcall slot event)
-        (getf (slot-value event 'other-params) (as-keyword slot)))))
+        (raw-get-event-value event slot))))
 
 (defun combine-events (event1 event2)
   "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist."
@@ -65,10 +77,7 @@
 (defgeneric keys (item))
 
 (defmethod keys ((item event))
-  (append
-   (remove-if-not (lambda (x) (slot-boundp item (re-intern x)))
-                  (list 'instrument 'group 'out 'amp 'pan 'tempo 'dur 'legato 'timing-offset 'freq 'steps-per-octave))
-   (keys (slot-value item 'other-params))))
+  (keys (slot-value item 'other-params)))
 
 (defmethod keys ((item cons))
   (labels ((accum (list)
@@ -97,13 +106,9 @@
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
-(defparameter *event-basic-parameters* nil
-  "The list of all the \"basic\" parameters that can be set on an event. Everything else gets shoved into the other-params slot.")
-
 (defmacro event-method (name default &optional documentation)
   "Creates the generic functions and the methods for reading and writing to the NAME slot for an event and reading it from a plist."
   `(progn
-     (setf *event-basic-parameters* (append *event-basic-parameters* (list ',name)))
      (defgeneric ,name (item) (:documentation ,documentation))
      (defmethod ,name ((item event))
        (if (slot-boundp item ',name)
@@ -119,7 +124,6 @@
   (let ((sdestination (symbol-name destination))
         (ssource (symbol-name source)))
     `(progn
-       (setf *event-basic-parameters* (append *event-basic-parameters* (list ',destination)))
        (defgeneric ,destination (item))
        (defmethod ,destination ((item event))
          (,(intern (string-upcase (concatenate 'string ssource "-" sdestination))) (,source item)))
@@ -148,30 +152,62 @@
 
 (event-method tempo 1)
 
-(event-method dur 1)
+(defgeneric delta (item))
+
+(defmethod delta ((item event))
+  (or (raw-get-event-value item :delta)
+      (dur item)))
+
+(defgeneric (setf delta) (value item))
+
+(defmethod (setf delta) (value (item event))
+  (raw-set-event-value item :delta value))
+
+(defgeneric dur (item))
+
+(defmethod dur ((item event))
+  (or (raw-get-event-value item :dur)
+      1))
+
+(defgeneric (setf dur) (value item))
+
+(defmethod (setf dur) (value (item event))
+  (raw-set-event-value item :dur value))
+
+(defgeneric sustain (item))
+
+(defmethod sustain ((item event))
+  (or (raw-get-event-value item :sustain)
+      (* (legato item)
+         (dur item))))
+
+(defgeneric (setf sustain) (value item))
+
+(defmethod (setf sustain) (value (item event))
+  (remove-event-value item :legato)
+  (raw-set-event-value item :sustain value))
+
+(event-method timing-offset 0)
+
+(defgeneric legato (item))
+
+(defmethod legato ((item event))
+  (or (raw-get-event-value item :legato)
+      (* (sustain item)
+         (dur item))
+      0.8))
+
+(defgeneric (setf legato) (value item))
+
+(defmethod (setf legato) (value (item event))
+  (remove-event-value item :sustain)
+  (raw-set-event-value item :legato value))
 
 (defun delta-dur (delta)
   delta)
 
 (defun dur-delta (dur)
   dur)
-
-(event-translation-method delta dur)
-
-(event-method legato 0.8)
-
-(defgeneric sustain (item))
-
-(defmethod sustain ((item event))
-  (* (legato item)
-     (dur item)))
-
-(defgeneric (setf sustain) (value item))
-
-(defmethod (setf sustain) (value (item event))
-  (setf (legato item) (/ value (dur item))))
-
-(event-method timing-offset 0)
 
 (event-method freq 440)
 
