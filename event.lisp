@@ -1,7 +1,5 @@
 (in-package :cl-patterns)
 
-;; FIX: maybe just put everything in other-params instead of having them as slots in event. more consistent, simpler, etc.
-
 (defclass event ()
   (;; +(instrument :initarg :instrument :accessor :instrument)
    ;; +(group :initarg :group :accessor :group)
