@@ -126,3 +126,13 @@ Ideas/TODO
   * i.e.: `(pbind :dur 1 :foo (pseq '(1 2 3)) :bar (pbind :dur 1/2 :val (pseq '(9 8 7))))` results in `:foo` being set to 1, then 2, then 3 on every beat, while `:bar` is set to 9, then 8, then 7 on every half beat. effectively, the :bar sub-pattern is independent from the main pbind, it's just launched at the same time and ends at the same time.
 * make macros to quickly write out patterns with symbols, i.e. k---s---k---s--- for a kick/snare/kick/snare pattern or the like - see `ds` in `misc.lisp`
 * add more tests to `tests.lisp`
+* make patterns able to trigger other patterns. i.e. something like this:
+```
+(progn
+  (fork (pbind :name :bar :pefollow :foo :timing-offset 0.25))
+  (fork (pbind :name :foo :dur (pseq '(0.5 0.5 0.5 0.5 1 1)))))
+```
+...then the `:bar` pattern's events will play 0.25 beats after each of `:foo`'s events play, because it's set to `:pefollow` that pattern.
+  * similarly, a `:pfollow` key could be used to automatically start the pattern for each even of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.
+* `:cleanup` key for pbinds. this can either contain a function or a list of functions. when the pattern ends or is stopped, the function or functions will be called.
+  * not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
