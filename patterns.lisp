@@ -150,7 +150,7 @@
 (defparameter *pbind-special-keys* '())
 
 (defmacro define-pbind-special-key (key &body body)
-  "Define a special key for pbind that alters the pattern in a nonstandard way. Must return a list or event if the key should inject values into the event stream or NIL."
+  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should inject values into the event stream, or NIL if it should not."
   (let ((keyname (as-keyword key)))
     `(setf (getf *pbind-special-keys* ,keyname)
            (lambda (value)
@@ -159,7 +159,16 @@
 (define-pbind-special-key inject
   value)
 
-(define-pbind-special-key pdef ;; FIX
+(defparameter *pbind-special-post-keys* '())
+
+(defmacro define-pbind-special-post-key (key &body body) ;; FIX: need to actually implement this
+  "Define a special key for pbind that does post-processing on the pbind when it is created."
+  (let ((keyname (as-keyword key)))
+    `(setf (getf *pbind-special-post-keys* ,keyname)
+           (lambda (value)
+             ,@body))))
+
+(define-pbind-special-post-key pdef ;; FIX
   nil)
 
 (defmethod next ((pattern pbind-pstream))
