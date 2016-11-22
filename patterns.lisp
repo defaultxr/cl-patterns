@@ -118,6 +118,7 @@
 
 ;;; pbind
 
+;; FIX: maybe an empty pbind (i.e. `(pbind)`) shouldn't return just nils? maybe just empty events?
 (defclass pbind (pattern)
   ((pairs :initarg :pairs :accessor :pairs :initform (list)))
   (:documentation "A pbind associates keys with values for a pattern stream that returns events."))

@@ -136,3 +136,5 @@ Ideas/TODO
   * similarly, a `:pfollow` key could be used to automatically start the pattern for each even of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.
 * `:cleanup` key for pbinds. this can either contain a function or a list of functions. when the pattern ends or is stopped, the function or functions will be called.
   * not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
+* a generalized way to inject keys into an event from inside a pbind...?
+  * or maybe just do something like `(pbind :inject (pmelody [32 - - [64 - -]]))` and pmelody would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?

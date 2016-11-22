@@ -95,11 +95,7 @@
       (append plist (list key val))))
 
 (defun event-plist (event)
-  (let ((plist '()))
-    (loop :for i in (keys event)
-       :do (when (not (null i))
-             (setf plist (plist-set plist (as-keyword i) (get-event-value event i)))))
-    plist))
+  (slot-value event 'other-params))
 
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
@@ -109,14 +105,16 @@
   `(progn
      (defgeneric ,name (item) (:documentation ,documentation))
      (defmethod ,name ((item event))
-       (if (slot-boundp item ',name)
-           (slot-value item ',name)
-           ,default))
+       (let ((res (getf (event-plist item) ,(as-keyword name))))
+         (if (not (null res))
+             res
+             ,default)))
      (defmethod ,name ((item cons)) ;; unfortunately it's only possible to get the value from a plist, not set it...
        (getf item ,(as-keyword name)))
      (defgeneric (setf ,name) (value item))
      (defmethod (setf ,name) (value (item event))
-       (setf (slot-value item ',name) value))))
+       (raw-set-event-value item ,(as-keyword name) value);; (setf (slot-value item ',name) value)
+       )))
 
 (defmacro event-translation-method (destination source)
   (let ((sdestination (symbol-name destination))
