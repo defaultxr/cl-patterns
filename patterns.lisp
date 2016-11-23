@@ -238,7 +238,8 @@
 
 (defpattern pxrand (pattern)
   ((list :initarg :list :accessor :list)
-   (lr :initarg :lr :initform nil))
+   (lr :initarg :lr :initform nil) ;; last result
+   )
   "A pxrand returns a random value from LIST, never repeating the same one twice.")
 
 (defun pxrand (list &optional remaining)
