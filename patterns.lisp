@@ -234,6 +234,27 @@
 (defmethod next ((pattern prand-pstream))
   (alexandria:random-elt (slot-value pattern 'list)))
 
+;;; pxrand
+
+(defpattern pxrand (pattern)
+  ((list :initarg :list :accessor :list)
+   (lr :initarg :lr :initform nil))
+  "A pxrand returns a random value from LIST, never repeating the same one twice.")
+
+(defun pxrand (list &optional remaining)
+  "Create an instance of the PXRAND class."
+  (assert (> (length (remove-duplicates list)) 1))
+  (make-instance 'pxrand
+                 :list list
+                 :remaining remaining))
+
+(defmethod next ((pattern pxrand-pstream))
+  (let ((res (alexandria:random-elt (slot-value pattern 'list))))
+    (loop :while (eql res (slot-value pattern 'lr))
+       :do (setf res (alexandria:random-elt (slot-value pattern 'list))))
+    (setf (slot-value pattern 'lr) res)
+    res))
+
 ;;; pfunc
 
 (defpattern pfunc (pattern)
