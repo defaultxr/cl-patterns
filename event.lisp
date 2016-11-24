@@ -29,6 +29,9 @@
       (accumulator params)
       ev)))
 
+(defparameter r 'r
+  "Rest.")
+
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
   (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (as-keyword slot) value)))
@@ -112,6 +115,10 @@
      (defmethod ,name ((item cons)) ;; unfortunately it's only possible to get the value from a plist, not set it...
        (getf item ,(as-keyword name)))
      (defgeneric (setf ,name) (value item))
+     (defmethod (setf ,name) :around (value (item event))
+                (if (eq value 'r)
+                    (raw-set-event-value item :type :rest)
+                    (call-next-method)))
      (defmethod (setf ,name) (value (item event))
        (raw-set-event-value item ,(as-keyword name) value);; (setf (slot-value item ',name) value)
        )))

@@ -1,4 +1,4 @@
-;; OO-style patterns
+;;; OO-style patterns
 
 (in-package :cl-patterns)
 
@@ -192,11 +192,11 @@
   ((list :initarg :list :accessor :list))
   "A pseq yields values from its list in the same order they were provided.")
 
-(defun pseq (list &optional repeats)
+(defun pseq (list &optional (repeats :inf))
   "Create an instance of the PSEQ class."
   (make-instance 'pseq
                  :list list
-                 :remaining (when repeats (* repeats (length list)))))
+                 :remaining (when (numberp repeats) (* repeats (length list)))))
 
 (defmethod next ((pattern pseq-pstream))
   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
@@ -334,7 +334,7 @@
 (defmethod next ((pattern pdef-pstream))
   (next (pdef-ref (slot-value pattern 'key))))
 
-;; plazy
+;;; plazy
 
 (defpattern plazy (pattern)
   ((func :initarg :func :accessor :func)
@@ -380,3 +380,29 @@
             (maybe-funcall)
             (next (slot-value pattern 'cp)))
           nv))))
+
+;;; pcycles
+;; inspired by tidalcycles
+
+(defpattern pcycles (pattern)
+  ((list :initarg :list :accessor :list)
+   (pl :initarg :pl :accessor :pl) ;; parsed list
+   ))
+
+(defun pcycles-parse-list (list) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time.
+  (labels ((recurse (list dur)
+             (let ((c (car list)))
+               (when (not (null c))
+                 (if (consp c)
+                     (recurse c (* dur (/ 1 (length c))))
+                     (cons (event :freq c :dur dur) (recurse (cdr list) dur)))))))
+    (recurse list (/ 1 (length list)))))
+
+(defun pcycles (list)
+  (make-instance 'pcycles
+                 :list list
+                 :pl (pcycles-parse-list list)))
+
+(defmethod next ((pattern pcycles-pstream))
+  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'pl)))
+       (slot-value pattern 'pl)))
