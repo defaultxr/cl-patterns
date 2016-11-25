@@ -347,7 +347,7 @@
 (defmethod next ((pattern plazy-pstream))
   (if (null (slot-value pattern 'cp))
       (progn
-        (setf (slot-value pattern 'cp) (funcall (slot-value pattern 'func)))
+        (setf (slot-value pattern 'cp) (as-pstream (funcall (slot-value pattern 'func))))
         (next (slot-value pattern 'cp)))
       (next (slot-value pattern 'cp))))
 
@@ -356,7 +356,7 @@
 (defpattern plazyn (pattern)
   ((func :initarg :func :accessor :func)
    (repeats :initarg :repeats :accessor :repeats)
-   (cp :initform nil)
+   (cp :initarg :cp :initform nil)
    (crr :initarg :crr :initform nil)))
 
 (defun plazyn (func &optional (repeats :inf))
@@ -369,7 +369,7 @@
   (labels ((maybe-funcall ()
              (when (or (eq :inf (slot-value pattern 'crr))
                        (> (slot-value pattern 'crr) 0))
-               (setf (slot-value pattern 'cp) (funcall (slot-value pattern 'func)))
+               (setf (slot-value pattern 'cp) (as-pstream (funcall (slot-value pattern 'func))))
                (when (numberp (slot-value pattern 'crr))
                  (decf (slot-value pattern 'crr))))))
     (when (null (slot-value pattern 'cp))
