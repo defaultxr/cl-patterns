@@ -1,6 +1,6 @@
 (in-package :cl-patterns)
 
-;; macro for k---s--- shit
+;;; macro for k---s--- shit
 
 (defmacro ds (map &rest items)
   (let ((res (mapcar #'symbol-name items)))
@@ -17,7 +17,7 @@
     :instrument :bar
     :fuck 'baz)
 
-;; dur macro
+;;; dur macro
 
 (defmacro d (&rest items)
   `(duration ',items))
@@ -34,6 +34,24 @@
 ;; (duration '(1/2 1s)) = 0.5 beats + 1 second
 (defun duration (&rest items) ;; FIX
   )
+
+;;; freq macro
+
+(defgeneric frequency (item))
+
+(defmethod frequency ((item number))
+  item)
+
+(defmethod frequency ((item symbol))
+  (frequency (write-to-string item)))
+
+(defmethod frequency ((item string))
+  )
+
+(defmacro f (&rest items)
+  `(frequency ))
+
+;;;
 
 ;; FIX: is it possible to temporarily change the behavior of a character when a macro is being read?
 ;; i.e. so that newlines can be converted to symbols within a macro
@@ -53,7 +71,7 @@
   (declare (ignore char))
   ;; First swallow the rest of the current input line.
   ;; End-of-file is acceptable for terminating the comment.
-  (do () ((char= (read-char stream nil #\Newline t) #\Newline)))
+  (do () ((char= (read-char stream nil #\newline t) #\newline)))
   ;; Return zero values.
   (values))
 
@@ -62,7 +80,7 @@
 (defmacro foo (&body bar)
   `(write-to-string ',bar))
 
-;; midi stuff
+;;; midi stuff
 
 (ql:quickload :midi)
 
@@ -73,7 +91,7 @@
 
 (play (nth 5 (nth 2 (midi:midifile-tracks midifile))))
 
-;; testing
+;;; testing
 
 (mapc #!(play-plist %)
       (next-n (pbind :instrument :kik :note (prand #[30 40 50 70 80 90])) 3))
@@ -82,7 +100,7 @@
 
 (slot-value (make-instance 'event :amp 3) 'amp)
 
-;; sc stuff
+;;; sc stuff
 
 (in-package :sc)
 
@@ -189,7 +207,7 @@
 
 (print (perc 0 .2 .4))
 
-;; mapping
+;;; mapping
 
 ;; (defun linlin)
 
@@ -260,3 +278,16 @@
 	;; 	);
 	;; 	^pow(outMax/outMin, log(this/inMin) / log(inMax/inMin)) * outMin;
 	;; }
+
+;;; buffer - return a sound from an object
+;; object can be:
+;; URL (use youtube-dl --extract-audio)
+;; pathname (read it as a sound file)
+;; envelope (convert it to a wavetable)
+;; string (text to speech)
+
+(defgeneric buffer (object))
+
+(defmethod buffer ((object pathname)))
+
+(defmethod buffer ((object string)))
