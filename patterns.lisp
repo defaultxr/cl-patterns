@@ -27,6 +27,9 @@
      (defclass ,(intern (concatenate 'string (symbol-name name) "-PSTREAM")) (,name pstream)
        ())))
 
+(defparameter *max-pattern-yield-length* 64
+  "The maximum amount of events or values that will be used by patterns like pshift, etc, in order to prevent hangs caused by infinite-length patterns.")
+
 ;;; pattern
 
 (defclass pattern ()
@@ -63,6 +66,22 @@
 
 (defmethod next-n ((pattern pattern) (n number))
   (next-n (as-pstream pattern) n))
+
+(defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
+  "Return a list of up to N values of PATTERN. If PATTERN ends after less than N values, then only that many values will be returned."
+  (let ((pstream (as-pstream pattern))
+        (results (list))
+        (number 0))
+    (block loop
+      (loop
+         (let ((val (next pstream)))
+           (if (or (null val)
+                   (= number n))
+               (return-from loop)
+               (progn
+                 (setf results (append results (list val)))
+                 (incf number))))))
+    results))
 
 ;;; pstream
 
@@ -108,6 +127,9 @@
 (defmethod as-pstream ((pattern t))
   pattern)
 
+(defmethod as-pstream ((pattern pstream))
+  pattern)
+
 (defmethod as-pstream ((pattern pattern))
   (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))))
     (apply #'make-instance
@@ -118,7 +140,6 @@
 
 ;;; pbind
 
-;; FIX: maybe an empty pbind (i.e. `(pbind)`) shouldn't return just nils? maybe just empty events?
 (defclass pbind (pattern)
   ((pairs :initarg :pairs :accessor :pairs :initform (list)))
   (:documentation "A pbind associates keys with values for a pattern stream that returns events."))
@@ -192,7 +213,7 @@
   ((list :initarg :list :accessor :list))
   "A pseq yields values from its list in the same order they were provided.")
 
-(defun pseq (list &optional (repeats :inf))
+(defun pseq (list &optional (repeats 1))
   "Create an instance of the PSEQ class."
   (make-instance 'pseq
                  :list list
@@ -406,3 +427,17 @@
 (defmethod next ((pattern pcycles-pstream))
   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'pl)))
        (slot-value pattern 'pl)))
+
+;;; pshift
+;; shift a pattern N forward or backward, wrapping around
+
+;; (defpattern pshift (pattern)
+;;   ((list :initarg :list :accessor :list)
+;;    (shift :initarg :shift :accessor :shift)))
+
+(defun pshift (pattern shift &optional (max-yield *max-pattern-yield-length*)) ;; FIX: maybe dont use pseq internally
+  (pseq (alexandria:rotate (next-upto-n pattern max-yield) shift)))
+
+;; (defmethod next ((pattern pshift-pstream)))
+
+;;; 
