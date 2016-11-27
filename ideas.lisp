@@ -1,3 +1,5 @@
+;;; tsubseq
+
 ;; FIX: doesn't work with negative numbers yet
 (defgeneric tsubseq (sequence start &optional end)
   (:documentation "Return a copy of a subsequence of SEQUENCE starting with the first element after START, ending with the last element before END.
@@ -83,6 +85,64 @@ See also: `tsubseq', which will not cut events short or insert rests."))
 
 (defun tsubseq*-rel (sequence start &optional (dur 16))
   (tsubseq* sequence start (+ start dur)))
+
+;;; macro for k---s--- shit
+
+(defmacro ds (map &rest items)
+  (let ((res (mapcar #'symbol-name items)))
+    `(list ,@res)))
+
+(print (ds '(:foo :bar)
+           k - - -
+           s - - -
+           k - - -
+           s - - -))
+
+(pb :foo
+    :parent :xx
+    :instrument :bar
+    :fuck 'baz)
+
+;;; dur macro
+
+(defmacro d (&rest items)
+  `(duration ',items))
+
+;; duration converts a list of symbols into a duration in beats
+;; 1b = 1 beat (dur of 1)
+;; 1B = 1 bar (depends on current tempoclock's beats-per-bar)
+;; 1s = 1 second
+;; 1m = 1 minute
+;; (duration '1b1s) = 1 beat + 1 second
+;; (duration 1) = 1 beat
+;; (duration '(1 b)) = 1 beat
+;; (duration '(1B 1s)) = 1 bar + 1 second
+;; (duration '(1/2 1s)) = 0.5 beats + 1 second
+(defun duration (&rest items) ;; FIX
+  )
+
+;;; freq macro
+
+(defgeneric frequency (item))
+
+(defmethod frequency ((item number))
+  item)
+
+(defmethod frequency ((item symbol))
+  (frequency (write-to-string item)))
+
+(defmethod frequency ((item string))
+  )
+
+(defmacro f (&rest items)
+  `(frequency ))
+
+;;; list macro
+
+(defmacro l (&rest items)
+  )
+
+;;;
 
 (defmacro defdelim (left right parms &body body)
   `(ddfn ,left ,right #'(lambda ,parms ,@body)))

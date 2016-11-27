@@ -108,7 +108,8 @@
                (typecase res
                  (pattern (next res))
                  (t res)))))
-    (if (null (slot-value pattern 'remaining))
+    (if (or (null (slot-value pattern 'remaining))
+            (eq (slot-value pattern 'remaining) :inf))
         (get-value pattern)
         (when (> (slot-value pattern 'remaining) 0)
           (decf (slot-value pattern 'remaining))
@@ -246,7 +247,7 @@
   ((list :initarg :list :accessor :list))
   "A prand returns a random value from LIST.")
 
-(defun prand (list &optional remaining)
+(defun prand (list &optional (remaining :inf))
   "Create an instance of the PRAND class."
   (make-instance 'prand
                  :list list

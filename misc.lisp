@@ -1,57 +1,55 @@
+;;; free
+
+(in-package :sc)
+
+(defgeneric free (item)
+  (:documentation "Free a synthesis object (node, bus, buffer, etc)"))
+
+(defmethod free ((item node))
+  (with-node (item id server)
+    (message-distribute item (list 11 id) server)))
+
+(defmethod free ((item buffer)))
+
+(defmethod free ((item bus)))
+
+(setf (reply-log-p *s*) t) ;; dump all OSC messages
+
+(defun query-tree (&optional (group-id 0) (server *s*))
+  (send-message server "/g_queryTree" group-id))
+
+;;; messing around
+
 (in-package :cl-patterns)
 
-;;; macro for k---s--- shit
+(load #P"~/misc/lisp/cl-patterns/supercollider.lisp")
 
-(defmacro ds (map &rest items)
-  (let ((res (mapcar #'symbol-name items)))
-    `(list ,@res)))
+(setf *event-output-function* 'play-sc)
 
-(print (ds '(:foo :bar)
-           k - - -
-           s - - -
-           k - - -
-           s - - -))
+(setf *tempo* (/ 110 60))
 
-(pb :foo
-    :parent :xx
-    :instrument :bar
-    :fuck 'baz)
+(defvar buf (sc:buffer-read "~/gamecube.wav"))
 
-;;; dur macro
+(play
+ (pbind
+  :instrument :sp
+  :bufnum buf
+  :dur (prand '(1.5 1/2 1/4) :inf)
+  :rate (pseq '(0.25 0.5 0.75 1) 4)
+  :start 0.5))
 
-(defmacro d (&rest items)
-  `(duration ',items))
-
-;; duration converts a list of symbols into a duration in beats
-;; 1b = 1 beat (dur of 1)
-;; 1B = 1 bar (depends on current tempoclock's beats-per-bar)
-;; 1s = 1 second
-;; 1m = 1 minute
-;; (duration '1b1s) = 1 beat + 1 second
-;; (duration 1) = 1 beat
-;; (duration '(1 b)) = 1 beat
-;; (duration '(1B 1s)) = 1 bar + 1 second
-;; (duration '(1/2 1s)) = 0.5 beats + 1 second
-(defun duration (&rest items) ;; FIX
-  )
-
-;;; freq macro
-
-(defgeneric frequency (item))
-
-(defmethod frequency ((item number))
-  item)
-
-(defmethod frequency ((item symbol))
-  (frequency (write-to-string item)))
-
-(defmethod frequency ((item string))
-  )
-
-(defmacro f (&rest items)
-  `(frequency ))
+(play ;; this doesn't work 
+ (pseq
+  (list
+   (pbind
+    :instrument :sp
+    :dur (pseq '(1 1/2) :inf)
+    :rate (pseq '(0.5 0.75) 4)
+    :start 0.5))))
 
 ;;;
+
+(in-package :cl-patterns)
 
 ;; FIX: is it possible to temporarily change the behavior of a character when a macro is being read?
 ;; i.e. so that newlines can be converted to symbols within a macro
@@ -114,7 +112,6 @@
 (push "/usr/lib/SuperCollider/plugins/" *sc-plugin-paths*)
 (push "/usr/share/SuperCollider/Extensions/" *sc-plugin-paths*)
 (setf *s* (make-external-server "localhost" :port 4444))
-(setf *s* (make-external-server "localhost" :port 57110 :just-connect-p t))
 (server-boot *s*)
 
 (setf foo (play (sin-osc.ar [440 441] 0 .2)))
@@ -123,6 +120,11 @@
 
 (stop)
 ;; to free a node, use the #'bye function.
+
+(defun b2 (in &optional (pan 0) (level 1)) ;; pseudo-ugen
+  (if (eq 'cons (type-of in))
+      (balance2.ar (car in) (cadr in) pan level)
+      (pan2.ar in pan level)))
 
 (proxy :fltr
        (with-controls ((speed 0.3) (out 0))
@@ -134,10 +136,14 @@
          (sig (saw.ar [freq freq])))
     (out.ar out (b2 sig pan (* env amp)))))
 
-(defun b2 (in &optional (pan 0) (level 1))
-  (if (eq 'cons (type-of in))
-      (balance2.ar (car in) (cadr in) pan level)
-      (pan2.ar in pan level)))
+(defsynth spt ((gate 1) (bufnum 0) (rate 1) (start 0) (amp 0.5) (pan 0) (out 0))
+  (let* ((env (env-gen.kr (asr 0.001 1 0.001) :gate gate :act :free))
+         (sig (play-buf.ar 2 bufnum (* rate (buf-rate-scale.kr bufnum)) :start-pos (* (buf-frames.ir bufnum) start))))
+    (out.ar out (b2 sig pan (* env amp)))))
+
+(defsynth sp ((bufnum 0) (rate 1) (start 0) (amp 0.5) (pan 0) (out 0))
+  (let ((sig (play-buf.ar 2 bufnum (* rate (buf-rate-scale.kr bufnum)) :start-pos (* (buf-frames.ir bufnum) start) :act :free)))
+    (out.ar out (b2 sig pan amp))))
 
 (defsynth sine-wave ((note 60))
   (let* ((freq (midicps note))
