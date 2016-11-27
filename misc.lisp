@@ -30,12 +30,24 @@
 
 (defvar buf (sc:buffer-read "~/gamecube.wav"))
 
-(play
+(defun ctime ()
+  (/ (get-internal-real-time) internal-time-units-per-second))
+
+(fork
  (pbind
-  :instrument :sp
+  :instrument :spcomb
   :bufnum buf
-  :dur (prand '(1.5 1/2 1/4) :inf)
-  :rate (pseq '(0.25 0.5 0.75 1) 4)
+  :decay 0.1
+  :freq 200
+  :inject (pr (pbind
+               :dur (pseq (mapcar #!(+ -0 %) '(1/6 1)) :inf)
+               ;; :rate (pseq '(1) 16)
+               :rate (pseq (list 1.5 0.5) 4)
+               )
+              (pseq '(9 3) :inf))
+  ;; :amp (pfunc (lambda () (* 0.25 (+ 1 (sin (* 3 (ctime)))))))
+  ;; :pan (pseq '(-1 -0.75 -0.5 -0.25 0 0.25 0.5 0.75 1) :inf)
+  ;; :pan (pfunc (lambda () (sin (ctime))))
   :start 0.5))
 
 (play ;; this doesn't work 
@@ -46,6 +58,9 @@
     :dur (pseq '(1 1/2) :inf)
     :rate (pseq '(0.5 0.75) 4)
     :start 0.5))))
+
+(defun array-range (start &key (step 1) steps end)
+  (format t "~a ~a ~a ~a" start step steps end))
 
 ;;;
 
@@ -144,6 +159,10 @@
 (defsynth sp ((bufnum 0) (rate 1) (start 0) (amp 0.5) (pan 0) (out 0))
   (let ((sig (play-buf.ar 2 bufnum (* rate (buf-rate-scale.kr bufnum)) :start-pos (* (buf-frames.ir bufnum) start) :act :free)))
     (out.ar out (b2 sig pan amp))))
+
+(defsynth spcomb ((bufnum 0) (rate 1) (freq 400) (decay 1.0) (start 0) (amp 0.5) (pan 0) (out 0))
+  (let ((sig (play-buf.ar 2 bufnum (* rate (buf-rate-scale.kr bufnum)) :start-pos (* (buf-frames.ir bufnum) start) :act :free)))
+    (out.ar out (b2 (comb-c.ar sig 0.5 (/ 1 freq) decay) pan amp))))
 
 (defsynth sine-wave ((note 60))
   (let* ((freq (midicps note))

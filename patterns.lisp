@@ -1,4 +1,5 @@
 ;;; OO-style patterns
+;; FIX: guard against negative durs? maybe just clip them to 0? is that safe? probably not???????
 
 (in-package :cl-patterns)
 
@@ -192,6 +193,9 @@
              ,@body))))
 
 (define-pbind-special-post-key pdef ;; FIX
+  nil)
+
+(define-pbind-special-post-key remaining ;; FIX
   nil)
 
 (defmethod next ((pattern pbind-pstream))
