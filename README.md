@@ -133,7 +133,7 @@ Ideas/TODO
   (fork (pbind :name :foo :dur (pseq '(0.5 0.5 0.5 0.5 1 1)))))
 ```
 ...then the `:bar` pattern's events will play 0.25 beats after each of `:foo`'s events play, because it's set to `:pefollow` that pattern.
-  * similarly, a `:pfollow` key could be used to automatically start the pattern for each even of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.
+  * similarly, a `:pfollow` key could be used to automatically start the pattern for each event of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.
 * `:cleanup` key for pbinds. this can either contain a function or a list of functions. when the pattern ends or is stopped, the function or functions will be called.
   * not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
 * a generalized way to inject keys into an event from inside a pbind...?
