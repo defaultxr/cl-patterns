@@ -445,4 +445,41 @@
 
 ;; (defmethod next ((pattern pshift-pstream)))
 
-;;; 
+;;; pn
+
+(defpattern pn (pattern)
+  ((pattern :initarg :pattern :accessor :pattern)
+   (repeats :initarg :repeats :accessor :repeats)
+   (pps :initarg :pps :initform nil) ;; pattern-pstream
+   ;; (crr :initarg :crr :initform nil)
+   ))
+
+(defun pn (pattern &optional (repeats :inf))
+  (make-instance 'pn
+                 :pattern pattern
+                 :repeats repeats))
+
+(defmethod as-pstream ((pattern pn)) ;; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
+  (let ((repeats (slot-value pattern 'repeats)))
+    (make-instance 'pn-pstream
+                   :remaining (slot-value pattern 'remaining)
+                   :pattern (slot-value pattern 'pattern)
+                   :repeats (if (numberp repeats)
+                                (1- repeats)
+                                repeats)
+                   :pps (as-pstream (slot-value pattern 'pattern)))))
+
+(defmethod next ((pattern pn-pstream))
+  (let ((nv (next (slot-value pattern 'pps))))
+    (when (and
+           (null nv)
+           (or (eq :inf (slot-value pattern 'repeats))
+               (> (slot-value pattern 'repeats) 0)))
+      (setf (slot-value pattern 'pps) (as-pstream (slot-value pattern 'pattern)))
+      (setf nv (next (slot-value pattern 'pps)))
+      (when (numberp (slot-value pattern 'repeats))
+        (decf (slot-value pattern 'repeats))))
+    nv))
+
+
+
