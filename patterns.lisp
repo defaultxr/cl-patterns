@@ -451,7 +451,6 @@
   ((pattern :initarg :pattern :accessor :pattern)
    (repeats :initarg :repeats :accessor :repeats)
    (pps :initarg :pps :initform nil) ;; pattern-pstream
-   ;; (crr :initarg :crr :initform nil)
    ))
 
 (defun pn (pattern &optional (repeats :inf))
@@ -480,6 +479,4 @@
       (when (numberp (slot-value pattern 'repeats))
         (decf (slot-value pattern 'repeats))))
     nv))
-
-
 

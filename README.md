@@ -138,3 +138,4 @@ Ideas/TODO
   * not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
 * a generalized way to inject keys into an event from inside a pbind...?
   * or maybe just do something like `(pbind :inject (pcycles [32 - - [64 - -]]))` and pcycles would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?
+* patterns from SuperCollider - see SC.md
