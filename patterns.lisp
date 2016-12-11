@@ -480,3 +480,26 @@
         (decf (slot-value pattern 'repeats))))
     nv))
 
+;;; pshuf
+
+(defpattern pshuf (pattern)
+  ((list :initarg :list :accessor :list)
+   (repeats :initarg :repeats :accessor :repeats)
+   (sl :initarg :sl :initform nil) ;; shuffled list
+   ))
+
+(defun pshuf (list &optional (repeats 1))
+  (make-instance 'pshuf
+                 :list list
+                 :repeats repeats))
+
+(defmethod as-pstream ((pattern pshuf))
+  (make-instance 'pshuf-pstream
+                 :remaining (slot-value pattern 'remaining)
+                 :list (slot-value pattern 'list)
+                 :repeats (slot-value pattern 'repeats)
+                 :sl (alexandria:shuffle (alexandria:copy-sequence 'list (slot-value pattern 'list)))))
+
+(defmethod next ((pattern pshuf-pstream))
+  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'sl)))
+       (slot-value pattern 'sl)))
