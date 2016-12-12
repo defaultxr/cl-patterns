@@ -50,6 +50,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Psetpre
   * Pstretch
   * Pstutter - done as pr
+  * PdurStutter
   * Psym
   * Psync - see also: pbind's :psync key
   * Ptrace
