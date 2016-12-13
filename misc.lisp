@@ -59,6 +59,13 @@
     :rate (pseq '(0.5 0.75) 4)
     :start 0.5))))
 
+(play
+ (pbind
+  :instrument :kik
+  :type (pseq '(:note :rest :note) :inf)
+  :freq (pseq '(1000) 20)
+  :dur 1/16))
+
 (defun array-range (start &key (step 1) steps end)
   (format t "~a ~a ~a ~a" start step steps end))
 

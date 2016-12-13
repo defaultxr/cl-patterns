@@ -102,7 +102,7 @@ Tour
 Ideas/TODO
 ==========
 
-* implement rests.
+* implement `*latency*`
 * general "check repeats" function to return true if repeats is `:inf` or if it's a number and greater than 0 (in which case it's also decreased by 1)
 * `tsubseq` function for getting a subsequence based on start and end times of events.
 * `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.
