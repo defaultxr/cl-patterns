@@ -103,7 +103,6 @@ Ideas/TODO
 ==========
 
 * implement `*latency*`
-* general "check repeats" function to return true if repeats is `:inf` or if it's a number and greater than 0 (in which case it's also decreased by 1)
 * `tsubseq` function for getting a subsequence based on start and end times of events.
 * `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.
   * i.e. `(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)` returns `(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))`

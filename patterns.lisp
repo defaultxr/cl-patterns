@@ -88,7 +88,8 @@
 
 (defclass pstream (pattern)
   ((remaining :initarg :remaining :accessor :remaining :initform nil)
-   (number :accessor :number :initform 0))
+   (number :accessor :number :initform 0)
+   (pattern-stack :accessor :pattern-stack :initform (list)))
   (:documentation "Pattern stream class."))
 
 (defmethod play ((item pstream))
@@ -103,18 +104,43 @@
   (make-instance 'pstream
                  :remaining (slot-value pattern 'remaining)))
 
+(defun remainingp (pattern &optional (key 'remaining))
+  "Return t if PATTERN's KEY value is :inf, nil, or greater than 0."
+  (or (or (null (slot-value pattern key))
+          (eq (slot-value pattern key) :inf))
+      (> (slot-value pattern key) 0)))
+
+(defun decf-remaining (pattern &optional (key 'remaining))
+  "Decrease PATTERN's KEY value."
+  (when (numberp (slot-value pattern key))
+    (decf (slot-value pattern key))))
+
 (defmethod next :around ((pattern pstream))
-  (labels ((get-value (pattern)
+  (labels ((get-value-from-stack (pattern)
+             (if (null (slot-value pattern 'pattern-stack))
+                 (prog1
+                     (get-value pattern)
+                   (decf-remaining pattern))
+                 (let* ((popped (pop (slot-value pattern 'pattern-stack)))
+                        (nv (next popped)))
+                   (if (null nv)
+                       (get-value-from-stack pattern)
+                       (progn
+                         (push popped (slot-value pattern 'pattern-stack))
+                         nv)))))
+           (get-value (pattern)
              (let ((res (call-next-method)))
                (typecase res
-                 (pattern (next res))
+                 (pattern
+                  (pattern-embed pattern res)
+                  (get-value-from-stack pattern))
                  (t res)))))
-    (if (or (null (slot-value pattern 'remaining))
-            (eq (slot-value pattern 'remaining) :inf))
-        (get-value pattern)
-        (when (> (slot-value pattern 'remaining) 0)
-          (decf (slot-value pattern 'remaining))
-          (get-value pattern)))))
+    (print (slot-value pattern 'remaining))
+    (when (remainingp pattern)
+      (get-value-from-stack pattern))))
+
+(defmethod pattern-embed ((pattern pstream) (embed pattern))
+  (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
 
 (defmethod next :after ((pattern pstream))
   (incf (slot-value pattern 'number)))
@@ -319,7 +345,7 @@
         (setf (slot-value pattern 'crr) (1- (next (slot-value pattern 'repeats))))
         (slot-value pattern 'cv))
       (progn
-        (decf (slot-value pattern 'crr))
+        (decf-remaining pattern 'crr) ;; (decf (slot-value pattern 'crr))
         (slot-value pattern 'cv))))
 
 ;;; pdef
@@ -393,11 +419,12 @@
 
 (defmethod next ((pattern plazyn-pstream))
   (labels ((maybe-funcall ()
-             (when (or (eq :inf (slot-value pattern 'crr))
-                       (> (slot-value pattern 'crr) 0))
+             (when (remainingp pattern 'crr);; (or (eq :inf (slot-value pattern 'crr))
+               ;;     (> (slot-value pattern 'crr) 0))
                (setf (slot-value pattern 'cp) (as-pstream (funcall (slot-value pattern 'func))))
-               (when (numberp (slot-value pattern 'crr))
-                 (decf (slot-value pattern 'crr))))))
+               (decf-remaining pattern 'crr);; (when (numberp (slot-value pattern 'crr))
+               ;;   (decf (slot-value pattern 'crr)))
+               )))
     (when (null (slot-value pattern 'cp))
       (maybe-funcall))
     (let ((nv (next (slot-value pattern 'cp))))
@@ -472,12 +499,14 @@
   (let ((nv (next (slot-value pattern 'pps))))
     (when (and
            (null nv)
-           (or (eq :inf (slot-value pattern 'repeats))
-               (> (slot-value pattern 'repeats) 0)))
+           (remainingp pattern 'repeats);; (or (eq :inf (slot-value pattern 'repeats))
+           ;;     (> (slot-value pattern 'repeats) 0))
+           )
       (setf (slot-value pattern 'pps) (as-pstream (slot-value pattern 'pattern)))
       (setf nv (next (slot-value pattern 'pps)))
-      (when (numberp (slot-value pattern 'repeats))
-        (decf (slot-value pattern 'repeats))))
+      (decf-remaining pattern 'repeats);; (when (numberp (slot-value pattern 'repeats))
+      ;;   (decf (slot-value pattern 'repeats)))
+      )
     nv))
 
 ;;; pshuf
