@@ -146,4 +146,5 @@ Bugs
 The following gives the wrong output:
 
 ```lisp
-(next-n (pseq (list 0 (pbind :foo (pseq '(1 2) 1)) (pbind :bar (pseq '(3 4) 1))) 1) 12)```
+(next-n (pseq (list 0 (pbind :foo (pseq '(1 2) 1)) (pbind :bar (pseq '(3 4) 1))) 1) 12)
+```
