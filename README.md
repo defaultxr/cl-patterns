@@ -139,3 +139,11 @@ Ideas/TODO
 * a generalized way to inject keys into an event from inside a pbind...?
   * or maybe just do something like `(pbind :inject (pcycles [32 - - [64 - -]]))` and pcycles would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?
 * patterns from SuperCollider - see SC.md
+
+Bugs
+====
+
+The following gives the wrong output:
+
+```lisp
+(next-n (pseq (list 0 (pbind :foo (pseq '(1 2) 1)) (pbind :bar (pseq '(3 4) 1))) 1) 12)```
