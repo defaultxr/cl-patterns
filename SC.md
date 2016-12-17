@@ -1,6 +1,6 @@
 # SuperCollider Patterns
 
-This is a listing of all the pattern classes from SuperCollider that I'd like to make equivalents of for cl-patterns. I basically just copied a list of pattern classes from SuperCollider's help files and sorted them a bit. This list is subject to change as cl-patterns is develope, since some of these will not be applicable to the way cl-patterns does things - I'll try to note those cases here, so this document can evolve into a "differences between SuperCollider and cl-patterns" type of thing.
+This is a listing of all the pattern classes from SuperCollider that I'd like to make equivalents of for cl-patterns. I basically just copied a list of pattern classes from SuperCollider's help files and sorted them a bit. This list is subject to change as cl-patterns is developed, since some of these will not be applicable to the way cl-patterns does things - I'll try to note those cases here, so this document can evolve into a "differences between SuperCollider and cl-patterns" type of thing.
 
 * list patterns
   * Pseq - done as pseq
