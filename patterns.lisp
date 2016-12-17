@@ -341,10 +341,12 @@
           (<= (slot-value pattern 'crr) 0))
       (progn
         (setf (slot-value pattern 'cv) (next (slot-value pattern 'pattern)))
-        (setf (slot-value pattern 'crr) (1- (next (slot-value pattern 'repeats))))
-        (slot-value pattern 'cv))
+        (let ((next-value (next (slot-value pattern 'repeats))))
+          (when next-value
+            (setf (slot-value pattern 'crr) (1- next-value))
+            (slot-value pattern 'cv))))
       (progn
-        (decf-remaining pattern 'crr) ;; (decf (slot-value pattern 'crr))
+        (decf-remaining pattern 'crr)
         (slot-value pattern 'cv))))
 
 ;;; pdef
