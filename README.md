@@ -38,7 +38,7 @@ You can play an event using the `play` function:
 (play (car list))
 ```
 
-Or you can play the pattern itself:
+Or you can play the pattern itself, which will automatically convert it to a pstream for you "under the hood":
 
 ```
 (play pat)
@@ -56,7 +56,7 @@ If you want to actually hear sound output, you'll need to either use SuperCollid
 (play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
 ```
 
-In the future, you'll be able to do something like this to use Incudine as the output:
+In the future, you might be able to do something like this to use Incudine as the output:
 
 ```
 (load #P"/path/to/cl-patterns/incudine.lisp")

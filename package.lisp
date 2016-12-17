@@ -17,6 +17,7 @@
    #:pfunc
    
    #:event
+   #:*event-output-function*
 
    #:instrument
    #:group

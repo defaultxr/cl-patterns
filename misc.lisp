@@ -59,15 +59,28 @@
     :rate (pseq '(0.5 0.75) 4)
     :start 0.5))))
 
+(setf *event-output-function* 'play-sc)
+
 (play
  (pbind
   :instrument :kik
-  :type (pseq '(:note :rest :note) :inf)
-  :freq (pseq '(1000) 20)
-  :dur 1/16))
+  ;; :type (pseq '(:note :rest :note) :inf)
+  :freq (pseq '(1000 500 250) 1)
+  :dur 1/8))
+
+(pdef :xx (pbind
+           :pdef :xx
+           :instrument :kik
+           :type (pseq '(:note :rest :note) :inf)
+           :freq (pseq '(1000 500 250 100 50 25) 10)
+           :dur 1/16))
+
+(play (pdef :xx))
 
 (defun array-range (start &key (step 1) steps end)
   (format t "~a ~a ~a ~a" start step steps end))
+
+(play (pbind :instrument :kik :freq (pseq (list 1000) 9) :dur 1/64))
 
 ;;;
 
@@ -243,73 +256,73 @@
 
 ;; (defun linlin)
 
-	;; linlin { arg inMin, inMax, outMin, outMax, clip=\minmax;
-	;; 	// linear to linear mapping
-	;; 	switch(clip,
-	;; 		\minmax, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		},
-	;; 		\min, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 		},
-	;; 		\max, {
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		}
-	;; 	);
-	;; 	^(this-inMin)/(inMax-inMin) * (outMax-outMin) + outMin;
-	;; }
+;; linlin { arg inMin, inMax, outMin, outMax, clip=\minmax;
+;; 	// linear to linear mapping
+;; 	switch(clip,
+;; 		\minmax, {
+;; 			if (this <= inMin, { ^outMin });
+;; 			if (this >= inMax, { ^outMax });
+;; 		},
+;; 		\min, {
+;; 			if (this <= inMin, { ^outMin });
+;; 		},
+;; 		\max, {
+;; 			if (this >= inMax, { ^outMax });
+;; 		}
+;; 	);
+;; 	^(this-inMin)/(inMax-inMin) * (outMax-outMin) + outMin;
+;; }
 
-	;; linexp { arg inMin, inMax, outMin, outMax, clip=\minmax;
-	;; 	// linear to exponential mapping
-	;; 	switch(clip,
-	;; 		\minmax, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		},
-	;; 		\min, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 		},
-	;; 		\max, {
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		}
-	;; 	);
-	;; 	^pow(outMax/outMin, (this-inMin)/(inMax-inMin)) * outMin
-	;; }
+;; linexp { arg inMin, inMax, outMin, outMax, clip=\minmax;
+;; 	// linear to exponential mapping
+;; 	switch(clip,
+;; 		\minmax, {
+;; 			if (this <= inMin, { ^outMin });
+;; 			if (this >= inMax, { ^outMax });
+;; 		},
+;; 		\min, {
+;; 			if (this <= inMin, { ^outMin });
+;; 		},
+;; 		\max, {
+;; 			if (this >= inMax, { ^outMax });
+;; 		}
+;; 	);
+;; 	^pow(outMax/outMin, (this-inMin)/(inMax-inMin)) * outMin
+;; }
 
-	;; explin { arg inMin, inMax, outMin, outMax, clip=\minmax;
-	;; 	// exponential to linear mapping
-	;; 	switch(clip,
-	;; 		\minmax, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		},
-	;; 		\min, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 		},
-	;; 		\max, {
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		}
-	;; 	);
-	;; 	^(log(this/inMin)) / (log(inMax/inMin)) * (outMax-outMin) + outMin;
-	;; }
+;; explin { arg inMin, inMax, outMin, outMax, clip=\minmax;
+;; 	// exponential to linear mapping
+;; 	switch(clip,
+;; 		\minmax, {
+;; 			if (this <= inMin, { ^outMin });
+;; 			if (this >= inMax, { ^outMax });
+;; 		},
+;; 		\min, {
+;; 			if (this <= inMin, { ^outMin });
+;; 		},
+;; 		\max, {
+;; 			if (this >= inMax, { ^outMax });
+;; 		}
+;; 	);
+;; 	^(log(this/inMin)) / (log(inMax/inMin)) * (outMax-outMin) + outMin;
+;; }
 
-	;; expexp { arg inMin, inMax, outMin, outMax, clip=\minmax;
-	;; 	// exponential to exponential mapping
-	;; 	switch(clip,
-	;; 		\minmax, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		},
-	;; 		\min, {
-	;; 			if (this <= inMin, { ^outMin });
-	;; 		},
-	;; 		\max, {
-	;; 			if (this >= inMax, { ^outMax });
-	;; 		}
-	;; 	);
-	;; 	^pow(outMax/outMin, log(this/inMin) / log(inMax/inMin)) * outMin;
-	;; }
+;; expexp { arg inMin, inMax, outMin, outMax, clip=\minmax;
+;; 	// exponential to exponential mapping
+;; 	switch(clip,
+;; 		\minmax, {
+;; 			if (this <= inMin, { ^outMin });
+;; 			if (this >= inMax, { ^outMax });
+;; 		},
+;; 		\min, {
+;; 			if (this <= inMin, { ^outMin });
+;; 		},
+;; 		\max, {
+;; 			if (this >= inMax, { ^outMax });
+;; 		}
+;; 	);
+;; 	^pow(outMax/outMin, log(this/inMin) / log(inMax/inMin)) * outMin;
+;; }
 
 ;;; buffer - return a sound from an object
 ;; object can be:

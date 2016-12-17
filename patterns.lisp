@@ -135,7 +135,6 @@
                   (pattern-embed pattern res)
                   (get-value-from-stack pattern))
                  (t res)))))
-    (print (slot-value pattern 'remaining))
     (when (remainingp pattern)
       (get-value-from-stack pattern))))
 
@@ -378,13 +377,14 @@
 (create-global-dictionary pdef)
 
 (defun pdef (key &optional value)
-  (pdef-ref key value)
+  (when (not (null value))
+    (pdef-ref key (list :pattern value :pstream (as-pstream value))))
   (make-instance 'pdef
                  :key key
                  :pattern value))
 
 (defmethod next ((pattern pdef-pstream))
-  (next (pdef-ref (slot-value pattern 'key))))
+  (next (getf (pdef-ref (slot-value pattern 'key)) :pstream)))
 
 ;;; plazy
 
@@ -505,7 +505,7 @@
       (setf (slot-value pattern 'pps) (as-pstream (slot-value pattern 'pattern)))
       (setf nv (next (slot-value pattern 'pps)))
       (decf-remaining pattern 'repeats);; (when (numberp (slot-value pattern 'repeats))
-      ;;   (decf (slot-value pattern 'repeats)))
+      ;; (decf (slot-value pattern 'repeats)))
       )
     nv))
 
@@ -532,3 +532,22 @@
 (defmethod next ((pattern pshuf-pstream))
   (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'sl)))
        (slot-value pattern 'sl)))
+
+;;; pwhite
+
+(defpattern pwhite (pattern)
+  ((lo :initarg :lo :accessor :lo)
+   (hi :initarg :hi :accessor :hi)))
+
+(defun pwhite (&optional (lo 0) (hi 1) (remaining :inf))
+  (make-instance 'pwhite
+                 :lo lo
+                 :hi hi
+                 :remaining remaining))
+
+(defmethod next ((pattern pwhite-pstream))
+  (let ((rval (- (slot-value pattern 'hi) (slot-value pattern 'lo))))
+    (+ (slot-value pattern 'lo)
+       (random (float (if (integerp rval)
+                          (1+ rval)
+                          rval))))))

@@ -1,4 +1,8 @@
+(in-package :cl-patterns)
+
 (load "supercollider")
+
+(setf *event-output-function* 'play-sc)
 
 (in-package :sc)
 
