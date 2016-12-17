@@ -73,7 +73,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pmeanrand
   * Ppoisson
   * Pprob
-  * Pwhite
+  * Pwhite - done as pwhite
 * timing patterns
   * Pseg
   * Ptempo
