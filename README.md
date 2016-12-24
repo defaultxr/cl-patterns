@@ -13,6 +13,13 @@ In addition to emulating most of SuperCollider's patterns system, another goal i
 Intro
 =====
 
+Download cl-patterns and put it in your quicklisp local-projects directory, then load it:
+
+```
+(ql:quickload :cl-patterns)
+(in-package :cl-patterns)
+```
+
 Create a pattern like so:
 
 ```
@@ -47,11 +54,9 @@ Or you can play the pattern itself, which will automatically convert it to a pst
 If you want to actually hear sound output, you'll need to either use SuperCollider or Incudine for that, as `cl-patterns` doesn't create sound on its own:
 
 ```
-(load #P"/path/to/cl-patterns/supercollider.lisp")
+(ql:quickload :cl-patterns+supercollider)
 
-(load #P"/path/to/cl-patterns/supercollider-example.lisp")
-
-(setf *event-output-function* 'play-sc)
+(load #P"/path/to/cl-patterns/supercollider-example.lisp") ;; code to start scsynth and a few example synthdefs
 
 (play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
 ```
@@ -59,16 +64,14 @@ If you want to actually hear sound output, you'll need to either use SuperCollid
 In the future, you might be able to do something like this to use Incudine as the output:
 
 ```
-(load #P"/path/to/cl-patterns/incudine.lisp")
+(ql:quickload :cl-patterns+incudine)
 
 (load #P"/path/to/cl-patterns/incudine-example.lisp")
-
-(setf *event-output-function* 'play-incudine)
 
 (play (pbind :id 1 :freq (pseq '(100 200 400 800) 1)))
 ```
 
-...But right now that doesn't work!
+...But right now Incudine support isn't implemented.
 
 If you have access to the `bordeaux-threads` library for threading, you can also fork a pattern:
 

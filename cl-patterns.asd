@@ -11,6 +11,5 @@
                (:file "pat-utilities")
                (:file "patterns")
                (:file "event")
-               ;; (:file "supercollider")
                ;; (:file "incudine")
                ))
