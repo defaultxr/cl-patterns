@@ -15,45 +15,45 @@ Intro
 
 Download cl-patterns and put it in your quicklisp local-projects directory, then load it:
 
-```
+```lisp
 (ql:quickload :cl-patterns)
 (in-package :cl-patterns)
 ```
 
 Create a pattern like so:
 
-```
+```lisp
 (defparameter pat (pbind :foo (pseq '(1 2 3))
                          :bar (prand '(9 8 7) 5)))
 ```
 
 Since patterns are basically "templates", you need to turn them into `pstream` objects in order to actually get output from them:
 
-```
+```lisp
 (defparameter pstream (as-pstream pat))
 ```
 
 Then, you can get results from the pstream one at a time with `next`, or many at a time with `next-n`:
 
-```
+```lisp
 (defparameter list (next-n pstream 7))
 ```
 
 You can play an event using the `play` function:
 
-```
+```lisp
 (play (car list))
 ```
 
 Or you can play the pattern itself, which will automatically convert it to a pstream for you "under the hood":
 
-```
+```lisp
 (play pat)
 ```
 
 If you want to actually hear sound output, you'll need to either use SuperCollider or Incudine for that, as `cl-patterns` doesn't create sound on its own:
 
-```
+```lisp
 (ql:quickload :cl-patterns+supercollider)
 
 (load #P"/path/to/cl-patterns/supercollider-example.lisp") ;; code to start scsynth and a few example synthdefs
@@ -63,7 +63,7 @@ If you want to actually hear sound output, you'll need to either use SuperCollid
 
 In the future, you might be able to do something like this to use Incudine as the output:
 
-```
+```lisp
 (ql:quickload :cl-patterns+incudine)
 
 (load #P"/path/to/cl-patterns/incudine-example.lisp")
@@ -75,7 +75,7 @@ In the future, you might be able to do something like this to use Incudine as th
 
 If you have access to the `bordeaux-threads` library for threading, you can also fork a pattern:
 
-```
+```lisp
 (fork (pbind :instrument :kik :freq (pseq '(100 200 400 800) 4)))
 ```
 
@@ -130,7 +130,7 @@ Ideas/TODO
 * make macros to quickly write out patterns with symbols, i.e. k---s---k---s--- for a kick/snare/kick/snare pattern or the like - see `ds` in `misc.lisp`
 * add more tests to `tests.lisp`
 * make patterns able to trigger other patterns. i.e. something like this:
-```
+```lisp
 (progn
   (fork (pbind :name :bar :pefollow :foo :timing-offset 0.25))
   (fork (pbind :name :foo :dur (pseq '(0.5 0.5 0.5 0.5 1 1)))))
