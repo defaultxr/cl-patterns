@@ -85,7 +85,8 @@ Tour
 ====
 
 * README.md - this file. self-expanatory, i'd hope.
-* cl-patterns.asd - the system's definition file.
+* cl-patterns.asd - cl-patterns system definition with no backends.
+* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
 

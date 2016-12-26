@@ -20,13 +20,16 @@
 (defgeneric fork (item))
 
 (defmacro defpattern (name superclasses slots &optional documentation)
-  `(progn
-     (defclass ,name ,superclasses
-       ,slots
-       ,@(when documentation
-           `((:documentation ,documentation))))
-     (defclass ,(intern (concatenate 'string (symbol-name name) "-PSTREAM")) (,name pstream)
-       ())))
+  (let ((name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM"))))
+    `(progn
+       (defclass ,name ,superclasses
+         ,slots
+         ,@(when documentation
+             `((:documentation ,documentation))))
+       (defclass ,name-pstream (,name pstream)
+         ())
+       (export ',name)
+       (export ',name-pstream))))
 
 (defparameter *max-pattern-yield-length* 64
   "The maximum amount of events or values that will be used by patterns like pshift, etc, in order to prevent hangs caused by infinite-length patterns.")

@@ -11,10 +11,7 @@
    #:defpattern
    
    #:pbind
-   #:pseq
-   #:pk
-   #:prand
-   #:pfunc
+   #:pbind-pstream
    
    #:event
    #:*event-output-function*
