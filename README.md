@@ -103,26 +103,40 @@ Tour
 * supercollider-example.lisp - example code to get started with the `cl-collider` library.
 * incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
 
+Features
+========
+
+This library isn't just a copy of SuperCollider's patterns - I wanted to improve upon them as well. Here are a few of the features of this library that are implemented right now:
+
+* It's possible to "inject" an event's values into another from inside a pattern. For example:
+```lisp
+> (next-n (pbind :foo (pseq '(1 2 3 4))
+               :inject (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
+        3)
+((EVENT :FOO 1)
+ (EVENT :FOO 2 :BAR 1 :BAZ 2)
+ (EVENT :FOO 3 :QUX 3))
+```
+
+* Event parameters that are different representations of the same concept are automatically converted between each other. For example, if you set the `amp` of an event and then try to get its `db`, the amp is automatically converted to db for you.
+```lisp
+> (db (event :amp 0.5))
+-6.0205994
+> (amp (event :db -3))
+0.70794576
+```
+
 Ideas/TODO
 ==========
 
 * implement `*latency*`
-* automatically record output from pstreams so it can be referenced later
-  * make a `current` function that will get the last value that was output from a pstream.
 * `tsubseq` function for getting a subsequence based on start and end times of events.
 * `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.
   * i.e. `(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)` returns `(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))`
 * do "static" things to "dynamic" patterns - i.e. `(pshift (pseq '(1 2 3)) 1)` results in `'(3 1 2 3 1 2 3 ...)` or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
-* automatically convert between different ways to represent the same thing in events
-  * for example, if you set an event's `amp` but then try to access its `db`, it calculates the `db` based on the `amp` value.
-  * the same should be true for when you set the values - setting `db` and then accessing `amp` will return the value of the `db` you set converted to `amp`
-  * interally, an Event only keeps track of `amp` and just converts to whatever type you request, or converts whatever type you give it to `amp`.
 * more metadata in patterns and streams so that it's easier to write functions that process streams/patterns/etc
-* make it easy to combine patterns by "injecting" the results of an event pattern into its parent event pattern
-  * i.e.:
-  `(next-n (pbind :foo (pseq '(hey how are ya)) :inject (pbind :bar (pseq '(1 2 3)))) 3)`
-  results in:
-  `'((:foo hey :bar 1) (:foo how :bar 2) (:foo are :bar 3))`
+  * automatically record output from pstreams so it can be referenced later
+    * make a `current` function that will get the last value that was output from a pstream.
 * make it possible to easily create lfos for the synth's parameters
   * can embed a synth definition (`sc:defsynth`) as the value, in which case the synth is triggered at the start of each pattern (or maybe for each event?)
   * can embed a `sc:proxy`, in which case the pattern just takes values from the output of the proxy.
@@ -152,5 +166,6 @@ Bugs
 The following gives the wrong output:
 
 ```lisp
-(next-n (pseq (list 0 (pbind :foo (pseq '(1 2) 1)) (pbind :bar (pseq '(3 4) 1))) 1) 12)
+(next-n (pseq (list 0 (pbind :foo (pseq '(1 2) 1)) (pbind :bar (pseq '(3 4) 2))) 1) 12)
 ```
+The last pbind only has one output, because of the `:remaining` value of the enclosing pseq.
