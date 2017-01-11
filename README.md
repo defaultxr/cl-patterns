@@ -10,8 +10,7 @@ A library for writing SuperCollider-esque patterns in Lisp. Aims to emulate most
 
 In addition to emulating most of SuperCollider's patterns system, another goal is to further extend it with more tools and more ways to write patterns/sequences, for example "drum sequence" notation like 'k - - - k - - - k - - - k - - -' for a four-to-the-floor beat.
 
-Intro
-=====
+## Intro
 
 Download cl-patterns and put it in your quicklisp local-projects directory, then load it:
 
@@ -81,30 +80,7 @@ If you have access to the `bordeaux-threads` library for threading, you can also
 
 That way your REPL won't be tied up as it's playing. For now, the only way to stop a forked pattern is using SLIME's thread manager (`C-c C-x t` or `M-x slime-list-threads`) or by using `(bt:destroy-thread THREAD)` where THREAD is the object returned by the `fork` function.
 
-Tour
-====
-
-* README.md - this file. self-expanatory, i'd hope.
-* cl-patterns.asd - cl-patterns system definition with no backends.
-* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
-* package.lisp - the package definition file.
-* LICENSE - the GPLv3 license.
-
-* event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
-* patterns.lisp - the current version of the patterns. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
-* pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use `alexandria`.
-
-* tests.lisp - test suite using `prove`.
-
-* ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
-* misc.lisp - where i put my code when i'm just messing around with stuff. might be useful as example code, but could also have outdated stuff in it.
-
-* supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/defaultxr/cl-collider) library.
-* supercollider-example.lisp - example code to get started with the `cl-collider` library.
-* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
-
-Features
-========
+## Features
 
 This library isn't just a copy of SuperCollider's patterns - I wanted to improve upon them as well. Here are a few of the features of this library that are implemented right now:
 
@@ -126,8 +102,28 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 0.70794576
 ```
 
-Ideas/TODO
-==========
+## Tour
+
+* README.md - this file. self-expanatory, i'd hope.
+* cl-patterns.asd - cl-patterns system definition with no backends.
+* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
+* package.lisp - the package definition file.
+* LICENSE - the GPLv3 license.
+
+* event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
+* patterns.lisp - the current version of the patterns. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
+* pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use `alexandria`.
+
+* tests.lisp - test suite using `prove`.
+
+* ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
+* misc.lisp - where i put my code when i'm just messing around with stuff. might be useful as example code, but could also have outdated stuff in it.
+
+* supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/defaultxr/cl-collider) library.
+* supercollider-example.lisp - example code to get started with the `cl-collider` library.
+* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
+
+## Ideas/TODO
 
 * implement `*latency*`
 * `tsubseq` function for getting a subsequence based on start and end times of events.
@@ -160,8 +156,7 @@ Ideas/TODO
   * or maybe just do something like `(pbind :inject (pcycles [32 - - [64 - -]]))` and pcycles would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?
 * patterns from SuperCollider - see SC.md
 
-Bugs
-====
+## Bugs
 
 The following gives the wrong output:
 
