@@ -107,6 +107,8 @@ Ideas/TODO
 ==========
 
 * implement `*latency*`
+* automatically record output from pstreams so it can be referenced later
+  * make a `current` function that will get the last value that was output from a pstream.
 * `tsubseq` function for getting a subsequence based on start and end times of events.
 * `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.
   * i.e. `(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)` returns `(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))`

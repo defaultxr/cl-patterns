@@ -556,3 +556,31 @@
        (random (if (integerp rval)
                    (1+ rval)
                    rval)))))
+
+;;; pseries
+
+(defpattern pseries (pattern)
+  ((start :initarg :start :accessor :start)
+   (step :initarg :step :accessor :step)
+   (cv :initarg :cv :initform nil)))
+
+(defun pseries (&optional (start 0) (step 1) (remaining :inf))
+  (make-instance 'pseries
+                 :start start
+                 :step step
+                 :remaining remaining))
+
+(defmethod as-pstream ((pattern pseries))
+  (let ((cv (slot-value pattern 'start)))
+    (when (functionp cv)
+      (setf cv (funcall cv)))
+    (make-instance 'pseries-pstream
+                   :start (slot-value pattern 'start)
+                   :step (as-pstream (slot-value pattern 'step))
+                   :remaining (slot-value pattern 'remaining)
+                   :cv cv)))
+
+(defmethod next ((pattern pseries-pstream))
+  (prog1
+      (slot-value pattern 'cv)
+    (incf (slot-value pattern 'cv) (next (slot-value pattern 'step)))))
