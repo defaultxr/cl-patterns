@@ -131,7 +131,9 @@
        (defmethod ,destination ((item event))
          (,(intern (string-upcase (concatenate 'string ssource "-" sdestination))) (,source item)))
        (defmethod (setf ,destination) (value (item event))
-         (setf (slot-value item ',source) (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))))))
+         ;; (setf (slot-value item ',source) (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))
+         (raw-set-event-value item ',source (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))
+         ))))
 
 (defun amp-db (amp)
   "Convert amplitude to dB."
