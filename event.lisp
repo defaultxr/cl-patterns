@@ -155,7 +155,7 @@
 
 (event-method pan 0)
 
-(event-method tempo 1)
+(event-method tempo *tempo*)
 
 (defgeneric delta (item))
 

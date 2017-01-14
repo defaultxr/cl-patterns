@@ -49,7 +49,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pset
   * Psetpre
   * Pstretch
-  * Pstutter - done as pr
+  * Pstutter - see also: pr
   * PdurStutter
   * Psym
   * Psync - see also: pbind's :psync key
@@ -66,8 +66,8 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pgbrown
   * Pcauchy
   * Pgauss
-  * Pseries
-  * Pgeom
+  * Pseries - done as pseries
+  * Pgeom - done as pgeom
   * Phprand
   * Plprand
   * Pmeanrand
@@ -76,7 +76,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pwhite - done as pwhite
 * timing patterns
   * Pseg
-  * Ptempo
+  * Ptempo - see also: (pk :tempo)
   * Ptime
   * Pstep
   * Pstep2add

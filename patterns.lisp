@@ -584,3 +584,31 @@
   (prog1
       (slot-value pattern 'cv)
     (incf (slot-value pattern 'cv) (next (slot-value pattern 'step)))))
+
+;;; pgeom
+
+(defpattern pgeom (pattern)
+  ((start :initarg :start :accessor :start)
+   (grow :initarg :grow :accessor :grow)
+   (cv :initarg :cv :initform nil)))
+
+(defun pgeom (&optional (start 0) (grow 1) (remaining :inf))
+  (make-instance 'pgeom
+                 :start start
+                 :grow grow
+                 :remaining remaining))
+
+(defmethod as-pstream ((pattern pgeom))
+  (let ((cv (slot-value pattern 'start)))
+    (when (functionp cv)
+      (setf cv (funcall cv)))
+    (make-instance 'pgeom-pstream
+                   :start (slot-value pattern 'start)
+                   :grow (as-pstream (slot-value pattern 'grow))
+                   :remaining (slot-value pattern 'remaining)
+                   :cv cv)))
+
+(defmethod next ((pattern pgeom-pstream))
+  (prog1
+      (slot-value pattern 'cv)
+    (setf (slot-value pattern 'cv) (* (slot-value pattern 'cv) (next (slot-value pattern 'grow))))))
