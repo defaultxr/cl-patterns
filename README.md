@@ -8,7 +8,7 @@ A library for writing SuperCollider-esque patterns in Lisp. Aims to emulate most
 * reflective - store more data about the stream state and more metadata about the patterns. make it easier for a pattern to access the values of another pattern, for patterns to affect other patterns, etc.
 * lispy - prefer lisp idioms rather than direct translations of the SuperCollider way of doing things (while still keeping things relatively similar so it's not a huge adjustment for SC users to make).
 
-In addition to emulating most of SuperCollider's patterns system, another goal is to further extend it with more tools and more ways to write patterns/sequences, for example "drum sequence" notation like 'k - - - k - - - k - - - k - - -' for a four-to-the-floor beat.
+In addition to emulating most of SuperCollider's patterns system, another goal is to further extend it with more tools and more ways to write patterns/sequences, for example "drum sequence" notation like 'k - - - k - - - k - - - k - - -' for a four-to-the-floor beat. The idea is that Lisp's macros should make it possible to more expressively write music with code.
 
 ## Intro
 
