@@ -612,3 +612,24 @@
   (prog1
       (slot-value pattern 'cv)
     (setf (slot-value pattern 'cv) (* (slot-value pattern 'cv) (next (slot-value pattern 'grow))))))
+
+;;; ptrace
+
+(defpattern ptrace (pattern)
+  ((pattern :initarg :pattern :accessor :pattern)
+   (key :initarg :key :accessor :key)
+   (stream :initarg :stream :accessor :stream)
+   (prefix :initarg :prefix :accessor :prefix)))
+
+(defun ptrace (pattern &optional key (stream t) (prefix ""))
+  (make-instance 'ptrace
+                 :pattern (as-pstream pattern)
+                 :key key
+                 :stream stream
+                 :prefix prefix))
+
+(defmethod next ((pattern ptrace-pstream))
+  (let ((n (next (slot-value pattern 'pattern))))
+    (format (slot-value pattern 'stream) "~a" n)
+    n))
+
