@@ -6,7 +6,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pseq - done as pseq
   * Prand - done as prand
   * Pxrand - done as pxrand
-  * Pshuf
+  * Pshuf - done as pshuf
   * Pwrand
   * Pdfsm
   * Pfpar
