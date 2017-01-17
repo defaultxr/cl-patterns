@@ -65,11 +65,18 @@
 (defmethod next ((pattern t))
   pattern)
 
-(defgeneric next-n (pattern n)
-  (:documentation "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."))
+(defun next-n (pattern n)
+  "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."
+  (let ((pstream (as-pstream pattern)))
+    (loop
+       :for i :from 0 :below n
+       :collect (next pstream))))
 
-(defmethod next-n ((pattern pattern) (n number))
-  (next-n (as-pstream pattern) n))
+;; (defgeneric next-n (pattern n)
+;;   (:documentation "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."))
+
+;; (defmethod next-n ((pattern pattern) (n number))
+;;   (next-n (as-pstream pattern) n))
 
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
   "Return a list of up to N values of PATTERN. If PATTERN ends after less than N values, then only that many values will be returned."
@@ -147,10 +154,10 @@
 (defmethod next :after ((pattern pstream))
   (incf (slot-value pattern 'number)))
 
-(defmethod next-n ((pattern pstream) (n number))
-  (loop
-     :for i :from 0 :below n
-     :collect (next pattern)))
+;; (defmethod next-n ((pattern pstream) (n number))
+;;   (loop
+;;      :for i :from 0 :below n
+;;      :collect (next pattern)))
 
 (defgeneric as-pstream (pattern))
 
