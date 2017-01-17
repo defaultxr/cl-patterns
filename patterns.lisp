@@ -623,7 +623,7 @@
 
 (defun ptrace (pattern &optional key (stream t) (prefix ""))
   (make-instance 'ptrace
-                 :pattern (as-pstream pattern)
+                 :pattern pattern
                  :key key
                  :stream stream
                  :prefix prefix))
