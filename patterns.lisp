@@ -630,6 +630,6 @@
 
 (defmethod next ((pattern ptrace-pstream))
   (let ((n (next (slot-value pattern 'pattern))))
-    (format (slot-value pattern 'stream) "~a" n)
+    (format (slot-value pattern 'stream) "~a~%" n)
     n))
 
