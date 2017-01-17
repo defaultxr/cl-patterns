@@ -629,7 +629,13 @@
                  :prefix prefix))
 
 (defmethod next ((pattern ptrace-pstream))
-  (let ((n (next (slot-value pattern 'pattern))))
-    (format (slot-value pattern 'stream) "~a~%" n)
-    n))
+  (let ((n (next (slot-value pattern 'pattern)))
+        (key (slot-value pattern 'key))
+        (s (slot-value pattern 'stream))
+        (prefix (slot-value pattern 'prefix)))
+    (let ((result (if (not (null key))
+                      (get-event-value n key)
+                      n)))
+      (format s "~a~a~%" prefix result)
+      result)))
 
