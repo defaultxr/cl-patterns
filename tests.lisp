@@ -5,29 +5,83 @@
 
 ;; (plan)
 
-;; patterns
+;;; patterns
 
-(ok (eq 1 (next (pseq '(1 2 3)))))
+;; pbind (FIX)
 
-(ok (equal (next-n (pseq '(1 2 3)) 3) (next-n (as-pstream (pseq '(1 2 3))) 3)))
+;; pseq
 
-;; conversions
+(ok (=
+     1
+     (next (pseq (list 1 2 3)))))
 
-(ok (eq (db-amp (amp-db 0.5)) 0.5))
+(ok (equal
+     (next-n (pseq (list 1 2 3)) 3)
+     (next-n (as-pstream (pseq (list 1 2 3))) 3)))
 
-;; events
+;; pk (FIX)
 
-(ok (= 1 (sustain (event :dur 0 :sustain 1))))
+;; prand (FIX)
 
-(ok (= 0.5 (legato (event :dur 0 :legato 0.5))))
+;; pxrand (FIX)
 
-(ok (= 1 (dur (event))))
+;; pfunc (FIX)
 
-(ok (eq :default (instrument (event))))
+;; pr (FIX)
 
-(ok (eq ))
+;; pdef (FIX)
 
-;; tsubseq
+;; plazy (FIX)
+
+;; plazyn (FIX)
+
+;; pcycles (FIX)
+
+;; pshift (FIX)
+
+;; pn (FIX)
+
+;; pshuf (FIX)
+
+;; pwhite (FIX)
+
+;; pseries (FIX)
+
+;; pgeom (FIX)
+
+;; ptrace (FIX)
+
+;; ppatlace
+
+(ok (equal
+     (next-n (ppatlace (list (pseq (list 1 2 3)) (pseq (list 4 5 6 7 8)))) 9)
+     (list 1 4 2 5 3 6 7 8 nil)))
+
+;;; conversions
+
+(ok (=
+     (db-amp (amp-db 0.5))
+     0.5))
+
+;;; events
+
+(ok (=
+     1
+     (sustain (event :dur 0 :sustain 1))))
+
+(ok (=
+     0.5
+     (legato (event :dur 0 :legato 0.5))))
+
+(ok (=
+     1
+     (dur (event))))
+
+(ok (eq
+     :default
+     (instrument (event))))
+
+;;; tsubseq
 
 (let* ((pb (pbind :dur 1/3)))
   (ok (= 2/3 (reduce #'+ (gete (tsubseq pb 1 1.5) :dur))))
