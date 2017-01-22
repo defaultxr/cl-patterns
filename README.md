@@ -155,3 +155,4 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * a generalized way to inject keys into an event from inside a pbind...?
   * or maybe just do something like `(pbind :inject (pcycles [32 - - [64 - -]]))` and pcycles would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?
 * patterns from SuperCollider - see SC.md
+* convert more patterns to `listpattern`s.
