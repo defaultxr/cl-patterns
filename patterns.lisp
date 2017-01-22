@@ -646,3 +646,25 @@
       (format s "~a~a~%" prefix result)
       result)))
 
+;;; ppatlace
+
+(defpattern ppatlace (pattern)
+  ((list :initarg :list :accessor :list)
+   (repeats :initarg :repeats :accessor :repeats)))
+
+(defun ppatlace (list &optional (repeats 1))
+  (make-instance 'ppatlace
+                 :list list
+                 :repeats repeats))
+
+(defmethod as-pstream ((pattern ppatlace))
+  (make-instance 'ppatlace-pstream
+                 :list (loop :for i :in (slot-value pattern 'list)
+                          :collect (as-pstream i))
+                 :repeats (slot-value pattern 'repeats)
+                 ;; :remaining (* (length (slot-value pattern 'list)) (slot-value pattern 'repeats))
+                 ))
+
+(defmethod next ((pattern ppatlace-pstream))
+  (next (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
+             (slot-value pattern 'list))))

@@ -4,9 +4,11 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
 
 * list patterns
   * Pseq - done as pseq
+  * Pser
+  * Pshuf - done as pshuf
   * Prand - done as prand
   * Pxrand - done as pxrand
-  * Pshuf - done as pshuf
+  * Pwxrand
   * Pwrand
   * Pdfsm
   * Pfpar
@@ -15,10 +17,9 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pslide
   * Ptuple
   * Pwalk
-  * Pser
   * Pindex
   * Place
-  * Ppatlace
+  * Ppatlace - WIP as ppatlace.
   * Pswitch
 * filter patterns
   * Pavaroh
