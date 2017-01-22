@@ -19,7 +19,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pwalk
   * Pindex
   * Place
-  * Ppatlace - WIP as ppatlace.
+  * Ppatlace - done as ppatlace.
   * Pswitch
 * filter patterns
   * Pavaroh

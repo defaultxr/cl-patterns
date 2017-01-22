@@ -3,6 +3,29 @@
 
 (in-package :cl-patterns)
 
+(define-method-combination pattern () ;; same as standard, but :around methods are called in reverse order, from least to most specific.
+  ((around (:around))
+   (before (:before))
+   (primary () :required t)
+   (after (:after)))
+  (flet ((call-methods (methods)
+           (mapcar #'(lambda (method)
+                       `(call-method ,method))
+                   methods)))
+    (let ((form (if (or before after (rest primary))
+                    `(multiple-value-prog1
+                         (progn ,@(call-methods before)
+                                (call-method ,(first primary)
+                                             ,(rest primary)))
+                       ,@(call-methods (reverse after)))
+                    `(call-method ,(first primary)))))
+      (if around
+          (let ((around (reverse around)))
+            `(call-method ,(first around)
+                          (,@(rest around)
+                             (make-method ,form))))
+          form))))
+
 ;;; pattern glue
 
 (defparameter *event* nil
@@ -20,13 +43,16 @@
 (defgeneric fork (item))
 
 (defmacro defpattern (name superclasses slots &optional documentation)
-  (let ((name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM"))))
+  (let ((name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM")))
+        (super-pstream (if (eq 'pattern (car superclasses))
+                           'pstream
+                           (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM")))))
     `(progn
        (defclass ,name ,superclasses
          ,slots
          ,@(when documentation
              `((:documentation ,documentation))))
-       (defclass ,name-pstream (,name pstream)
+       (defclass ,name-pstream (,name ,super-pstream)
          ())
        (export ',name)
        (export ',name-pstream))))
@@ -54,7 +80,9 @@
     func))
 
 (defgeneric next (pattern)
-  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process."))
+  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.")
+  (:method-combination pattern)
+  )
 
 (defmethod next ((pattern pattern))
   (next (as-pstream pattern)))
@@ -96,6 +124,9 @@
    (pattern-stack :accessor :pattern-stack :initform (list)))
   (:documentation "Pattern stream class."))
 
+;; (defclass pattern-pstream (pstream)
+;;   ())
+
 (defmethod play ((item pstream))
   (let ((cev (next item)))
     (loop :while (not (null cev))
@@ -104,9 +135,9 @@
              (sleep (/ (delta cev) *tempo*))
              (setf cev (next item))))))
 
-(defun make-pstream (pattern)
-  (make-instance 'pstream
-                 :remaining (slot-value pattern 'remaining)))
+;; (defun make-pstream (pattern)
+;;   (make-instance 'pattern-pstream
+;;                  :remaining (slot-value pattern 'remaining)))
 
 (defun remainingp (pattern &optional (key 'remaining))
   "Return t if PATTERN's KEY value is :inf, nil, or greater than 0."
@@ -236,13 +267,40 @@
     (let ((*event* (make-default-event)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
 
-;;; pseq
+;;; listpattern
 
-(defpattern pseq (pattern)
+(defpattern listpattern (pattern)
   ((list :initarg :list :accessor :list)
    (repeats :initarg :repeats :accessor :repeats)
    (crr :initarg :crr :initform nil) ;; current repeats remaining
-   )
+   ))
+
+;; (defclass listpattern-pstream (listpattern pstream)
+;;   (crr :initarg :crr :initform nil))
+
+(defmethod as-pstream ((pattern listpattern))
+  (let ((repeats (slot-value pattern 'repeats)))
+    (make-instance (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM"))
+                   :list (slot-value pattern 'list)
+                   :repeats repeats
+                   :crr repeats)))
+
+(defmethod as-pstream ((pattern listpattern-pstream))
+  pattern)
+
+(defmethod next :around ((pattern listpattern-pstream))
+  (let ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))))
+    (when (and (> (slot-value pattern 'number) 0)
+               (= 0 mod))
+      (decf-remaining pattern 'crr))
+    (when (remainingp pattern 'crr)
+      (let ((res (call-next-method)))
+        res))))
+
+;;; pseq
+
+(defpattern pseq (listpattern)
+  ()
   "A pseq yields values from its list in the same order they were provided.")
 
 (defun pseq (list &optional (repeats 1))
@@ -251,21 +309,25 @@
                  :list list
                  :repeats repeats))
 
-(defmethod as-pstream ((pattern pseq)) ;; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
-  (let ((repeats (slot-value pattern 'repeats)))
-    (make-instance 'pseq-pstream
-                   :list (slot-value pattern 'list)
-                   :repeats repeats
-                   :crr repeats)))
+;; (defmethod as-pstream ((pattern pseq))
+;;   (let ((repeats (slot-value pattern 'repeats)))
+;;     (make-instance 'pseq-pstream
+;;                    :list (slot-value pattern 'list)
+;;                    :repeats repeats
+;;                    :crr repeats)))
+
+;; (defmethod next ((pattern pseq-pstream))
+;;   (let ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list))))) ;; FIX: generalize this for a listpattern class.
+;;     (when (and (> (slot-value pattern 'number) 0)
+;;                (= 0 mod))
+;;       (decf-remaining pattern 'crr))
+;;     (when (remainingp pattern 'crr)
+;;       (nth mod
+;;            (slot-value pattern 'list)))))
 
 (defmethod next ((pattern pseq-pstream))
-  (let ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list))))) ;; FIX: generalize this for a listpattern class.
-    (when (and (> (slot-value pattern 'number) 0)
-               (= 0 mod))
-      (decf-remaining pattern 'crr))
-    (when (remainingp pattern 'crr)
-      (nth mod
-           (slot-value pattern 'list)))))
+  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
+       (slot-value pattern 'list)))
 
 ;;; pk
 
@@ -652,23 +714,28 @@
 
 ;;; ppatlace
 
-(defpattern ppatlace (pattern)
-  ((list :initarg :list :accessor :list)
-   (repeats :initarg :repeats :accessor :repeats)))
+(defpattern ppatlace (listpattern)
+  ())
 
 (defun ppatlace (list &optional (repeats 1))
   (make-instance 'ppatlace
                  :list list
                  :repeats repeats))
 
-(defmethod as-pstream ((pattern ppatlace))
-  (make-instance 'ppatlace-pstream
-                 :list (loop :for i :in (slot-value pattern 'list)
-                          :collect (as-pstream i))
-                 :repeats (slot-value pattern 'repeats)
-                 ;; :remaining (* (length (slot-value pattern 'list)) (slot-value pattern 'repeats))
-                 ))
+(defmethod as-pstream ((pattern ppatlace)) ;; need to define this to make pstreams early instead of embedding them.
+  (let ((repeats (slot-value pattern 'repeats)))
+    (make-instance 'ppatlace-pstream
+                   :list (mapcar #'as-pstream (slot-value pattern 'list))
+                   :repeats repeats
+                   :crr repeats)))
 
 (defmethod next ((pattern ppatlace-pstream))
-  (next (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
-             (slot-value pattern 'list))))
+  (let* ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list))))
+         (result (next (nth mod
+                            (slot-value pattern 'list)))))
+    (if (not (null result))
+        result
+        (progn
+          (setf (slot-value pattern 'list) (remove-if (constantly t) (slot-value pattern 'list) :start mod :end (1+ mod)))
+          (when (> (length (slot-value pattern 'list)) 0)
+            (next pattern))))))
