@@ -9,6 +9,12 @@
 
 ;; pbind (FIX)
 
+;; :remaining key
+
+(ok (equal ;; FIX: should test this for other patterns as well, not just pseq.
+     (list 0 1 2 3 4 3 4 nil nil nil nil nil)
+     (next-n (pseq (list 0 (pseq '(1 2) 1) (pseq '(3 4) 2)) 1) 12)))
+
 ;; pseq
 
 (ok (=
@@ -53,7 +59,7 @@
 
 ;; ppatlace
 
-(ok (equal
+(ok (equal ;; FAILS; FIX
      (next-n (ppatlace (list (pseq (list 1 2 3)) (pseq (list 4 5 6 7 8)))) 9)
      (list 1 4 2 5 3 6 7 8 nil)))
 

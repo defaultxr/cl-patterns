@@ -72,12 +72,6 @@
        :for i :from 0 :below n
        :collect (next pstream))))
 
-;; (defgeneric next-n (pattern n)
-;;   (:documentation "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."))
-
-;; (defmethod next-n ((pattern pattern) (n number))
-;;   (next-n (as-pstream pattern) n))
-
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
   "Return a list of up to N values of PATTERN. If PATTERN ends after less than N values, then only that many values will be returned."
   (let ((pstream (as-pstream pattern))
@@ -153,11 +147,6 @@
 
 (defmethod next :after ((pattern pstream))
   (incf (slot-value pattern 'number)))
-
-;; (defmethod next-n ((pattern pstream) (n number))
-;;   (loop
-;;      :for i :from 0 :below n
-;;      :collect (next pattern)))
 
 (defgeneric as-pstream (pattern))
 
@@ -250,18 +239,33 @@
 ;;; pseq
 
 (defpattern pseq (pattern)
-  ((list :initarg :list :accessor :list))
+  ((list :initarg :list :accessor :list)
+   (repeats :initarg :repeats :accessor :repeats)
+   (crr :initarg :crr :initform nil) ;; current repeats remaining
+   )
   "A pseq yields values from its list in the same order they were provided.")
 
 (defun pseq (list &optional (repeats 1))
   "Create an instance of the PSEQ class."
   (make-instance 'pseq
                  :list list
-                 :remaining (when (numberp repeats) (* repeats (length list)))))
+                 :repeats repeats))
+
+(defmethod as-pstream ((pattern pseq)) ;; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
+  (let ((repeats (slot-value pattern 'repeats)))
+    (make-instance 'pseq-pstream
+                   :list (slot-value pattern 'list)
+                   :repeats repeats
+                   :crr repeats)))
 
 (defmethod next ((pattern pseq-pstream))
-  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
-       (slot-value pattern 'list)))
+  (let ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list))))) ;; FIX: generalize this for a listpattern class.
+    (when (and (> (slot-value pattern 'number) 0)
+               (= 0 mod))
+      (decf-remaining pattern 'crr))
+    (when (remainingp pattern 'crr)
+      (nth mod
+           (slot-value pattern 'list)))))
 
 ;;; pk
 
