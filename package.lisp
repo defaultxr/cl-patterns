@@ -13,24 +13,7 @@
    #:pbind
    #:pbind-pstream
 
-   #:pseq
-   #:pk
-   #:prand
-   #:pxrand
-   #:pfunc
-   #:pr
-   #:pdef
-   #:plazy
-   #:plazyn
-   #:pcycles
-   #:pshift
-   #:pn
-   #:pshuf
-   #:pwhite
-   #:pseries
-   #:pgeom
-   #:ptrace
-   #:ppatlace
+   ;; NOTE: pattern classes defined with defpattern are automatically exported.
 
    #:event
    #:*event-output-function*
