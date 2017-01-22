@@ -59,9 +59,13 @@
 
 ;; ppatlace
 
-(ok (equal ;; FAILS; FIX
-     (next-n (ppatlace (list (pseq (list 1 2 3)) (pseq (list 4 5 6 7 8)))) 9)
+(ok (equal
+     (next-n (ppatlace (list (pseq (list 1 2 3)) (pseq (list 4 5 6 7 8))) :inf) 9)
      (list 1 4 2 5 3 6 7 8 nil)))
+
+(ok (equal
+     (next-n (ppatlace (list (pseq (list 1 2 3)) (pseq (list 4 5 6 7 8))) 2) 9)
+     (list 1 4 2 5 nil nil nil nil nil)))
 
 ;;; conversions
 
