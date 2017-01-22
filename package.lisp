@@ -12,7 +12,26 @@
    
    #:pbind
    #:pbind-pstream
-   
+
+   #:pseq
+   #:pk
+   #:prand
+   #:pxrand
+   #:pfunc
+   #:pr
+   #:pdef
+   #:plazy
+   #:plazyn
+   #:pcycles
+   #:pshift
+   #:pn
+   #:pshuf
+   #:pwhite
+   #:pseries
+   #:pgeom
+   #:ptrace
+   #:ppatlace
+
    #:event
    #:*event-output-function*
 
