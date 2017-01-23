@@ -34,3 +34,26 @@
             (unless (null event)
               (get-event-value event key)))
           list))
+
+(define-method-combination pattern () ;; same as standard, but :around methods are called in reverse order, from least to most specific.
+  ((around (:around))
+   (before (:before))
+   (primary () :required t)
+   (after (:after)))
+  (flet ((call-methods (methods)
+           (mapcar #'(lambda (method)
+                       `(call-method ,method))
+                   methods)))
+    (let ((form (if (or before after (rest primary))
+                    `(multiple-value-prog1
+                         (progn ,@(call-methods before)
+                                (call-method ,(first primary)
+                                             ,(rest primary)))
+                       ,@(call-methods (reverse after)))
+                    `(call-method ,(first primary)))))
+      (if around
+          (let ((around (reverse around)))
+            `(call-method ,(first around)
+                          (,@(rest around)
+                             (make-method ,form))))
+          form))))
