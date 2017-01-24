@@ -25,7 +25,19 @@
      (next-n (pseq (list 1 2 3)) 3)
      (next-n (as-pstream (pseq (list 1 2 3))) 3)))
 
-;; pk (FIX)
+;; pk
+
+(ok (equal
+     (list 3)
+     (gete (next-n (pbind :foo (pseq '(3) 1) :bar (pk :foo)) 1) :bar)))
+
+(ok (equal
+     (list 1 2 3 nil)
+     (gete (next-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :foo)) 4) :bar)))
+
+(ok (equal
+     (list 2 2 2 nil)
+     (gete (next-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :baz 2)) 4) :bar)))
 
 ;; prand (FIX)
 
@@ -45,7 +57,15 @@
 
 ;; pshift (FIX)
 
-;; pn (FIX)
+;; pn
+
+(ok (equal ;; FIX
+     (list 1 nil nil)
+     (next-n (pn 1 1) 3)))
+
+(ok (equal
+     (list 1 2 3 1 2 3 1 2 3 nil nil nil)
+     (next-n (pn (pseq '(1 2 3) 1) 3) 12)))
 
 ;; pshuf (FIX)
 

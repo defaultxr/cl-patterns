@@ -554,14 +554,10 @@
   (let ((nv (next (slot-value pattern 'pps))))
     (when (and
            (null nv)
-           (remainingp pattern 'repeats);; (or (eq :inf (slot-value pattern 'repeats))
-           ;;     (> (slot-value pattern 'repeats) 0))
-           )
+           (remainingp pattern 'repeats))
       (setf (slot-value pattern 'pps) (as-pstream (slot-value pattern 'pattern)))
       (setf nv (next (slot-value pattern 'pps)))
-      (decf-remaining pattern 'repeats);; (when (numberp (slot-value pattern 'repeats))
-      ;; (decf (slot-value pattern 'repeats)))
-      )
+      (decf-remaining pattern 'repeats))
     nv))
 
 ;;; pshuf

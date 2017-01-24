@@ -22,16 +22,12 @@
 
 (in-package :cl-patterns)
 
-(load #P"~/misc/lisp/cl-patterns/supercollider.lisp")
-
-(setf *event-output-function* 'play-sc)
-
-(setf *tempo* (/ 110 60))
-
-(defvar buf (sc:buffer-read "~/gamecube.wav"))
+(defvar buf (sc:buffer-read "~/snd/gamecube.wav"))
 
 (defun ctime ()
   (/ (get-internal-real-time) internal-time-units-per-second))
+
+(play (pbind :instrument :kik :dur (pseq '(1) 4)))
 
 (fork
  (pbind
@@ -41,31 +37,38 @@
   :freq 200
   :inject (pr (pbind
                :dur (pseq (mapcar #!(+ -0 %) '(1/6 1)) :inf)
-               ;; :rate (pseq '(1) 16)
+               :rate (pseq '(1) 16)
                :rate (pseq (list 1.5 0.5) 4)
                )
               (pseq '(9 3) :inf))
-  ;; :amp (pfunc (lambda () (* 0.25 (+ 1 (sin (* 3 (ctime)))))))
-  ;; :pan (pseq '(-1 -0.75 -0.5 -0.25 0 0.25 0.5 0.75 1) :inf)
+  :amp (pfunc (lambda () (* 0.25 (+ 1 (sin (* 3 (ctime)))))))
+  :pan (pseq '(-1 -0.75 -0.5 -0.25 0 0.25 0.5 0.75 1) :inf)
   ;; :pan (pfunc (lambda () (sin (ctime))))
   :start 0.5))
 
-(play ;; this doesn't work 
+(play
  (pseq
   (list
    (pbind
-    :instrument :sp
+    :instrument :kik
     :dur (pseq '(1 1/2) :inf)
     :rate (pseq '(0.5 0.75) 4)
     :start 0.5))))
 
-(setf *event-output-function* 'play-sc)
+(play (pr
+       (pseq (list
+              (event :instrument :kik :freq 4000 :dur 1/8)
+              (event :instrument :kik :freq 3000 :dur 1/8)
+              (event :instrument :kik :freq 2000 :dur 1/8)
+              (event :instrument :kik :freq 1000 :dur 1/8)
+              ))
+       (pseq '(1 2 3))))
 
 (play
  (pbind
   :instrument :kik
-  ;; :type (pseq '(:note :rest :note) :inf)
-  :freq (pseq '(1000 500 250) 1)
+  :type (pseq '(:note :rest :note) :inf)
+  :freq (pgeom 5000 0.5 6)
   :dur 1/8))
 
 (pdef :xx (pbind
