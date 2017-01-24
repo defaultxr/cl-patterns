@@ -106,7 +106,6 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 * README.md - this file. self-expanatory, i'd hope.
 * cl-patterns.asd - cl-patterns system definition with no backends.
-* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
 
@@ -119,9 +118,12 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
 * misc.lisp - where i put my code when i'm just messing around with stuff. might be useful as example code, but could also have outdated stuff in it.
 
+* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
 * supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/defaultxr/cl-collider) library.
+* cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
 * supercollider-example.lisp - example code to get started with the `cl-collider` library.
-* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
+
+* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine) - WIP.
 
 ## Ideas/TODO
 
