@@ -522,7 +522,7 @@
 ;;   ((list :initarg :list :accessor :list)
 ;;    (shift :initarg :shift :accessor :shift)))
 
-(defun pshift (pattern shift &optional (max-yield *max-pattern-yield-length*)) ;; FIX: maybe dont use pseq internally
+(defun pshift (pattern shift &optional (max-yield *max-pattern-yield-length*)) ;; FIX: don't use pseq internally, and make it possible for 'shift' to be a pattern
   (pseq (alexandria:rotate (next-upto-n pattern max-yield) shift)))
 
 ;; (defmethod next ((pattern pshift-pstream)))
