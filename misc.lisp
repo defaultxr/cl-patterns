@@ -18,6 +18,10 @@
 (defun query-tree (&optional (group-id 0) (server *s*))
   (send-message server "/g_queryTree" group-id))
 
+;;; scheduler
+
+(slot-value *scheduler* 'in-queue)
+
 ;;; messing around
 
 (in-package :cl-patterns)
