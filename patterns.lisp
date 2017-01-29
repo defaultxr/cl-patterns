@@ -109,7 +109,7 @@
     (loop :while (not (null cev))
        :do (progn
              (play cev)
-             (sleep (/ (delta cev) *tempo*))
+             (sleep (dur-time (delta cev) *tempo*))
              (setf cev (next item))))))
 
 ;; (defun make-pstream (pattern)

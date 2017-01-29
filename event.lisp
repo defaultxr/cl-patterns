@@ -214,6 +214,14 @@
 (defun dur-delta (dur)
   dur)
 
+(defun dur-time (dur &optional (tempo *tempo*))
+  "Convert duration in beats to time in seconds according to TEMPO in beats per second."
+  (/ dur tempo))
+
+(defun time-dur (time &optional (tempo *tempo*))
+  "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
+  (* time tempo))
+
 (event-method freq 440)
 
 (event-method steps-per-octave 12)
