@@ -409,13 +409,6 @@
    (pattern :initarg :pattern :accessor :pattern))
   "A named pattern.")
 
-;; (defun pdef-ref (key &optional value)
-;;   "Retrieve a value from the global pdef dictionary, or set it if VALUE is provided."
-;;   (let ((key (as-keyword key)))
-;;     (if (null value)
-;;         (getf *pdef-dictionary* key)
-;;         (setf (getf *pdef-dictionary* key) value))))
-
 (defmacro create-global-dictionary (name)
   (let* ((name-name (symbol-name name))
          (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
@@ -474,12 +467,9 @@
 
 (defmethod next ((pattern plazyn-pstream))
   (labels ((maybe-funcall ()
-             (when (remainingp pattern 'crr);; (or (eq :inf (slot-value pattern 'crr))
-               ;;     (> (slot-value pattern 'crr) 0))
+             (when (remainingp pattern 'crr)
                (setf (slot-value pattern 'cp) (as-pstream (funcall (slot-value pattern 'func))))
-               (decf-remaining pattern 'crr);; (when (numberp (slot-value pattern 'crr))
-               ;;   (decf (slot-value pattern 'crr)))
-               )))
+               (decf-remaining pattern 'crr))))
     (when (null (slot-value pattern 'cp))
       (maybe-funcall))
     (let ((nv (next (slot-value pattern 'cp))))
