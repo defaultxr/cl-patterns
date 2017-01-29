@@ -87,6 +87,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pbind - done as pbind
   * Pbindf
   * Pmono
+  * PmonoArtic - see instead: pmono.
   * Pdef - WIP as pdef. see also: pbind's :name/:pdef keys.
   * Pchain - see also: pbind's :inject key.
   * Pdict
