@@ -12,7 +12,10 @@
   (combine-events (event) *event*))
 
 (defgeneric play (item)
-  (:documentation "Plays an item (typically an event) according to the current *event-output-function*."))
+  (:documentation "Play an item (typically an event or pattern) according to the current *event-output-function*."))
+
+(defgeneric stop (item)
+  (:documentation "Stop an item (typically a playing pattern) according to the current *event-output-function*."))
 
 (defparameter *tempo* 1
   "The current tempo in beats per second.")
@@ -40,9 +43,7 @@
 ;;; pattern
 
 (defclass pattern ()
-  ((remaining :initarg :remaining :accessor :remaining :initform nil)
-   ;; (number :initarg :number :accessor :number :initform 0)
-   )
+  ((remaining :initarg :remaining :accessor :remaining :initform nil))
   (:documentation "Abstract pattern superclass."))
 
 (defmethod play ((item pattern))
@@ -58,8 +59,7 @@
 
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.")
-  (:method-combination pattern)
-  )
+  (:method-combination pattern))
 
 (defmethod next ((pattern pattern))
   (next (as-pstream pattern)))
@@ -404,7 +404,7 @@
 
 ;;; pdef
 
-(defpattern pdef (pattern)
+(defpattern pdef (pattern) ;; FIX: make play method for pdef to avoid adding it twice to the clock. also need 'reset' method.
   ((key :initarg :key :accessor :key)
    (pattern :initarg :pattern :accessor :pattern))
   "A named pattern.")
