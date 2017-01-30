@@ -49,15 +49,6 @@
 ;; (defmethod play ((item pattern))
 ;;   (play (as-pstream item)))
 
-(defmethod play ((item pbind))
-  (let* ((pstream (as-pstream item))
-         (cev (next pstream)))
-    (loop :while (not (null cev))
-       :do (progn
-             (play cev)
-             (sleep (dur-time (delta cev) *tempo*))
-             (setf cev (next pstream))))))
-
 ;; (defmethod fork ((item pattern))
 ;;   #+bordeaux-threads
 ;;   (bt:make-thread (lambda () (play item)) :name (format nil "fork: ~s" item))
@@ -271,6 +262,15 @@
                      *event*)))))
     (let ((*event* (make-default-event)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
+
+(defmethod play ((item pbind))
+  (let* ((pstream (as-pstream item))
+         (cev (next pstream)))
+    (loop :while (not (null cev))
+       :do (progn
+             (play cev)
+             (sleep (dur-time (delta cev) *tempo*))
+             (setf cev (next pstream))))))
 
 ;; (defmethod play ((item pbind-pstream))
 ;;   (let ((cev (next item)))
