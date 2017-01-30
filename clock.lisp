@@ -57,7 +57,7 @@
     (if (eq 'pbind-pstream (type-of item))
         (if (= 0 (slot-value item 'number)) ;; if the pstream hasn't started yet, it starts when the :quant determines it.
             (or (= 0 (slot-value item 'quant))
-                (<= (slot-value clock 'granularity) (mod (slot-value clock 'beats) (slot-value item 'quant))))
+                (< (mod (slot-value clock 'beats) (slot-value item 'quant)) (slot-value clock 'granularity)))
             t ;; FIX
             )
         t)))
