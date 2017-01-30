@@ -98,6 +98,7 @@
       (append plist (list key val))))
 
 (defun event-plist (event)
+  "Returns a plist of all the keys and values from the event, in order."
   (slot-value event 'other-params))
 
 (defmethod print-object ((item event) stream)
