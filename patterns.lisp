@@ -46,16 +46,25 @@
   ((remaining :initarg :remaining :accessor :remaining :initform nil))
   (:documentation "Abstract pattern superclass."))
 
-(defmethod play ((item pattern))
-  (play (as-pstream item)))
+;; (defmethod play ((item pattern))
+;;   (play (as-pstream item)))
 
-(defmethod fork ((item pattern))
-  #+bordeaux-threads
-  (bt:make-thread (lambda () (play item)) :name (format nil "fork: ~s" item))
-  #-bordeaux-threads
-  (let ((func (lambda () (play item))))
-    (funcall func)
-    func))
+(defmethod play ((item pbind))
+  (let* ((pstream (as-pstream item))
+         (cev (next pstream)))
+    (loop :while (not (null cev))
+       :do (progn
+             (play cev)
+             (sleep (dur-time (delta cev) *tempo*))
+             (setf cev (next pstream))))))
+
+;; (defmethod fork ((item pattern))
+;;   #+bordeaux-threads
+;;   (bt:make-thread (lambda () (play item)) :name (format nil "fork: ~s" item))
+;;   #-bordeaux-threads
+;;   (let ((func (lambda () (play item))))
+;;     (funcall func)
+;;     func))
 
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.")
@@ -98,23 +107,9 @@
 (defclass pstream (pattern)
   ((remaining :initarg :remaining :accessor :remaining :initform nil)
    (number :accessor :number :initform 0)
-   (pattern-stack :accessor :pattern-stack :initform (list)))
+   (pattern-stack :accessor :pattern-stack :initform (list))
+   (next-time :initarg :next-time :accessor :next-time :initform 0))
   (:documentation "Pattern stream class."))
-
-;; (defclass pattern-pstream (pstream)
-;;   ())
-
-(defmethod play ((item pstream))
-  (let ((cev (next item)))
-    (loop :while (not (null cev))
-       :do (progn
-             (play cev)
-             (sleep (dur-time (delta cev) *tempo*))
-             (setf cev (next item))))))
-
-;; (defun make-pstream (pattern)
-;;   (make-instance 'pattern-pstream
-;;                  :remaining (slot-value pattern 'remaining)))
 
 (defun remainingp (pattern &optional (key 'remaining))
   "Return t if PATTERN's KEY value is :inf, nil, or greater than 0."
@@ -175,13 +170,23 @@
 ;;; pbind
 
 (defclass pbind (pattern)
-  ((pairs :initarg :pairs :accessor :pairs :initform (list)))
+  ((pairs :initarg :pairs :accessor :pairs :initform (list))
+   (quant :accessor :quant :initarg :quant :initform 1))
   (:documentation "A pbind associates keys with values for a pattern stream that returns events."))
 
 (defun pbind (&rest pairs)
   "Create an instance of the PBIND class."
-  (make-instance 'pbind
-                 :pairs pairs))
+  (let ((res-pairs nil)
+        (pattern (make-instance 'pbind)))
+    (loop :for (key value) :on pairs :by #'cddr
+       :do
+       (if (position key *pbind-special-init-keys*)
+           (let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
+             (when result
+               (setf res-pairs (append res-pairs result))))
+           (setf res-pairs (append res-pairs (list key value)))))
+    (setf (slot-value pattern 'pairs) res-pairs)
+    pattern))
 
 (defclass pbind-pstream (pbind pstream)
   ())
@@ -203,6 +208,44 @@
               :else
               :collect (slot-value pattern slot)))))
 
+(defparameter *pbind-special-init-keys* '())
+
+(defmacro define-pbind-special-init-key (key &body body)
+  "Define a special key for pbind that alters the pbind as part of its initialization (\"pre-processing\"). These functions are called at pbind creation time and must return a list if the key should inject values into the pbind pairs, or NIL if they should not."
+  (let ((keyname (as-keyword key)))
+    `(setf (getf *pbind-special-init-keys* ,keyname)
+           (lambda (value pattern)
+             (declare (ignorable value pattern))
+             ,@body))))
+
+(define-pbind-special-init-key quant
+  (setf (slot-value pattern 'quant)
+        (if (functionp value)
+            (funcall value)
+            value))
+  (list :quant value))
+
+(define-pbind-special-init-key remaining
+  (setf (slot-value pattern 'remaining)
+        (if (functionp value)
+            (funcall value)
+            value))
+  nil ;; FIX: should this inject the 'remaining value? probably not - the pbind processing should do that automatically so it's always correct.
+  )
+
+(defparameter *pbind-special-post-keys* '())
+
+(defmacro define-pbind-special-post-key (key &body body) ;; FIX: need to actually implement this
+  "Define a special key for pbind that does post-processing on the pbind when it is created."
+  (let ((keyname (as-keyword key)))
+    `(setf (getf *pbind-special-post-keys* ,keyname)
+           (lambda (value)
+             (declare (ignorable value))
+             ,@body))))
+
+(define-pbind-special-post-key pdef ;; FIX
+  nil)
+
 (defparameter *pbind-special-keys* '())
 
 (defmacro define-pbind-special-key (key &body body)
@@ -214,21 +257,6 @@
 
 (define-pbind-special-key inject
   value)
-
-(defparameter *pbind-special-post-keys* '())
-
-(defmacro define-pbind-special-post-key (key &body body) ;; FIX: need to actually implement this
-  "Define a special key for pbind that does post-processing on the pbind when it is created."
-  (let ((keyname (as-keyword key)))
-    `(setf (getf *pbind-special-post-keys* ,keyname)
-           (lambda (value)
-             ,@body))))
-
-(define-pbind-special-post-key pdef ;; FIX
-  nil)
-
-(define-pbind-special-post-key remaining ;; FIX
-  nil)
 
 (defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
@@ -243,6 +271,14 @@
                      *event*)))))
     (let ((*event* (make-default-event)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
+
+;; (defmethod play ((item pbind-pstream))
+;;   (let ((cev (next item)))
+;;     (loop :while (not (null cev))
+;;        :do (progn
+;;              (play cev)
+;;              (sleep (dur-time (delta cev) *tempo*))
+;;              (setf cev (next item))))))
 
 ;;; listpattern
 
