@@ -43,7 +43,7 @@
 ;;; pattern
 
 (defclass pattern ()
-  ((remaining :initarg :remaining :accessor :remaining :initform nil))
+  ((remaining :initarg :remaining :initform nil))
   (:documentation "Abstract pattern superclass."))
 
 ;; (defmethod play ((item pattern))
@@ -96,10 +96,10 @@
 ;;; pstream
 
 (defclass pstream (pattern)
-  ((remaining :initarg :remaining :accessor :remaining :initform nil)
-   (number :accessor :number :initform 0)
-   (pattern-stack :accessor :pattern-stack :initform (list))
-   (next-time :initarg :next-time :accessor :next-time :initform 0))
+  ((remaining :initarg :remaining :initform nil)
+   (number :initform 0)
+   (pattern-stack :initform (list))
+   (next-time :initarg :next-time :initform 0))
   (:documentation "Pattern stream class."))
 
 (defun remainingp (pattern &optional (key 'remaining))
@@ -161,8 +161,8 @@
 ;;; pbind
 
 (defclass pbind (pattern)
-  ((pairs :initarg :pairs :accessor :pairs :initform (list))
-   (quant :accessor :quant :initarg :quant :initform 1))
+  ((pairs :initarg :pairs :initform (list))
+   (quant :initarg :quant :initform 1))
   (:documentation "A pbind associates keys with values for a pattern stream that returns events."))
 
 (defun pbind (&rest pairs)
@@ -283,8 +283,8 @@
 ;;; listpattern
 
 (defpattern listpattern (pattern)
-  ((list :initarg :list :accessor :list)
-   (repeats :initarg :repeats :accessor :repeats)
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
    (crr :initarg :crr :initform nil) ;; current repeats remaining
    ))
 
@@ -345,8 +345,8 @@
 ;;; pk
 
 (defpattern pk (pattern)
-  ((key :initarg :key :accessor :key)
-   (default :initarg :default :accessor :default :initform 1))
+  ((key :initarg :key)
+   (default :initarg :default :initform 1))
   "A pk returns a value from the current *event* context, returning DEFAULT if that value is nil.")
 
 (defun pk (key &optional (default 1))
@@ -362,7 +362,7 @@
 ;;; prand
 
 (defpattern prand (pattern)
-  ((list :initarg :list :accessor :list))
+  ((list :initarg :list))
   "A prand returns a random value from LIST.")
 
 (defun prand (list &optional (remaining :inf))
@@ -377,7 +377,7 @@
 ;;; pxrand
 
 (defpattern pxrand (pattern)
-  ((list :initarg :list :accessor :list)
+  ((list :initarg :list)
    (lr :initarg :lr :initform nil) ;; last result
    )
   "A pxrand returns a random value from LIST, never repeating the same one twice.")
@@ -399,7 +399,7 @@
 ;;; pfunc
 
 (defpattern pfunc (pattern)
-  ((func :initarg :func :accessor :func))
+  ((func :initarg :func))
   "A pfunc returns the result of the provided function FUNC.")
 
 (defun pfunc (func)
@@ -413,8 +413,8 @@
 ;;; pr
 
 (defpattern pr (pattern)
-  ((pattern :initarg :pattern :accessor :pattern)
-   (repeats :initarg :repeats :accessor :repeats :initarg :inf)
+  ((pattern :initarg :pattern)
+   (repeats :initarg :repeats :initarg :inf)
    (cv :initarg :cv :initform nil) ;; current value
    (crr :initarg :crr :initform nil) ;; current repeats remaining
    )
@@ -441,8 +441,8 @@
 ;;; pdef
 
 (defpattern pdef (pattern) ;; FIX: make play method for pdef to avoid adding it twice to the clock. also need 'reset' method.
-  ((key :initarg :key :accessor :key)
-   (pattern :initarg :pattern :accessor :pattern))
+  ((key :initarg :key)
+   (pattern :initarg :pattern))
   "A named pattern.")
 
 (defmacro create-global-dictionary (name)
@@ -473,7 +473,7 @@
 ;;; plazy
 
 (defpattern plazy (pattern)
-  ((func :initarg :func :accessor :func)
+  ((func :initarg :func)
    (cp :initarg :cp :initform nil)))
 
 (defun plazy (func)
@@ -490,8 +490,8 @@
 ;;; plazyn
 
 (defpattern plazyn (pattern)
-  ((func :initarg :func :accessor :func)
-   (repeats :initarg :repeats :accessor :repeats)
+  ((func :initarg :func)
+   (repeats :initarg :repeats)
    (cp :initarg :cp :initform nil)
    (crr :initarg :crr :initform nil)))
 
@@ -519,8 +519,8 @@
 ;; inspired by tidalcycles
 
 (defpattern pcycles (pattern)
-  ((list :initarg :list :accessor :list)
-   (pl :initarg :pl :accessor :pl) ;; parsed list
+  ((list :initarg :list)
+   (pl :initarg :pl) ;; parsed list
    ))
 
 (defun pcycles-parse-list (list) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time.
@@ -545,8 +545,8 @@
 ;; shift a pattern N forward or backward, wrapping around
 
 ;; (defpattern pshift (pattern)
-;;   ((list :initarg :list :accessor :list)
-;;    (shift :initarg :shift :accessor :shift)))
+;;   ((list :initarg :list)
+;;    (shift :initarg :shift)))
 
 (defun pshift (pattern shift &optional (max-yield *max-pattern-yield-length*)) ;; FIX: don't use pseq internally, and make it possible for 'shift' to be a pattern
   (pseq (alexandria:rotate (next-upto-n pattern max-yield) shift)))
@@ -556,8 +556,8 @@
 ;;; pn
 
 (defpattern pn (pattern)
-  ((pattern :initarg :pattern :accessor :pattern)
-   (repeats :initarg :repeats :accessor :repeats)
+  ((pattern :initarg :pattern)
+   (repeats :initarg :repeats)
    (pps :initarg :pps :initform nil) ;; pattern-pstream
    ))
 
@@ -589,8 +589,8 @@
 ;;; pshuf
 
 (defpattern pshuf (pattern)
-  ((list :initarg :list :accessor :list)
-   (repeats :initarg :repeats :accessor :repeats)
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
    (sl :initarg :sl :initform nil) ;; shuffled list
    ))
 
@@ -613,8 +613,8 @@
 ;;; pwhite
 
 (defpattern pwhite (pattern)
-  ((lo :initarg :lo :accessor :lo)
-   (hi :initarg :hi :accessor :hi)))
+  ((lo :initarg :lo)
+   (hi :initarg :hi)))
 
 (defun pwhite (&optional (lo 0) (hi 1) (remaining :inf))
   (make-instance 'pwhite
@@ -629,9 +629,9 @@
 ;; FIX: maybe should coerce lo, hi, and step to floats if one of them is a float?
 
 (defpattern pbrown (pattern)
-  ((lo :initarg :lo :accessor :lo)
-   (hi :initarg :hi :accessor :hi)
-   (step :initarg :step :accessor :step)
+  ((lo :initarg :lo)
+   (hi :initarg :hi)
+   (step :initarg :step)
    (cv :initarg :cv :initarg :cv)))
 
 (defun pbrown (&optional (lo 0) (hi 1) (step 0.125) (remaining :inf))
@@ -654,8 +654,8 @@
 ;;; pseries
 
 (defpattern pseries (pattern)
-  ((start :initarg :start :accessor :start)
-   (step :initarg :step :accessor :step)
+  ((start :initarg :start)
+   (step :initarg :step)
    (cv :initarg :cv :initform nil)))
 
 (defun pseries (&optional (start 0) (step 1) (remaining :inf))
@@ -682,8 +682,8 @@
 ;;; pgeom
 
 (defpattern pgeom (pattern)
-  ((start :initarg :start :accessor :start)
-   (grow :initarg :grow :accessor :grow)
+  ((start :initarg :start)
+   (grow :initarg :grow)
    (cv :initarg :cv :initform nil)))
 
 (defun pgeom (&optional (start 0) (grow 1) (remaining :inf))
@@ -710,10 +710,10 @@
 ;;; ptrace
 
 (defpattern ptrace (pattern)
-  ((pattern :initarg :pattern :accessor :pattern)
-   (key :initarg :key :accessor :key)
-   (stream :initarg :stream :accessor :stream)
-   (prefix :initarg :prefix :accessor :prefix)))
+  ((pattern :initarg :pattern)
+   (key :initarg :key)
+   (stream :initarg :stream)
+   (prefix :initarg :prefix)))
 
 (defun ptrace (pattern &optional key (stream t) (prefix ""))
   (make-instance 'ptrace

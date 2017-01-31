@@ -3,17 +3,18 @@
 (in-package :cl-patterns)
 
 (defclass clock ()
-  ((beats :initform 0 :accessor :beats)
-   (tempo :initform 1 :initarg :tempo :accessor :tempo)
-   (granularity :initform 1/10 :initarg :granularity :accessor :granularity)
-   (tasks :initform nil :accessor :tasks)
-   (tasks-lock :initform (bt:make-lock) :accessor :tasks-lock)))
+  ((beats :initform 0)
+   (tempo :initform 1 :initarg :tempo :accessor tempo)
+   (granularity :initform 1/10 :initarg :granularity)
+   (tasks :initform nil)
+   ;; (tasks-lock :initform (bt:make-lock))
+   ))
 
 (defclass task ()
-  ((gensym :initform (gensym) :accessor :gensym)
-   (clock :initform *clock* :initarg :clock :accessor :clock)
-   (item :initform nil :initarg :item :accessor :item)
-   ;; (dead-p :initform nil :accessor :dead-p) ;; FIX?
+  ((gensym :initform (gensym))
+   (clock :initform *clock* :initarg :clock)
+   (item :initform nil :initarg :item)
+   ;; (dead-p :initform nil) ;; FIX?
    ))
 
 (defun make-clock (&optional (tempo 1) tasks)
