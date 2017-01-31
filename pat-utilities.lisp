@@ -18,13 +18,13 @@
               item)
           (repeat item (- num 1)))))
 
-(defun re-intern (symbol &optional (package 'cl-patterns))
-  "Interns a symbol from one package into a different package."
-  (intern (symbol-name symbol) package))
+;; (defun re-intern (symbol &optional (package 'cl-patterns))
+;;   "Interns a symbol from one package into a different package."
+;;   (intern (symbol-name symbol) package))
 
 (defun as-keyword (symbol)
   "Turns a symbol into a keyword."
-  (re-intern symbol :keyword))
+  (alexandria:ensure-symbol symbol :keyword))
 
 (defun gete (list key)
   "Get a list of the value of KEY for each element in LIST."

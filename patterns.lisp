@@ -255,7 +255,7 @@
                (if (position (car pairs) (keys *pbind-special-keys*))
                    (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
                      (setf *event* (combine-events *event* result)))
-                   (set-event-value *event* (re-intern (car pairs)) next-cadr))
+                   (set-event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns) next-cadr))
                (when (not (null next-cadr)) ;; drop out if one of the values is nil - end of pattern!
                  (if (not (null (cddr pairs)))
                      (pbind-accumulator (cddr pairs))

@@ -24,7 +24,7 @@
   (let ((ev (make-instance 'event)))
     (labels ((accumulator (pairs)
                (when (not (null (car pairs)))
-                 (set-event-value ev (re-intern (car pairs)) (cadr pairs))
+                 (set-event-value ev (alexandria:ensure-symbol (car pairs) 'cl-patterns) (cadr pairs))
                  (accumulator (cddr pairs)))))
       (accumulator params)
       ev)))
@@ -52,7 +52,7 @@
 
 (defun get-event-value (event slot)
   "Return the value of SLOT in EVENT, running any necessary conversion functions."
-  (let ((slot (re-intern slot)))
+  (let ((slot (alexandria:ensure-symbol slot 'cl-patterns)))
     (if (and (fboundp slot)
              (eq 'standard-generic-function (type-of (fdefinition slot))))
         (funcall slot event)
