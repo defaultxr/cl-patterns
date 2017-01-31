@@ -114,27 +114,28 @@
     (decf (slot-value pattern key))))
 
 (defmethod next :around ((pattern pstream))
-  (labels ((get-value-from-stack (pattern)
-             (if (null (slot-value pattern 'pattern-stack))
-                 (prog1
-                     (get-value pattern)
-                   (decf-remaining pattern))
-                 (let* ((popped (pop (slot-value pattern 'pattern-stack)))
-                        (nv (next popped)))
-                   (if (null nv)
-                       (get-value-from-stack pattern)
-                       (progn
-                         (push popped (slot-value pattern 'pattern-stack))
-                         nv)))))
-           (get-value (pattern)
-             (let ((res (call-next-method)))
-               (typecase res
-                 (pattern
-                  (pattern-embed pattern res)
-                  (get-value-from-stack pattern))
-                 (t res)))))
-    (when (remainingp pattern)
-      (get-value-from-stack pattern))))
+  (with-slots (pattern-stack) pattern
+    (labels ((get-value-from-stack (pattern)
+               (if (null pattern-stack)
+                   (prog1
+                       (get-value pattern)
+                     (decf-remaining pattern))
+                   (let* ((popped (pop pattern-stack))
+                          (nv (next popped)))
+                     (if (null nv)
+                         (get-value-from-stack pattern)
+                         (progn
+                           (push popped pattern-stack)
+                           nv)))))
+             (get-value (pattern)
+               (let ((res (call-next-method)))
+                 (typecase res
+                   (pattern
+                    (pattern-embed pattern res)
+                    (get-value-from-stack pattern))
+                   (t res)))))
+      (when (remainingp pattern)
+        (get-value-from-stack pattern)))))
 
 (defmethod pattern-embed ((pattern pstream) (embed pattern))
   (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
@@ -302,13 +303,14 @@
   pattern)
 
 (defmethod next :around ((pattern listpattern-pstream))
-  (let ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))))
-    (when (and (> (slot-value pattern 'number) 0)
-               (= 0 mod))
-      (decf-remaining pattern 'crr))
-    (when (remainingp pattern 'crr)
-      (let ((res (call-next-method)))
-        res))))
+  (with-slots (number list) pattern
+    (let ((mod (mod number (length list))))
+      (when (and (> number 0)
+                 (= 0 mod))
+        (decf-remaining pattern 'crr))
+      (when (remainingp pattern 'crr)
+        (let ((res (call-next-method)))
+          res)))))
 
 ;;; pseq
 
@@ -339,8 +341,9 @@
 ;;            (slot-value pattern 'list)))))
 
 (defmethod next ((pattern pseq-pstream))
-  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'list)))
-       (slot-value pattern 'list)))
+  (with-slots (number list) pattern
+    (nth (mod number (length list))
+         list)))
 
 ;;; pk
 
@@ -356,8 +359,9 @@
                  :default default))
 
 (defmethod next ((pattern pk-pstream))
-  (or (get-event-value *event* (slot-value pattern 'key))
-      (slot-value pattern 'default)))
+  (with-slots (key default) pattern
+    (or (get-event-value *event* key)
+        default)))
 
 ;;; prand
 
@@ -390,11 +394,12 @@
                  :remaining remaining))
 
 (defmethod next ((pattern pxrand-pstream))
-  (let ((res (alexandria:random-elt (slot-value pattern 'list))))
-    (loop :while (eql res (slot-value pattern 'lr))
-       :do (setf res (alexandria:random-elt (slot-value pattern 'list))))
-    (setf (slot-value pattern 'lr) res)
-    res))
+  (with-slots (list lr) pattern
+    (let ((res (alexandria:random-elt list)))
+      (loop :while (eql res lr)
+         :do (setf res (alexandria:random-elt list)))
+      (setf lr res)
+      res)))
 
 ;;; pfunc
 
@@ -426,17 +431,18 @@
                  :repeats repeats))
 
 (defmethod next ((pattern pr-pstream))
-  (if (or (null (slot-value pattern 'cv))
-          (<= (slot-value pattern 'crr) 0))
-      (progn
-        (setf (slot-value pattern 'cv) (next (slot-value pattern 'pattern)))
-        (let ((next-value (next (slot-value pattern 'repeats))))
-          (when next-value
-            (setf (slot-value pattern 'crr) (1- next-value))
-            (slot-value pattern 'cv))))
-      (progn
-        (decf-remaining pattern 'crr)
-        (slot-value pattern 'cv))))
+  (with-slots (cv crr repeats) pattern
+    (if (or (null cv)
+            (<= crr 0))
+        (progn
+          (setf cv (next (slot-value pattern 'pattern)))
+          (let ((next-value (next repeats)))
+            (when next-value
+              (setf crr (1- next-value))
+              cv)))
+        (progn
+          (decf-remaining pattern 'crr)
+          cv))))
 
 ;;; pdef
 
@@ -481,11 +487,12 @@
                  :func func))
 
 (defmethod next ((pattern plazy-pstream))
-  (if (null (slot-value pattern 'cp))
-      (progn
-        (setf (slot-value pattern 'cp) (as-pstream (funcall (slot-value pattern 'func))))
-        (next (slot-value pattern 'cp)))
-      (next (slot-value pattern 'cp))))
+  (with-slots (cp func) pattern
+    (if (null cp)
+        (progn
+          (setf cp (as-pstream (funcall func)))
+          (next cp))
+        (next cp))))
 
 ;;; plazyn
 
@@ -502,18 +509,19 @@
                  :crr repeats))
 
 (defmethod next ((pattern plazyn-pstream))
-  (labels ((maybe-funcall ()
-             (when (remainingp pattern 'crr)
-               (setf (slot-value pattern 'cp) (as-pstream (funcall (slot-value pattern 'func))))
-               (decf-remaining pattern 'crr))))
-    (when (null (slot-value pattern 'cp))
-      (maybe-funcall))
-    (let ((nv (next (slot-value pattern 'cp))))
-      (if (null nv)
-          (progn
-            (maybe-funcall)
-            (next (slot-value pattern 'cp)))
-          nv))))
+  (with-slots (cp func) pattern
+    (labels ((maybe-funcall ()
+               (when (remainingp pattern 'crr)
+                 (setf cp (as-pstream (funcall func)))
+                 (decf-remaining pattern 'crr))))
+      (when (null cp)
+        (maybe-funcall))
+      (let ((nv (next cp)))
+        (if (null nv)
+            (progn
+              (maybe-funcall)
+              (next cp))
+            nv)))))
 
 ;;; pcycles
 ;; inspired by tidalcycles
@@ -538,8 +546,9 @@
                  :pl (pcycles-parse-list list)))
 
 (defmethod next ((pattern pcycles-pstream))
-  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'pl)))
-       (slot-value pattern 'pl)))
+  (with-slots (number pl) pattern
+    (nth (mod number (length pl))
+         pl)))
 
 ;;; pshift
 ;; shift a pattern N forward or backward, wrapping around
@@ -567,9 +576,9 @@
                  :repeats repeats))
 
 (defmethod as-pstream ((pattern pn)) ;; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
-  (let ((repeats (slot-value pattern 'repeats)))
+  (with-slots (repeats remaining) pattern
     (make-instance 'pn-pstream
-                   :remaining (slot-value pattern 'remaining)
+                   :remaining remaining
                    :pattern (slot-value pattern 'pattern)
                    :repeats (if (numberp repeats)
                                 (1- repeats)
@@ -577,14 +586,15 @@
                    :pps (as-pstream (slot-value pattern 'pattern)))))
 
 (defmethod next ((pattern pn-pstream))
-  (let ((nv (next (slot-value pattern 'pps))))
-    (when (and
-           (null nv)
-           (remainingp pattern 'repeats))
-      (setf (slot-value pattern 'pps) (as-pstream (slot-value pattern 'pattern)))
-      (setf nv (next (slot-value pattern 'pps)))
-      (decf-remaining pattern 'repeats))
-    nv))
+  (with-slots (pps) pattern
+    (let ((nv (next pps)))
+      (when (and
+             (null nv)
+             (remainingp pattern 'repeats))
+        (setf pps (as-pstream (slot-value pattern 'pattern)))
+        (setf nv (next pps))
+        (decf-remaining pattern 'repeats))
+      nv)))
 
 ;;; pshuf
 
@@ -600,15 +610,17 @@
                  :repeats repeats))
 
 (defmethod as-pstream ((pattern pshuf))
-  (make-instance 'pshuf-pstream
-                 :remaining (slot-value pattern 'remaining)
-                 :list (slot-value pattern 'list)
-                 :repeats (slot-value pattern 'repeats)
-                 :sl (alexandria:shuffle (alexandria:copy-sequence 'list (slot-value pattern 'list)))))
+  (with-slots (remaining list repeats) pattern
+    (make-instance 'pshuf-pstream
+                   :remaining remaining
+                   :list list
+                   :repeats repeats
+                   :sl (alexandria:shuffle (alexandria:copy-sequence 'list list)))))
 
 (defmethod next ((pattern pshuf-pstream))
-  (nth (mod (slot-value pattern 'number) (length (slot-value pattern 'sl)))
-       (slot-value pattern 'sl)))
+  (with-slots (number sl) pattern
+    (nth (mod number (length sl))
+         sl)))
 
 ;;; pwhite
 
@@ -643,13 +655,11 @@
                  :remaining remaining))
 
 (defmethod next ((pattern pbrown-pstream))
-  (let* ((step (next (slot-value pattern 'step)))
-         (astep (random-range (* -1 step) step)))
-    (incf (slot-value pattern 'cv) astep))
-  (setf (slot-value pattern 'cv) (alexandria:clamp (slot-value pattern 'cv)
-                                                   (next (slot-value pattern 'lo))
-                                                   (next (slot-value pattern 'hi))))
-  (slot-value pattern 'cv))
+  (with-slots (step cv lo hi) pattern
+    (let ((nstep (next step)))
+      (incf cv (random-range (* -1 nstep) nstep)))
+    (setf cv (alexandria:clamp cv (next lo) (next hi)))
+    cv))
 
 ;;; pseries
 
@@ -665,19 +675,21 @@
                  :remaining remaining))
 
 (defmethod as-pstream ((pattern pseries))
-  (let ((cv (slot-value pattern 'start)))
-    (when (functionp cv)
-      (setf cv (funcall cv)))
-    (make-instance 'pseries-pstream
-                   :start (slot-value pattern 'start)
-                   :step (as-pstream (slot-value pattern 'step))
-                   :remaining (slot-value pattern 'remaining)
-                   :cv cv)))
+  (with-slots (start step remaining) pattern
+    (let ((cv start))
+      (when (functionp cv)
+        (setf cv (funcall cv)))
+      (make-instance 'pseries-pstream
+                     :start start
+                     :step (as-pstream step)
+                     :remaining remaining
+                     :cv cv))))
 
 (defmethod next ((pattern pseries-pstream))
-  (prog1
-      (slot-value pattern 'cv)
-    (incf (slot-value pattern 'cv) (next (slot-value pattern 'step)))))
+  (with-slots (cv step) pattern
+    (prog1
+        cv
+      (incf cv (next step)))))
 
 ;;; pgeom
 
@@ -693,19 +705,21 @@
                  :remaining remaining))
 
 (defmethod as-pstream ((pattern pgeom))
-  (let ((cv (slot-value pattern 'start)))
-    (when (functionp cv)
-      (setf cv (funcall cv)))
-    (make-instance 'pgeom-pstream
-                   :start (slot-value pattern 'start)
-                   :grow (as-pstream (slot-value pattern 'grow))
-                   :remaining (slot-value pattern 'remaining)
-                   :cv cv)))
+  (with-slots (start grow remaining) pattern
+    (let ((cv start))
+      (when (functionp cv)
+        (setf cv (funcall cv)))
+      (make-instance 'pgeom-pstream
+                     :start start
+                     :grow (as-pstream grow)
+                     :remaining remaining
+                     :cv cv))))
 
 (defmethod next ((pattern pgeom-pstream))
-  (prog1
-      (slot-value pattern 'cv)
-    (setf (slot-value pattern 'cv) (* (slot-value pattern 'cv) (next (slot-value pattern 'grow))))))
+  (with-slots (cv grow) pattern
+    (prog1
+        cv
+      (setf cv (* cv (next grow))))))
 
 ;;; ptrace
 
@@ -723,14 +737,12 @@
                  :prefix prefix))
 
 (defmethod next ((pattern ptrace-pstream))
-  (let ((n (next (slot-value pattern 'pattern)))
-        (key (slot-value pattern 'key))
-        (s (slot-value pattern 'stream))
-        (prefix (slot-value pattern 'prefix)))
-    (let ((result (if (not (null key))
-                      (get-event-value n key)
-                      n)))
-      (format s "~a~a~%" prefix result)
+  (with-slots (key stream prefix) pattern
+    (let* ((n (next (slot-value pattern 'pattern)))
+           (result (if (not (null key))
+                       (get-event-value n key)
+                       n)))
+      (format stream "~a~a~%" prefix result)
       result)))
 
 ;;; ppatlace
@@ -744,19 +756,19 @@
                  :repeats repeats))
 
 (defmethod as-pstream ((pattern ppatlace)) ;; need to define this to make pstreams early instead of embedding them.
-  (let ((repeats (slot-value pattern 'repeats)))
+  (with-slots (repeats list) pattern
     (make-instance 'ppatlace-pstream
-                   :list (mapcar #'as-pstream (slot-value pattern 'list))
+                   :list (mapcar #'as-pstream list)
                    :repeats repeats
                    :crr repeats)))
 
 (defmethod next ((pattern ppatlace-pstream))
-  (let* ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list))))
-         (result (next (nth mod
-                            (slot-value pattern 'list)))))
-    (if (not (null result))
-        result
-        (progn
-          (setf (slot-value pattern 'list) (remove-if (constantly t) (slot-value pattern 'list) :start mod :end (1+ mod)))
-          (when (> (length (slot-value pattern 'list)) 0)
-            (next pattern))))))
+  (with-slots (number list) pattern
+    (let* ((mod (mod number (length list)))
+           (result (next (nth mod list))))
+      (if (not (null result))
+          result
+          (progn
+            (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
+            (when (> (length list) 0)
+              (next pattern)))))))

@@ -28,22 +28,25 @@
   (format stream "#<CLOCK :tempo ~f :beats ~f>" (slot-value clock 'tempo) (slot-value clock 'beats)))
 
 (defun clock-add (item &optional (clock *clock*))
-  (bt:with-lock-held ((slot-value clock 'tasks-lock))
-    (let ((task (make-instance 'task :clock clock :item item)))
-      (setf (slot-value clock 'tasks) (append (slot-value clock 'tasks) (list task)))
-      task)))
+  (with-slots (tasks tasks-lock) clock
+    (bt:with-lock-held (tasks-lock)
+      (let ((task (make-instance 'task :clock clock :item item)))
+        (setf tasks (append tasks (list task)))
+        task))))
 
 (defun clock-remove (item &optional (clock *clock*))
-  (bt:with-lock-held ((slot-value clock 'tasks-lock))
-    (setf (slot-value clock 'tasks)
-          (remove-if
-           (lambda (task)
-             (eq (slot-value task 'gensym) (slot-value item 'gensym)))
-           (slot-value clock 'tasks)))))
+  (with-slots (tasks tasks-lock) clock
+    (bt:with-lock-held (tasks-lock)
+      (setf tasks
+            (remove-if
+             (lambda (task)
+               (eq (slot-value task 'gensym) (slot-value item 'gensym)))
+             tasks)))))
 
 (defun clock-clear-tasks (&optional (clock *clock*))
-  (bt:with-lock-held ((slot-value clock 'tasks-lock))
-    (setf (slot-value clock 'tasks) nil)))
+  (with-slots (tasks tasks-lock) clock
+    (bt:with-lock-held (tasks-lock)
+      (setf tasks nil))))
 
 (defun clock-process-task (task) ;; if the task is done with, we return it so it can be removed from the clock, else we return nil so nothing happens.
   (let ((nv (next (slot-value task 'item))))
@@ -64,21 +67,22 @@
         t)))
 
 (defun tick (clock)
-  (loop :do
-     (format t "clock: ~a; tasks:~{ ~a~}~%" clock (slot-value clock 'tasks))
-     ;; FIX: use acquire-lock and wait-p on the clock's tasks list.
-     (let ((results (bt:with-lock-held ((slot-value clock 'tasks-lock))
-                      (mapcar #'clock-process-task (remove-if-not
-                                                    (lambda (task) (task-should-run-now-p task clock))
-                                                    (slot-value clock 'tasks)))))) ;; FIX: this does consing, may be slow...
-       ;; remove dead tasks
-       (mapc (lambda (task)
-               (when (not (null task)) ;; if it's nil it means it's not done with yet so we do nothing.
-                 (clock-remove task clock)))
-             results))
-     (sleep (dur-time (slot-value clock 'granularity) (slot-value clock 'tempo))) ;; FIX: account for possible lag.
-     ;; FIX: do we need to acquire a lock on the clock's tempo as well?
-     (incf (slot-value clock 'beats) (slot-value clock 'granularity))))
+  (with-slots (tasks tasks-lock granularity tempo beats) clock
+    (loop :do
+       (format t "clock: ~a; tasks:~{ ~a~}~%" clock tasks)
+       ;; FIX: use acquire-lock and wait-p on the clock's tasks list.
+       (let ((results (bt:with-lock-held (tasks-lock)
+                        (mapcar #'clock-process-task (remove-if-not
+                                                      (lambda (task) (task-should-run-now-p task clock))
+                                                      tasks))))) ;; FIX: this does consing, may be slow...
+         ;; remove dead tasks
+         (mapc (lambda (task)
+                 (when (not (null task)) ;; if it's nil it means it's not done with yet so we do nothing.
+                   (clock-remove task clock)))
+               results))
+       (sleep (dur-time granularity tempo)) ;; FIX: account for possible lag.
+       ;; FIX: do we need to acquire a lock on the clock's tempo as well?
+       (incf beats granularity))))
 
 (defmethod play ((item pbind))
   (clock-add (as-pstream item)))

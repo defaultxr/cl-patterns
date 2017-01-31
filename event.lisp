@@ -21,7 +21,8 @@
 
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
-  (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (alexandria:make-keyword slot) value)))
+  (with-slots (other-params) event
+    (setf other-params (plist-set other-params (alexandria:make-keyword slot) value))))
 
 (defun set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT, running any conversion functions that exist."
@@ -31,7 +32,8 @@
 
 (defun remove-event-value (event slot)
   "Removes SLOT from EVENT."
-  (setf (slot-value event 'other-params) (alexandria:remove-from-plist (slot-value event 'other-params) (alexandria:make-keyword slot))))
+  (with-slots (other-params) event
+    (setf other-params (alexandria:remove-from-plist other-params (alexandria:make-keyword slot)))))
 
 (defun raw-get-event-value (event slot)
   "Get the value of SLOT in EVENT without running any conversion functions."
@@ -108,8 +110,7 @@
                     (raw-set-event-value item :type :rest)
                     (call-next-method)))
      (defmethod (setf ,name) (value (item event))
-       (raw-set-event-value item ,(alexandria:make-keyword name) value);; (setf (slot-value item ',name) value)
-       )))
+       (raw-set-event-value item ,(alexandria:make-keyword name) value))))
 
 (defmacro event-translation-method (destination source)
   (let ((sdestination (symbol-name destination))
@@ -119,7 +120,6 @@
        (defmethod ,destination ((item event))
          (,(intern (string-upcase (concatenate 'string ssource "-" sdestination))) (,source item)))
        (defmethod (setf ,destination) (value (item event))
-         ;; (setf (slot-value item ',source) (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))
          (raw-set-event-value item ',source (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))
          ))))
 
