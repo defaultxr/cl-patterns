@@ -34,7 +34,7 @@
 
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
-  (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (as-keyword slot) value)))
+  (setf (slot-value event 'other-params) (plist-set (slot-value event 'other-params) (alexandria:make-keyword slot) value)))
 
 (defun set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT, running any conversion functions that exist."
@@ -44,11 +44,11 @@
 
 (defun remove-event-value (event slot)
   "Removes SLOT from EVENT."
-  (setf (slot-value event 'other-params) (alexandria:remove-from-plist (slot-value event 'other-params) (as-keyword slot))))
+  (setf (slot-value event 'other-params) (alexandria:remove-from-plist (slot-value event 'other-params) (alexandria:make-keyword slot))))
 
 (defun raw-get-event-value (event slot)
   "Get the value of SLOT in EVENT without running any conversion functions."
-  (getf (slot-value event 'other-params) (as-keyword slot)))
+  (getf (slot-value event 'other-params) (alexandria:make-keyword slot)))
 
 (defun get-event-value (event slot)
   "Return the value of SLOT in EVENT, running any necessary conversion functions."
@@ -109,19 +109,19 @@
   `(progn
      (defgeneric ,name (item) (:documentation ,documentation))
      (defmethod ,name ((item event))
-       (let ((res (getf (event-plist item) ,(as-keyword name))))
+       (let ((res (getf (event-plist item) ,(alexandria:make-keyword name))))
          (if (not (null res))
              res
              ,default)))
      (defmethod ,name ((item cons)) ;; unfortunately it's only possible to get the value from a plist, not set it...
-       (getf item ,(as-keyword name)))
+       (getf item ,(alexandria:make-keyword name)))
      (defgeneric (setf ,name) (value item))
      (defmethod (setf ,name) :around (value (item event))
                 (if (eq value 'r)
                     (raw-set-event-value item :type :rest)
                     (call-next-method)))
      (defmethod (setf ,name) (value (item event))
-       (raw-set-event-value item ,(as-keyword name) value);; (setf (slot-value item ',name) value)
+       (raw-set-event-value item ,(alexandria:make-keyword name) value);; (setf (slot-value item ',name) value)
        )))
 
 (defmacro event-translation-method (destination source)

@@ -155,7 +155,7 @@
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM"))
            (loop :for slot :in slots
-              :collect (as-keyword slot)
+              :collect (alexandria:make-keyword slot)
               :collect (as-pstream (slot-value pattern slot))))))
 
 ;;; pbind
@@ -193,8 +193,8 @@
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM"))
            (loop :for slot :in slots
-              :collect (as-keyword slot)
-              :if (equal :pairs (as-keyword slot))
+              :collect (alexandria:make-keyword slot)
+              :if (equal :pairs (alexandria:make-keyword slot))
               :collect (as-pstream-pairs (slot-value pattern 'pairs))
               :else
               :collect (slot-value pattern slot)))))
@@ -203,7 +203,7 @@
 
 (defmacro define-pbind-special-init-key (key &body body)
   "Define a special key for pbind that alters the pbind as part of its initialization (\"pre-processing\"). These functions are called at pbind creation time and must return a list if the key should inject values into the pbind pairs, or NIL if they should not."
-  (let ((keyname (as-keyword key)))
+  (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-init-keys* ,keyname)
            (lambda (value pattern)
              (declare (ignorable value pattern))
@@ -228,7 +228,7 @@
 
 (defmacro define-pbind-special-post-key (key &body body) ;; FIX: need to actually implement this
   "Define a special key for pbind that does post-processing on the pbind when it is created."
-  (let ((keyname (as-keyword key)))
+  (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-post-keys* ,keyname)
            (lambda (value)
              (declare (ignorable value))
@@ -241,7 +241,7 @@
 
 (defmacro define-pbind-special-key (key &body body)
   "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should inject values into the event stream, or NIL if it should not."
-  (let ((keyname (as-keyword key)))
+  (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-keys* ,keyname)
            (lambda (value)
              ,@body))))
@@ -453,7 +453,7 @@
          ,(concatenate 'string "The global" name-name "dictionary."))
        (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
          ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
-         (let ((key (as-keyword key)))
+         (let ((key (alexandria:make-keyword key)))
            (if (null value)
                (getf ,dict-symbol key)
                (setf (getf ,dict-symbol key) value)))))))
