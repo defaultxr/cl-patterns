@@ -62,7 +62,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Punop
   * Paccum
   * Pbeta
-  * Pbrown
+  * Pbrown - done as pbrown
   * Pexprand
   * Pgbrown
   * Pcauchy

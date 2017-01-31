@@ -71,6 +71,8 @@
 
 ;; pwhite (FIX)
 
+;; pbrown (FIX)
+
 ;; pseries (FIX)
 
 ;; pgeom (FIX)

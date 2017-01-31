@@ -2,6 +2,8 @@
 
 ;; NOTES: use alexandria:clamp instead of clip
 
+;; glue
+
 (defun output (&rest strings)
   "Concatenates and prints strings."
   (fresh-line)
@@ -15,10 +17,6 @@
               (funcall item)
               item)
           (repeat item (- num 1)))))
-
-(defun wrap (number bottom top)
-  "Wraps a number between BOTTOM and TOP, similar to `mod'."
-  (+ (mod (- number bottom) (- top bottom)) bottom))
 
 (defun re-intern (symbol &optional (package 'cl-patterns))
   "Interns a symbol from one package into a different package."
@@ -57,3 +55,16 @@
                           (,@(rest around)
                              (make-method ,form))))
           form))))
+
+;; math stuff
+
+(defun wrap (number bottom top)
+  "Wraps a number between BOTTOM and TOP, similar to `mod'."
+  (+ (mod (- number bottom) (- top bottom)) bottom))
+
+(defun random-range (low high)
+  (let ((rval (- high low)))
+    (+ low
+       (random (if (integerp rval)
+                   (1+ rval)
+                   rval)))))

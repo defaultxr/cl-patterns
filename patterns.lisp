@@ -623,11 +623,31 @@
                  :remaining remaining))
 
 (defmethod next ((pattern pwhite-pstream))
-  (let ((rval (- (slot-value pattern 'hi) (slot-value pattern 'lo))))
-    (+ (slot-value pattern 'lo)
-       (random (if (integerp rval)
-                   (1+ rval)
-                   rval)))))
+  (random-range (slot-value pattern 'lo) (slot-value pattern 'hi)))
+
+;;; pbrown
+;; FIX: maybe should coerce lo, hi, and step to floats if one of them is a float?
+
+(defpattern pbrown (pattern)
+  ((lo :initarg :lo :accessor :lo)
+   (hi :initarg :hi :accessor :hi)
+   (step :initarg :step :accessor :step)
+   (cv :initarg :cv :initarg :cv)))
+
+(defun pbrown (&optional (lo 0) (hi 1) (step 0.125) (remaining :inf))
+  (make-instance 'pbrown
+                 :lo lo
+                 :hi hi
+                 :step step
+                 :cv (random-range lo hi)
+                 :remaining remaining))
+
+(defmethod next ((pattern pbrown-pstream))
+  (let* ((step (slot-value pattern 'step))
+         (astep (random-range (* -1 step) step)))
+    (incf (slot-value pattern 'cv) astep))
+  (setf (slot-value pattern 'cv) (alexandria:clamp (slot-value pattern 'cv) (slot-value pattern 'lo) (slot-value pattern 'hi)))
+  (slot-value pattern 'cv))
 
 ;;; pseries
 
