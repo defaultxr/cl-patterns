@@ -59,7 +59,7 @@
 
 ;; pn
 
-(ok (equal ;; FIX
+(ok (equal
      (list 1 nil nil)
      (next-n (pn 1 1) 3)))
 

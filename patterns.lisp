@@ -580,21 +580,26 @@
     (make-instance 'pn-pstream
                    :remaining remaining
                    :pattern (slot-value pattern 'pattern)
-                   :repeats (if (numberp repeats)
-                                (1- repeats)
-                                repeats)
+                   :repeats repeats
                    :pps (as-pstream (slot-value pattern 'pattern)))))
 
 (defmethod next ((pattern pn-pstream))
   (with-slots (pps) pattern
     (let ((nv (next pps)))
-      (when (and
-             (null nv)
-             (remainingp pattern 'repeats))
-        (setf pps (as-pstream (slot-value pattern 'pattern)))
-        (setf nv (next pps))
-        (decf-remaining pattern 'repeats))
-      nv)))
+      (if (not (typep pps 'pattern))
+          (prog1
+              (when (remainingp pattern 'repeats)
+                nv)
+            (decf-remaining pattern 'repeats))
+          (when (remainingp pattern 'repeats)
+            (if (null nv)
+                (progn
+                  (setf pps (as-pstream (slot-value pattern 'pattern)))
+                  (setf nv (next pps))
+                  (decf-remaining pattern 'repeats)
+                  (when (remainingp pattern 'repeats)
+                    nv))
+                nv))))))
 
 ;;; pshuf
 
