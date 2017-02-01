@@ -57,9 +57,9 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Ptrace - done as ptrace
   * Pwrap
 * math / randomness patterns
-  * Pbinop
-  * Pnaryop
-  * Punop
+  * Punop - done as punop
+  * Pbinop - done as pbinop
+  * Pnaryop - done as pnaryop
   * Paccum
   * Pbeta
   * Pbrown - done as pbrown

@@ -140,7 +140,7 @@
 (defmethod pattern-embed ((pattern pstream) (embed pattern))
   (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
 
-(defmethod next :after ((pattern pstream))
+(defmethod next :after ((pattern pstream)) ;; FIX: maybe merge this into the :around method above?
   (incf (slot-value pattern 'number)))
 
 (defgeneric as-pstream (pattern))
@@ -263,6 +263,9 @@
                      *event*)))))
     (let ((*event* (make-default-event)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
+
+(defmethod as-pstream ((item pbind-pstream))
+  item)
 
 (defmethod play ((item pbind))
   (let* ((pstream (as-pstream item))
@@ -402,6 +405,8 @@
       res)))
 
 ;;; pfunc
+;; NOTE: This implementation doesn't provide the event as an argument to the function like the SuperCollider implementation does.
+;; Instead, access the event using the special variable *event*.
 
 (defpattern pfunc (pattern)
   ((func :initarg :func))
@@ -777,3 +782,51 @@
             (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
             (when (> (length list) 0)
               (next pattern)))))))
+
+;;; pnary
+
+(defpattern pnary (pattern)
+  ((operator :initarg :operator)
+   (patterns :initarg :patterns)))
+
+(defun pnary (operator &rest patterns)
+  (make-instance 'pnary
+                 :operator operator
+                 :patterns patterns))
+
+(defmethod as-pstream ((pattern pnary))
+  (with-slots (remaining operator patterns) pattern
+    (make-instance 'pnary-pstream
+                   :remaining remaining
+                   :operator operator
+                   :patterns (mapcar #'as-pstream patterns))))
+
+(defmethod next ((pattern pnary-pstream))
+  (let ((nexts (mapcar #'next (slot-value pattern 'patterns))))
+    (unless (position nil nexts)
+      (apply (slot-value pattern 'operator) nexts))))
+
+;;; punop
+
+(defun punop (operator pattern)
+  (pnary operator pattern))
+
+;;; pbinop
+
+(defun pbinop (operator pattern-a pattern-b)
+  (pnary operator pattern-a pattern-b))
+
+;;; pnaryop
+
+(defun pnaryop (operator pattern arglist)
+  (apply #'pnary operator pattern arglist))
+
+;;; peach
+
+(defun peach (pattern &optional (func #'identity))
+  (pnary func pattern))
+
+;; FIX: for some reason this gives the wrong output:
+;; (next-n (peach (pcycles '(1 2 3 (4 5 (6 7) 8) 9 10)) (lambda (e) (incf (freq e)) e)) 11)
+;; it should give the same output as this:
+;; (next-n (pbind :inject (pcycles '(1 2 3 (4 5 (6 7) 8) 9 10)) :freq (peach (pk :freq) #'1+)) 11)
