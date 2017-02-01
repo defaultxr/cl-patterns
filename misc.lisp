@@ -22,6 +22,10 @@
 
 (slot-value *scheduler* 'in-queue)
 
+;;; routines
+
+;; check out: cl-cont library
+
 ;;; messing around
 
 (in-package :cl-patterns)
