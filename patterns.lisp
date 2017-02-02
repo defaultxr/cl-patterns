@@ -536,14 +536,13 @@
    (pl :initarg :pl) ;; parsed list
    ))
 
-(defun pcycles-parse-list (list) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time.
+(defun pcycles-parse-list (list) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
   (labels ((recurse (list dur)
-             (let ((c (car list)))
-               (when (not (null c))
-                 (if (consp c)
-                     (recurse c (* dur (/ 1 (length c))))
-                     (cons (event :freq c :dur dur) (recurse (cdr list) dur)))))))
-    (recurse list (/ 1 (length list)))))
+             (loop :for i :in list
+                :collect (if (consp i)
+                             (recurse i (* dur (/ 1 (length i))))
+                             (event :freq i :dur dur)))))
+    (alexandria:flatten (recurse list (/ 1 (length list))))))
 
 (defun pcycles (list)
   (make-instance 'pcycles
@@ -826,7 +825,3 @@
 (defun peach (pattern &optional (func #'identity))
   (pnary func pattern))
 
-;; FIX: for some reason this gives the wrong output:
-;; (next-n (peach (pcycles '(1 2 3 (4 5 (6 7) 8) 9 10)) (lambda (e) (incf (freq e)) e)) 11)
-;; it should give the same output as this:
-;; (next-n (pbind :inject (pcycles '(1 2 3 (4 5 (6 7) 8) 9 10)) :freq (peach (pk :freq) #'1+)) 11)
