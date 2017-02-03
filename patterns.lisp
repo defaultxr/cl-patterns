@@ -432,17 +432,13 @@
 
 (defmethod next ((pattern pr-pstream))
   (with-slots (cv crr repeats) pattern
-    (if (or (null cv)
-            (<= crr 0))
-        (progn
-          (setf cv (next (slot-value pattern 'pattern)))
-          (let ((next-value (next repeats)))
-            (when next-value
-              (setf crr (1- next-value))
-              cv)))
-        (progn
-          (decf-remaining pattern 'crr)
-          cv))))
+    (when (or (null cv)
+              (not (remainingp pattern 'crr)))
+      (setf cv (next (slot-value pattern 'pattern)))
+      (setf crr (next repeats)))
+    (when crr
+      (decf-remaining pattern 'crr)
+      cv)))
 
 ;;; pdef
 

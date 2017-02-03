@@ -45,7 +45,16 @@
 
 ;; pfunc (FIX)
 
-;; pr (FIX)
+;; pr
+
+(ok (equal (list 1 1 2 2 3 3 nil)
+           (next-n (pr (pseq '(1 2 3)) 2) 7)))
+
+(ok (equal (list 1 1 1)
+           (next-n (pr (pseq '(1 2 3))) 3)))
+
+(ok (equal (list 3 3 3)
+           (next-n (pr 3) 3)))
 
 ;; pdef (FIX)
 
