@@ -140,7 +140,7 @@
 (defmethod pattern-embed ((pattern pstream) (embed pattern))
   (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
 
-(defmethod next :after ((pattern pstream))
+(defmethod next :after ((pattern pstream)) ;; FIX: maybe merge this into the :around method above?
   (incf (slot-value pattern 'number)))
 
 (defgeneric as-pstream (pattern))
@@ -263,6 +263,9 @@
                      *event*)))))
     (let ((*event* (make-default-event)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
+
+(defmethod as-pstream ((item pbind-pstream))
+  item)
 
 (defmethod play ((item pbind))
   (let* ((pstream (as-pstream item))
@@ -402,6 +405,8 @@
       res)))
 
 ;;; pfunc
+;; NOTE: This implementation doesn't provide the event as an argument to the function like the SuperCollider implementation does.
+;; Instead, access the event using the special variable *event*.
 
 (defpattern pfunc (pattern)
   ((func :initarg :func))
@@ -527,14 +532,13 @@
    (pl :initarg :pl) ;; parsed list
    ))
 
-(defun pcycles-parse-list (list) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time.
+(defun pcycles-parse-list (list) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
   (labels ((recurse (list dur)
-             (let ((c (car list)))
-               (when (not (null c))
-                 (if (consp c)
-                     (recurse c (* dur (/ 1 (length c))))
-                     (cons (event :freq c :dur dur) (recurse (cdr list) dur)))))))
-    (recurse list (/ 1 (length list)))))
+             (loop :for i :in list
+                :collect (if (consp i)
+                             (recurse i (* dur (/ 1 (length i))))
+                             (event :freq i :dur dur)))))
+    (alexandria:flatten (recurse list (/ 1 (length list))))))
 
 (defun pcycles (list)
   (make-instance 'pcycles
@@ -773,3 +777,47 @@
             (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
             (when (> (length list) 0)
               (next pattern)))))))
+
+;;; pnary
+
+(defpattern pnary (pattern)
+  ((operator :initarg :operator)
+   (patterns :initarg :patterns)))
+
+(defun pnary (operator &rest patterns)
+  (make-instance 'pnary
+                 :operator operator
+                 :patterns patterns))
+
+(defmethod as-pstream ((pattern pnary))
+  (with-slots (remaining operator patterns) pattern
+    (make-instance 'pnary-pstream
+                   :remaining remaining
+                   :operator operator
+                   :patterns (mapcar #'as-pstream patterns))))
+
+(defmethod next ((pattern pnary-pstream))
+  (let ((nexts (mapcar #'next (slot-value pattern 'patterns))))
+    (unless (position nil nexts)
+      (apply (slot-value pattern 'operator) nexts))))
+
+;;; punop
+
+(defun punop (operator pattern)
+  (pnary operator pattern))
+
+;;; pbinop
+
+(defun pbinop (operator pattern-a pattern-b)
+  (pnary operator pattern-a pattern-b))
+
+;;; pnaryop
+
+(defun pnaryop (operator pattern arglist)
+  (apply #'pnary operator pattern arglist))
+
+;;; peach
+
+(defun peach (pattern &optional (func #'identity))
+  (pnary func pattern))
+
