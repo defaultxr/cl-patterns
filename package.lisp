@@ -15,6 +15,7 @@
    ;; NOTE: pattern classes defined with defpattern are automatically exported.
 
    #:event
+   #:*event*
    #:*event-output-function*
 
    #:instrument
@@ -42,4 +43,9 @@
    #:steps-per-octave
    #:other-params
 
-   #:gete))
+   #:gete
+
+   #:*clock*
+   #:make-clock
+   #:play
+   #:stop))
