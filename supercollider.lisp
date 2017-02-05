@@ -6,6 +6,7 @@
   (unless (eq (get-event-value item :type) :rest)
     (let ((params (copy-list (event-plist item))))
       (remf params :instrument)
-      (sc:synth (instrument item) params))))
+      (sc:at (+ (or (raw-get-event-value item :latency) 0.1) (or (raw-get-event-value item :unix-time-at-start) (sc:now)))
+        (sc:synth (instrument item) params)))))
 
 (setf *event-output-function* 'play-sc)

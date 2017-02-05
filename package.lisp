@@ -1,6 +1,5 @@
 (defpackage #:cl-patterns
   (:use #:cl)
-  ;; (:import-from :utilities #:)
   (:export
    #:plist-keys
    #:as-stream
