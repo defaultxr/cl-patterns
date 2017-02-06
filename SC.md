@@ -4,7 +4,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
 
 * list patterns
   * Pseq - done as pseq
-  * Pser
+  * Pser - done as pser
   * Pshuf - done as pshuf
   * Prand - done as prand
   * Pxrand - done as pxrand

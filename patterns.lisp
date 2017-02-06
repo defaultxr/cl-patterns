@@ -334,20 +334,20 @@
 
 ;; ;;; pser
 
-;; (defpattern pser (listpattern)
-;;   ()
-;;   "A pser yields values from its list in the same order they were provided, returning a total of REPEATS values.")
+(defpattern pser (pattern)
+  ((list :initarg :list))
+  "A pser yields values from its list in the same order they were provided, returning a total of REPEATS values.")
 
-;; (defun pser (list &optional (repeats 1))
-;;   "Create an instance of the PSER class."
-;;   (make-instance 'pser
-;;                  :list list
-;;                  :repeats repeats))
+(defun pser (list &optional (repeats 1))
+  "Create an instance of the PSER class."
+  (make-instance 'pser
+                 :list list
+                 :remaining repeats))
 
-;; (defmethod next ((pattern pseq-pstream))
-;;   (with-slots (number list) pattern
-;;     (nth (mod number (length list))
-;;          list)))
+(defmethod next ((pattern pser-pstream))
+  (with-slots (number list) pattern
+    (nth (mod number (length list))
+         list)))
 
 ;;; pk
 
