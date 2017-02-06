@@ -319,7 +319,7 @@
 
 (defpattern pseq (listpattern)
   ()
-  "A pseq yields values from its list in the same order they were provided.")
+  "A pseq yields values from its list in the same order they were provided, repeating the list REPEATS times.")
 
 (defun pseq (list &optional (repeats 1))
   "Create an instance of the PSEQ class."
@@ -327,26 +327,27 @@
                  :list list
                  :repeats repeats))
 
-;; (defmethod as-pstream ((pattern pseq))
-;;   (let ((repeats (slot-value pattern 'repeats)))
-;;     (make-instance 'pseq-pstream
-;;                    :list (slot-value pattern 'list)
-;;                    :repeats repeats
-;;                    :crr repeats)))
-
-;; (defmethod next ((pattern pseq-pstream))
-;;   (let ((mod (mod (slot-value pattern 'number) (length (slot-value pattern 'list))))) ;; FIX: generalize this for a listpattern class.
-;;     (when (and (> (slot-value pattern 'number) 0)
-;;                (= 0 mod))
-;;       (decf-remaining pattern 'crr))
-;;     (when (remainingp pattern 'crr)
-;;       (nth mod
-;;            (slot-value pattern 'list)))))
-
 (defmethod next ((pattern pseq-pstream))
   (with-slots (number list) pattern
     (nth (mod number (length list))
          list)))
+
+;; ;;; pser
+
+;; (defpattern pser (listpattern)
+;;   ()
+;;   "A pser yields values from its list in the same order they were provided, returning a total of REPEATS values.")
+
+;; (defun pser (list &optional (repeats 1))
+;;   "Create an instance of the PSER class."
+;;   (make-instance 'pser
+;;                  :list list
+;;                  :repeats repeats))
+
+;; (defmethod next ((pattern pseq-pstream))
+;;   (with-slots (number list) pattern
+;;     (nth (mod number (length list))
+;;          list)))
 
 ;;; pk
 
