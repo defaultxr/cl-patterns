@@ -816,9 +816,3 @@
 
 (defun pnaryop (operator pattern arglist)
   (apply #'pnary operator pattern arglist))
-
-;;; peach
-
-(defun peach (pattern &optional (func #'identity))
-  (pnary func pattern))
-
