@@ -158,3 +158,14 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
   * or maybe just do something like `(pbind :inject (pcycles [32 - - [64 - -]]))` and pcycles would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?
 * patterns from SuperCollider - see SC.md
 * convert more patterns to `listpattern`s.
+* `pclockdm` - clock divider/multiplier pattern. could be used, for example, for a pattern that's set to `:pfollow` another pattern, to make it trigger twice as often, half as often, etc. for half as often, patterns would have to have their own `gensym`s or IDs so that it could be kept track of whether or not to trigger the sub-pattern for each event. this ID would probably have to be associated with the pattern itself, not the pstream. could maybe be like the `number` slot but for the number of times the pattern is played, not the number of events in the pstream.
+* events with arrays/lists as values should be automatically multichannel-expanded as the last step before being played, and those lists/events should be handled properly by the pattern system prior to that.
+* `pmetropolis` - intellijel metropolis-inspired pattern class (maybe a mini-language for compactly representing durstutters, etc).
+  * i.e., could be something like this: ```common-lisp
+  (pmetropolis
+   (pbind :instrument :acid
+    :midinote (pseq '(60 59 58 57 56 55 54 53) :inf))
+   5s 2h+ 2r 2o 0 3 2h- 1)```
+   this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (`+` means slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (`-` means skip), play 53 for one pulse, and then loop.
+  * maybe don't make it a macro so the step pattern could be a pseq, prand, etc?
+* `pgatestorm` - erogenous tones gatestorm-inspired pattern class with a mini-language for writing trigger-based patterns.
