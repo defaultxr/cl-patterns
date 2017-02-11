@@ -1,6 +1,3 @@
-;;; OO-style patterns
-;; FIX: guard against negative durs? maybe just clip them to 0? is that safe? probably not???????
-
 (in-package :cl-patterns)
 
 ;;; pattern glue
@@ -20,13 +17,11 @@
 (defparameter *tempo* 1
   "The current tempo in beats per second.")
 
-(defgeneric fork (item))
-
 (defmacro defpattern (name superclasses slots &optional documentation)
-  (let ((name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM")))
+  (let ((name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
         (super-pstream (if (eq 'pattern (car superclasses))
                            'pstream
-                           (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM")))))
+                           (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM") 'cl-patterns))))
     `(progn
        (defclass ,name ,superclasses
          ,slots
@@ -43,19 +38,9 @@
 ;;; pattern
 
 (defclass pattern ()
-  ((remaining :initarg :remaining :initform nil))
+  ((remaining :initarg :remaining :initform nil)
+   (quant :initarg :quant :initform 1))
   (:documentation "Abstract pattern superclass."))
-
-;; (defmethod play ((item pattern))
-;;   (play (as-pstream item)))
-
-;; (defmethod fork ((item pattern))
-;;   #+bordeaux-threads
-;;   (bt:make-thread (lambda () (play item)) :name (format nil "fork: ~s" item))
-;;   #-bordeaux-threads
-;;   (let ((func (lambda () (play item))))
-;;     (funcall func)
-;;     func))
 
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.")
@@ -154,7 +139,7 @@
 (defmethod as-pstream ((pattern pattern))
   (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))))
     (apply #'make-instance
-           (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM"))
+           (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
               :collect (alexandria:make-keyword slot)
               :collect (as-pstream (slot-value pattern slot))))))
@@ -162,8 +147,7 @@
 ;;; pbind
 
 (defclass pbind (pattern)
-  ((pairs :initarg :pairs :initform (list))
-   (quant :initarg :quant :initform 1))
+  ((pairs :initarg :pairs :initform (list)))
   (:documentation "A pbind associates keys with values for a pattern stream that returns events."))
 
 (defun pbind (&rest pairs)
@@ -192,7 +176,7 @@
 (defmethod as-pstream ((pattern pbind))
   (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))))
     (apply #'make-instance
-           (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM"))
+           (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
               :collect (alexandria:make-keyword slot)
               :if (equal :pairs (alexandria:make-keyword slot))
@@ -267,7 +251,7 @@
 (defmethod as-pstream ((item pbind-pstream))
   item)
 
-(defmethod play ((item pbind))
+(defmethod play ((item pattern))
   (let* ((pstream (as-pstream item))
          (cev (next pstream)))
     (loop :while (not (null cev))
@@ -275,14 +259,6 @@
              (play cev)
              (sleep (dur-time (delta cev) *tempo*))
              (setf cev (next pstream))))))
-
-;; (defmethod play ((item pbind-pstream))
-;;   (let ((cev (next item)))
-;;     (loop :while (not (null cev))
-;;        :do (progn
-;;              (play cev)
-;;              (sleep (dur-time (delta cev) *tempo*))
-;;              (setf cev (next item))))))
 
 ;;; listpattern
 
@@ -297,7 +273,7 @@
 
 (defmethod as-pstream ((pattern listpattern))
   (let ((repeats (slot-value pattern 'repeats)))
-    (make-instance (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM"))
+    (make-instance (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
                    :list (slot-value pattern 'list)
                    :repeats repeats
                    :crr repeats)))

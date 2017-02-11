@@ -106,7 +106,7 @@
        (getf item ,(alexandria:make-keyword name)))
      (defgeneric (setf ,name) (value item))
      (defmethod (setf ,name) :around (value (item event))
-                (if (eq value 'r)
+                (if (typep value (or 'string 'symbol)) ;; FIX
                     (raw-set-event-value item :type :rest)
                     (call-next-method)))
      (defmethod (setf ,name) (value (item event))

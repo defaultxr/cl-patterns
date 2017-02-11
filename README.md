@@ -72,14 +72,6 @@ In the future, you might be able to do something like this to use Incudine as th
 
 ...But right now Incudine support isn't implemented.
 
-If you have access to the `bordeaux-threads` library for threading, you can also fork a pattern:
-
-```common-lisp
-(fork (pbind :instrument :kik :freq (pseq '(100 200 400 800) 4)))
-```
-
-That way your REPL won't be tied up as it's playing. For now, the only way to stop a forked pattern is using SLIME's thread manager (`C-c C-x t` or `M-x slime-list-threads`) or by using `(bt:destroy-thread THREAD)` where THREAD is the object returned by the `fork` function.
-
 ## Features
 
 This library isn't just a copy of SuperCollider's patterns - I wanted to improve upon them as well. Here are a few of the features of this library that are implemented right now:
@@ -163,8 +155,8 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * make patterns able to trigger other patterns. i.e. something like this:
 ```common-lisp
 (progn
-  (fork (pbind :name :bar :pefollow :foo :timing-offset 0.25))
-  (fork (pbind :name :foo :dur (pseq '(0.5 0.5 0.5 0.5 1 1)))))
+  (play (pbind :name :bar :pefollow :foo :timing-offset 0.25))
+  (play (pbind :name :foo :dur (pseq '(0.5 0.5 0.5 0.5 1 1)))))
 ```
 ...then the `:bar` pattern's events will play 0.25 beats after each of `:foo`'s events play, because it's set to `:pefollow` that pattern.
   * similarly, a `:pfollow` key could be used to automatically start the pattern for each event of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.

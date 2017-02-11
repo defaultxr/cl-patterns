@@ -37,7 +37,7 @@
 
 (play (pbind :instrument :kik :dur (pseq '(1) 4)))
 
-(fork
+(play
  (pbind
   :instrument :spcomb
   :bufnum buf

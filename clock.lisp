@@ -77,7 +77,7 @@
 
 (defun task-should-run-now-p (task clock)
   (let ((item (slot-value task 'item)))
-    (if (eq 'pbind-pstream (type-of item))
+    (if (typep item 'pstream)
         (if (null (slot-value task 'next-time)) ;; if the pstream hasn't started yet...
             (or (= 0 (slot-value item 'quant)) ;; ...it starts when the :quant determines it.
                 (< (mod (slot-value clock 'beats) (slot-value item 'quant)) (slot-value clock 'granularity)))
@@ -101,7 +101,7 @@
        ;; FIX: do we need to acquire a lock on the clock's tempo as well?
        (incf beats granularity))))
 
-(defmethod play ((item pbind))
+(defmethod play ((item pattern))
   (clock-add (as-pstream item) *clock*))
 
 (defmethod stop ((item task))
