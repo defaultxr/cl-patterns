@@ -186,8 +186,9 @@
 
 (defmethod legato ((item event))
   (or (raw-get-event-value item :legato)
-      (* (sustain item)
-         (dur item))
+      (when (and (raw-get-event-value item :sustain) (raw-get-event-value item :dur))
+        (* (sustain item)
+           (dur item)))
       0.8))
 
 (defgeneric (setf legato) (value item))

@@ -388,7 +388,7 @@
   ((list :initarg :list)
    (lr :initarg :lr :initform nil) ;; last result
    )
-  "A pxrand returns a random value from LIST, never repeating the same one twice.")
+  "A pxrand returns a random value from LIST, never repeating the same one twice in a row.")
 
 (defun pxrand (list &optional remaining)
   "Create an instance of the PXRAND class."

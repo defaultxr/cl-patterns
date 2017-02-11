@@ -123,8 +123,16 @@
      (sustain (event :dur 0 :sustain 1))))
 
 (ok (=
+     0.8
+     (sustain (event))))
+
+(ok (=
      0.5
      (legato (event :dur 0 :legato 0.5))))
+
+(ok (=
+     0.8
+     (legato (event))))
 
 (ok (=
      1
