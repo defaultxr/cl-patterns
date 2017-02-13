@@ -126,8 +126,6 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 ## Ideas/TODO
 
-* implement `*latency*`
-
 * `tsubseq` function for getting a subsequence based on start and end times of events.
 
 * `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.

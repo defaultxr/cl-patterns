@@ -19,6 +19,9 @@
 (defparameter r 'r
   "Rest.")
 
+(defparameter *latency* 0.1
+  "Default latency for events.")
+
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
   (with-slots (other-params) event
