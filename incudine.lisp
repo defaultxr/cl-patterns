@@ -9,6 +9,8 @@
 ;;   (let ((next (+ time #[1 beat])))
 ;;     (at next #'simple-test next)))
 
-(defmethod play-incudine ((item t))
-  (apply #'incudine:set-controls 3 (event-plist item)))
+(defmethod play-incudine ((item t)) ;; FIX
+  (unless (eq (get-event-value item :type) :rest)
+    (apply #'incudine:set-controls 3 (event-plist item))))
 
+(setf *event-output-function* 'play-incudine)

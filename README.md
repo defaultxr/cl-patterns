@@ -122,7 +122,8 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * supercollider-example.lisp - example code to get started with the `cl-collider` library.
 
 
-* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine) - WIP.
+* cl-patterns+incudine.asd - cl-patterns system definition with Incudine backend. - WIP (not functional yet).
+* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
 
 ## Ideas/TODO
 
