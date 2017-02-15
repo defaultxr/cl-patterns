@@ -417,8 +417,11 @@
     (when (or (null cv)
               (not (remainingp pattern 'crr)))
       (setf cv (next (slot-value pattern 'pattern)))
-      (let ((*event* cv))
-        (setf crr (next repeats))))
+      (setf crr (if (typep repeats 'function)
+                    (if (= (length (cadr (function-lambda-expression repeats))) 0) ;; FIX - might be a better way to do this.
+                        (funcall repeats)
+                        (funcall repeats cv))
+                    (next repeats))))
     (when crr
       (decf-remaining pattern 'crr)
       cv)))
