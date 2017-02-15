@@ -425,34 +425,27 @@
 ;;; pdef
 
 (defpattern pdef (pattern) ;; FIX: make play method for pdef to avoid adding it twice to the clock. also need 'reset' method.
-  ((key :initarg :key)
-   (pattern :initarg :pattern))
+  ((key :initarg :key))
   "A named pattern.")
-
-(defmacro create-global-dictionary (name)
-  (let* ((name-name (symbol-name name))
-         (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
-    `(progn
-       (defparameter ,dict-symbol '()
-         ,(concatenate 'string "The global" name-name "dictionary."))
-       (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
-         ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
-         (let ((key (alexandria:make-keyword key)))
-           (if (null value)
-               (getf ,dict-symbol key)
-               (setf (getf ,dict-symbol key) value)))))))
 
 (create-global-dictionary pdef)
 
 (defun pdef (key &optional value)
   (when (not (null value))
-    (pdef-ref key (list :pattern value :pstream (as-pstream value))))
+    (pdef-ref key (plist-set (pdef-ref key) :pattern value)))
   (make-instance 'pdef
-                 :key key
-                 :pattern value))
+                 :key key))
 
 (defmethod next ((pattern pdef-pstream))
-  (next (getf (pdef-ref (slot-value pattern 'key)) :pstream)))
+  (with-slots (key) pattern
+    (labels ((get-next ()
+               (next (getf (pdef-ref key) :pstream))))
+      (let ((nv (get-next)))
+        (if (null nv)
+            (when (not (null (getf (pdef-ref key) :pattern)))
+              (pdef-ref key (plist-set (pdef-ref key) :pstream (as-pstream (getf (pdef-ref key) :pattern))))
+              (get-next))
+            nv)))))
 
 ;;; plazy
 

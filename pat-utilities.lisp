@@ -33,6 +33,21 @@
               (get-event-value event key)))
           list))
 
+;; macros / MOP stuff
+
+(defmacro create-global-dictionary (name)
+  (let* ((name-name (symbol-name name))
+         (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
+    `(progn
+       (defparameter ,dict-symbol '()
+         ,(concatenate 'string "The global " name-name " dictionary."))
+       (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
+         ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
+         (let ((key (alexandria:make-keyword key)))
+           (if (null value)
+               (getf ,dict-symbol key)
+               (setf (getf ,dict-symbol key) value)))))))
+
 (define-method-combination pattern () ;; same as standard, but :around methods are called in reverse order, from least to most specific.
   ((around (:around))
    (before (:before))
