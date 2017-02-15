@@ -417,7 +417,8 @@
     (when (or (null cv)
               (not (remainingp pattern 'crr)))
       (setf cv (next (slot-value pattern 'pattern)))
-      (setf crr (next repeats)))
+      (let ((*event* cv))
+        (setf crr (next repeats))))
     (when crr
       (decf-remaining pattern 'crr)
       cv)))
