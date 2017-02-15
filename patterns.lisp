@@ -423,6 +423,7 @@
       cv)))
 
 ;;; pdef
+;; NOTE: the pattern in a pdef will repeat automatically. if the pattern in a pdef is redefined, it switches the next time the current one ends.
 
 (defpattern pdef (pattern) ;; FIX: make play method for pdef to avoid adding it twice to the clock. also need 'reset' method.
   ((key :initarg :key))
