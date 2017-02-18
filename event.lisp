@@ -1,9 +1,10 @@
 (in-package :cl-patterns)
 
+;; FIX: may need more keys to determine note based on freq...?
+;; FIX: add 'strum'
+
 (defclass event ()
-  (;; (strum )
-   ;; may need to keep more keys to determine the note from the freq????
-   (other-params :initarg :other-params :initform (list)))
+  ((other-params :initarg :other-params :initform (list)))
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
