@@ -101,6 +101,7 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
 * SC.md - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
+* SC-differences.md - comprehensive list of things that differ between cl-patterns and SuperCollider. WIP.
 
 
 * event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
