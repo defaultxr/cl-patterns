@@ -85,9 +85,11 @@
 
 (defun plist-set (plist key val)
   (if (getf plist key)
-      (progn
-        (setf (getf plist key) val)
-        plist)
+      (if (null val)
+          (alexandria:remove-from-plist plist key)
+          (progn
+            (setf (getf plist key) val)
+            plist))
       (append plist (list key val))))
 
 (defun event-plist (event)

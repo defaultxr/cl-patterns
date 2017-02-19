@@ -12,7 +12,7 @@
   (:documentation "Play an item (typically an event or pattern) according to the current *event-output-function*."))
 
 (defgeneric stop (item)
-  (:documentation "Stop an item (typically a playing pattern) according to the current *event-output-function*."))
+  (:documentation "Stop an item (typically a playing task or pdef) according to the current *event-output-function*."))
 
 (defparameter *tempo* 1
   "The current tempo in beats per second.")
@@ -251,7 +251,7 @@
 (defmethod as-pstream ((item pbind-pstream))
   item)
 
-(defmethod play ((item pattern))
+(defmethod play ((item pattern)) ;; FIX: remove this?
   (let* ((pstream (as-pstream item))
          (cev (next pstream)))
     (loop :while (not (null cev))
@@ -428,6 +428,19 @@
 
 ;;; pdef
 ;; NOTE: the pattern in a pdef will repeat automatically. if the pattern in a pdef is redefined, it switches the next time the current one ends.
+;; if you want the pdef to stop after its current loop, set it to nil like so: (pdef KEY nil)
+
+;; (pdef-ref KEY) returns the pdef's plist which holds the pattern, pstream, task, etc.
+;; (pdef-ref-get KEY :task) returns the task associated with (pdef KEY).
+;; (pdef-ref-set KEY :pattern PAT) sets the pattern for (pdef KEY) to PAT.
+
+(defun pdef-ref-get (pdef-key key)
+  "Get PDEF-KEY's KEY value from its plist."
+  (getf (pdef-ref pdef-key) (alexandria:make-keyword key)))
+
+(defun pdef-ref-set (pdef-key key value)
+  "Set PDEF-KEY's KEY in its plist to VALUE."
+  (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) value)))
 
 (defpattern pdef (pattern) ;; FIX: make play method for pdef to avoid adding it twice to the clock. also need 'reset' method.
   ((key :initarg :key))
@@ -435,22 +448,48 @@
 
 (create-global-dictionary pdef)
 
-(defun pdef (key &optional value)
-  (when (not (null value))
-    (pdef-ref key (plist-set (pdef-ref key) :pattern value)))
+(defun pdef (key &optional (value nil value-supplied-p))
+  (when (or (not (null value))
+            value-supplied-p)
+    (pdef-ref-set key :pattern value))
   (make-instance 'pdef
                  :key key))
 
 (defmethod next ((pattern pdef-pstream))
   (with-slots (key) pattern
     (labels ((get-next ()
-               (next (getf (pdef-ref key) :pstream))))
+               (next (pdef-ref-get key :pstream))))
       (let ((nv (get-next)))
         (if (null nv)
-            (when (not (null (getf (pdef-ref key) :pattern)))
-              (pdef-ref key (plist-set (pdef-ref key) :pstream (as-pstream (getf (pdef-ref key) :pattern))))
+            (when (not (null (pdef-ref-get key :pattern)))
+              (pdef-ref-set key :pstream (as-pstream (getf (pdef-ref key) :pattern)))
               (get-next))
             nv)))))
+
+(defmethod play ((pattern pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)
+  (with-slots (key) pattern
+    (unless (position (pdef-ref-get key :task)
+                      (slot-value *clock* 'tasks))
+      (let ((task (call-next-method)))
+        (when (typep task 'task)
+          (pdef-ref-set key :task task)
+          task)))))
+
+(defmethod fork (()))
+
+(defmethod stop ((pattern pdef))
+  (with-slots (key) pattern
+    (when (pdef-ref-get key :task)
+      (stop (pdef-ref-get key :task)))
+    (pdef-ref-set key :pstream (as-pstream (pdef-ref-get key :pattern)))
+    (pdef-ref-set key :task nil)))
+
+;; FIX: in the future, make these two methods work for proxies & other stuff as well...
+(defmethod play ((pattern symbol)) ;; we assume they meant the pdef with that symbol as name.
+  (play (pdef pattern)))
+
+(defmethod stop ((pattern symbol)) ;; we assume they meant the pdef with that symbol as name.
+  (stop (pdef pattern)))
 
 ;;; plazy
 
