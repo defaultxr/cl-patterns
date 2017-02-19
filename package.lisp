@@ -5,6 +5,7 @@
    #:as-stream
    #:next
    #:next-n
+   #:next-upto-n
    #:play
 
    #:defpattern

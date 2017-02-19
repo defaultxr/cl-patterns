@@ -1,5 +1,8 @@
 (in-package :cl-patterns)
 
+;; NOTES:
+;; FIX: make fork method.
+
 ;;; pattern glue
 
 (defparameter *event* nil
@@ -474,8 +477,6 @@
         (when (typep task 'task)
           (pdef-ref-set key :task task)
           task)))))
-
-(defmethod fork (()))
 
 (defmethod stop ((pattern pdef))
   (with-slots (key) pattern
