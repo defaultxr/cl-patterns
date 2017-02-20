@@ -2,6 +2,7 @@
 
 ;; FIX: may need more keys to determine note based on freq...?
 ;; FIX: add 'strum'
+;; FIX: make versions of these generic functions that will work with supercollider ugens; put them in cl-collider-extensions.lisp..
 
 (defclass event ()
   ((other-params :initarg :other-params :initform (list)))
