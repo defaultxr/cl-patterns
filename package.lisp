@@ -38,6 +38,8 @@
    #:timing-offset
    #:delta-dur
    #:dur-delta
+   #:dur-time
+   #:time-dur
    
    #:freq
    #:midinote
