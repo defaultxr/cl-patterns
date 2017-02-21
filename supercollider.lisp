@@ -4,13 +4,21 @@
 
 (defmethod play-sc ((item t))
   (unless (eq (get-event-value item :type) :rest)
-    (let ((params (copy-list (event-plist item)))
-          (time (+ (or (raw-get-event-value item :latency) *latency*) (or (raw-get-event-value item :unix-time-at-start) (sc:now)))))
-      (remf params :instrument)
-      ;; FIX: need to also auto-convert event parameters to the proper ones if they exist in the synthdef. i.e. convert legato to sustain if synthdef has a 'sustain' arg.
-      ;; FIX: auto-convert bufnum.
+    (let* ((inst (instrument item))
+           (synth-params (getf sc::*synthdef-metadata* inst))
+           (time (+ (or (raw-get-event-value item :latency) *latency*) (or (raw-get-event-value item :unix-time-at-start) (sc:now))))
+           (params (if synth-params ;; make the parameters list for sc:synth.
+                       (alexandria:flatten
+                        (loop :for sparam :in (mapcar #'car synth-params)
+                           :collect (cons sparam (get-event-value item sparam))))
+                       (copy-list (event-plist item))))
+           (params (mapcar (lambda (list-item) ;; replace buffers in the parameters list with their buffer numbers.
+                             (if (typep list-item 'sc::buffer)
+                                 (sc:bufnum list-item)
+                                 list-item))
+                           params)))
       (let ((node (sc:at time
-                    (sc:synth (instrument item) params))))
+                    (sc:synth inst params))))
         (when (sc:has-gate-p node)
           (sc:at (+ time (dur-time (sustain item)))
             (sc:release node)))))))
