@@ -10,7 +10,9 @@
            (params (if synth-params ;; make the parameters list for sc:synth.
                        (alexandria:flatten
                         (loop :for sparam :in (mapcar #'car synth-params)
-                           :collect (cons sparam (get-event-value item sparam))))
+                           :collect (cons sparam (if (eq :gate sparam)
+                                                     1
+                                                     (get-event-value item sparam)))))
                        (copy-list (event-plist item))))
            (params (mapcar (lambda (list-item) ;; replace buffers in the parameters list with their buffer numbers.
                              (if (typep list-item 'sc::buffer)
