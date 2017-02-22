@@ -17,9 +17,6 @@
 (defgeneric stop (item)
   (:documentation "Stop an item (typically a playing task or pdef) according to the current *event-output-function*."))
 
-(defparameter *tempo* 1
-  "The current tempo in beats per second.")
-
 (defmacro defpattern (name superclasses slots &optional documentation)
   (let ((name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
         (super-pstream (if (eq 'pattern (car superclasses))
@@ -260,7 +257,7 @@
     (loop :while (not (null cev))
        :do (progn
              (play cev)
-             (sleep (dur-time (delta cev) *tempo*))
+             (sleep (dur-time (delta cev)))
              (setf cev (next pstream))))))
 
 ;;; listpattern
