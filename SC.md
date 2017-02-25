@@ -77,12 +77,16 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pwhite - done as pwhite
 * timing patterns
   * Pseg
+  * Penv
   * Ptempo - see also: (pk :tempo)
   * Ptime
   * Pstep
   * Pstep2add
   * Pstep3add
   * PstepNfunc
+* ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
+  * PSinOsc
+  * POsc
 * other / unsorted patterns
   * Pbind - done as pbind
   * Pbindf
