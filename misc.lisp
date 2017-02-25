@@ -347,3 +347,17 @@
 (defmethod buffer ((object pathname)))
 
 (defmethod buffer ((object string)))
+
+;;; incudine
+
+(in-package :incudine.scratch)
+
+(dsp! env-test (gate amp dur)
+      (stereo (* (envelope (make-adsr 0.01 0.1 0.5 0.2) gate 1 #'free)
+                 (white-noise amp))))
+
+(dsp! apf-test (gate amp)
+      (stereo (* (envelope (make-local-adsr 0.01 0.1 0.5 0.2) gate 1 #'free)
+                 (fb-comb (white-noise amp) 0.01 (lag (lin-mouse-y 0 0.01) 0.1) (lin-mouse-x 2 0)))))
+
+(~ )
