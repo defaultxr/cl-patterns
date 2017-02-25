@@ -10,6 +10,7 @@
 
 (defun event (&rest params)
   "Create an event, using the PARAMS as its keys/values."
+  (assert (= 0 (mod (length params) 2)))
   (let ((ev (make-instance 'event)))
     (labels ((accumulator (pairs)
                (when (not (null (car pairs)))
