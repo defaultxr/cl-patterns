@@ -86,7 +86,16 @@
      (list 1 2 3 1 2 3 1 2 3 nil nil nil)
      (next-n (pn (pseq '(1 2 3) 1) 3) 12)))
 
-;; pshuf (FIX)
+;; pshuf
+
+(ok (= 5
+       (length (next-upto-n (pshuf '(1 2 3 4 5)) 32))))
+
+(ok (= 5
+       (length (next-upto-n (pshuf '(1 2 3 4 5) 1) 32))))
+
+(ok (= 10
+       (length (next-upto-n (pshuf '(1 2 3 4 5) 2) 32))))
 
 ;; pwhite (FIX)
 

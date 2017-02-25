@@ -622,6 +622,7 @@
   ((list :initarg :list)
    (repeats :initarg :repeats)
    (sl :initarg :sl :initform nil) ;; shuffled list
+   (crr :initarg :crr :initform nil) ;; current repeats remaining
    ))
 
 (defun pshuf (list &optional (repeats 1))
@@ -635,12 +636,16 @@
                    :remaining remaining
                    :list list
                    :repeats repeats
-                   :sl (alexandria:shuffle (alexandria:copy-sequence 'list list)))))
+                   :sl (alexandria:shuffle (alexandria:copy-sequence 'list list))
+                   :crr (1+ repeats))))
 
 (defmethod next ((pattern pshuf-pstream))
   (with-slots (number sl) pattern
-    (nth (mod number (length sl))
-         sl)))
+    (when (= 0 (mod number (length sl)))
+      (decf-remaining pattern 'crr))
+    (when (remainingp pattern 'crr)
+      (nth (mod number (length sl))
+           sl))))
 
 ;;; pwhite
 
