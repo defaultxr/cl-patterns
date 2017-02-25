@@ -106,5 +106,3 @@
 
 (defmethod stop ((item task))
   (clock-remove item))
-
-;; (defparameter *clock* (make-clock 0.9))

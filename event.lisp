@@ -151,7 +151,9 @@
 
 (event-method pan 0)
 
-(event-method tempo *tempo*)
+(event-method tempo (if (boundp '*clock*)
+                        (tempo *clock*)
+                        1))
 
 (defgeneric delta (item))
 
@@ -211,11 +213,15 @@
 (defun dur-delta (dur)
   dur)
 
-(defun dur-time (dur &optional (tempo *tempo*))
+(defun dur-time (dur &optional (tempo (if (boundp '*clock*)
+                                          (tempo *clock*)
+                                          1)))
   "Convert duration in beats to time in seconds according to TEMPO in beats per second."
   (/ dur tempo))
 
-(defun time-dur (time &optional (tempo *tempo*))
+(defun time-dur (time &optional (tempo (if (boundp '*clock*)
+                                           (tempo *clock*)
+                                           1)))
   "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
   (* time tempo))
 
