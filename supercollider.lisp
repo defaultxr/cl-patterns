@@ -7,7 +7,7 @@
                            (or
                             (position symbol (list '&key 'sc::end-f))
                             (consp symbol)))
-                         (swank-backend:arglist (fdefinition (alexandria:ensure-symbol synth)))))))
+                         (swank-backend:arglist (fdefinition (alexandria:ensure-symbol synth))))))) ;; FIX: need to officially require swank-backend
 
 (defgeneric play-sc (item))
 
