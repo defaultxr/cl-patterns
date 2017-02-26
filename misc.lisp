@@ -352,9 +352,15 @@
 
 (in-package :incudine.scratch)
 
+(rt-start)
+
+(dump (node 0))
+
+(free 1)
+
 (dsp! env-test (gate amp dur)
-      (stereo (* (envelope (make-adsr 0.01 0.1 0.5 0.2) gate 1 #'free)
-                 (white-noise amp))))
+  (stereo (* (envelope (make-adsr 0.01 0.1 0.5 0.2) gate 1 #'free)
+             (white-noise amp))))
 
 (dsp! apf-test (gate amp)
       (stereo (* (envelope (make-local-adsr 0.01 0.1 0.5 0.2) gate 1 #'free)
