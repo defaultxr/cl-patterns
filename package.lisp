@@ -43,6 +43,8 @@
    
    #:freq
    #:midinote
+   #:freq-midinote
+   #:midinote-freq
    #:steps-per-octave
    #:other-params
 
