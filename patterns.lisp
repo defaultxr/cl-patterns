@@ -209,6 +209,9 @@
   nil ;; FIX: should this inject the 'remaining value? probably not - the pbind processing should do that automatically so it's always correct.
   )
 
+(define-pbind-special-init-key inst
+  (list :instrument value))
+
 (defparameter *pbind-special-post-keys* '())
 
 (defmacro define-pbind-special-post-key (key &body body) ;; FIX: need to actually implement this
