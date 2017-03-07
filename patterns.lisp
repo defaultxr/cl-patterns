@@ -240,11 +240,11 @@
 (defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
              (let ((next-cadr (next (cadr pairs))))
-               (if (position (car pairs) (keys *pbind-special-keys*))
-                   (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
-                     (setf *event* (combine-events *event* result)))
-                   (set-event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns) next-cadr))
-               (when (not (null next-cadr)) ;; drop out if one of the values is nil - end of pattern!
+               (unless (null next-cadr)
+                 (if (position (car pairs) (keys *pbind-special-keys*))
+                     (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
+                       (setf *event* (combine-events *event* result)))
+                     (set-event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns) next-cadr))
                  (if (not (null (cddr pairs)))
                      (pbind-accumulator (cddr pairs))
                      *event*)))))
@@ -701,14 +701,11 @@
 
 (defmethod as-pstream ((pattern pseries))
   (with-slots (start step remaining) pattern
-    (let ((cv start))
-      (when (functionp cv)
-        (setf cv (funcall cv)))
-      (make-instance 'pseries-pstream
-                     :start start
-                     :step (as-pstream step)
-                     :remaining remaining
-                     :cv cv))))
+    (make-instance 'pseries-pstream
+                   :start start
+                   :step (as-pstream step)
+                   :remaining remaining
+                   :cv (next start))))
 
 (defmethod next ((pattern pseries-pstream))
   (with-slots (cv step) pattern
@@ -731,14 +728,11 @@
 
 (defmethod as-pstream ((pattern pgeom))
   (with-slots (start grow remaining) pattern
-    (let ((cv start))
-      (when (functionp cv)
-        (setf cv (funcall cv)))
-      (make-instance 'pgeom-pstream
-                     :start start
-                     :grow (as-pstream grow)
-                     :remaining remaining
-                     :cv cv))))
+    (make-instance 'pgeom-pstream
+                   :start start
+                   :grow (as-pstream grow)
+                   :remaining remaining
+                   :cv (next start))))
 
 (defmethod next ((pattern pgeom-pstream))
   (with-slots (cv grow) pattern
