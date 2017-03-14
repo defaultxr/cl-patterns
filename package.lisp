@@ -6,7 +6,6 @@
    #:next
    #:next-n
    #:next-upto-n
-   #:play
 
    #:defpattern
    
@@ -53,4 +52,5 @@
    #:*clock*
    #:make-clock
    #:play
-   #:stop))
+   #:stop
+   #:play-or-stop))

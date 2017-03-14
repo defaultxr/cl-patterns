@@ -75,6 +75,12 @@
           (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
             (clock-process-task task clock))))))
 
+(defun clock-tasks-names (&optional (clock *clock*))
+  "Get a list of names of pdefs currently scheduled on CLOCK."
+  (mapcar
+   (lambda (task) (slot-value (slot-value task 'item) 'key))
+   (slot-value clock 'tasks)))
+
 (defun task-should-run-now-p (task clock)
   (let ((item (slot-value task 'item)))
     (if (typep item 'pstream)
@@ -101,8 +107,53 @@
        ;; FIX: do we need to acquire a lock on the clock's tempo as well?
        (incf beats granularity))))
 
+(defgeneric play (item)
+  (:documentation "Play an item (typically an event or pattern) according to the current *event-output-function*."))
+
+(defgeneric stop (item)
+  (:documentation "Stop an item (typically a playing task or pdef) according to the current *event-output-function*."))
+
+(defgeneric play-or-stop (item)
+  (:documentation "Play an item or stop it if it is already playing. Returns T if the item will start playing, returns NIL if it will stop playing."))
+
+(defmethod play ((pattern pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)
+  (with-slots (key) pattern
+    (unless (position (pdef-ref-get key :task)
+                      (slot-value *clock* 'tasks))
+      (let ((task (call-next-method)))
+        (when (typep task 'task)
+          (pdef-ref-set key :task task)
+          task)))))
+
+(defmethod stop ((pattern pdef))
+  (with-slots (key) pattern
+    (when (pdef-ref-get key :task)
+      (stop (pdef-ref-get key :task)))
+    (pdef-ref-set key :pstream (as-pstream (pdef-ref-get key :pattern)))
+    (pdef-ref-set key :task nil)))
+
+;; FIX: in the future, make these two methods work for proxies & other stuff as well...
+(defmethod play ((pattern symbol)) ;; we assume they meant the pdef with that symbol as name.
+  (play (pdef pattern)))
+
+(defmethod stop ((pattern symbol)) ;; we assume they meant the pdef with that symbol as name.
+  (stop (pdef pattern)))
+
 (defmethod play ((item pattern))
   (clock-add (as-pstream item) *clock*))
 
 (defmethod stop ((item task))
   (clock-remove item))
+
+(defmethod play-or-stop ((item pattern)) ;; if it's a regular pattern, we can't tell if it should stop because it has no 'key'... so we always play it.
+  (play item)
+  t)
+
+(defmethod play-or-stop ((item pdef))
+  (play-or-stop (slot-value item 'key)))
+
+(defmethod play-or-stop ((item symbol))
+  (let ((playing (position item (clock-tasks-names))))
+    (if playing
+        (progn (stop item) nil)
+        (progn (play item) t))))
