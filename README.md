@@ -118,7 +118,7 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 
 * cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
-* supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/defaultxr/cl-collider) library.
+* supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/byulparan/cl-collider) library.
 * cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
 * supercollider-example.lisp - example code to get started with the `cl-collider` library.
 
