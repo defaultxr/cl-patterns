@@ -67,11 +67,11 @@
   (has-gate-p (alexandria:make-keyword (string-upcase item))))
 
 (defmacro defsynth* (name params &body body)
-  ;; like `defsynth' but includes some extra features, such as:
-  ;; - storing extra metadata for the synthdef
-  ;; - the ability to specify a ControlSpec for each parameter.
-  ;; - automatic inclusion of some ugens (i.e. out.ar, pan2.ar, etc) unless another is included
-  ;; - automatic inclusion of some parameters (i.e. amp, pan, out, etc)
+  "Like `sc:defsynth' but includes some extra features, such as:
+- Storing extra metadata for the synthdef.
+- Automatic inclusion of some parameters (i.e. amp, pan, out, etc)."
+  ;; - The ability to specify a ControlSpec for each parameter ;; FIX: not implemented yet
+  ;; - Automatic inclusion of some ugens (i.e. out.ar, pan2.ar, etc) unless another is included ;; FIX: not implemented yet
   (let ((params (modify-params params))
         (body (modify-body body)))
     (save-synthdef-metadata name params)
