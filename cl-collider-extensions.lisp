@@ -34,7 +34,8 @@
                                      (intern "SUSTAIN" *package*)
                                      (intern "TEMPO" *package*)
                                      (intern "AMP" *package*)
-                                     (intern "PAN" *package*)))) body))
+                                     (intern "PAN" *package*))))
+          body))
 
 (defparameter *synthdef-metadata* nil
   "The metadata for each synth, such as its parameter list, etc.")
