@@ -431,7 +431,7 @@
   (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) value)))
 
 (defpattern pdef (pattern) ;; FIX: need 'reset' method.
-  ((key :initarg :key))
+  ((key :initarg :key :reader pdef-key))
   "A named pattern.")
 
 (create-global-dictionary pdef)
@@ -442,6 +442,9 @@
     (pdef-ref-set key :pattern value))
   (make-instance 'pdef
                  :key key))
+
+(defmethod pdef-pattern ((object pdef))
+  (pdef-ref-get (pdef-key object) :pattern))
 
 (defmethod next ((pattern pdef-pstream))
   (with-slots (key) pattern
