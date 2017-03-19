@@ -3,14 +3,13 @@
 (in-package :cl-patterns)
 
 (defclass clock ()
-  ((beats :initform 0)
-   (tempo :initform 1 :initarg :tempo :accessor tempo)
-   (granularity :initform 1/10 :initarg :granularity)
-   (tasks :initform nil)
-   (tasks-lock :initform (bt:make-lock))
-   (unix-time-at-tempo :initform (unix-time-byulparan)) ;; the unix time that the tempo was last set at.
-   (when-tempo-changed :initform 0) ;; what 'beats' was when tempo was last changed.
-   ))
+  ((beats :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
+   (tempo :initform 1 :initarg :tempo :accessor tempo :documentation "The tempo of the clock, in beats per second.")
+   (granularity :initform 1/10 :initarg :granularity :documentation "How often the clock \"wakes up\" to process events in each beat. Shouldn't need to be adjusted.")
+   (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
+   (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
+   (unix-time-at-tempo :initform (unix-time-byulparan) :documentation "The Unix time when the tempo was last changed.")
+   (when-tempo-changed :initform 0 :documentation "The number of 'beats' on the clock when the tempo was last changed.")))
 
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
@@ -64,21 +63,23 @@
     (bt:with-lock-held (tasks-lock)
       (setf tasks nil))))
 
-(defun clock-process-task (task clock) 
+(defun clock-process-task (task clock)
+  "Process TASK on CLOCK. Processes meta-events like tempo changes, etc. Everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
   (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
     (setf (slot-value task 'start-time) (slot-value clock 'beats)
           (slot-value task 'next-time) (slot-value clock 'beats)))
   (let* ((item (slot-value task 'item))
          (nv (next item)))
-    (if (eq (get-event-value nv :type) :tempo-change)
-        (if (numberp (get-event-value nv :tempo))
-            (setf (slot-value clock 'tempo) (get-event-value nv :tempo))
-            (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
-        (progn
-          (incf (slot-value task 'next-time) (delta nv))
-          (funcall *event-output-function* (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock))))
-          (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
-            (clock-process-task task clock))))
+    (when (not (null nv))
+      (if (eq (get-event-value nv :type) :tempo-change)
+          (if (numberp (get-event-value nv :tempo))
+              (setf (slot-value clock 'tempo) (get-event-value nv :tempo))
+              (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
+          (progn
+            (incf (slot-value task 'next-time) (delta nv))
+            (funcall *event-output-function* (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock))))
+            (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
+              (clock-process-task task clock)))))
     (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
       task)))
 
