@@ -12,6 +12,9 @@
    (when-tempo-changed :initform 0) ;; what 'beats' was when tempo was last changed.
    ))
 
+(defmethod (setf tempo) (value (item clock))
+  (clock-add (event :type :tempo-change :tempo value) item))
+
 (defun unix-time-byulparan () ;; FIX: pull request this to byulparan/scheduler??
   "Get the current unix time in the same format as byulparan/scheduler."
   (let ((now (local-time:now)))
@@ -65,15 +68,19 @@
   (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
     (setf (slot-value task 'start-time) (slot-value clock 'beats)
           (slot-value task 'next-time) (slot-value clock 'beats)))
-  (let ((nv (next (slot-value task 'item)))
-        (nt (slot-value task 'next-time)))
-    (if (null nv)
-        task ;; if the task is done with, we return it so it can be removed from the clock, else we return nil so nothing happens.
+  (let* ((item (slot-value task 'item))
+         (nv (next item)))
+    (if (eq (get-event-value nv :type) :tempo-change)
+        (if (numberp (get-event-value nv :tempo))
+            (setf (slot-value clock 'tempo) (get-event-value nv :tempo))
+            (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
         (progn
           (incf (slot-value task 'next-time) (delta nv))
-          (play (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time nt clock))))
+          (funcall *event-output-function* (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock))))
           (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
-            (clock-process-task task clock))))))
+            (clock-process-task task clock))))
+    (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
+      task)))
 
 (defun clock-tasks-names (&optional (clock *clock*))
   "Get a list of names of pdefs currently scheduled on CLOCK."
@@ -115,6 +122,10 @@
 
 (defgeneric play-or-stop (item)
   (:documentation "Play an item or stop it if it is already playing. Returns T if the item will start playing, returns NIL if it will stop playing."))
+
+(defmethod play ((item event))
+  ;; (funcall *event-output-function* item)
+  (clock-add item))
 
 (defmethod play ((pattern pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)
   (with-slots (key) pattern

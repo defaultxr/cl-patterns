@@ -67,9 +67,6 @@
 (defparameter *event-output-function* 'play-test
   "Which function to `play' an event with.")
 
-(defmethod play ((item event))
-  (funcall *event-output-function* item))
-
 (defgeneric keys (item))
 
 (defmethod keys ((item event))
