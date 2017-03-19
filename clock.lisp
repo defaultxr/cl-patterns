@@ -90,11 +90,13 @@
    (slot-value clock 'tasks)))
 
 (defun task-should-run-now-p (task clock)
-  (let ((item (slot-value task 'item)))
+  "Determine whether TASK should be run now according to CLOCK and TASK's quant, etc."
+  (let* ((item (slot-value task 'item))
+         (quant (quant item)))
     (if (typep item 'pstream)
         (if (null (slot-value task 'next-time)) ;; if the pstream hasn't started yet...
-            (or (= 0 (slot-value item 'quant)) ;; ...it starts when the :quant determines it.
-                (< (mod (slot-value clock 'beats) (slot-value item 'quant)) (slot-value clock 'granularity)))
+            (or (= 0 quant) ;; ...it starts when the :quant determines it.
+                (< (mod (slot-value clock 'beats) quant) (slot-value clock 'granularity)))
             (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity))))
         t)))
 
@@ -102,7 +104,8 @@
   (with-slots (tasks tasks-lock granularity tempo beats) clock
     (loop :do
        (let ((results (bt:with-lock-held (tasks-lock)
-                        (mapcar (lambda (task) (clock-process-task task clock))
+                        (mapcar (lambda (task)
+                                  (clock-process-task task clock))
                                 (remove-if-not
                                  (lambda (task) (task-should-run-now-p task clock))
                                  tasks))))) ;; FIX: this does consing, may be slow...

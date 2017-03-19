@@ -222,6 +222,8 @@
   "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
   (* time tempo))
 
+(event-method quant 1)
+
 (event-method freq 440)
 
 (event-method steps-per-octave 12)

@@ -33,7 +33,7 @@
 
 (defclass pattern ()
   ((remaining :initarg :remaining :initform nil)
-   (quant :initarg :quant :initform 1))
+   (quant :initarg :quant :initform 1 :accessor quant))
   (:documentation "Abstract pattern superclass."))
 
 (defgeneric next (pattern)
@@ -445,6 +445,9 @@
 
 (defmethod pdef-pattern ((object pdef))
   (pdef-ref-get (pdef-key object) :pattern))
+
+(defmethod quant ((object pdef))
+  (quant (pdef-pattern object)))
 
 (defmethod next ((pattern pdef-pstream))
   (with-slots (key) pattern
