@@ -248,41 +248,12 @@
 (defmethod as-pstream ((item pbind-pstream))
   item)
 
-;;; listpattern
-
-(defpattern listpattern (pattern)
-  ((list :initarg :list)
-   (repeats :initarg :repeats)
-   (crr :initarg :crr :initform nil) ;; current repeats remaining
-   ))
-
-;; (defclass listpattern-pstream (listpattern pstream)
-;;   (crr :initarg :crr :initform nil))
-
-(defmethod as-pstream ((pattern listpattern))
-  (let ((repeats (slot-value pattern 'repeats)))
-    (make-instance (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
-                   :list (slot-value pattern 'list)
-                   :repeats repeats
-                   :crr repeats)))
-
-(defmethod as-pstream ((pattern listpattern-pstream))
-  pattern)
-
-(defmethod next :around ((pattern listpattern-pstream))
-  (with-slots (number list) pattern
-    (let ((mod (mod number (length list))))
-      (when (and (> number 0)
-                 (= 0 mod))
-        (decf-remaining pattern 'crr))
-      (when (remainingp pattern 'crr)
-        (let ((res (call-next-method)))
-          res)))))
-
 ;;; pseq
 
-(defpattern pseq (listpattern)
-  ()
+(defpattern pseq (pattern)
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
+   (crr :initarg :crr :initform nil))
   "A pseq yields values from its list in the same order they were provided, repeating the list REPEATS times.")
 
 (defun pseq (list &optional (repeats 1))
@@ -291,12 +262,20 @@
                  :list list
                  :repeats repeats))
 
+(defmethod as-pstream ((pattern pseq))
+  (with-slots (repeats list) pattern
+    (make-instance 'pseq-pstream
+                   :list list
+                   :repeats repeats
+                   :crr repeats)))
+
 (defmethod next ((pattern pseq-pstream))
   (with-slots (number list) pattern
-    (nth (mod number (length list))
-         list)))
+    (when (remainingp pattern 'crr)
+      (decf-remaining pattern 'crr)
+      (nth-wrap number list))))
 
-;; ;;; pser
+;;; pser
 
 (defpattern pser (pattern)
   ((list :initarg :list))
@@ -797,3 +776,88 @@
 
 (defun pnaryop (operator pattern arglist)
   (apply #'pnary operator pattern arglist))
+
+;;; pseq
+
+(defpattern pseq (pattern)
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
+   (crr :initarg :crr :initform nil))
+  "A pseq yields values from its list in the same order they were provided, repeating the list REPEATS times.")
+
+(defun pseq (list &optional (repeats 1))
+  "Create an instance of the PSEQ class."
+  (make-instance 'pseq
+                 :list list
+                 :repeats repeats))
+
+(defmethod as-pstream ((pattern pseq))
+  (with-slots (repeats list) pattern
+    (make-instance 'pseq-pstream
+                   :list list
+                   :repeats repeats
+                   :crr repeats)))
+
+(defmethod next ((pattern pseq-pstream))
+  (with-slots (number list) pattern
+    (when (remainingp pattern 'crr)
+      (decf-remaining pattern 'crr)
+      (nth-wrap number list))))
+
+;;; pslide
+
+(defpattern pslide (pattern)
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
+   (len :initarg :len)
+   (step :initarg :step)
+   (start :initarg :start)
+   (wrap-at-end :initarg :wrap-at-end)
+   (crr :initarg :crr :initform nil) ;; current repeats remaining
+   (cr :initarg :cr :initform nil) ;; current repeats
+   (rcs :initarg :rcs :initform nil) ;; remaining from current segment
+   (cv :initarg :cv :initform nil) ;; current value
+   ))
+
+(defun pslide (list &optional (repeats 1) (len 3) (step 1) (start 0) (wrap-at-end t))
+  (make-instance 'pslide
+                 :list list
+                 :repeats repeats
+                 :len len
+                 :step step
+                 :start start
+                 :wrap-at-end wrap-at-end))
+
+(defmethod as-pstream ((pattern pslide))
+  (with-slots (list repeats len step start wrap-at-end) pattern
+    (make-instance 'pslide-pstream
+                   :list list
+                   :repeats (as-pstream repeats)
+                   :len (as-pstream len)
+                   :step (as-pstream step)
+                   :start start
+                   :wrap-at-end wrap-at-end
+                   :crr repeats
+                   :cr 0
+                   :rcs len
+                   :cv start)))
+
+(defmethod next ((pattern pslide-pstream)) 
+  (with-slots (list repeats len step start wrap-at-end crr cr rcs cv) pattern
+    (labels ((get-next ()
+               (if (and (not wrap-at-end)
+                        (< cv 0))
+                   nil
+                   (funcall (if wrap-at-end #'nth-wrap #'nth) cv list))))
+      (when (remainingp pattern 'crr) 
+        (if (remainingp pattern 'rcs)
+            (prog1
+                (get-next)
+              (decf-remaining pattern 'rcs)
+              (incf cv))
+            (progn
+              (decf-remaining pattern 'crr)
+              (setf rcs (next len))
+              (incf cr)
+              (setf cv (+ start (* step cr)))
+              (next pattern)))))))

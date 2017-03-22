@@ -18,20 +18,31 @@
               item)
           (repeat item (- num 1)))))
 
-;; (defun re-intern (symbol &optional (package 'cl-patterns))
-;;   "Interns a symbol from one package into a different package."
-;;   (intern (symbol-name symbol) package))
-
-;; (defun as-keyword (symbol)
-;;   "Turns a symbol into a keyword."
-;;   (alexandria:ensure-symbol symbol :keyword))
-
 (defun gete (list key)
   "Get a list of the value of KEY for each element in LIST."
   (mapcar (lambda (event)
             (unless (null event)
               (get-event-value event key)))
           list))
+
+;; list stuff
+
+(defun nth-wrap (n list)
+  "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length.x"
+  (nth (mod n (length list)) list))
+
+;; math stuff
+
+(defun wrap (number bottom top)
+  "Wraps a number between BOTTOM and TOP, similar to `mod'."
+  (+ (mod (- number bottom) (- top bottom)) bottom))
+
+(defun random-range (low high)
+  (let ((rval (- high low)))
+    (+ low
+       (random (if (integerp rval)
+                   (1+ rval)
+                   rval)))))
 
 ;; macros / MOP stuff
 
@@ -71,15 +82,3 @@
                              (make-method ,form))))
           form))))
 
-;; math stuff
-
-(defun wrap (number bottom top)
-  "Wraps a number between BOTTOM and TOP, similar to `mod'."
-  (+ (mod (- number bottom) (- top bottom)) bottom))
-
-(defun random-range (low high)
-  (let ((rval (- high low)))
-    (+ low
-       (random (if (integerp rval)
-                   (1+ rval)
-                   rval)))))

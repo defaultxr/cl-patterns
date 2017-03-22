@@ -119,6 +119,26 @@
 
 ;; pnary (FIX)
 
+;; pslide (FIX - add more?)
+
+(ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 1 0) 13)
+           (list 1 2 3 2 3 4 3 4 5 4 5 1 5)))
+
+(ok (equal (next-n (pslide (list 1 2 3 4 5) 2 3 1 0) 13)
+           (list 1 2 3 2 3 4 nil nil nil nil nil nil nil)))
+
+(ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 1 0 nil) 13)
+           (list 1 2 3 2 3 4 3 4 5 4 5 nil 5)))
+
+(ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 0 nil) 13)
+           (list 1 2 3 nil 1 2 nil nil 1 nil nil nil nil)))
+
+(ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 0) 13)
+           (list 1 2 3 5 1 2 4 5 1 3 4 5 2)))
+
+(ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 1) 13)
+           (list 2 3 4 1 2 3 5 1 2 4 5 1 3)))
+
 ;;; conversions
 
 (ok (=
