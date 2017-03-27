@@ -118,13 +118,16 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 
 * cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
-* supercollider.lisp - code to interface `cl-patterns` with the [cl-collider](https://github.com/byulparan/cl-collider) library.
+* supercollider.lisp - code to interface cl-patterns with the [cl-collider](https://github.com/byulparan/cl-collider) library.
 * cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
 * supercollider-example.lisp - example code to get started with the `cl-collider` library.
 
 
 * cl-patterns+incudine.asd - cl-patterns system definition with Incudine backend. - WIP (not functional yet).
-* incudine.lisp - code to interface `cl-patterns` with [incudine](https://github.com/titola/incudine).
+* incudine.lisp - code to interface cl-patterns with [incudine](https://github.com/titola/incudine).
+
+* cl-patterns+midi.asd - cl-patterns system definition with ALSA MIDI backend. - WIP (not functional yet).
+* midi.lisp - code to interface cl-patterns with [cl-alsaseq](https://github.com/rick-monster/cl-alsaseq).
 
 ## Ideas/TODO
 
