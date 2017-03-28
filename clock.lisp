@@ -76,8 +76,8 @@
               (setf (slot-value clock 'tempo) (get-event-value nv :tempo))
               (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
           (progn
-            (incf (slot-value task 'next-time) (delta nv))
             (funcall *event-output-function* (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock))))
+            (incf (slot-value task 'next-time) (delta nv))
             (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
               (clock-process-task task clock)))))
     (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
