@@ -728,8 +728,10 @@
 
 ;;; ppatlace
 
-(defpattern ppatlace (listpattern)
-  ())
+(defpattern ppatlace (pattern)
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
+   (crr :initarg :crr :initform nil)))
 
 (defun ppatlace (list &optional (repeats 1))
   (make-instance 'ppatlace
@@ -745,14 +747,18 @@
 
 (defmethod next ((pattern ppatlace-pstream))
   (with-slots (number list) pattern
-    (let* ((mod (mod number (length list)))
-           (result (next (nth mod list))))
-      (if (not (null result))
-          result
-          (progn
-            (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
-            (when (> (length list) 0)
-              (next pattern)))))))
+    (when (remainingp pattern 'crr)
+      (when (= (1- (length list)) (mod number (length list)))
+        (decf-remaining pattern 'crr))
+      (let* ((mod (mod number (length list)))
+             (result (next (nth mod list))))
+        (prog1
+            (if (not (null result))
+                result
+                (progn
+                  (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
+                  (when (> (length list) 0)
+                    (next pattern)))))))))
 
 ;;; pnary
 
@@ -791,33 +797,6 @@
 
 (defun pnaryop (operator pattern arglist)
   (apply #'pnary operator pattern arglist))
-
-;;; pseq
-
-(defpattern pseq (pattern)
-  ((list :initarg :list)
-   (repeats :initarg :repeats)
-   (crr :initarg :crr :initform nil))
-  "A pseq yields values from its list in the same order they were provided, repeating the list REPEATS times.")
-
-(defun pseq (list &optional (repeats 1))
-  "Create an instance of the PSEQ class."
-  (make-instance 'pseq
-                 :list list
-                 :repeats repeats))
-
-(defmethod as-pstream ((pattern pseq))
-  (with-slots (repeats list) pattern
-    (make-instance 'pseq-pstream
-                   :list list
-                   :repeats repeats
-                   :crr repeats)))
-
-(defmethod next ((pattern pseq-pstream))
-  (with-slots (number list) pattern
-    (when (remainingp pattern 'crr)
-      (decf-remaining pattern 'crr)
-      (nth-wrap number list))))
 
 ;;; pslide
 
