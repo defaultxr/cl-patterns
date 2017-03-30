@@ -25,6 +25,10 @@
      (next-n (pseq (list 1 2 3)) 3)
      (next-n (as-pstream (pseq (list 1 2 3))) 3)))
 
+(ok (equal
+     (next-n (pseq (list 1 2 3 1 2 3 nil nil)) 3)
+     (next-n (pseq (list 1 2 3) 2) 8)))
+
 ;; pser
 
 (ok (equal

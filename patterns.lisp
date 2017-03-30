@@ -203,7 +203,7 @@
   nil ;; FIX: should this inject the 'remaining value? probably not - the pbind processing should do that automatically so it's always correct.
   )
 
-(define-pbind-special-init-key inst
+(define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well.
   (list :instrument value))
 
 (defparameter *pbind-special-post-keys* '())
@@ -264,33 +264,48 @@
 
 (defmethod as-pstream ((pattern pseq))
   (with-slots (repeats list) pattern
-    (make-instance 'pseq-pstream
-                   :list list
-                   :repeats repeats
-                   :crr repeats)))
+    (let ((r (next repeats)))
+      (make-instance 'pseq-pstream
+                     :list (next list)
+                     :repeats r
+                     :crr r))))
 
 (defmethod next ((pattern pseq-pstream))
   (with-slots (number list) pattern
-    (when (remainingp pattern 'crr)
-      (decf-remaining pattern 'crr)
-      (nth-wrap number list))))
+    (prog1
+        (when (remainingp pattern 'crr)
+          (nth-wrap number list))
+      (when (= (1- (length list)) (mod number (length list)))
+        (decf-remaining pattern 'crr)))))
 
 ;;; pser
 
 (defpattern pser (pattern)
-  ((list :initarg :list))
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
+   (crr :initarg :crr :initform nil))
   "A pser yields values from its list in the same order they were provided, returning a total of REPEATS values.")
 
 (defun pser (list &optional (repeats 1))
   "Create an instance of the PSER class."
   (make-instance 'pser
                  :list list
-                 :remaining repeats))
+                 :repeats repeats))
+
+(defmethod as-pstream ((pattern pser))
+  (with-slots (list repeats) pattern
+    (let ((r (next repeats)))
+      (make-instance 'pser-pstream
+                     :list (next list)
+                     :repeats r
+                     :crr r))))
 
 (defmethod next ((pattern pser-pstream))
   (with-slots (number list) pattern
-    (nth (mod number (length list))
-         list)))
+    (when (remainingp pattern 'crr)
+      (decf-remaining pattern 'crr)
+      (nth (mod number (length list))
+           list))))
 
 ;;; pk
 
