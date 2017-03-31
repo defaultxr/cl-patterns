@@ -38,7 +38,6 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pfx
   * Pinterp
   * Plag
-  * Plambda
   * Pn - done as pn
   * PpatRewrite
   * Pplayer
@@ -100,7 +99,9 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pif
   * Pkey - done as pk
   * Plazy - done as plazy
+  * Plambda
   * Plet
+  * Pget
   * Ppatmod
   * Pproto - maybe just use a pbind key like :init instead?
   * Pvoss

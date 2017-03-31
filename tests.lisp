@@ -29,6 +29,10 @@
      (next-n (pseq (list 1 2 3 1 2 3 nil nil)) 8)
      (next-n (pseq (list 1 2 3) 2) 8)))
 
+(ok (equal
+     (list 1 2 3 1 2 3 nil)
+     (next-n (pseq (lambda () (list 1 2 3)) 2) 7)))
+
 ;; pser
 
 (ok (equal
@@ -143,13 +147,13 @@
 (ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 1) 13)
            (list 2 3 4 1 2 3 5 1 2 4 5 1 3)))
 
-;;; conversions
+;;; conversions (FIX - add more)
 
 (ok (=
      (db-amp (amp-db 0.5))
      0.5))
 
-;;; events
+;;; events (FIX - add more)
 
 (ok (=
      1
@@ -174,6 +178,8 @@
 (ok (eq
      :default
      (instrument (event))))
+
+;;; clock (FIX)
 
 ;;; tsubseq
 

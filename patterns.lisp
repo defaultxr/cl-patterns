@@ -752,13 +752,12 @@
         (decf-remaining pattern 'crr))
       (let* ((mod (mod number (length list)))
              (result (next (nth mod list))))
-        (prog1
-            (if (not (null result))
-                result
-                (progn
-                  (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
-                  (when (> (length list) 0)
-                    (next pattern)))))))))
+        (if (not (null result))
+            result
+            (progn
+              (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
+              (when (> (length list) 0)
+                (next pattern))))))))
 
 ;;; pnary
 
