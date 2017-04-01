@@ -156,6 +156,11 @@
                (setf res-pairs (append res-pairs result))))
            (setf res-pairs (append res-pairs (list key value)))))
     (setf (slot-value pattern 'pairs) res-pairs)
+    ;; handle pbind-special-post-keys
+    (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
+       :do
+       (alexandria:when-let ((func (getf *pbind-special-post-keys* key)))
+         (funcall func value pattern)))
     pattern))
 
 (defclass pbind-pstream (pbind pstream)
@@ -208,16 +213,16 @@
 
 (defparameter *pbind-special-post-keys* '())
 
-(defmacro define-pbind-special-post-key (key &body body) ;; FIX: need to actually implement this
-  "Define a special key for pbind that does post-processing on the pbind when it is created."
+(defmacro define-pbind-special-post-key (key &body body)
+  "Define a special key for pbind that does post-processing on the pbind after it has been constructed."
   (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-post-keys* ,keyname)
-           (lambda (value)
-             (declare (ignorable value))
+           (lambda (value pattern)
+             (declare (ignorable value pattern))
              ,@body))))
 
-(define-pbind-special-post-key pdef ;; FIX
-  nil)
+(define-pbind-special-post-key pdef
+  (pdef value pattern))
 
 (defparameter *pbind-special-keys* '())
 
