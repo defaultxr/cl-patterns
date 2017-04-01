@@ -201,10 +201,7 @@
   (list :quant value))
 
 (define-pbind-special-init-key remaining
-  (setf (slot-value pattern 'remaining)
-        (if (functionp value)
-            (funcall value)
-            value))
+  (setf (slot-value pattern 'remaining) (next value))
   nil ;; FIX: should this inject the 'remaining value? probably not - the pbind processing should do that automatically so it's always correct.
   )
 
