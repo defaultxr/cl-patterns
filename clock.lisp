@@ -72,8 +72,11 @@
          (nv (next item)))
     (when (not (null nv))
       (if (eq (get-event-value nv :type) :tempo-change)
-          (if (numberp (get-event-value nv :tempo))
-              (setf (slot-value clock 'tempo) (get-event-value nv :tempo))
+          (if (and (numberp (get-event-value nv :tempo))
+                   (plusp (get-event-value nv :tempo)))
+              (setf (slot-value clock 'tempo) (get-event-value nv :tempo)
+                    (slot-value clock 'unix-time-at-tempo) (unix-time-byulparan)
+                    (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
               (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
           (progn
             (funcall *event-output-function* (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock))))
