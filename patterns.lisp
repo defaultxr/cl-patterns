@@ -596,15 +596,15 @@
 (defmethod as-pstream ((pattern pshuf))
   (with-slots (remaining list repeats) pattern
     (make-instance 'pshuf-pstream
-                   :remaining remaining
-                   :list list
+                   :list (next list)
                    :repeats repeats
                    :sl (alexandria:shuffle (alexandria:copy-sequence 'list list))
-                   :crr (1+ repeats))))
+                   :crr repeats)))
 
 (defmethod next ((pattern pshuf-pstream))
   (with-slots (number sl) pattern
-    (when (= 0 (mod number (length sl)))
+    (when (and (= 0 (mod number (length sl)))
+               (plusp number))
       (decf-remaining pattern 'crr))
     (when (remainingp pattern 'crr)
       (nth (mod number (length sl))
