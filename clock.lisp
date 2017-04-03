@@ -70,6 +70,9 @@
           (slot-value task 'next-time) (slot-value clock 'beats)))
   (let* ((item (slot-value task 'item))
          (nv (next item)))
+    (when (and (null nv) (typep item 'pdef-pstream)) ;; auto-reschedule pdefs so they loop.
+      (setf (slot-value task 'item) (as-pstream (pdef (slot-value (slot-value task 'item) 'key)))
+            nv (next (slot-value task 'item))))
     (when (not (null nv))
       (if (eq (get-event-value nv :type) :tempo-change)
           (if (and (numberp (get-event-value nv :tempo))

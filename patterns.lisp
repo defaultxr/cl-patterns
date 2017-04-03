@@ -85,7 +85,7 @@
   "Return t if PATTERN's KEY value is :inf, nil, or greater than 0."
   (or (or (null (slot-value pattern key))
           (eq (slot-value pattern key) :inf))
-      (> (slot-value pattern key) 0)))
+      (plusp (slot-value pattern key))))
 
 (defun decf-remaining (pattern &optional (key 'remaining))
   "Decrease PATTERN's KEY value."
@@ -327,7 +327,7 @@
     (or (get-event-value *event* key)
         default)))
 
-;;; prand
+;;; prand ;; FIX - have a separate REPEATS parameter instead of just putting it into remaining
 
 (defpattern prand (pattern)
   ((list :initarg :list))
@@ -342,7 +342,7 @@
 (defmethod next ((pattern prand-pstream))
   (alexandria:random-elt (slot-value pattern 'list)))
 
-;;; pxrand
+;;; pxrand ;; FIX - have a separate REPEATS parameter instead of just putting it into remaining
 
 (defpattern pxrand (pattern)
   ((list :initarg :list)
@@ -410,7 +410,7 @@
       (decf-remaining pattern 'crr)
       cv)))
 
-;;; pdef
+;;; pdef ;; FIX: should still give NILs when the pattern ends, but the clock just automatically reschedules it when it ends (maybe with a settable slot?)
 ;; NOTE: the pattern in a pdef will repeat automatically. if the pattern in a pdef is redefined, it switches the next time the current one ends.
 ;; if you want the pdef to stop after its current loop, set it to nil like so: (pdef KEY nil)
 
@@ -427,7 +427,8 @@
   (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) value)))
 
 (defpattern pdef (pattern) ;; FIX: need 'reset' method.
-  ((key :initarg :key :reader pdef-key))
+  ((key :initarg :key :reader pdef-key)
+   (ps :initarg :ps :initform nil))
   "A named pattern.")
 
 (create-global-dictionary pdef)
@@ -445,16 +446,14 @@
 (defmethod quant ((object pdef))
   (quant (pdef-pattern object)))
 
-(defmethod next ((pattern pdef-pstream))
+(defmethod as-pstream ((pattern pdef))
   (with-slots (key) pattern
-    (labels ((get-next ()
-               (next (pdef-ref-get key :pstream))))
-      (let ((nv (get-next)))
-        (if (null nv)
-            (when (not (null (pdef-ref-get key :pattern)))
-              (pdef-ref-set key :pstream (as-pstream (getf (pdef-ref key) :pattern)))
-              (get-next))
-            nv)))))
+    (make-instance 'pdef-pstream
+                   :key key
+                   :ps (as-pstream (pdef-pattern pattern)))))
+
+(defmethod next ((pattern pdef-pstream))
+  (next (slot-value pattern 'ps)))
 
 ;;; plazy
 
@@ -758,7 +757,7 @@
             result
             (progn
               (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
-              (when (> (length list) 0)
+              (when (plusp (length list))
                 (next pattern))))))))
 
 ;;; pnary
@@ -841,7 +840,7 @@
   (with-slots (list repeats len step start wrap-at-end crr cr rcs cv) pattern
     (labels ((get-next ()
                (if (and (not wrap-at-end)
-                        (< cv 0))
+                        (minusp cv))
                    nil
                    (funcall (if wrap-at-end #'nth-wrap #'nth) cv list))))
       (when (remainingp pattern 'crr) 

@@ -12,7 +12,7 @@
 
 (defun repeat (item num)
   "Returns a list containing 'num' items. If 'item' is a function, return a list of 'num' of the result of that function."
-  (when (> num 0)
+  (when (plusp num)
     (cons (if (eq 'function (type-of item))
               (funcall item)
               item)
