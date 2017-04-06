@@ -12,4 +12,5 @@
                (:file "pat-utilities")
                (:file "patterns")
                (:file "event")
+               (:file "scales")
                (:file "clock")))

@@ -25,6 +25,13 @@
               (get-event-value event key)))
           list))
 
+(defun string-keyword (string)
+  "Converts a string to a decent-looking keyword."
+  (alexandria:make-keyword (string-upcase (remove-if-not (lambda (letter)
+                                                           (or (digit-char-p letter)
+                                                               (alpha-char-p letter)))
+                                                         string))))
+
 ;; list stuff
 
 (defun nth-wrap (n list)

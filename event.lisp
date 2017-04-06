@@ -125,18 +125,7 @@
        (defmethod ,destination ((item event))
          (,(intern (string-upcase (concatenate 'string ssource "-" sdestination))) (,source item)))
        (defmethod (setf ,destination) (value (item event))
-         (raw-set-event-value item ',source (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))
-         ))))
-
-(defun amp-db (amp)
-  "Convert amplitude to dB."
-  (* 20 (log amp 10)))
-
-(defun db-amp (db)
-  "Convert dB to amplitude."
-  (expt 10 (* db 0.05)))
-
-(event-translation-method db amp)
+         (raw-set-event-value item ',source (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))))))
 
 (event-method instrument :default)
 
@@ -145,6 +134,16 @@
 (event-method out 0)
 
 (event-method amp 0.5)
+
+(event-translation-method db amp)
+
+(defun amp-db (amp)
+  "Convert amplitude to dB."
+  (* 20 (log amp 10)))
+
+(defun db-amp (db)
+  "Convert dB to amplitude."
+  (expt 10 (* db 0.05)))
 
 (event-method pan 0)
 
@@ -226,7 +225,11 @@
 
 (event-method freq 440)
 
-(event-method steps-per-octave 12)
+(event-method octave 5)
+
+(event-method degree 0)
+
+(event-method root 0)
 
 (defun midinote-freq (midinote)
   "Convert a midi note number to a frequency."
@@ -237,5 +240,46 @@
   (+ 69 (* 12 (log (/ freq 440) 2))))
 
 (event-translation-method midinote freq)
+
+;; from SuperCollider:
+;; midinote: #{
+;; (((~note.value + ~gtranspose + ~root) /
+;;   ~scale.respondsTo(\stepsPerOctave).if(
+;;                                         { ~scale.stepsPerOctave },
+;;                                           ~stepsPerOctave) + ~octave - 5.0) *
+;;  (12.0 * ~scale.respondsTo(\octaveRatio).if
+;;        ({ ~scale.octaveRatio }, ~octaveRatio).log2) + 60.0);
+;; }
+;; ==
+;; ((((note + gtranspose + root) / steps-per-octave) + octave - 5) * (12 * (log2 octave-ratio))) + 60
+
+(defun note-midinote (note &optional root octave scale)
+  (let ((root (or root (if (and (boundp '*event*) (not (null *event*)))
+                           (get-event-value *event* 'root)
+                           0)))
+        (octave (or octave (if (and (boundp '*event*) (not (null *event*)))
+                               (get-event-value *event* 'octave)
+                               5)))
+        (scale (scale (or scale (if (and (boundp '*event*) (not (null *event*)))
+                                    (get-event-value *event* 'scale)
+                                    :major)))))
+    (+ (* (+ (/ (+ note root)
+                (length (tuning-tuning (scale-tuning scale))))
+             octave
+             -5)
+          (* 12 (log (scale-octave-ratio scale) 2)))
+       60)))
+
+(defun degree-note (degree &optional scale)
+  (nth-wrap degree (scale-degrees (scale (or scale :major)))))
+
+(defun scale-midinotes (&optional (scale :major)) ;; FIX: this is for testing; remove it later
+  (let ((scale (scale scale)))
+    (print scale)
+    (gete (next-n
+           (pbind :n (pseries 0 1 :inf)
+                  :x (lambda () (note-midinote (degree-note (get-event-value *event* :n) scale) 0 5 scale)))
+           (length (scale-degrees scale)))
+          :x)))
 
 (event-method other-params (list))
