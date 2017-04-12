@@ -282,4 +282,10 @@
            (length (scale-degrees scale)))
           :x)))
 
+(defun ratio-midi (ratio)
+  (* 12 (log ratio 2)))
+
+(defun midi-ratio (midi)
+  (expt 2 (/ midi 12)))
+
 (event-method other-params (list))
