@@ -78,4 +78,33 @@
     `(defsynth ,name ,params
        ,@body)))
 
-(export '(synth release get-synthdef-metadata get-synthdef-parameters get-synthdef-parameter-names has-gate-p defsynth*) :sc)
+;;; ndef
+
+(defun ndef-ref-get (ndef-key key)
+  "Get NDEF-KEY's KEY value from its plist."
+  (getf (ndef-ref ndef-key) (alexandria:make-keyword key)))
+
+(defun ndef-ref-set (ndef-key key value)
+  "Set NDEF-KEY's KEY in its plist to VALUE."
+  (ndef-ref ndef-key (cl-patterns::plist-set (ndef-ref ndef-key) (alexandria:make-keyword key) value)))
+
+(defclass ndef () ;; node args bus
+  ((key :initarg :key :initform nil)))
+
+(cl-patterns::create-global-dictionary ndef)
+
+(defun ndef (key &optional (body nil value-supplied-p) &key (type :normal))
+  (when (or (not (null value))
+            value-supplied-p)
+    (alexandria:when-let (node (ndef-ref-get key :node))
+      (ctrl node :gate 0))
+    (if (null body)
+        (ndef-ref-set key :node nil)
+        (ndef-ref-set key :node (play body))))
+  (make-instance 'ndef
+                 :key key))
+
+(defmethod ndef-bus ((ndef ndef))
+  (ndef-ref-get (slot-value ndef 'key) :bus))
+
+(export '(synth release get-synthdef-metadata get-synthdef-parameters get-synthdef-parameter-names has-gate-p defsynth* ndef ndef-bus) :sc)
