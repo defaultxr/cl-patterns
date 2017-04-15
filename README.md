@@ -115,7 +115,6 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 
 * ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
-* misc.lisp - where i put my code when i'm just messing around with stuff. might be useful as example code, but could also have outdated stuff in it.
 
 
 * cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
