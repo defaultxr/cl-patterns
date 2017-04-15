@@ -2,7 +2,7 @@
   (:use #:cl)
   (:export
    #:plist-keys
-   #:as-stream
+   #:as-pstream
    #:next
    #:next-n
    #:next-upto-n
@@ -10,7 +10,6 @@
    #:defpattern
    
    #:pbind
-   #:pbind-pstream
 
    ;; NOTE: pattern classes defined with defpattern are automatically exported.
 
@@ -26,9 +25,9 @@
    #:db
    #:amp-db
    #:db-amp
-   
+
    #:pan
-   
+
    #:tempo
    #:dur
    #:legato
@@ -44,9 +43,10 @@
    #:midinote
    #:freq-midinote
    #:midinote-freq
-   #:steps-per-octave
    #:other-params
 
+   #:get-event-value
+   #:set-event-value
    #:gete
 
    #:*clock*
