@@ -21,9 +21,6 @@
 
 (defgeneric scale (item))
 
-(defmethod scale ((item event))
-  (scale (get-event-value item 'scale)))
-
 (defmethod scale ((item symbol))
   (let ((scale (getf *scales* item)))
     (when (not (null scale))
@@ -55,9 +52,6 @@
          aliases)))
 
 (defgeneric tuning (item))
-
-(defmethod tuning ((item event))
-  (tuning (get-event-value item 'tuning)))
 
 (defmethod tuning ((item symbol))
   (let ((tuning (getf *tunings* item)))

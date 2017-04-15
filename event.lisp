@@ -1,8 +1,10 @@
 (in-package :cl-patterns)
 
-;; FIX: may need more keys to determine note based on freq...?
 ;; FIX: add 'strum'
 ;; FIX: make versions of these generic functions that will work with supercollider ugens; put them in cl-collider-extensions.lisp..
+;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
+
+;;; event glue
 
 (defclass event ()
   ((other-params :initarg :other-params :initform (list)))
@@ -127,11 +129,15 @@
        (defmethod (setf ,destination) (value (item event))
          (raw-set-event-value item ',source (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))))))
 
+;;; instrument/group/out
+
 (event-method instrument :default)
 
 (event-method group 0)
 
 (event-method out 0)
+
+;;; amp/pan
 
 (event-method amp 0.5)
 
@@ -146,6 +152,8 @@
   (expt 10 (* db 0.05)))
 
 (event-method pan 0)
+
+;;; dur
 
 (event-method tempo (if (and (boundp '*clock*) (not (null *clock*)))
                         (tempo *clock*)
@@ -223,13 +231,37 @@
 
 (event-method quant 1)
 
+;;; freq
+
+(defun remove-freq-info (event)
+  (remove-event-value event :freq)
+  (remove-event-value event :midinote)
+  (remove-event-value event :degree))
+
+(defun get-freq-info (event)
+  "Return a keyword representing the type of freq info the event currently holds."
+  (let ((keys (keys event)))
+    (or (and (position :freq keys) :freq)
+        (and (position :midinote keys) :midinote)
+        (and (position :degree keys) :degree)
+        :freq)))
+
 (event-method freq 440)
 
-(event-method octave 5)
+(defmethod freq ((item event))
+  (case (get-freq-info item)
+    (:freq (or (raw-get-event-value item :freq) 440))
+    (:midinote (midinote-freq (get-event-value item :midinote)))
+    (:degree (degree-freq (get-event-value item :degree)
+                          (get-event-value item :root)
+                          (get-event-value item :octave)
+                          (get-event-value item :scale)))))
 
-(event-method degree 0)
-
-(event-method root 0)
+(defmethod (setf freq) (value (item event)) 
+  (when (position :octave (keys item))
+    (set-event-value item :octave (truncate (/ (freq-midinote value) 12))))
+  (remove-freq-info item)
+  (raw-set-event-value item :freq value))
 
 (defun midinote-freq (midinote)
   "Convert a midi note number to a frequency."
@@ -239,19 +271,60 @@
   "Convert a frequency to a midi note number."
   (+ 69 (* 12 (log (/ freq 440) 2))))
 
-(event-translation-method midinote freq)
+(event-method midinote 69)
 
-;; from SuperCollider:
-;; midinote: #{
-;; (((~note.value + ~gtranspose + ~root) /
-;;   ~scale.respondsTo(\stepsPerOctave).if(
-;;                                         { ~scale.stepsPerOctave },
-;;                                           ~stepsPerOctave) + ~octave - 5.0) *
-;;  (12.0 * ~scale.respondsTo(\octaveRatio).if
-;;        ({ ~scale.octaveRatio }, ~octaveRatio).log2) + 60.0);
-;; }
-;; ==
-;; ((((note + gtranspose + root) / steps-per-octave) + octave - 5) * (12 * (log2 octave-ratio))) + 60
+(defmethod midinote ((item event))
+  (case (get-freq-info item)
+    (:freq (freq-midinote (get-event-value item :freq)))
+    (:midinote (raw-get-event-value item :midinote))
+    (:degree (degree-midinote (get-event-value item :degree)
+                              (get-event-value item :root)
+                              (get-event-value item :octave)
+                              (get-event-value item :scale)))))
+
+(defmethod (setf midinote) (value (item event))
+  (when (position :octave (keys item))
+    (set-event-value item :octave (truncate (/ value 12))))
+  (remove-freq-info item)
+  (raw-set-event-value item :midinote value))
+
+(event-method degree 5)
+
+(defmethod degree ((item event)) ;; FIX: this can return NIL. i.e. (degree (event :midinote 0))
+  (let ((root (get-event-value item :root))
+        (octave (get-event-value item :octave))
+        (scale (get-event-value item :scale)))
+    (case (get-freq-info item)
+      (:freq (midinote-degree (freq-midinote (get-event-value item :freq))
+                              root octave scale))
+      (:midinote (midinote-degree (get-event-value item :midinote)
+                                  root octave scale))
+      (:degree (raw-get-event-value item :degree)))))
+
+(defmethod (setf degree) (value (item event))
+  (remove-freq-info item)
+  (raw-set-event-value item :degree value))
+
+(event-method root 0)
+
+(defmethod (setf root) (value (item event))
+  (raw-set-event-value item :root value))
+
+(event-method octave 5)
+
+(defmethod (setf octave) (value (item event))
+  (raw-set-event-value item :octave value))
+
+(defun freq-octave (freq)
+  (truncate (/ (freq-midinote freq) 12)))
+
+(event-method scale :major)
+
+(defun midinote-degree (midinote &optional root octave scale)
+  (let ((root (or root )) ;; FIX
+        (octave (or octave (truncate (/ midinote 12)))))
+    (position midinote (mapcar (lambda (n) (+ (* octave 12) root n))
+                               (scale-degrees (scale (or scale :major)))))))
 
 (defun note-midinote (note &optional root octave scale)
   (let ((root (or root (if (and (boundp '*event*) (not (null *event*)))
@@ -264,14 +337,23 @@
                                     (get-event-value *event* 'scale)
                                     :major)))))
     (+ (* (+ (/ (+ note root)
-                (length (tuning-tuning (scale-tuning scale))))
+                (length (tuning-tuning (tuning (scale-tuning scale)))))
              octave
              -5)
-          (* 12 (log (scale-octave-ratio scale) 2)))
+          (* 12 (log (tuning-octave-ratio (tuning (scale-tuning scale))) 2)))
        60)))
 
-(defun degree-note (degree &optional scale)
-  (nth-wrap degree (scale-degrees (scale (or scale :major)))))
+(defun degree-note (degree &optional (scale :major))
+  (let ((degrees (scale-degrees (scale scale))))
+    (+ (nth-wrap degree degrees)
+       (* (length (tuning-tuning (tuning (scale-tuning (scale scale)))))
+          (truncate (/ degree (length degrees)))))))
+
+(defun degree-midinote (degree &optional root octave scale)
+  (note-midinote (degree-note degree scale) root octave scale))
+
+(defun degree-freq (degree &optional root octave scale)
+  (midinote-freq (degree-midinote degree root octave scale)))
 
 (defun scale-midinotes (&optional (scale :major)) ;; FIX: this is for testing; remove it later
   (let ((scale (scale scale)))
