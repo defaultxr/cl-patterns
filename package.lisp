@@ -6,6 +6,7 @@
    #:next
    #:next-n
    #:next-upto-n
+   #:pstream-nth
 
    #:defpattern
    

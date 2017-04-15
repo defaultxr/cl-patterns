@@ -75,10 +75,10 @@
 ;;; pstream
 
 (defclass pstream (pattern)
-  ((remaining :initarg :remaining :initform nil)
-   (number :initform 0)
+  ((number :initform 0)
    (pattern-stack :initform (list))
-   (next-time :initarg :next-time :initform 0))
+   (next-time :initarg :next-time :initform 0)
+   (history :initform (list)))
   (:documentation "Pattern stream class."))
 
 (defun remainingp (pattern &optional (key 'remaining))
@@ -93,34 +93,35 @@
     (decf (slot-value pattern key))))
 
 (defmethod next :around ((pattern pstream))
-  (with-slots (pattern-stack) pattern
-    (labels ((get-value-from-stack (pattern)
-               (if (null pattern-stack)
-                   (prog1
-                       (get-value pattern)
-                     (decf-remaining pattern))
-                   (let* ((popped (pop pattern-stack))
-                          (nv (next popped)))
-                     (if (null nv)
-                         (get-value-from-stack pattern)
-                         (progn
-                           (push popped pattern-stack)
-                           nv)))))
-             (get-value (pattern)
-               (let ((res (call-next-method)))
-                 (typecase res
-                   (pattern
-                    (pattern-embed pattern res)
-                    (get-value-from-stack pattern))
-                   (t res)))))
-      (when (remainingp pattern)
-        (get-value-from-stack pattern)))))
+  (labels ((get-value-from-stack (pattern)
+             (if (null (slot-value pattern 'pattern-stack))
+                 (prog1
+                     (get-value pattern)
+                   (incf (slot-value pattern 'number))
+                   (decf-remaining pattern))
+                 (let* ((popped (pop (slot-value pattern 'pattern-stack)))
+                        (nv (next popped)))
+                   (if (null nv)
+                       (get-value-from-stack pattern)
+                       (progn
+                         (push popped (slot-value pattern 'pattern-stack))
+                         nv)))))
+           (get-value (pattern)
+             (let ((res (call-next-method)))
+               (typecase res
+                 (pattern
+                  (pattern-embed pattern res)
+                  (get-value-from-stack pattern))
+                 (t res)))))
+    (let ((result (when (remainingp pattern)
+                    (get-value-from-stack pattern))))
+      (when (or (= 1 (slot-value pattern 'number))
+                (not (null (pstream-nth -1 pattern))))
+        (alexandria:appendf (slot-value pattern 'history) (list result))
+        result))))
 
 (defmethod pattern-embed ((pattern pstream) (embed pattern))
   (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
-
-(defmethod next :after ((pattern pstream)) ;; FIX: maybe merge this into the :around method above?
-  (incf (slot-value pattern 'number)))
 
 (defgeneric as-pstream (pattern))
 
@@ -137,6 +138,14 @@
            (loop :for slot :in slots
               :collect (alexandria:make-keyword slot)
               :collect (as-pstream (slot-value pattern slot))))))
+
+(defmethod as-pstream :around ((pattern pattern))
+  (let ((pstream (call-next-method)))
+    (setf (slot-value pstream 'remaining) (slot-value pattern 'remaining))
+    pstream))
+
+(defmethod pstream-nth (n (pstream pstream))
+  (nth-wrap n (slot-value pstream 'history)))
 
 ;;; pbind
 
