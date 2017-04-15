@@ -672,9 +672,13 @@
 
 (defmethod next ((pattern pseries-pstream))
   (with-slots (cv step) pattern
-    (prog1
-        cv
-      (incf cv (next step)))))
+    (when cv
+      (let ((nxt (next step)))
+        (prog1
+            cv
+          (if (numberp nxt)
+              (incf cv nxt)
+              (setf cv nil)))))))
 
 ;;; pgeom
 

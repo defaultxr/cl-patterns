@@ -21,7 +21,7 @@
       (accumulator params)
       ev)))
 
-(defparameter r 'r
+(defparameter r :rest
   "Rest.")
 
 (defparameter *latency* 0.1
