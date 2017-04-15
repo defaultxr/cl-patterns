@@ -599,7 +599,7 @@
                    :list (next list)
                    :repeats repeats
                    :sl (alexandria:shuffle (alexandria:copy-sequence 'list list))
-                   :crr repeats)))
+                   :crr (next repeats))))
 
 (defmethod next ((pattern pshuf-pstream))
   (with-slots (number sl) pattern
@@ -614,16 +614,28 @@
 
 (defpattern pwhite (pattern)
   ((lo :initarg :lo)
-   (hi :initarg :hi)))
+   (hi :initarg :hi)
+   (length :initarg :length)
+   (crr :initarg :crr :initform nil)))
 
-(defun pwhite (&optional (lo 0) (hi 1) (remaining :inf))
+(defun pwhite (&optional (lo 0) (hi 1) (length :inf))
   (make-instance 'pwhite
                  :lo lo
                  :hi hi
-                 :remaining remaining))
+                 :length length))
+
+(defmethod as-pstream ((pattern pwhite))
+  (with-slots (lo hi length) pattern
+    (make-instance 'pwhite-pstream
+                   :lo lo
+                   :hi hi
+                   :length length
+                   :crr (next length))))
 
 (defmethod next ((pattern pwhite-pstream))
-  (random-range (next (slot-value pattern 'lo)) (next (slot-value pattern 'hi))))
+  (when (remainingp pattern 'crr)
+    (decf-remaining pattern 'crr)
+    (random-range (next (slot-value pattern 'lo)) (next (slot-value pattern 'hi)))))
 
 ;;; pbrown
 ;; FIX: maybe should coerce lo, hi, and step to floats if one of them is a float?
@@ -632,22 +644,35 @@
   ((lo :initarg :lo)
    (hi :initarg :hi)
    (step :initarg :step)
-   (cv :initarg :cv :initarg :cv)))
+   (length :initarg :length)
+   (crr :initarg :crr :initform nil)
+   (cv :initarg :cv :initform nil)))
 
-(defun pbrown (&optional (lo 0) (hi 1) (step 0.125) (remaining :inf))
+(defun pbrown (&optional (lo 0) (hi 1) (step 0.125) (length :inf))
   (make-instance 'pbrown
                  :lo lo
                  :hi hi
                  :step step
-                 :cv (random-range lo hi)
-                 :remaining remaining))
+                 :length length))
+
+(defmethod as-pstream ((pattern pbrown))
+  (with-slots (lo hi step length) pattern
+    (make-instance 'pbrown-pstream
+                   :lo lo
+                   :hi hi
+                   :step step
+                   :length length
+                   :crr (next length)
+                   :cv (random-range lo hi))))
 
 (defmethod next ((pattern pbrown-pstream))
-  (with-slots (step cv lo hi) pattern
-    (let ((nstep (next step)))
-      (incf cv (random-range (* -1 nstep) nstep)))
-    (setf cv (alexandria:clamp cv (next lo) (next hi)))
-    cv))
+  (when (remainingp pattern 'crr)
+    (decf-remaining pattern 'crr)
+    (with-slots (step cv lo hi) pattern
+      (let ((nstep (next step)))
+        (incf cv (random-range (* -1 nstep) nstep)))
+      (setf cv (alexandria:clamp cv (next lo) (next hi)))
+      cv)))
 
 ;;; pseries
 
