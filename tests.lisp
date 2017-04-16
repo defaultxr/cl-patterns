@@ -7,13 +7,15 @@
 
 ;;; patterns
 
-;; pbind (FIX)
-
 ;; :remaining key
 
 (ok (equal ;; FIX: should test this for other patterns as well, not just pseq.
      (list 0 1 2 3 4 3 4 nil nil nil nil nil)
      (next-n (pseq (list 0 (pseq '(1 2) 1) (pseq '(3 4) 2)) 1) 12)))
+
+;; :number key
+
+;; pbind (FIX)
 
 ;; pseq
 
@@ -146,6 +148,10 @@
 
 (ok (equal (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 1) 13)
            (list 2 3 4 1 2 3 5 1 2 4 5 1 3)))
+
+;; phistory (FIX)
+
+;; pscratch (FIX)
 
 ;;; conversions (FIX - add more)
 

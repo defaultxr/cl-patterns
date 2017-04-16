@@ -2,6 +2,8 @@
 
 This document is a WIP.
 
+## New features
+
 * event values representing the same things are automatically converted for you
   * i.e. amp/db, dur/delta, sustain/legato, etc
 * pbind has special keys which alter the functionality of it
