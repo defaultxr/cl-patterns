@@ -893,3 +893,62 @@
               (incf cr)
               (setf cv (+ start (* step cr)))
               (next pattern)))))))
+
+;;; phistory
+;; basically uses pstream-nth to refer to history
+
+;; (pscratch (pseries 0 1) (pseq (list 0 (pseq (list 1 1 1 -3) :inf))))
+
+(defpattern phistory (pattern)
+  ((pattern :initarg :pattern)
+   (step-pattern :initarg :step-pattern)))
+
+(defun phistory (pattern step-pattern)
+  (make-instance 'phistory
+                 :pattern pattern
+                 :step-pattern step-pattern))
+
+(defmethod as-pstream ((pattern phistory))
+  (make-instance 'phistory-pstream
+                 :pattern (as-pstream (slot-value pattern 'pattern))
+                 :step-pattern (as-pstream (slot-value pattern 'step-pattern))))
+
+(defmethod next ((pattern phistory-pstream))
+  (with-slots (pattern step-pattern) pattern
+    (next pattern)
+    (pstream-nth (next step-pattern) pattern)))
+
+;;; pscratch
+;;
+;; FIX: pscratch's mechanism is slightly different:
+;; supercollider:
+;; > Pscratch(Pseries(0, 1), Pseq([1!3, -3].flat, inf)).asStream.nextN(12)
+;; [ 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 0 ]
+;;
+;; lisp:
+;; > (next-n (pscratch (pseries 0 1) (pseq (list 1 1 1 -3) :inf)) 12)
+;; (1 2 3 0 1 2 3 0 1 2 3 0)
+
+(defpattern pscratch (pattern)
+  ((pattern :initarg :pattern)
+   (step-pattern :initarg :step-pattern)
+   (ci :initarg :ci :initform 0) ;; current index
+   ))
+
+(defun pscratch (pattern step-pattern)
+  (make-instance 'pscratch
+                 :pattern pattern
+                 :step-pattern step-pattern))
+
+(defmethod as-pstream ((pattern pscratch))
+  (make-instance 'pscratch-pstream
+                 :pattern (as-pstream (slot-value pattern 'pattern))
+                 :step-pattern (as-pstream (slot-value pattern 'step-pattern))))
+
+(defmethod next ((pattern pscratch-pstream))
+  (with-slots (ci (src-pattern pattern) step-pattern) pattern
+    (incf ci (next step-pattern))
+    (loop :while (>= ci (length (slot-value src-pattern 'history)))
+       :do
+       (next src-pattern))
+    (pstream-nth ci src-pattern)))
