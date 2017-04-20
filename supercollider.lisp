@@ -11,7 +11,7 @@
 
 (defgeneric play-sc (item))
 
-(defmethod play-sc ((item t)) ;; TODO: move the params stuff into its own function
+(defmethod play-sc ((item t)) ;; FIX: move the params stuff into its own function
   (unless (eq (get-event-value item :type) :rest)
     (let* ((inst (instrument item))
            (synth-params (get-synth-args-list inst))

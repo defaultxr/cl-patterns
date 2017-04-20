@@ -15,62 +15,45 @@ In addition to emulating most of SuperCollider's patterns system, another goal i
 Download cl-patterns and put it in your quicklisp local-projects directory, then load it:
 
 ```common-lisp
-(ql:quickload :cl-patterns)
-(in-package :cl-patterns)
+> (ql:quickload :cl-patterns)
+> (in-package :cl-patterns)
 ```
 
 Create a pattern like so:
 
 ```common-lisp
-(defparameter pat (pbind :foo (pseq '(1 2 3))
-                         :bar (prand '(9 8 7) 5)))
+> (defparameter pat (pbind :foo (pseq '(1 2 3))
+                           :bar (prand '(9 8 7) 5)))
 ```
 
 Since patterns are basically "templates", you need to turn them into `pstream` objects in order to actually get output from them:
 
 ```common-lisp
-(defparameter pstream (as-pstream pat))
+> (defparameter pstream (as-pstream pat))
 ```
 
 Then, you can get results from the pstream one at a time with `next`, or many at a time with `next-n`:
 
 ```common-lisp
-(defparameter list (next-n pstream 7))
+> (defparameter results (next-n pstream 3))
+> results
+((EVENT :FOO 1 :BAR 8) (EVENT :FOO 2 :BAR 9) (EVENT :FOO 3 :BAR 8))
 ```
 
-You can play an event using the `play` function:
+To actually play events (and hear sound output), you'll need to start an audio server. Right now, SuperCollider is the only supported audio server, but in the future, there will be support for Incudine as well as MIDI output through ALSA. In order to be able to connect to SuperCollider, you need the [cl-collider](https://github.com/byulparan/cl-collider) and [scheduler](http://github.com/byulparan/scheduler) libraries installed in your quicklisp `local-projects` directory so that they can be loaded. Then:
+
+``` common-lisp
+> (ql:quickload :cl-patterns+supercollider)
+> (load #P"/path/to/cl-patterns/supercollider-example.lisp") ;; code to start scsynth and define few example synths.
+```
+
+And finally we can play patterns and hear sound:
 
 ```common-lisp
-(play (car list))
+> (play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
 ```
 
-Or you can play the pattern itself, which will automatically convert it to a pstream for you "under the hood":
-
-```common-lisp
-(play pat)
-```
-
-If you want to actually hear sound output, you'll need to either use SuperCollider or Incudine for that, as `cl-patterns` doesn't create sound on its own:
-
-```common-lisp
-(ql:quickload :cl-patterns+supercollider)
-
-(load #P"/path/to/cl-patterns/supercollider-example.lisp") ;; code to start scsynth and a few example synthdefs
-
-(play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
-```
-
-In the future, you might be able to do something like this to use Incudine as the output:
-
-```common-lisp
-(ql:quickload :cl-patterns+incudine)
-
-(load #P"/path/to/cl-patterns/incudine-example.lisp")
-
-(play (pbind :id 1 :freq (pseq '(100 200 400 800) 1)))
-```
-
-...But right now Incudine support isn't implemented.
+From here, you can take a look at the code in the `supercollider-example.lisp` file for examples of how to define your own synths. For now there isn't much documentation on how to write synthdefs or patterns in Lisp, but if you're used to writing patterns or SynthDefs in regular sclang, most of them should translate fairly easily. More documentation will be written in the future.
 
 ## Features
 
@@ -79,8 +62,8 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * It's possible to "inject" an event's values into another from inside a pattern. For example:
 ```common-lisp
 > (next-n (pbind :foo (pseq '(1 2 3 4))
-               :inject (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
-        3)
+                 :inject (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
+          3)
 ((EVENT :FOO 1)
  (EVENT :FOO 2 :BAR 1 :BAZ 2)
  (EVENT :FOO 3 :QUX 3))
