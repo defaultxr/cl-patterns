@@ -55,7 +55,7 @@
         (funcall slot event)
         (raw-get-event-value event slot))))
 
-(defun combine-events (event1 event2)
+(defun combine-events (event1 event2) ;; FIX: maybe this should return a new event instead of modifying EVENT1.
   "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist."
   (let ((result event1))
     (loop :for key :in (keys event2)
@@ -344,10 +344,11 @@
        60)))
 
 (defun degree-note (degree &optional (scale :major))
-  (let ((degrees (scale-degrees (scale scale))))
+  (let* ((scale (scale (or scale :major)))
+         (degrees (scale-degrees scale)))
     (+ (nth-wrap degree degrees)
-       (* (length (tuning-tuning (tuning (scale-tuning (scale scale)))))
-          (truncate (/ degree (length degrees)))))))
+       (* (length (tuning-tuning (tuning (scale-tuning scale))))
+          (floor (/ degree (length degrees)))))))
 
 (defun degree-midinote (degree &optional root octave scale)
   (note-midinote (degree-note degree scale) root octave scale))
