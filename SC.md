@@ -44,7 +44,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pprotect - see also: pbind's :cleanup key.
   * Prewrite
   * Prorate
-  * Pscratch
+  * Pscratch - done as pscratch
   * Pseed
   * Pset
   * Psetpre
@@ -89,7 +89,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
 * other / unsorted patterns
   * Pbind - done as pbind
   * Pbindf
-  * Pmono
+  * Pmono - done as pmono
   * PmonoArtic - see instead: pmono.
   * Pdef - WIP as pdef. see also: pbind's :name/:pdef keys.
   * Pchain - see also: pbind's :inject key.
