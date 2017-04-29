@@ -1,5 +1,11 @@
 (in-package :cl-patterns)
 
+(defmacro at (time &body body)
+  `(sc:at ,time ,@body))
+
+(defun release (node)
+  (sc:release node))
+
 (defun get-synth-args-list (synth)
   (or (mapcar #'car (getf sc::*synthdef-metadata* synth))
       (mapcar #'alexandria:make-keyword
@@ -9,9 +15,7 @@
                             (consp symbol)))
                          (swank-backend:arglist (fdefinition (alexandria:ensure-symbol synth))))))) ;; FIX: need to officially require swank-backend
 
-(defgeneric play-sc (item))
-
-(defmethod play-sc ((item t)) ;; FIX: move the params stuff into its own function
+(defun play-sc (item &optional pstream) ;; FIX: move the params stuff into its own function
   (unless (eq (get-event-value item :type) :rest)
     (let* ((inst (instrument item))
            (synth-params (get-synth-args-list inst))
@@ -31,10 +35,21 @@
                                  (sc:bufnum list-item)
                                  list-item))
                            params)))
-      (let ((node (sc:at time
-                    (sc:synth inst params))))
-        (when (sc:has-gate-p node)
-          (sc:at (+ time (dur-time (sustain item)))
-            (sc:release node)))))))
+      (if (and (eq (get-event-value item :type) :mono)
+               (not (null pstream)))
+          (let ((node (at time
+                        (if (and (not (null (slot-value pstream 'nodes))))
+                            (apply #'sc:ctrl (car (slot-value pstream 'nodes)) params)
+                            (sc:synth inst params)))))
+            (if (< (legato item) 1)
+                (at (+ time (dur-time (sustain item)))
+                  (setf (slot-value pstream 'nodes) (list))
+                  (release node))
+                (setf (slot-value pstream 'nodes) (list node))))
+          (let ((node (at time
+                        (sc:synth inst params))))
+            (when (sc:has-gate-p node)
+              (at (+ time (dur-time (sustain item)))
+                (release node))))))))
 
 (setf *event-output-function* 'play-sc)

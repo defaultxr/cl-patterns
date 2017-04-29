@@ -33,7 +33,9 @@
 
 (defclass pattern ()
   ((remaining :initarg :remaining :initform nil)
-   (quant :initarg :quant :initform 1 :accessor quant))
+   (quant :initarg :quant :initform 1 :accessor quant)
+   (loop-p :initarg :loop-p :initform nil :accessor loop-p)
+   (cleanup-functions :initarg :cleanup-functions :initform (list)))
   (:documentation "Abstract pattern superclass."))
 
 (defgeneric next (pattern)
@@ -78,7 +80,8 @@
   ((number :initform 0)
    (pattern-stack :initform (list))
    (next-time :initarg :next-time :initform 0)
-   (history :initform (list)))
+   (history :initform (list))
+   (nodes :initform (list)))
   (:documentation "Pattern stream class."))
 
 (defun remainingp (pattern &optional (key 'remaining))
@@ -155,6 +158,7 @@
 
 (defun pbind (&rest pairs)
   "Create an instance of the PBIND class."
+  (assert (evenp (length pairs)))
   (let ((res-pairs nil)
         (pattern (make-instance 'pbind)))
     (loop :for (key value) :on pairs :by #'cddr
@@ -258,6 +262,15 @@
 
 (defmethod as-pstream ((item pbind-pstream))
   item)
+
+;;; pmono
+
+(defun pmono (instrument &rest pairs)
+  (assert (evenp (length pairs)))
+  (apply #'pbind
+         :instrument instrument
+         :type :mono
+         pairs))
 
 ;;; pseq
 
@@ -437,7 +450,8 @@
 
 (defpattern pdef (pattern) ;; FIX: need 'reset' method.
   ((key :initarg :key :reader pdef-key)
-   (ps :initarg :ps :initform nil))
+   (ps :initarg :ps :initform nil)
+   (loop-p :initarg :loop-p :initform t :accessor loop-p))
   "A named pattern.")
 
 (create-global-dictionary pdef)

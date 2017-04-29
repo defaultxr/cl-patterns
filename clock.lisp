@@ -3,6 +3,16 @@
 
 (in-package :cl-patterns)
 
+(defmacro at (time &body body)
+  "Placeholder method; override this in cl-patterns' audio backend."
+  (warn "This is the generic at method; you should load a backend for cl-patterns before playing.")
+  nil)
+
+(defun release (node)
+  "Placeholder method; override this in cl-patterns' audio backend."
+  (warn "This is the generic release method; you should load a backend for cl-patterns before playing.")
+  nil)
+
 (defclass clock ()
   ((beats :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
    (tempo :initform 1 :initarg :tempo :accessor tempo :documentation "The tempo of the clock, in beats per second.")
@@ -71,9 +81,16 @@
           (slot-value task 'next-time) (slot-value clock 'beats)))
   (let* ((item (slot-value task 'item))
          (nv (next item)))
-    (when (and (null nv) (typep item 'pdef-pstream)) ;; auto-reschedule pdefs so they loop.
-      (setf (slot-value task 'item) (as-pstream (pdef (slot-value (slot-value task 'item) 'key)))
-            nv (next (slot-value task 'item))))
+    (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
+      (setf (slot-value task 'item) (as-pstream (pdef (slot-value (slot-value task 'item) 'key))))
+      (setf nv (next (slot-value task 'item)))
+      (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
+        (if (eq (get-event-value last :instrument) (get-event-value nv :instrument))
+            (setf (slot-value (slot-value task 'item) 'nodes) (slot-value item 'nodes))
+            (when (not (null (slot-value item 'nodes)))
+              (at (+ (get-event-value last :unix-time-at-start) (dur-time (sustain last)))
+                (release (car (slot-value item 'nodes)))))))
+      (setf item (slot-value task 'item)))
     (when (not (null nv))
       (if (eq (get-event-value nv :type) :tempo-change)
           (if (and (numberp (get-event-value nv :tempo))
@@ -83,7 +100,10 @@
                     (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
               (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
           (progn
-            (funcall *event-output-function* (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock))))
+            (funcall *event-output-function*
+                     (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)))
+                     (when (typep item 'pstream)
+                       item))
             (incf (slot-value task 'next-time) (delta nv))
             (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
               (clock-process-task task clock)))))
