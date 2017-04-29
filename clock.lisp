@@ -66,7 +66,11 @@
       (setf tasks
             (remove-if
              (lambda (task)
-               (eq (slot-value task 'gensym) (slot-value item 'gensym)))
+               (when (eq (slot-value task 'gensym) (slot-value item 'gensym))
+                 (let ((item (slot-value task 'item)))
+                   (when (typep item 'pstream)
+                     (map nil #'release (slot-value item 'nodes))))
+                 t))
              tasks)))))
 
 (defun clock-clear-tasks (&optional (clock *clock*))
