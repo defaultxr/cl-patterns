@@ -118,10 +118,8 @@
                  (t res)))))
     (let ((result (when (remainingp pattern)
                     (get-value-from-stack pattern))))
-      (when (or (= 1 (slot-value pattern 'number))
-                (not (null (pstream-nth -1 pattern))))
-        (alexandria:appendf (slot-value pattern 'history) (list result))
-        result))))
+      (alexandria:appendf (slot-value pattern 'history) (list result))
+      result)))
 
 (defmethod pattern-embed ((pattern pstream) (embed pattern))
   (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
