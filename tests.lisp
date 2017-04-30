@@ -153,6 +153,14 @@
 
 ;; pscratch (FIX)
 
+;; pif
+
+(ok (equal (next-n (pif (pseq (list t t nil nil t t nil))
+                        (pseq (list 1 2 3))
+                        (pseq (list 4 5 6)))
+                   7)
+           (list 1 2 4 5 3 nil 6)))
+
 ;;; conversions (FIX - add more)
 
 (ok (=

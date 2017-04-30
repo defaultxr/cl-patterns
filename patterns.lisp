@@ -964,3 +964,22 @@
        :do
        (next src-pattern))
     (pstream-nth ci src-pattern)))
+
+;;; pif
+
+(defpattern pif (pattern)
+  ((condition :initarg :condition)
+   (true :initarg :true)
+   (false :initarg :false)))
+
+(defun pif (condition true false)
+  (make-instance 'pif
+                 :condition condition
+                 :true true
+                 :false false))
+
+(defmethod next ((pattern pif-pstream))
+  (with-slots (condition true false) pattern
+    (if (next condition)
+        (next true)
+        (next false))))

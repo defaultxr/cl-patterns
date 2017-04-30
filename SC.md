@@ -96,7 +96,7 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pdict
   * Penvir
   * Peventmod
-  * Pif
+  * Pif - done as pif
   * Pkey - done as pk
   * Plazy - done as plazy
   * Plambda
