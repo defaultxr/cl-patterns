@@ -1,5 +1,5 @@
 ;;; clock.lisp - keep playing patterns in sync by running each clock in its own thread and all patterns on a clock.
-;; FIX: playing events (i.e. (play (event :instrument :default :freq 440))) doesn't work.
+;; FIX: changing :instrument in pmono causes the old one to stay playing.
 
 (in-package :cl-patterns)
 

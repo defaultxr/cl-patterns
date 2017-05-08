@@ -83,8 +83,10 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 * cl-patterns.asd - cl-patterns system definition with no backends.
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
-* SC.md - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
-* SC-differences.md - comprehensive list of things that differ between cl-patterns and SuperCollider. WIP.
+
+* doc/event-special-keys.md - description of keys that have special effects when used in an event or pbind. WIP.
+* doc/SC.md - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
+* doc/SC-differences.md - comprehensive description of things that differ between cl-patterns and SuperCollider. WIP.
 
 * event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
 * patterns.lisp - the current version of the patterns. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
