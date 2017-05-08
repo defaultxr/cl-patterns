@@ -60,7 +60,9 @@
 
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
   "Return a list of up to N values of PATTERN. If PATTERN ends after less than N values, then only that many values will be returned."
-  (let ((pstream (as-pstream pattern))
+  (let ((pstream (if (typep pattern 'pstream)
+                     pattern
+                     (as-pstream pattern)))
         (results (list))
         (number 0))
     (block loop
@@ -80,8 +82,8 @@
   ((number :initform 0)
    (pattern-stack :initform (list))
    (next-time :initarg :next-time :initform 0)
-   (history :initform (list))
-   (nodes :initform (list)))
+   (history :initarg :history :initform (list))
+   (nodes :initarg :nodes :initform (list)))
   (:documentation "Pattern stream class."))
 
 (defun remainingp (pattern &optional (key 'remaining))
@@ -145,7 +147,7 @@
     (setf (slot-value pstream 'remaining) (slot-value pattern 'remaining))
     pstream))
 
-(defmethod pstream-nth (n (pstream pstream))
+(defmethod pstream-nth (n (pstream pstream)) ;; FIX: should this automatically "peek" at future values when the pstream hasn't advanced to the specified index yet? probably not...
   (nth-wrap n (slot-value pstream 'history)))
 
 ;;; pbind
@@ -931,8 +933,29 @@
 
 (defmethod next ((pattern phistory-pstream))
   (with-slots (pattern step-pattern) pattern
-    (next pattern)
-    (pstream-nth (next step-pattern) pattern)))
+    (alexandria:when-let ((next-step (next step-pattern)))
+      (next pattern)
+      (pstream-nth next-step pattern))))
+
+;;; pfuture
+;; like phistory, but immediately slurps the whole pstream and then allows you to index from its history instead of advancing the source pattern one at a time as normal
+;; phistory is kept around because some (time-based) patterns may need to be advanced normally rather than all at once (though it might be kind of a bad idea to try to use phistory, pfuture, or pscratch on those kinds of patterns)
+;; FIX: maybe deprecate this and just integrate its functionality into phistory somehow?
+
+(defpattern pfuture (phistory)
+  ())
+
+(defun pfuture (pattern step-pattern)
+  (make-instance 'pfuture
+                 :pattern pattern
+                 :step-pattern step-pattern))
+
+(defmethod as-pstream ((pattern pfuture))
+  (let ((source-pstream (as-pstream (slot-value pattern 'pattern))))
+    (next-upto-n source-pstream)
+    (make-instance 'pfuture-pstream
+                   :pattern source-pstream
+                   :step-pattern (as-pstream (slot-value pattern 'step-pattern)))))
 
 ;;; pscratch
 ;;
