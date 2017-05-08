@@ -616,11 +616,15 @@
 
 (defmethod as-pstream ((pattern pshuf))
   (with-slots (remaining list repeats) pattern
-    (make-instance 'pshuf-pstream
-                   :list (next list)
-                   :repeats repeats
-                   :sl (alexandria:shuffle (alexandria:copy-sequence 'list list))
-                   :crr (next repeats))))
+    (let ((list (typecase list
+                  (pattern (next-upto-n list))
+                  (function (funcall list))
+                  (list list))))
+      (make-instance 'pshuf-pstream
+                     :list list
+                     :repeats repeats
+                     :sl (alexandria:shuffle (alexandria:copy-sequence 'list list))
+                     :crr (next repeats)))))
 
 (defmethod next ((pattern pshuf-pstream))
   (with-slots (number sl) pattern
