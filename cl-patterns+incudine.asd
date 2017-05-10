@@ -6,5 +6,4 @@
   :depends-on (#:cl-patterns
                #:incudine)
   :serial t
-  :components ((:file "cl-collider-extensions")
-               (:file "incudine")))
+  :components ((:file "src/incudine")))

@@ -321,11 +321,22 @@
 
 (event-method scale :major)
 
+(defun index-of-greater-than (n list)
+  "Returns the index of the first element of LIST "
+  (sort))
+
 (defun midinote-degree (midinote &optional root octave scale)
-  (let ((root (or root )) ;; FIX
-        (octave (or octave (truncate (/ midinote 12)))))
+  (flet ((index-of-greater-than (n list)
+           ;; LIST should be a sorted list.
+           (position n (sort list #'<=) :test #'<=))))
+  (let* ((degrees (scale-degrees (scale (scale (or scale :major)))))
+         (octave (or octave (truncate (/ midinote 12))))
+         (diff (- midinote (* octave 12)))
+         (root (or root (- midinote ;; FIX
+                           (position diff degrees)))) ;; FIX
+         )
     (position midinote (mapcar (lambda (n) (+ (* octave 12) root n))
-                               (scale-degrees (scale (or scale :major)))))))
+                               degrees))))
 
 (defun note-midinote (note &optional root octave scale)
   (let ((root (or root (if (and (boundp '*event*) (not (null *event*)))
@@ -356,15 +367,6 @@
 
 (defun degree-freq (degree &optional root octave scale)
   (midinote-freq (degree-midinote degree root octave scale)))
-
-(defun scale-midinotes (&optional (scale :major)) ;; FIX: this is for testing; remove it later
-  (let ((scale (scale scale)))
-    (print scale)
-    (gete (next-n
-           (pbind :n (pseries 0 1 :inf)
-                  :x (lambda () (note-midinote (degree-note (get-event-value *event* :n) scale) 0 5 scale)))
-           (length (scale-degrees scale)))
-          :x)))
 
 (defun ratio-midi (ratio)
   (* 12 (log ratio 2)))

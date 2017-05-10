@@ -80,34 +80,35 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 ## Tour
 
 * README.md - this file. self-expanatory, i'd hope.
-* cl-patterns.asd - cl-patterns system definition with no backends.
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
+
+* cl-patterns.asd - cl-patterns system definition with no backends.
+* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
+* cl-patterns+incudine.asd - cl-patterns system definition with Incudine backend. - WIP (not functional yet).
+* cl-patterns+midi.asd - cl-patterns system definition with ALSA MIDI backend. - WIP (not functional yet).
 
 * doc/event-special-keys.md - description of keys that have special effects when used in an event or pbind. WIP.
 * doc/SC.md - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
 * doc/SC-differences.md - comprehensive description of things that differ between cl-patterns and SuperCollider. WIP.
 
-* event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
-* patterns.lisp - the current version of the patterns. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
-* scales.lisp - musical pitch (scales/tuning) data and structs.
-* clock.lisp - the scheduling functionality to make sure that each event is played at the proper time.
-* pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use `alexandria`.
+* src/event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
+* src/patterns.lisp - the current version of the patterns. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
+* src/scales.lisp - musical pitch (scales/tuning) data and structs.
+* src/clock.lisp - the scheduling functionality to make sure that each event is played at the proper time.
+* src/pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use `alexandria`.
 
-* tests.lisp - test suite using `prove`.
+* src/tests.lisp - test suite using `prove`.
 
-* ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
+* src/ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
 
-* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
-* supercollider.lisp - code to interface cl-patterns with the [cl-collider](https://github.com/byulparan/cl-collider) library.
-* cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
-* supercollider-example.lisp - example code to get started with the `cl-collider` library.
+* src/supercollider.lisp - code to interface cl-patterns with the [cl-collider](https://github.com/byulparan/cl-collider) library.
+* src/cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
+* src/supercollider-example.lisp - example code to get started with the `cl-collider` library.
 
-* cl-patterns+incudine.asd - cl-patterns system definition with Incudine backend. - WIP (not functional yet).
-* incudine.lisp - code to interface cl-patterns with [incudine](https://github.com/titola/incudine).
+* src/incudine.lisp - code to interface cl-patterns with [incudine](https://github.com/titola/incudine).
 
-* cl-patterns+midi.asd - cl-patterns system definition with ALSA MIDI backend. - WIP (not functional yet).
-* midi.lisp - code to interface cl-patterns with [cl-alsaseq](https://github.com/rick-monster/cl-alsaseq).
+* src/midi.lisp - code to interface cl-patterns with [cl-alsaseq](https://github.com/rick-monster/cl-alsaseq).
 
 ## Ideas/TODO
 

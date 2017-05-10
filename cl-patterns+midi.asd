@@ -6,4 +6,4 @@
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t
-  :components ((:file "midi")))
+  :components ((:file "src/midi")))

@@ -6,5 +6,5 @@
   :depends-on (#:cl-patterns
                #:sc)
   :serial t
-  :components ((:file "cl-collider-extensions")
-               (:file "supercollider")))
+  :components ((:file "src/cl-collider-extensions")
+               (:file "src/supercollider")))

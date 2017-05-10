@@ -9,8 +9,8 @@
                #:local-time)
   :serial t
   :components ((:file "package")
-               (:file "pat-utilities")
-               (:file "patterns")
-               (:file "event")
-               (:file "scales")
-               (:file "clock")))
+               (:file "src/pat-utilities")
+               (:file "src/patterns")
+               (:file "src/event")
+               (:file "src/scales")
+               (:file "src/clock")))

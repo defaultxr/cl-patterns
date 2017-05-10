@@ -1010,3 +1010,9 @@
     (if (next condition)
         (next true)
         (next false))))
+
+;;; ptracker
+
+;; (defpattern ptracker (pattern)
+;;   (()))
+

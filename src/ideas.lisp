@@ -1,4 +1,10 @@
+(in-package :cl-patterns)
+
 ;;; tsubseq
+
+(defun find-start-beat (n sequence)
+  "Provided a sequence of ordered events, calculates the beat that event N starts on."
+  (reduce #'+ (gete (subseq sequence 0 n) :delta)))
 
 ;; FIX: doesn't work with negative numbers yet
 (defgeneric tsubseq (sequence start &optional end)
@@ -156,5 +162,45 @@ See also: `tsubseq', which will not cut events short or insert rests."))
                                              (read-delimited-list right stream t))))))
 
 (defdelim #\[ #\] (&rest args)
-  `(list ,@args))
+          `(list ,@args))
+
+;;;
+
+;; FIX: is it possible to temporarily change the behavior of a character when a macro is being read?
+;; i.e. so that newlines can be converted to symbols within a macro
+;; so that a tracker-style macro pattern generator can be written
+;; i.e. for something like
+;; (tracker
+;; kick 400
+;; snare 300
+;; kick 200
+;; snare 100)
+;; so that the program can tell that 'kick 400' and 'snare 300' should be grouped, and that the newline has different meaning than regular spaces
+;; https://gist.github.com/chaitanyagupta/9324402
+;; maybe it'd be possible to just change the macro character for \n just in a package, and treat it normally everywhere but inside that macro?
+;; sounds difficult though..
+
+(defun semicolon-reader (stream char)
+  (declare (ignore char))
+  ;; First swallow the rest of the current input line.
+  ;; End-of-file is acceptable for terminating the comment.
+  (do () ((char= (read-char stream nil #\newline t) #\newline)))
+  ;; Return zero values.
+  (values))
+
+(set-macro-character #\; #'semicolon-reader)
+
+(defmacro foo (&body bar)
+  `(write-to-string ',bar))
+
+;;; midi stuff
+
+(ql:quickload :midi)
+
+(defmethod play ((item midi:note-on-message))
+  (output "It's a midi message, yo."))
+
+(defparameter midifile (midi:read-midi-file #P"~/misc/midi/F-Zero_X_-_Title_BGM.mid"))
+
+(play (nth 5 (nth 2 (midi:midifile-tracks midifile))))
 
