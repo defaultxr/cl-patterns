@@ -56,11 +56,13 @@
         (funcall slot event)
         (raw-get-event-value event slot))))
 
-(defun combine-events (event1 event2) ;; FIX: maybe this should return a new event instead of modifying EVENT1.
-  "Returns an event that inserts all the items in EVENT2 into EVENT1, overwriting any that exist."
-  (let ((result event1))
-    (loop :for key :in (keys event2)
-       :do (set-event-value result key (get-event-value event2 key)))
+(defun combine-events (&rest events)
+  "Returns an event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events."
+  (let ((result (event)))
+    (loop :for ev :in events
+       :do
+       (loop :for key :in (keys ev)
+          :do (set-event-value result key (get-event-value ev key))))
     result))
 
 (defun play-test (item)
