@@ -17,6 +17,7 @@
    #:event
    #:*event*
    #:*event-output-function*
+   #:combine-events
 
    #:instrument
    #:group
