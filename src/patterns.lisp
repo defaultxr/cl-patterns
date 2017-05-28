@@ -1016,3 +1016,37 @@
 ;; (defpattern ptracker (pattern)
 ;;   (()))
 
+;;; parp
+
+(defpattern parp (pattern)
+  ((pattern :initarg :pattern)
+   (arpeggiator :initarg :arpeggiator)
+   (cpe :initarg :cpe :initform nil) ;; current pattern event
+   (cas :initarg :cas :initform nil) ;; current arpeggiator stream
+   ))
+
+(defun parp (pattern arpeggiator)
+  (make-instance 'parp
+                 :pattern pattern
+                 :arpeggiator arpeggiator))
+
+(defmethod as-pstream ((pattern parp))
+  (let ((pstr (as-pstream (slot-value pattern 'pattern)))
+        (arp (slot-value pattern 'arpeggiator)))
+    (make-instance 'parp-pstream
+                   :pattern pstr
+                   :arpeggiator arp
+                   :cpe (next pstr)
+                   :cas (as-pstream arp))))
+
+(defmethod next ((pattern parp-pstream))
+  (with-slots (arpeggiator cpe cas) pattern
+    (when (not (null cpe))
+      (let ((nxt (let ((*event* cpe))
+                   (next cas))))
+        (if (null nxt)
+            (progn
+              (setf cpe (next (slot-value pattern 'pattern)))
+              (setf cas (as-pstream arpeggiator))
+              (next pattern))
+            (combine-events cpe nxt))))))
