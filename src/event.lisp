@@ -4,6 +4,7 @@
 ;; FIX: make versions of these generic functions that will work with supercollider ugens; put them in cl-collider-extensions.lisp..
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
 ;; FIX: when :freq is not provided, should use the synthdef's default value, not event's.
+;; FIX: make #'get-event-value return a second value: t if the key (or one of its translatable keys) is present in the event, nil if not.
 
 ;;; event glue
 

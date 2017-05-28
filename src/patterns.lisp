@@ -158,7 +158,7 @@
 
 (defun pbind (&rest pairs)
   "Create an instance of the PBIND class."
-  (assert (evenp (length pairs)))
+  (assert (evenp (length pairs)) (pairs))
   (let ((res-pairs nil)
         (pattern (make-instance 'pbind)))
     (loop :for (key value) :on pairs :by #'cddr
@@ -170,10 +170,15 @@
            (setf res-pairs (append res-pairs (list key value)))))
     (setf (slot-value pattern 'pairs) res-pairs)
     ;; handle pbind-special-post-keys
+    ;; FIX: should maybe remove these keys from the 'pairs of pbind so they aren't included in the output?
     (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
        :do
-       (alexandria:when-let ((func (getf *pbind-special-post-keys* key)))
-         (funcall func value pattern)))
+       (alexandria:when-let* ((func (getf *pbind-special-post-keys* key))
+                              (res (funcall func value pattern)))
+         (setf pattern res)))
+    ;; process :pdef key.
+    (alexandria:when-let ((pos (position :pdef (keys pairs))))
+      (pdef (nth (1+ pos) pairs) pattern))
     pattern))
 
 (defclass pbind-pstream (pbind pstream)
@@ -199,7 +204,7 @@
 (defparameter *pbind-special-init-keys* '())
 
 (defmacro define-pbind-special-init-key (key &body body)
-  "Define a special key for pbind that alters the pbind as part of its initialization (\"pre-processing\"). These functions are called at pbind creation time and must return a list if the key should inject values into the pbind pairs, or NIL if they should not."
+  "Define a special key for pbind that alters the pbind as part of its initialization (\"pre-processing\"). These functions are called once as the pbind is initializing and must return a list if the key should inject values into the pbind pairs, or NIL if they should not."
   (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-init-keys* ,keyname)
            (lambda (value pattern)
@@ -224,15 +229,15 @@
 (defparameter *pbind-special-post-keys* '())
 
 (defmacro define-pbind-special-post-key (key &body body)
-  "Define a special key for pbind that does post-processing on the pbind after it has been constructed."
+  "Define a special key for pbind that does post-processing on the pbind after it has been constructed. Each is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
   (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-post-keys* ,keyname)
            (lambda (value pattern)
              (declare (ignorable value pattern))
              ,@body))))
 
-(define-pbind-special-post-key pdef
-  (pdef value pattern))
+(define-pbind-special-post-key parp
+  (parp pattern value))
 
 (defparameter *pbind-special-keys* '())
 
@@ -266,7 +271,7 @@
 ;;; pmono
 
 (defun pmono (instrument &rest pairs)
-  (assert (evenp (length pairs)))
+  (assert (evenp (length pairs)) (pairs))
   (apply #'pbind
          :instrument instrument
          :type :mono
@@ -374,7 +379,7 @@
 
 (defun pxrand (list &optional remaining)
   "Create an instance of the PXRAND class."
-  (assert (> (length (remove-duplicates list)) 1))
+  (assert (> (length (remove-duplicates list)) 1) (list))
   (make-instance 'pxrand
                  :list list
                  :remaining remaining))
