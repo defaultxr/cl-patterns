@@ -1016,10 +1016,58 @@
         (next true)
         (next false))))
 
-;;; ptracker
+;;; ptracker (FIX)
 
-;; (defpattern ptracker (pattern)
-;;   (()))
+(defpattern ptracker (pattern)
+  ((head :initarg :head)
+   (track :initarg :track)))
+
+(defun ptracker (header &rest tracks)
+  (assert (evenp (length header)) (header))
+  (let* ((h-ev (apply #'event header))
+         (h-keys (keys h-ev))
+         (result (list)))
+    (loop :for row :in tracks
+       :do
+       (let ((r-ev (cond ((equal row (list '-))
+                          (when (= 0 (length result))
+                            (event :type :rest)))
+                         ((position (car row) (list :r :rest))
+                          (event :type :rest))
+                         (t
+                          (progn
+                            (apply #'event (alexandria:flatten (loop
+                                                                  :for e :in row
+                                                                  :for i :from 0
+                                                                  :collect (list (nth i h-keys) e)))))))))
+         (if r-ev
+             (alexandria:appendf result (list (combine-events h-ev r-ev)))
+             (incf (dur (car (last result))) (dur h-ev)))))
+    (pseq result)))
+
+;; (defmethod next ((pattern ptracker-pstream))
+;;   )
+
+(defun tracker-shorthand (stream char subchar)
+  "This is a 'Reader Macro' that provides the #T notation"
+  (declare (ignore char subchar))
+  (let ((*readtable* (copy-readtable nil)))
+    (set-macro-character #\; (lambda (stream ignore)
+                               (funcall (get-macro-character #\; nil) stream ignore)
+                               (values '+ptracker-separator-symbol+)))
+    (set-macro-character #\newline (lambda (xx yy)
+                                     (declare (ignore xx yy))
+                                     (values '+ptracker-separator-symbol+)))
+    (let ((val (remove-if #'null (split-sequence:split-sequence '+ptracker-separator-symbol+ (read-preserving-whitespace stream nil nil)))))
+      `(cl-patterns::ptracker
+        ',(car val) ,@(mapcar (lambda (x)
+                                (if (and (= 1 (length x))
+                                         (eq (car x) '-))
+                                    (list 'list '(quote -))
+                                    (append (list 'list) x)))
+                              (cdr val))))))
+
+(set-dispatch-macro-character #\# #\T #'tracker-shorthand)
 
 ;;; parp
 

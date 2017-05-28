@@ -6,6 +6,8 @@
   :depends-on (#:alexandria
                #:bordeaux-threads
                #:closer-mop
+               #:named-readtables
+               #:split-sequence
                #:local-time)
   :serial t
   :components ((:file "package")
@@ -13,4 +15,5 @@
                (:file "src/patterns")
                (:file "src/event")
                (:file "src/scales")
-               (:file "src/clock")))
+               (:file "src/clock")
+               (:file "src/readtable")))
