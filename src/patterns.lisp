@@ -1,7 +1,7 @@
 (in-package :cl-patterns)
 
 ;; NOTES:
-;; FIX: make fork method.
+;; FIX: make fork method?
 
 ;;; pattern glue
 
@@ -157,7 +157,6 @@
   (:documentation "A pbind associates keys with values for a pattern stream that returns events."))
 
 (defun pbind (&rest pairs)
-  "Create an instance of the PBIND class."
   (assert (evenp (length pairs)) (pairs))
   (let ((res-pairs nil)
         (pattern (make-instance 'pbind)))
@@ -294,7 +293,6 @@
   "A pseq yields values from its list in the same order they were provided, repeating the list REPEATS times.")
 
 (defun pseq (list &optional (repeats 1))
-  "Create an instance of the PSEQ class."
   (make-instance 'pseq
                  :list list
                  :repeats repeats))
@@ -324,7 +322,6 @@
   "A pser yields values from its list in the same order they were provided, returning a total of REPEATS values.")
 
 (defun pser (list &optional (repeats 1))
-  "Create an instance of the PSER class."
   (make-instance 'pser
                  :list list
                  :repeats repeats))
@@ -352,7 +349,6 @@
   "A pk returns a value from the current *event* context, returning DEFAULT if that value is nil.")
 
 (defun pk (key &optional (default 1))
-  "Create an instance of the PK class."
   (make-instance 'pk
                  :key key
                  :default default))
@@ -362,43 +358,51 @@
     (or (get-event-value *event* key)
         default)))
 
-;;; prand ;; FIX - have a separate REPEATS parameter instead of just putting it into remaining
+;;; prand
 
 (defpattern prand (pattern)
-  ((list :initarg :list))
+  ((list :initarg :list)
+   (repeats :initarg :repeats)
+   (crr :initarg :crr :initform nil))
   "A prand returns a random value from LIST.")
 
-(defun prand (list &optional (remaining :inf))
-  "Create an instance of the PRAND class."
+(defun prand (list &optional (repeats :inf))
   (make-instance 'prand
                  :list list
-                 :remaining remaining))
+                 :repeats repeats
+                 :crr (next repeats)))
 
 (defmethod next ((pattern prand-pstream))
-  (alexandria:random-elt (slot-value pattern 'list)))
+  (when (remainingp pattern 'crr)
+    (decf-remaining pattern 'crr)
+    (alexandria:random-elt (slot-value pattern 'list))))
 
-;;; pxrand ;; FIX - have a separate REPEATS parameter instead of just putting it into remaining
+;;; pxrand
 
 (defpattern pxrand (pattern)
   ((list :initarg :list)
+   (repeats :initarg :repeats)
    (lr :initarg :lr :initform nil) ;; last result
+   (crr :initarg :crr :initform nil)
    )
   "A pxrand returns a random value from LIST, never repeating the same one twice in a row.")
 
-(defun pxrand (list &optional remaining)
-  "Create an instance of the PXRAND class."
+(defun pxrand (list &optional repeats)
   (assert (> (length (remove-duplicates list)) 1) (list))
   (make-instance 'pxrand
                  :list list
-                 :remaining remaining))
+                 :repeats repeats
+                 :crr (next repeats)))
 
 (defmethod next ((pattern pxrand-pstream))
   (with-slots (list lr) pattern
-    (let ((res (alexandria:random-elt list)))
-      (loop :while (eql res lr)
-         :do (setf res (alexandria:random-elt list)))
-      (setf lr res)
-      res)))
+    (when (remainingp pattern 'crr)
+      (decf-remaining pattern 'crr)
+      (let ((res (alexandria:random-elt list)))
+        (loop :while (eql res lr)
+           :do (setf res (alexandria:random-elt list)))
+        (setf lr res)
+        res))))
 
 ;;; pfunc
 ;; NOTE: This implementation doesn't provide the event as an argument to the function like the SuperCollider implementation does.
@@ -409,7 +413,6 @@
   "A pfunc returns the result of the provided function FUNC.")
 
 (defun pfunc (func)
-  "Create an instance of the PFUNC class."
   (make-instance 'pfunc
                  :func func))
 
@@ -445,13 +448,16 @@
       (decf-remaining pattern 'crr)
       cv)))
 
-;;; pdef ;; FIX: should still give NILs when the pattern ends, but the clock just automatically reschedules it when it ends (maybe with a settable slot?)
+;;; pdef
 ;; NOTE: the pattern in a pdef will repeat automatically. if the pattern in a pdef is redefined, it switches the next time the current one ends.
 ;; if you want the pdef to stop after its current loop, set it to nil like so: (pdef KEY nil)
 
 ;; (pdef-ref KEY) returns the pdef's plist which holds the pattern, pstream, task, etc.
 ;; (pdef-ref-get KEY :task) returns the task associated with (pdef KEY).
 ;; (pdef-ref-set KEY :pattern PAT) sets the pattern for (pdef KEY) to PAT.
+
+;; FIX: should still give NILs when the pattern ends, but the clock just automatically reschedules it when it ends (maybe with a settable slot?)
+;; FIX: need 'reset' method
 
 (defun pdef-ref-get (pdef-key key)
   "Get PDEF-KEY's KEY value from its plist."
@@ -461,7 +467,7 @@
   "Set PDEF-KEY's KEY in its plist to VALUE."
   (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) value)))
 
-(defpattern pdef (pattern) ;; FIX: need 'reset' method.
+(defpattern pdef (pattern)
   ((key :initarg :key :reader pdef-key)
    (ps :initarg :ps :initform nil)
    (loop-p :initarg :loop-p :initform t :accessor loop-p))
