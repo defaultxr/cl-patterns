@@ -220,7 +220,7 @@
 
 (define-pbind-special-init-key remaining
   (setf (slot-value pattern 'remaining) (next value))
-  nil ;; FIX: should this inject the 'remaining value? probably not - the pbind processing should do that automatically so it's always correct.
+  nil
   )
 
 (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well.
@@ -269,6 +269,8 @@
                      (pbind-accumulator (cddr pairs))
                      *event*)))))
     (let ((*event* (make-default-event)))
+      (when (not (null (slot-value pattern 'remaining)))
+        (set-event-value *event* :remaining (slot-value pattern 'remaining)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
 
 (defmethod as-pstream ((item pbind-pstream))
