@@ -239,6 +239,12 @@
 (define-pbind-special-post-key parp
   (parp pattern value))
 
+(define-pbind-special-post-key pfin
+  (pfin value pattern))
+
+(define-pbind-special-post-key pfindur
+  (pfindur value pattern))
+
 (defparameter *pbind-special-keys* '())
 
 (defmacro define-pbind-special-key (key &body body)
@@ -1103,3 +1109,107 @@
               (setf cas (as-pstream arpeggiator))
               (next pattern))
             (combine-events cpe nxt))))))
+
+;;; pfin
+
+(defpattern pfin (pattern)
+  ((count :initarg :count)
+   (pattern :initarg :pattern)))
+
+(defun pfin (count pattern)
+  (make-instance 'pfin
+                 :count count
+                 :pattern pattern))
+
+(defmethod as-pstream ((pattern pfin))
+  (make-instance 'pfin-pstream
+                 :count (next (slot-value pattern 'count))
+                 :pattern (as-pstream (slot-value pattern 'pattern))))
+
+(defmethod next ((pattern pfin-pstream))
+  (with-slots (count number) pattern
+    (when (< number count)
+      (next (slot-value pattern 'pattern)))))
+
+;;; pfindur
+
+(defpattern pfindur (pattern)
+  ((dur :initarg :dur)
+   (pattern :initarg :pattern)
+   (tolerance :initarg :tolerance)
+   (ce :initarg :ce :initform 0) ;; current elapsed
+   ))
+
+(defun pfindur (dur pattern &optional (tolerance 0.001))
+  (make-instance 'pfindur
+                 :dur dur
+                 :pattern pattern
+                 :tolerance tolerance))
+
+(defmethod as-pstream ((pattern pfindur))
+  (make-instance 'pfindur-pstream
+                 :dur (next (slot-value pattern 'dur))
+                 :pattern (as-pstream (slot-value pattern 'pattern))
+                 :tolerance (next (slot-value pattern 'tolerance))))
+
+(defmethod next ((pattern pfindur-pstream))
+  (with-slots (dur tolerance ce) pattern
+    (alexandria:when-let ((n-event (next (slot-value pattern 'pattern))))
+      (when (< (round-up ce tolerance) dur)
+        (prog1
+            (if (> (round-up (+ (delta n-event) ce) tolerance) dur)
+                (combine-events n-event (event :delta (- dur ce)))
+                n-event)
+          (incf ce (delta n-event)))))))
+
+;;; pstutter
+
+(defpattern pstutter (pattern)
+  ((n :initarg :n)
+   (pattern :initarg :pattern)
+   (ce :initarg :ce :initform nil)
+   (crr :initarg :crr :initform 0)))
+
+(defun pstutter (n pattern)
+  (make-instance 'pstutter
+                 :n n
+                 :pattern pattern))
+
+(defmethod next ((pattern pstutter-pstream))
+  (with-slots (n ce crr) pattern
+    (loop :while (and (not (null crr))
+                      (= 0 crr))
+       :do
+       (setf ce (next (slot-value pattern 'pattern)))
+       (setf crr (next n)))
+    (when (not (null crr))
+      (decf-remaining pattern 'crr)
+      ce)))
+
+;;; pdurstutter
+
+(defpattern pdurstutter (pattern)
+  ((n :initarg :n)
+   (pattern :initarg :pattern)
+   (ce :initarg :ce :initform nil)
+   (crr :initarg :crr :initform 0)))
+
+(defun pdurstutter (n pattern)
+  (make-instance 'pdurstutter
+                 :n n
+                 :pattern pattern))
+
+(defmethod next ((pattern pdurstutter-pstream))
+  (with-slots (n ce crr) pattern
+    (loop :while (and (not (null crr))
+                      (= 0 crr))
+       :do
+       (setf crr (next n))
+       (let ((e (next (slot-value pattern 'pattern))))
+         (setf ce (if (typep e 'event)
+                      (combine-events e (event :dur (/ 1 (get-event-value e :dur))))
+                      (/ 1 e)))))
+    (when (not (null crr))
+      (decf-remaining pattern 'crr)
+      ce)))
+

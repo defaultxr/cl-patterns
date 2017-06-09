@@ -32,16 +32,16 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pdiff
   * Pdrop
   * PfadeIn
-  * Pfin - see also: pbind's :pfin key.
+  * Pfin - done as pfin. see also: pbind's :pfin key.
   * PfinQuant
-  * Pfindur - see also: pbind's :pfindur key.
+  * Pfindur - done as pfindur. see also: pbind's :pfindur key.
   * Pfx
   * Pinterp
   * Plag
   * Pn - done as pn
   * PpatRewrite
   * Pplayer
-  * Pprotect - see also: pbind's :cleanup key.
+  * Pprotect - see also: pbind's :cleanup key. (FIX)
   * Prewrite
   * Prorate
   * Pscratch - done as pscratch
@@ -49,12 +49,12 @@ This is a listing of all the pattern classes from SuperCollider that I'd like to
   * Pset
   * Psetpre
   * Pstretch
-  * Pstutter - see also: pr
-  * PdurStutter
+  * Pstutter - done as pstutter. see also: pr
+  * PdurStutter - done as pdurstutter. see also: pbind's :pdurstutter key.
   * Psym
-  * Psync - see also: pbind's :psync key
+  * Psync - see also: pbind's :psync key.
   * Ptrace - done as ptrace
-  * Pwrap
+  * Pwrap - see also: (pnary #'wrap)
 * math / randomness patterns
   * Punop - done as punop
   * Pbinop - done as pbinop

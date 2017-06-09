@@ -163,6 +163,14 @@
 
 ;; parp (FIX)
 
+;; pfin (FIX)
+
+;; pfindur (FIX)
+
+;; pstutter (FIX)
+
+;; pdurstutter (FIX)
+
 ;;; conversions (FIX - add more)
 
 (ok (=

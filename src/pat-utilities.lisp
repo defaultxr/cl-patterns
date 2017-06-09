@@ -44,6 +44,12 @@
   "Wraps a number between BOTTOM and TOP, similar to `mod'."
   (+ (mod (- number bottom) (- top bottom)) bottom))
 
+(defun round-up (number &optional (tolerance 1))
+  "Round NUMBER up to the next multiple of TOLERANCE if it isn't already a multiple of it."
+  (if (= 0 (mod number tolerance))
+      number
+      (+ tolerance (- number (rem number tolerance)))))
+
 (defun random-range (low high)
   (let ((rval (- high low)))
     (+ low
