@@ -1,0 +1,35 @@
+#+TITLE Future
+
+Roadmap for cl-patterns.
+
+* 0.5
+
+** accurate scheduler
+
+* 1.0
+
+** SuperCollider backend (SC-compatible functions overlay the ones in the "cl-patterns" package via the "cl-patterns-sc" package)
+
+** complete reimplementation of all built-in SuperCollider patterns
+
+** tests for all patterns
+
+** documentation for all patterns and exported symbols
+
+** remove all "FIX"es in the code
+
+* 1.5
+
+** Incudine backend
+
+* 2.0
+
+** basic GUI interfaces
+
+*** step sequencer
+
+*** performance overview
+
+**** shows what patterns are playing
+
+**** allows for some editing of patterns and variables graphically

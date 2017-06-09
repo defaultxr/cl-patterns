@@ -1042,10 +1042,10 @@
                           (event :type :rest))
                          (t
                           (progn
-                            (apply #'event (alexandria:flatten (loop
-                                                                  :for e :in row
-                                                                  :for i :from 0
-                                                                  :collect (list (nth i h-keys) e)))))))))
+                            (apply #'event (loop
+                                              :for e :in row
+                                              :for i :from 0
+                                              :append (list (nth i h-keys) e))))))))
          (if r-ev
              (alexandria:appendf result (list (combine-events h-ev r-ev)))
              (incf (dur (car (last result))) (dur h-ev)))))
@@ -1055,7 +1055,7 @@
 ;;   )
 
 (defun tracker-shorthand (stream char subchar)
-  "This is a 'Reader Macro' that provides the #T notation"
+  "Reader macro for the #T notation."
   (declare (ignore char subchar))
   (let ((*readtable* (copy-readtable nil)))
     (set-macro-character #\; (lambda (stream ignore)

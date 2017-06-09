@@ -112,9 +112,15 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 ## Ideas/TODO
 
-* `tsubseq` function for getting a subsequence based on start and end times of events.
+* write more documentation
+  * docstrings for all patterns
+  * "how to write pattern classes" document
+  * event/pbind special keys
+  * readtable/syntax shortcuts
 
-* `tsubseq*` function. same as tsubseq* but it also includes for synths that would've already been playing at the start time specified.
+* `tsubseq` function for getting a subsequence based on start times of events.
+
+* `tsubseq*` function. same as `tsubseq` but it also includes synths that would've already been playing at the start time specified.
   * i.e. `(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)` returns `(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))`
 
 * do "static" things to "dynamic" patterns - i.e. `(pshift (pseq '(1 2 3)) 1)` results in `'(3 1 2 3 1 2 3 ...)` or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
@@ -153,8 +159,6 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 * patterns from SuperCollider - see SC.md
 
-* convert more patterns to `listpattern`s.
-
 * `pclockdm` - clock divider/multiplier pattern. could be used, for example, for a pattern that's set to `:pfollow` another pattern, to make it trigger twice as often, half as often, etc. for half as often, patterns would have to have their own `gensym`s or IDs so that it could be kept track of whether or not to trigger the sub-pattern for each event. this ID would probably have to be associated with the pattern itself, not the pstream. could maybe be like the `number` slot but for the number of times the pattern is played, not the number of events in the pstream.
 
 * events with arrays/lists as values should be automatically multichannel-expanded as the last step before being played, and those lists/events should be handled properly by the pattern system prior to that.
@@ -167,7 +171,7 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
     :midinote (pseq '(60 59 58 57 56 55 54 53) :inf))
    5s 2h+ 2r 2o 0 3 2h- 1)
    ```
-   this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (`+` means slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (`-` means skip), play 53 for one pulse, and then loop.
+   this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (`+` meaning slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (`-` means skip), play 53 for one pulse, and then loop.
   * maybe don't make it a macro so the step pattern could be a pseq, prand, etc?
 
 * `pgatestorm` - erogenous tones gatestorm-inspired pattern class with a mini-language for writing trigger-based patterns.
