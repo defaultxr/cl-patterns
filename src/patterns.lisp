@@ -720,11 +720,11 @@
       (setf cv (alexandria:clamp cv (next lo) (next hi)))
       cv)))
 
-;;; pseries
+;;; pseries ;; FIX: have 'repeats' instead of using 'remaining'
 
 (defpattern pseries (pattern)
   ((start :initarg :start)
-   (step :initarg :step)
+   (step :initarg :step) 
    (cv :initarg :cv :initform nil)))
 
 (defun pseries (&optional (start 0) (step 1) (remaining :inf))
@@ -751,7 +751,7 @@
               (incf cv nxt)
               (setf cv nil)))))))
 
-;;; pgeom
+;;; pgeom ;; FIX: have 'repeats' instead of using 'remaining'
 
 (defpattern pgeom (pattern)
   ((start :initarg :start)
@@ -1221,3 +1221,41 @@
       (decf-remaining pattern 'crr)
       ce)))
 
+;;; pbeats
+
+(defpattern pbeats (pattern)
+  ((sb :initarg :sb :initform 0) ;; start beat
+   ))
+
+(defun pbeats ()
+  (make-instance 'pbeats))
+
+(defmethod as-pstream ((pattern pbeats))
+  (make-instance 'pbeats-pstream
+                 :sb (if (boundp '*clock*)
+                         (slot-value *clock* 'beats)
+                         0)))
+
+(defmethod next ((pattern pbeats-pstream))
+  (- (if (boundp '*clock*)
+         (slot-value *clock* 'beats)
+         0)
+     (slot-value pattern 'sb)))
+
+;;; ptime
+
+(defpattern ptime (pattern)
+  ((st :initarg :st :initform 0) ;; start time
+   ))
+
+(defun ptime ()
+  (make-instance 'ptime))
+
+(defmethod as-pstream ((pattern ptime))
+  (make-instance 'ptime-pstream
+                 :st (get-internal-real-time)))
+
+(defmethod next ((pattern ptime-pstream))
+  (/ (- (get-internal-real-time)
+        (slot-value pattern 'st))
+     1000))

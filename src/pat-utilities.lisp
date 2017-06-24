@@ -44,18 +44,22 @@
   "Wraps a number between BOTTOM and TOP, similar to `mod'."
   (+ (mod (- number bottom) (- top bottom)) bottom))
 
+;; FIX: -2.03.roundUp(0.02) == -2.02
 (defun round-up (number &optional (tolerance 1))
   "Round NUMBER up to the next multiple of TOLERANCE if it isn't already a multiple of it."
   (if (= 0 (mod number tolerance))
       number
       (+ tolerance (- number (rem number tolerance)))))
 
-(defun random-range (low high)
-  (let ((rval (- high low)))
-    (+ low
-       (random (if (integerp rval)
-                   (1+ rval)
-                   rval)))))
+(defun random-range (low &optional high)
+  "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW)."
+  (if high
+      (let ((rval (- high low)))
+        (+ low
+           (random (if (integerp rval)
+                       (1+ rval)
+                       rval))))
+      (random low)))
 
 ;; macros / MOP stuff
 

@@ -1,10 +1,12 @@
-#+TITLE Future
+#+TITLE: Future
 
 Roadmap for cl-patterns.
 
 * 0.5
 
 ** accurate scheduler
+
+** improve ~defpattern~ macro
 
 * 1.0
 
