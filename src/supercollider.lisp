@@ -13,7 +13,7 @@
                            (or
                             (position symbol (list '&key 'sc::end-f))
                             (consp symbol)))
-                         (swank-backend:arglist (fdefinition (alexandria:ensure-symbol synth))))))) ;; FIX: need to officially require swank-backend
+                         (swank-backend:arglist (fdefinition (alexandria:ensure-symbol synth))))))) ;; FIX: remove this swank dependency
 
 (defun play-sc (item &optional pstream) ;; FIX: move the params stuff into its own function
   (unless (eq (get-event-value item :type) :rest)

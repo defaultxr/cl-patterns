@@ -8,7 +8,9 @@
                #:closer-mop
                #:named-readtables
                #:split-sequence
-               #:local-time)
+               #:local-time
+               #:swank ;; FIX: remove this.
+               )
   :serial t
   :components ((:file "package")
                (:file "src/pat-utilities")
