@@ -38,6 +38,19 @@
   "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length.x"
   (nth (mod n (length list)) list))
 
+(defgeneric keys (item)
+  (:documentation "Get the keys of ITEM, whether it be a plist, event, etc."))
+
+(defmethod keys ((item cons))
+  (labels ((accum (list)
+             (cons (car list)
+                   (when (cddr list)
+                     (accum (cddr list))))))
+    (accum item)))
+
+(defmethod keys ((item null))
+  nil)
+
 ;; math stuff
 
 (defun wrap (number bottom top)

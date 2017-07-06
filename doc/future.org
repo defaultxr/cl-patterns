@@ -20,6 +20,8 @@ Roadmap for cl-patterns.
 
 ** remove all "FIX"es in the code
 
+** get on quicklisp
+
 * 1.5
 
 ** Incudine backend

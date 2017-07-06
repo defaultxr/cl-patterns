@@ -73,39 +73,28 @@
 (defparameter *event-output-function* 'play-test
   "Which function to `play' an event with.")
 
-(defgeneric keys (item))
-
 (defmethod keys ((item event))
   (keys (slot-value item 'other-params)))
 
-(defmethod keys ((item cons))
-  (labels ((accum (list)
-             (cons (car list)
-                   (when (cddr list)
-                     (accum (cddr list))))))
-    (accum item)))
-
-(defmethod keys ((item null))
-  nil)
-
-(defun plist-set (plist key val)
-  (if (getf plist key)
-      (if (null val)
-          (alexandria:remove-from-plist plist key)
+(defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
+  "Return PLIST with its KEY set to VALUE. If VALUE is nil, return a plist without KEY."
+  (if (null value)
+      (alexandria:remove-from-plist plist key)
+      (if (getf plist key)
           (progn
-            (setf (getf plist key) val)
-            plist))
-      (append plist (list key val))))
+            (setf (getf plist key) value)
+            plist)
+          (append plist (list key value)))))
 
 (defun event-plist (event)
-  "Returns a plist of all the keys and values from the event, in order."
+  "Convert EVENT into a plist."
   (slot-value event 'other-params))
 
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
 (defmacro event-method (name default &optional documentation)
-  "Creates the generic functions and the methods for reading and writing to the NAME slot for an event and reading it from a plist."
+  "Define slots for reading and writing to an event or plist."
   `(progn
      (defgeneric ,name (item) (:documentation ,documentation))
      (defmethod ,name ((item event))

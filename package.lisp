@@ -1,4 +1,5 @@
 (defpackage #:cl-patterns
+  (:nicknames :clp)
   (:use #:cl)
   (:export
    #:plist-keys

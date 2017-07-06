@@ -100,8 +100,6 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 * src/tests.lisp - test suite using `prove`.
 
-* src/ideas.lisp - right now just a file to keep unsorted work-in-progress ideas in.
-
 * src/supercollider.lisp - code to interface cl-patterns with the [cl-collider](https://github.com/byulparan/cl-collider) library.
 * src/cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
 * src/supercollider-example.lisp - example code to get started with the `cl-collider` library.

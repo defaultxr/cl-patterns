@@ -1,9 +1,14 @@
-(in-package :cl-patterns)
+(defpackage #:cl-patterns/tests
+  (:use :cl
+        :cl-patterns
+        :prove))
 
-(require :prove)
-(use-package :prove)
+(in-package #:cl-patterns/tests)
 
-;; (plan)
+;;; TODO:
+;; * make sure all patterns are given parents
+
+(plan 38)
 
 ;;; patterns
 
@@ -13,9 +18,21 @@
      (list 0 1 2 3 4 3 4 nil nil nil nil nil)
      (next-n (pseq (list 0 (pseq '(1 2) 1) (pseq '(3 4) 2)) 1) 12)))
 
-;; :number key
+;; :number key (FIX)
 
 ;; pbind (FIX)
+
+;; parent
+
+(ok (let ((pb (pbind :foo (pseq '(1 2 3)))))
+      (eq (cl-patterns::parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
+          pb)))
+
+(ok (let ((pb (pbind :foo (pfunc (lambda () (random 5))))))
+      (eq (cl-patterns::parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
+          pb)))
+
+;; parent-pbind (FIX)
 
 ;; pseq
 
@@ -63,7 +80,9 @@
 
 ;; pxrand (FIX)
 
-;; pfunc (FIX)
+;; pfunc
+
+(ok (next-n (pfunc (lambda () (random 9))) 9))
 
 ;; pr
 
@@ -161,6 +180,12 @@
                    7)
            (list 1 2 4 5 3 nil 6)))
 
+(ok (equal (next-n (pif (pseq '(t t nil nil nil))
+                        (pseq '(1 2))
+                        (pseq '(3 nil 4)))
+                   5)
+           (list 1 2 3 nil 4)))
+
 ;; parp (FIX)
 
 ;; pfin (FIX)
@@ -207,14 +232,14 @@
 
 ;;; tsubseq
 
-(let* ((pb (pbind :dur 1/3)))
-  (ok (= 2/3 (reduce #'+ (gete (tsubseq pb 1 1.5) :dur))))
-  (ok (= 2/3 (reduce #'+ (gete (tsubseq (as-pstream pb) 1 1.5) :dur))))
-  (ok (= 2/3 (reduce #'+ (gete (tsubseq (next-n pb 15) 1 1.5) :dur)))))
+;; (let* ((pb (pbind :dur 1/3)))
+;;   (ok (= 2/3 (reduce #'+ (gete (tsubseq pb 1 1.5) :dur))))
+;;   (ok (= 2/3 (reduce #'+ (gete (tsubseq (as-pstream pb) 1 1.5) :dur))))
+;;   (ok (= 2/3 (reduce #'+ (gete (tsubseq (next-n pb 15) 1 1.5) :dur)))))
 
-(let* ((pb (pbind :dur 1/3)))
-  (ok (= 0.25 (reduce #'+ (gete (tsubseq* pb 1.25 1.5) :dur))))
-  (ok (= 0.25 (reduce #'+ (gete (tsubseq* (as-pstream pb) 1.25 1.5) :dur))))
-  (ok (= 0.25 (reduce #'+ (gete (tsubseq* (next-n pb 15) 1.25 1.5) :dur)))))
+;; (let* ((pb (pbind :dur 1/3)))
+;;   (ok (= 0.25 (reduce #'+ (gete (tsubseq* pb 1.25 1.5) :dur))))
+;;   (ok (= 0.25 (reduce #'+ (gete (tsubseq* (as-pstream pb) 1.25 1.5) :dur))))
+;;   (ok (= 0.25 (reduce #'+ (gete (tsubseq* (next-n pb 15) 1.25 1.5) :dur)))))
 
 (finalize)
