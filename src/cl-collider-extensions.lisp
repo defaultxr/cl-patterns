@@ -69,7 +69,7 @@
 (defmacro defsynth* (name params &body body)
   "Like `sc:defsynth' but includes some extra features, such as:
 - Storing extra metadata for the synthdef.
-- Automatic inclusion of some parameters (i.e. amp, pan, out, etc)."
+- Automatic inclusion of extra arguments to the definition: sustain, tempo, amp, pan, out"
   ;; - The ability to specify a ControlSpec for each parameter ;; FIX: not implemented yet
   ;; - Automatic inclusion of some ugens (i.e. out.ar, pan2.ar, etc) unless another is included ;; FIX: not implemented yet
   (let ((params (modify-params params))

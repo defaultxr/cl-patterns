@@ -12,7 +12,7 @@
   (combine-events (event) *event*))
 
 (defun set-parents (pattern)
-  "Set all of the patterns' subpatterns' parents to this pattern."
+  "Set all of PATTERN's subpatterns' \"parent\" slot to PATTERN."
   (labels ((set-parent (list parent)
              "Recurse through LIST, setting the parent of any pattern found to PARENT."
              (cond ((typep list 'list)
@@ -263,6 +263,8 @@ See also: `pmono'"
       (pdef (nth (1+ pos) pairs) pattern))
     pattern))
 
+(setf (documentation 'pbind 'type) (documentation 'pbind 'function))
+
 (defclass pbind-pstream (pbind pstream)
   ())
 
@@ -326,6 +328,9 @@ See also: `pmono'"
 
 (define-pbind-special-post-key pfindur
   (pfindur value pattern))
+
+(define-pbind-special-post-key pdurstutter
+  (pdurstutter value pattern))
 
 (defparameter *pbind-special-keys* '())
 
@@ -467,7 +472,7 @@ Example: (next-n (prand '(1 2 3) 5) 6) ;=> (3 2 2 1 1 NIL)")
 (defpattern pxrand (pattern)
   (list
    (length :default :inf)
-   (last-result :state t)
+   (last-result :state t :initform nil)
    (current-repeats-remaining :state t))
   "pxrand returns a random value from LIST that is not equal to the last result, returning a total of LENGTH values."
   (assert (> (length (remove-duplicates list)) 1) (list)))

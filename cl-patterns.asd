@@ -1,6 +1,6 @@
 (asdf:defsystem #:cl-patterns
   :name "cl-patterns"
-  :author "modula t. defaultxr@gmail.com"
+  :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp."
   :version "0.2"
   :depends-on (#:alexandria

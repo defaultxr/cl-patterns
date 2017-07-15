@@ -126,6 +126,8 @@
 
 (event-method instrument :default)
 
+(defmethod instrument ((item null)) nil)
+
 (event-method group 0)
 
 (event-method out 0)
@@ -210,17 +212,17 @@
 (defun dur-delta (dur)
   dur)
 
-(defun dur-time (dur &optional (tempo (if (and (boundp '*clock*) (not (null *clock*)))
-                                          (tempo *clock*)
-                                          1)))
+(defun dur-time (dur &optional tempo)
   "Convert duration in beats to time in seconds according to TEMPO in beats per second."
-  (/ dur tempo))
+  (/ dur (or tempo
+             (and (boundp '*clock*) (not (null *clock*)) (tempo *clock*))
+             1)))
 
-(defun time-dur (time &optional (tempo (if (and (boundp '*clock*) (not (null *clock*)))
-                                           (tempo *clock*)
-                                           1)))
+(defun time-dur (time &optional tempo)
   "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
-  (* time tempo))
+  (* time (or tempo
+              (and (boundp '*clock*) (not (null *clock*)) (tempo *clock*))
+              1)))
 
 (event-method quant 1)
 

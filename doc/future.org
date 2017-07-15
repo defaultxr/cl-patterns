@@ -6,7 +6,8 @@ Roadmap for cl-patterns.
 
 ** accurate scheduler
 
-** improve ~defpattern~ macro
+** DONE improve ~defpattern~ macro
+CLOSED: [2017-07-06 Thu 03:07]
 
 * 1.0
 
@@ -20,13 +21,15 @@ Roadmap for cl-patterns.
 
 ** remove all "FIX"es in the code
 
+** make lists in events
+
 ** get on quicklisp
 
 * 1.5
 
 ** Incudine backend
 
-* 2.0
+* other projects
 
 ** basic GUI interfaces
 
