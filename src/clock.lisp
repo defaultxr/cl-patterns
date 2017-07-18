@@ -78,7 +78,7 @@
     (bt:with-lock-held (tasks-lock)
       (setf tasks nil))))
 
-(defun clock-process-task (task clock)
+(defun clock-process-task (task clock) ;; FIX: only remove patterns if they've returned NIL as their first output 4 times in a row.
   "Process TASK on CLOCK. Processes meta-events like tempo changes, etc. Everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
   (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
     (setf (slot-value task 'start-time) (slot-value clock 'beats)

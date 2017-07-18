@@ -1,0 +1,8 @@
+#+TITLE: cl-patterns basics
+
+cl-patterns is a library for creating "patterns". Patterns can be converted 
+
+cl-patterns is based on and inspired by SuperCollider's patterns system; however, there have been many changes and improvements to it such that experienced SuperCollider users may need to re-learn some things, and perhaps break some old habits.
+
+If you're familiar with SuperCollider's patterns, you may find it more useful to look at the [[file:SC-differences.md][SC differences]] document instead. This document is meant for people who are not familiar with SuperCollider's patterns system at all, and need a general overview of what it is and how to use it.
+

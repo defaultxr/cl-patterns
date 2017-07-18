@@ -6,7 +6,12 @@
 (defun release (node)
   (sc:release node))
 
+(defun local-time-cl-collider (time)
+  "Convert a local-time timestamp into the timestamp format used by cl-collider."
+  (+ (local-time:timestamp-to-unix time) (* (local-time:nsec-of time) 1.0d-9)))
+
 (defun get-synth-args-list (synth)
+  "Return the argument list for a synth defined with `defsynth*'."
   (or (mapcar #'car (getf sc::*synthdef-metadata* synth))
       (mapcar #'alexandria:make-keyword
               (remove-if (lambda (symbol)

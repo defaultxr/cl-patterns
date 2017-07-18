@@ -1,7 +1,7 @@
 (in-package :cl-patterns)
 
 ;; NOTES:
-;; FIX: make fork method?
+;; FIX: make fork method. fork should set the pattern's loop-p to NIL if it's a pdef.
 
 ;;; pattern glue
 
