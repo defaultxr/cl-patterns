@@ -43,7 +43,7 @@ Then, you can get results from the pstream one at a time with `next`, or many at
 To actually play events (and hear sound output), you'll need to start an audio server. Right now, SuperCollider is the only supported audio server, but in the future, there will be support for Incudine as well as MIDI output through ALSA. In order to be able to connect to SuperCollider, you need the [cl-collider](https://github.com/byulparan/cl-collider) and [scheduler](http://github.com/byulparan/scheduler) libraries installed in your quicklisp `local-projects` directory so that they can be loaded. Then:
 
 ``` common-lisp
-> (ql:quickload :cl-patterns+supercollider)
+> (ql:quickload :cl-patterns/supercollider)
 > (load #P"/path/to/cl-patterns/supercollider-example.lisp") ;; code to start scsynth and define few example synths.
 ```
 
@@ -77,99 +77,46 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 0.70794576
 ```
 
+## Current Status
+
+Right now, the library is in a constant state of flux. Major changes are likely to occur, so any code you write using this library may end up breaking.
+
+Most of the documentation is only half-completed at the moment.
+
+Only the SuperCollider backend is working right now. The Incudine and MIDI backends are not functional at all yet.
+
 ## Tour
 
 * README.md - this file. self-expanatory, i'd hope.
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
-
 * cl-patterns.asd - cl-patterns system definition with no backends.
-* cl-patterns+supercollider.asd - cl-patterns system definition with SuperCollider backend.
-* cl-patterns+incudine.asd - cl-patterns system definition with Incudine backend. - WIP (not functional yet).
-* cl-patterns+midi.asd - cl-patterns system definition with ALSA MIDI backend. - WIP (not functional yet).
 
-* doc/event-special-keys.md - description of keys that have special effects when used in an event or pbind. WIP.
-* doc/SC.md - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
-* doc/SC-differences.md - comprehensive description of things that differ between cl-patterns and SuperCollider. WIP.
+### docs
 
-* src/event.lisp - code to represent and deal with events (the event class, play functionality, `*event-output-function*`, etc)
-* src/patterns.lisp - the current version of the patterns. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
-* src/scales.lisp - musical pitch (scales/tuning) data and structs.
-* src/clock.lisp - the scheduling functionality to make sure that each event is played at the proper time.
+* doc/basics.org - explanation of the basic concepts of cl-patterns, meant for people who have never used SuperCollider's patterns.
+* doc/event-special-keys.org - description of keys that have special effects when used in an event or pbind.
+* doc/roadmap.org - general overview of major goals for the future development of cl-patterns.
+* doc/sc-differences.org - comprehensive description of things that differ between cl-patterns and SuperCollider.
+* doc/sc.org - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
+* doc/writing-your-own.org - information about how to write your own pattern classes.
+
+### src
+
 * src/pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use `alexandria`.
+* src/patterns.lisp - the patterns themselves. includes the `pattern` superclass as well as `pbind` and `pseq`, `pk`, etc.
+* src/event.lisp - code to represent and deal with events. includes the `event` class, information about special keys (i.e. `freq`, `amp`...), etc.
+* src/clock.lisp - the scheduling functionality to make sure that each event is played at the proper time.
+* src/scales.lisp - musical pitch (scales/tuning) data and structs.
+* src/readtable.lisp - defines a named-readtable for optional syntax sugar.
 
 * src/tests.lisp - test suite using `prove`.
 
 * src/supercollider.lisp - code to interface cl-patterns with the [cl-collider](https://github.com/byulparan/cl-collider) library.
 * src/cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
 * src/supercollider-example.lisp - example code to get started with the `cl-collider` library.
+* src/sc-compatibility.lisp - patterns that are 100% compatible with SuperCollider's (unlike the ones in patterns.lisp which aren't guaranteed to be).
 
 * src/incudine.lisp - code to interface cl-patterns with [incudine](https://github.com/titola/incudine).
 
 * src/midi.lisp - code to interface cl-patterns with [cl-alsaseq](https://github.com/rick-monster/cl-alsaseq).
-
-## Ideas/TODO
-
-* write more documentation
-  * docstrings for all patterns
-  * "how to write pattern classes" document
-  * event/pbind special keys
-  * readtable/syntax shortcuts
-
-* `tsubseq` function for getting a subsequence based on start times of events.
-
-* `tsubseq*` function. same as `tsubseq` but it also includes synths that would've already been playing at the start time specified.
-  * i.e. `(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)` returns `(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))`
-
-* do "static" things to "dynamic" patterns - i.e. `(pshift (pseq '(1 2 3)) 1)` results in `'(3 1 2 3 1 2 3 ...)` or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
-
-* more metadata in patterns and streams so that it's easier to write functions that process streams/patterns/etc
-  * automatically record output from pstreams so it can be referenced later - store `*max-pattern-yield-length*` values from each pattern.
-    * make a `current` function that will get the last value that was output from a pstream.
-
-* make it possible to easily create lfos for the synth's parameters
-  * can embed a synth definition (`sc:defsynth`) as the value, in which case the synth is triggered at the start of each pattern (or maybe for each event?)
-  * can embed a `sc:proxy`, in which case the pattern just takes values from the output of the proxy.
-  * can embed an Env, in which case a env-playing synth is mapped to the triggered synth's parameter.
-  * maybe make it possible to change whether to retrigger for each event or just have the synth/env play for the duration of the pattern. perhaps retrigger if the synth/env is the result of an embedded pbind, but play for the duration if it's just a lone env/synthdef.
-
-* make it possible to send out values at a specific key at a different rate
-  * i.e.: `(pbind :dur 1 :foo (pseq '(1 2 3)) :bar (pbind :dur 1/2 :val (pseq '(9 8 7))))` results in `:foo` being set to 1, then 2, then 3 on every beat, while `:bar` is set to 9, then 8, then 7 on every half beat. effectively, the :bar sub-pattern is independent from the main pbind, it's just launched at the same time and ends at the same time.
-
-* make macros to quickly write out patterns with symbols, i.e. `k---s---k---s---` for a kick/snare/kick/snare pattern or the like - see `ds` in `misc.lisp`
-
-* add more tests to `tests.lisp`
-
-* make patterns able to trigger other patterns. i.e. something like this:
-```common-lisp
-(progn
-  (play (pbind :name :bar :pefollow :foo :timing-offset 0.25))
-  (play (pbind :name :foo :dur (pseq '(0.5 0.5 0.5 0.5 1 1)))))
-```
-...then the `:bar` pattern's events will play 0.25 beats after each of `:foo`'s events play, because it's set to `:pefollow` that pattern.
-  * similarly, a `:pfollow` key could be used to automatically start the pattern for each event of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.
-
-* `:cleanup` key for pbinds. this can either contain a function or a list of functions. when the pattern ends or is stopped, the function or functions will be called.
-  * not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
-
-* a generalized way to inject keys into an event from inside a pbind...?
-  * or maybe just do something like `(pbind :inject (pcycles [32 - - [64 - -]]))` and pcycles would return keys for `:freq` and `:dur`. i.e. a syntax similar to TidalCycles?
-
-* patterns from SuperCollider - see SC.md
-
-* `pclockdm` - clock divider/multiplier pattern. could be used, for example, for a pattern that's set to `:pfollow` another pattern, to make it trigger twice as often, half as often, etc. for half as often, patterns would have to have their own `gensym`s or IDs so that it could be kept track of whether or not to trigger the sub-pattern for each event. this ID would probably have to be associated with the pattern itself, not the pstream. could maybe be like the `number` slot but for the number of times the pattern is played, not the number of events in the pstream.
-
-* events with arrays/lists as values should be automatically multichannel-expanded as the last step before being played, and those lists/events should be handled properly by the pattern system prior to that.
-
-* `pmetropolis` - intellijel metropolis-inspired pattern class (maybe a mini-language for compactly representing durstutters, etc).
-  * i.e., could be something like this:
-  ```common-lisp
-  (pmetropolis
-   (pbind :instrument :acid
-    :midinote (pseq '(60 59 58 57 56 55 54 53) :inf))
-   5s 2h+ 2r 2o 0 3 2h- 1)
-   ```
-   this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (`+` meaning slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (`-` means skip), play 53 for one pulse, and then loop.
-  * maybe don't make it a macro so the step pattern could be a pseq, prand, etc?
-
-* `pgatestorm` - erogenous tones gatestorm-inspired pattern class with a mini-language for writing trigger-based patterns.

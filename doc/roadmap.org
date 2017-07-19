@@ -1,10 +1,14 @@
-#+TITLE: Future
+#+TITLE: Roadmap
 
-Roadmap for cl-patterns.
+The future of cl-patterns.
+
+This is just a general overview of where this library is going. For more specific tasks, see [[file:TODO.org][TODO.org]].
 
 * 0.5
 
-** accurate scheduler
+** clean up ~clock.lisp~ (use univeral time, etc)
+
+** clean up ~event.lisp~ (improve ~event-method~, ~event-translation-method~, the ~event~ class, etc)
 
 ** DONE improve ~defpattern~ macro
 CLOSED: [2017-07-06 Thu 03:07]
@@ -29,7 +33,7 @@ CLOSED: [2017-07-06 Thu 03:07]
 
 ** Incudine backend
 
-* other projects
+* other (related) projects
 
 ** basic GUI interfaces
 
