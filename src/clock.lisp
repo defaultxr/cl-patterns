@@ -1,5 +1,7 @@
 ;;; clock.lisp - keep playing patterns in sync by running each clock in its own thread and all patterns on a clock.
 ;; FIX: changing :instrument in pmono causes the old one to stay playing.
+;; FIX: use a universal timestamp (with microseconds) instead of a unix timestamp. move unix-time-byulparan to supercollider.lisp
+;; FIX: get rid of clock's "granularity" slot
 
 (in-package :cl-patterns)
 
@@ -24,6 +26,15 @@
 
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
+
+(defun timestamp-to-universal (timestamp)
+  "Convert a local-time timestamp to a universal time, perserving microseconds."
+  (+ (local-time:timestamp-to-universal timestamp)
+     (/ (local-time:timestamp-microsecond timestamp) 1000000)))
+
+(defun current-universal-time ()
+  "Get the current universal time with microseconds."
+  (timestamp-to-universal (local-time:now)))
 
 (defun unix-time-byulparan () ;; FIX: pull request this to byulparan/scheduler??
   "Get the current unix time in the same format as byulparan/scheduler."
