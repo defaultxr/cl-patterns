@@ -8,13 +8,19 @@
 ;;; TODO:
 ;; * make sure all patterns are given parents
 
-(plan 38)
+(plan 39)
 
 ;;; patterns
 
+;; stack (patterns embedded in patterns)
+
+(ok (equal
+     (list 0 1 2 3 4 5 nil)
+     (next-n (pseq (list 0 (pseq (list 1 (pseq (list 2 3)) 4)) 5)) 7)))
+
 ;; :remaining key
 
-(ok (equal ;; FIX: should test this for other patterns as well, not just pseq.
+(ok (equal
      (list 0 1 2 3 4 3 4 nil nil nil nil nil)
      (next-n (pseq (list 0 (pseq '(1 2) 1) (pseq '(3 4) 2)) 1) 12)))
 
