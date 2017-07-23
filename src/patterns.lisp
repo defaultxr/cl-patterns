@@ -25,7 +25,7 @@
        (set-parent (slot-value pattern slot) pattern))
     pattern))
 
-(defmacro defpattern (name superclasses slots &optional documentation pre-init)
+(defmacro defpattern (name superclasses slots &optional documentation creation-function)
   "Define a pattern. This macro automatically generates the pattern's class, its pstream class, and the function to create an instance of the pattern, and makes them external in the cl-patterns package.
 
 NAME is the name of the pattern. Typically a word or two that describes its function, prefixed with p.
@@ -36,7 +36,7 @@ SLOTS is a list of slots that the pattern and pstreams derived from it have. Eac
 
 DOCUMENTATION is a docstring describing the pattern. We recommend providing at least one example, and a \"See also\" section to refer to similar pattern classes.
 
-PRE-INIT is an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
+CREATION-FUNCTION is an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
   (let ((slots (mapcar #'alexandria:ensure-list slots))
         (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
         (super-pstream (if (eq 'pattern (car superclasses))
@@ -69,7 +69,21 @@ PRE-INIT is an expression which will be inserted into the pattern creation funct
                                                   (list))
                                               (list (list (car slot) (getf (cdr slot) :default))))
                                     (setf optional-used t))
-                                  (list (car slot))))))))
+                                  (list (car slot)))))))
+             (make-defun (pre-init)
+               `(defun ,name ,(function-lambda-list slots)
+                  ,documentation
+                  ,@(when pre-init (list pre-init))
+                  (set-parents
+                   (make-instance ',name
+                                  ,@(mapcan (lambda (i) (list (alexandria:make-keyword (car i)) (car i)))
+                                            (remove-if #'state-slot-p slots))))))
+             (add-doc-to-defun (sexp)
+               (if (and (listp sexp)
+                        (position (car sexp) (list 'defun 'defmacro))
+                        (not (typep (nth 3 sexp) 'string)))
+                   (append (subseq sexp 0 3) (list documentation) (subseq sexp 3))
+                   sexp)))
       `(progn
          (defclass ,name ,superclasses
            ,(mapcar #'desugar-slot (remove-if #'state-slot-p slots))
@@ -78,13 +92,14 @@ PRE-INIT is an expression which will be inserted into the pattern creation funct
          (defclass ,name-pstream (,name ,super-pstream)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
            (:documentation ,(format nil "pstream class for ~a." name)))
-         (defun ,name ,(function-lambda-list slots)
-           ,documentation
-           ,pre-init
-           (set-parents
-            (make-instance ',name
-                           ,@(mapcan (lambda (i) (list (alexandria:make-keyword (car i)) (car i)))
-                                     (remove-if #'state-slot-p slots)))))
+         ,(let* ((gen-func-p (or (null creation-function)
+                                 (and (listp creation-function)
+                                      (position (car creation-function) (list 'assert)))))
+                 (pre-init (when gen-func-p
+                             creation-function)))
+            (if gen-func-p
+                (make-defun pre-init)
+                (add-doc-to-defun creation-function)))
          (export '(,name ,name-pstream))))))
 
 (defparameter *max-pattern-yield-length* 64
@@ -582,21 +597,19 @@ See also: `pstutter', `pdurstutter', `parp'")
   "Set PDEF-KEY's KEY in its plist to PATTERN."
   (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) pattern)))
 
-(defpattern pdef (pattern)
+(defpattern pdef (pattern) ;; FIX: should this call set-parents on its PATTERN?
   ((key :reader pdef-key)
    (current-pstream :state t)
    (loop-p :initform t :accessor loop-p))
-  "pdef names a pattern PATTERN by KEY.")
+  "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored in a global dictionary by name and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. Additionally, if a pdef is currently being played, and is redefined, the changes won't be audible until PATTERN ends (pdefs loop by default)."
+  (defun pdef (key &optional (pattern nil pattern-supplied-p))
+    (when (or (not (null pattern))
+              pattern-supplied-p)
+      (pdef-ref-set key :pattern pattern))
+    (make-instance 'pdef
+                   :key key)))
 
 (create-global-dictionary pdef)
-
-(defun pdef (key &optional (pattern nil pattern-supplied-p))
-  "pdef names a pattern PATTERN by KEY."
-  (when (or (not (null pattern))
-            pattern-supplied-p)
-    (pdef-ref-set key :pattern pattern))
-  (make-instance 'pdef
-                 :key key))
 
 (defmethod pdef-pattern ((object pdef))
   (pdef-ref-get (pdef-key object) :pattern))
@@ -926,13 +939,12 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defpattern pnary (pattern)
   (operator
    (patterns :initarg :patterns))
-  "pnary yields the result of applying OPERATOR to each value yielded by each pattern in PATTERNS.")
-
-(defun pnary (operator &rest patterns)
   "pnary yields the result of applying OPERATOR to each value yielded by each pattern in PATTERNS."
-  (make-instance 'pnary
-                 :operator operator
-                 :patterns patterns))
+  (defun pnary (operator &rest patterns)
+    (set-parents
+     (make-instance 'pnary
+                    :operator operator
+                    :patterns patterns))))
 
 (defmethod as-pstream ((pattern pnary))
   (with-slots (operator patterns) pattern
