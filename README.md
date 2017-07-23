@@ -99,6 +99,7 @@ Only the SuperCollider backend is working right now. The Incudine and MIDI backe
 * doc/roadmap.org - general overview of major goals for the future development of cl-patterns.
 * doc/sc-differences.org - comprehensive description of things that differ between cl-patterns and SuperCollider.
 * doc/sc.org - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
+* doc/supercollider-example.lisp - short example of how to use cl-patterns with cl-collider.
 * doc/writing-your-own.org - information about how to write your own pattern classes.
 
 ### src
@@ -114,7 +115,6 @@ Only the SuperCollider backend is working right now. The Incudine and MIDI backe
 
 * src/supercollider.lisp - code to interface cl-patterns with the [cl-collider](https://github.com/byulparan/cl-collider) library.
 * src/cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
-* src/supercollider-example.lisp - example code to get started with the `cl-collider` library.
 * src/sc-compatibility.lisp - patterns that are 100% compatible with SuperCollider's (unlike the ones in patterns.lisp which aren't guaranteed to be).
 
 * src/incudine.lisp - code to interface cl-patterns with [incudine](https://github.com/titola/incudine).
