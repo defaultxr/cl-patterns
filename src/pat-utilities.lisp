@@ -38,6 +38,22 @@
   "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length.x"
   (nth (mod n (length list)) list))
 
+(defun normalized-sum (list)
+  "Return a copy of LIST normalized so all of its numbers summed together equal 1."
+  (mapcar (lambda (x) (/ x (reduce #'+ list))) list))
+
+(defun cumulative-list (list)
+  "Return a copy of LIST where the elements previous are added to the current one.
+
+Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
+  (loop :for element :in list
+     :for index :from 0
+     :collect (apply #'+ element (subseq list 0 index))))
+
+(defun index-of-greater-than (n list)
+  "Get the index of the first element of LIST greater than N."
+  (position-if (lambda (num) (> num n)) list))
+
 (defgeneric keys (item)
   (:documentation "Get the keys of ITEM, whether it be a plist, event, etc."))
 

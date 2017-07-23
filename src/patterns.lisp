@@ -2,6 +2,7 @@
 
 ;; NOTES:
 ;; FIX: make fork method. fork should set the pattern's loop-p to NIL if it's a pdef.
+;; FIX: remove :remaining key and just use :pfin instead?
 
 ;;; pattern glue
 
@@ -494,6 +495,34 @@ Example: (next-n (prand '(1 2 3) 5) 6) ;=> (3 2 2 1 1 NIL)")
            :do (setf res (alexandria:random-elt list)))
         (setf last-result res)
         res))))
+
+;;; pwrand
+
+(defpattern pwrand (pattern)
+  (list
+   (weights :default (make-list (length list) :initial-element 1))
+   (length :default :inf)
+   (current-repeats-remaining :state t))
+  "pwrand returns a random element from LIST weighted by respective values from WEIGHTS, for a total of LENGTH values.
+
+See also: `prand', `pxrand', `pwxrand'")
+
+(defmethod as-pstream ((pattern pwrand))
+  (with-slots (list weights length) pattern
+    (let ((r (next length)))
+      (make-instance 'pwrand-pstream
+                     :list list
+                     :weights weights
+                     :length r
+                     :current-repeats-remaining r))))
+
+(defmethod next ((pattern pwrand-pstream))
+  (with-slots (list weights) pattern
+    (when (remainingp pattern 'current-repeats-remaining)
+      (decf-remaining pattern 'current-repeats-remaining)
+      (let* ((cweights (cumulative-list (normalized-sum weights)))
+             (num (random 1.0)))
+        (nth (index-of-greater-than num cweights) list)))))
 
 ;;; pfunc
 ;; NOTE: This implementation doesn't provide the event as an argument to the function like the SuperCollider implementation does.

@@ -10,8 +10,8 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pshuf~ - done as ~pshuf~.
 ** ~Prand~ - done as ~prand~.
 ** ~Pxrand~ - done as ~pxrand~.
+** ~Pwrand~ - done as ~pwrand~
 ** ~Pwxrand~
-** ~Pwrand~
 ** ~Pdfsm~
 ** ~Pfpar~
 ** ~Pfsm~

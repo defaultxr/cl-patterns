@@ -315,12 +315,8 @@
 
 (event-method scale :major)
 
-(defun index-of-greater-than (n list)
-  "Returns the index of the first element of LIST "
-  (sort))
-
 (defun midinote-degree (midinote &optional root octave scale)
-  (flet ((index-of-greater-than (n list)
+  (flet ((index-of-greater-than (n list) ;; FIX
            ;; LIST should be a sorted list.
            (position n (sort list #'<=) :test #'<=))))
   (let* ((degrees (scale-degrees (scale (scale (or scale :major)))))
