@@ -1105,53 +1105,53 @@ Example: (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4)))
 ;;; ptracker (FIX)
 
 (defpattern ptracker (pattern)
-  (head
-   tracks)) ;; FIX: docstring needed
-
-(defun ptracker (header &rest tracks)
-  (assert (evenp (length header)) (header))
-  (let* ((h-ev (apply #'event header))
-         (h-keys (keys h-ev))
-         (result (list)))
-    (loop :for row :in tracks
-       :do
-       (let ((r-ev (cond ((equal row (list '-))
-                          (when (= 0 (length result))
-                            (event :type :rest)))
-                         ((position (car row) (list :r :rest))
-                          (event :type :rest))
-                         (t
-                          (progn
-                            (apply #'event (loop
-                                              :for e :in row
-                                              :for i :from 0
-                                              :append (list (nth i h-keys) e))))))))
-         (if r-ev
-             (alexandria:appendf result (list (combine-events h-ev r-ev)))
-             (incf (dur (car (last result))) (dur h-ev)))))
-    (pseq result)))
+  (header rows)
+  "ptracker" ;; FIX: docstring needed
+  (defun ptracker (header rows)
+    (assert (evenp (length header)) (header))
+    (let* ((h-ev (apply #'event header))
+           (h-keys (keys h-ev))
+           (result (list)))
+      (loop :for row :in rows :do
+         (let ((r-ev (cond ((equal row (list :-))
+                            (when (= 0 (length result))
+                              (event :type :rest)))
+                           ((position (car row) (list :r :rest))
+                            (event :type :rest))
+                           (t
+                            (progn
+                              (apply #'event (loop
+                                                :for e :in row
+                                                :for i :from 0
+                                                :append (list (nth i h-keys) e))))))))
+           (if r-ev
+               (alexandria:appendf result (list (combine-events h-ev r-ev)))
+               (incf (dur (car (last result))) (dur h-ev)))))
+      (pseq result))))
 
 ;; (defmethod next ((pattern ptracker-pstream))
 ;;   )
 
 (defun tracker-shorthand (stream char subchar)
-  "Reader macro for the #T notation."
+  "Reader macro for `ptracker' preprocessing. "
   (declare (ignore char subchar))
   (let ((*readtable* (copy-readtable nil)))
     (set-macro-character #\; (lambda (stream ignore)
                                (funcall (get-macro-character #\; nil) stream ignore)
-                               (values '+ptracker-separator-symbol+)))
+                               (values :+ptracker-shorthand-separator-symbol+)))
     (set-macro-character #\newline (lambda (xx yy)
                                      (declare (ignore xx yy))
-                                     (values '+ptracker-separator-symbol+)))
-    (let ((val (remove-if #'null (split-sequence:split-sequence '+ptracker-separator-symbol+ (read-preserving-whitespace stream nil nil)))))
-      `(cl-patterns::ptracker
-        ',(car val) ,@(mapcar (lambda (x)
-                                (if (and (= 1 (length x))
-                                         (eq (car x) '-))
-                                    (list 'list '(quote -))
-                                    (append (list 'list) x)))
-                              (cdr val))))))
+                                     (values :+ptracker-shorthand-separator-symbol+)))
+    (let ((rows (remove-if #'null (split-sequence:split-sequence :+ptracker-shorthand-separator-symbol+ (read-preserving-whitespace stream nil nil)))))
+      `(list ,@(mapcar (lambda (row)
+                         (append (list 'list)
+                                 (mapcar (lambda (atom)
+                                           (if (and (symbolp atom)
+                                                    (string= "-" (symbol-name atom)))
+                                               :-
+                                               atom))
+                                         row)))
+                       rows)))))
 
 (set-dispatch-macro-character #\# #\T #'tracker-shorthand)
 
