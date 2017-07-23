@@ -90,7 +90,7 @@ Only the SuperCollider backend is working right now. The Incudine and MIDI backe
 * README.md - this file. self-expanatory, i'd hope.
 * package.lisp - the package definition file.
 * LICENSE - the GPLv3 license.
-* cl-patterns.asd - cl-patterns system definition with no backends.
+* cl-patterns.asd - cl-patterns systems definition file.
 
 ### docs
 
