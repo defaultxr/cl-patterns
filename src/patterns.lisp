@@ -176,7 +176,10 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
     (decf (slot-value pattern key))))
 
 (defmethod next :around ((pattern pstream))
-  (labels ((get-value-from-stack (pattern)
+  (labels ((pattern-embed (pattern embed) ;; was a method, with the following types: PATTERN as pstream, EMBED as pattern
+             (assert (typep pattern 'pstream) (pattern))
+             (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
+           (get-value-from-stack (pattern)
              (if (null (slot-value pattern 'pattern-stack))
                  (prog1
                      (get-value pattern)
@@ -201,9 +204,6 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
       (alexandria:appendf (slot-value pattern 'history) (list result))
       result)))
 
-(defmethod pattern-embed ((pattern pstream) (embed pattern))
-  (push (as-pstream embed) (slot-value pattern 'pattern-stack)))
-
 (defgeneric as-pstream (pattern))
 
 (defmethod as-pstream ((pattern t))
@@ -226,7 +226,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
     (set-parents pstream)
     pstream))
 
-(defmethod pstream-nth (n (pstream pstream)) ;; FIX: should this automatically "peek" at future values when the pstream hasn't advanced to the specified index yet? probably not...
+(defun pstream-nth (n pstream) ;; FIX: should this automatically "peek" at future values when the pstream hasn't advanced to the specified index yet? probably not...
   (nth-wrap n (slot-value pstream 'history)))
 
 (defun parent-pbind (pattern)
@@ -236,7 +236,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
        :do (setf par (slot-value par 'parent)))
     par))
 
-(defmethod beats-elapsed ((pattern pstream)) ;; FIX: get this from parent pattern if possible.
+(defun beats-elapsed (pstream) ;; FIX: get this from parent pattern if possible.
   )
 
 ;;; pbind
