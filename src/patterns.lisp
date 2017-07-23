@@ -468,7 +468,9 @@ Example: (next-n (pbind :foo (pseries) :bar (pk :foo)) 3) ;=> ")
    (current-repeats-remaining :state t))
   "prand returns a random value from LIST, returning a total of LENGTH values.
 
-Example: (next-n (prand '(1 2 3) 5) 6) ;=> (3 2 2 1 1 NIL)")
+Example: (next-n (prand '(1 2 3) 5) 6) ;=> (3 2 2 1 1 NIL)
+
+See also: `pxrand', `pwrand', `pwxrand'")
 
 (defmethod as-pstream ((pattern prand))
   (with-slots (list length) pattern
@@ -490,7 +492,9 @@ Example: (next-n (prand '(1 2 3) 5) 6) ;=> (3 2 2 1 1 NIL)")
    (length :default :inf)
    (last-result :state t :initform nil)
    (current-repeats-remaining :state t))
-  "pxrand returns a random value from LIST that is not equal to the last result, returning a total of LENGTH values."
+  "pxrand returns a random value from LIST that is not equal to the last result, returning a total of LENGTH values.
+
+See also: `prand', `pwrand', `pwxrand'"
   (assert (> (length (remove-duplicates list)) 1) (list)))
 
 (defmethod as-pstream ((pattern pxrand))
@@ -722,7 +726,7 @@ See also: `pstutter', `pdurstutter', `parp'")
     (make-instance 'pn-pstream
                    :remaining remaining
                    :pattern (slot-value pattern 'pattern)
-                   :repeats repeats
+                   :repeats (next repeats)
                    :current-pstream (as-pstream (slot-value pattern 'pattern)))))
 
 (defmethod next ((pattern pn-pstream))
