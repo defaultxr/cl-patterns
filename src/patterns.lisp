@@ -961,6 +961,22 @@ See also: `pstutter', `pdurstutter', `parp'")
     (unless (position nil nexts)
       (apply (slot-value pattern 'operator) nexts))))
 
+(defun p+ (&rest numbers)
+  "p+ adds NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."
+  (apply #'pnary #'+ numbers))
+
+(defun p- (&rest numbers)
+  "p- subtracts NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'- numbers)."
+  (apply #'pnary #'- numbers))
+
+(defun p* (&rest numbers)
+  "p* multiplies NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'* numbers)."
+  (apply #'pnary #'* numbers))
+
+(defun p/ (&rest numbers)
+  "p/ divides NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
+  (apply #'pnary #'/ numbers))
+
 ;;; pslide
 
 (defpattern pslide (pattern)
