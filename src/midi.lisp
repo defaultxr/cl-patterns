@@ -6,8 +6,7 @@
 
 (defmethod play-midi ((item t))
   (unless (eq (get-event-value item :type) :rest)
-    (assert (numberp (instrument item)))
-    (let* ((channel (instrument item))
+    (let* ((channel (if (numberp (instrument item)) (instrument item) 0))
            (note (truncate (get-event-value item :midinote)))
            (velocity (round (* 127 (get-event-value item :amp))))
            ;; (time (+ (or (raw-get-event-value item :latency) *latency*) (or (raw-get-event-value item :unix-time-at-start) (sc:now))))
