@@ -15,6 +15,13 @@
 
    ;; NOTE: pattern classes defined with defpattern are automatically exported.
 
+   #:p+
+   #:p-
+   #:p*
+   #:p/
+
+   #:bjorklund
+
    #:event
    #:*event*
    #:*event-output-function*
