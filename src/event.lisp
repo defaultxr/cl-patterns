@@ -66,8 +66,9 @@
           :do (set-event-value result key (get-event-value ev key))))
     result))
 
-(defun play-test (item)
+(defun play-test (item &optional pstream)
   "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."
+  (declare (ignore pstream))
   (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
 
 (defparameter *event-output-function* 'play-test
