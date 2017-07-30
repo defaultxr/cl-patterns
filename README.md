@@ -44,7 +44,7 @@ To actually play events (and hear sound output), you'll need to start an audio s
 
 ``` common-lisp
 > (ql:quickload :cl-patterns/supercollider)
-> (load #P"/path/to/cl-patterns/supercollider-example.lisp") ;; code to start scsynth and define few example synths.
+> (load #P"/path/to/cl-patterns/doc/supercollider-example.lisp") ;; code to start scsynth and define few example synths.
 ```
 
 And finally we can play patterns and hear sound:
@@ -53,7 +53,7 @@ And finally we can play patterns and hear sound:
 > (play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
 ```
 
-From here, you can take a look at the code in the `supercollider-example.lisp` file for examples of how to define your own synths. For now there isn't much documentation on how to write synthdefs or patterns in Lisp, but if you're used to writing patterns or SynthDefs in regular sclang, most of them should translate fairly easily. More documentation will be written in the future.
+From here, you can take a look at the code in the `doc/supercollider-example.lisp` file for examples of how to define your own synths. For now there isn't much documentation on how to write synthdefs or patterns in Lisp, but if you're used to writing patterns or SynthDefs in regular sclang, most of them should translate fairly easily. More documentation will be written in the future.
 
 ## Features
 
