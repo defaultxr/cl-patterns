@@ -202,6 +202,20 @@
 
 ;; pdurstutter (FIX)
 
+;; pbeats (FIX)
+
+;; ptime (FIX)
+
+;; psinosc (FIX)
+
+;; pindex
+
+(ok (equal
+     (list 3 2 1 3 2 1 nil)
+     (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2)) 2) 7)))
+
+;; pbjorklund (FIX)
+
 ;;; conversions (FIX - add more)
 
 (ok (=

@@ -1354,12 +1354,12 @@ See also: `pr', `pstutter'")
    (last-beat-tracked :state t :initform nil)
    (current-phase :state t :initform 0)))
 
-(defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
-  (make-instance 'psinosc
-                 :freq freq
-                 :phase phase
-                 :mul mul
-                 :add add))
+;; (defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
+;;   (make-instance 'psinosc
+;;                  :freq freq
+;;                  :phase phase
+;;                  :mul mul
+;;                  :add add))
 
 (defmethod as-pstream ((pattern psinosc))
   (make-instance 'psinosc-pstream
@@ -1376,3 +1376,95 @@ See also: `pr', `pstutter'")
       (prog1
           (+ (next add) (* (next mul) (sin (+ current-phase phase))))
         (setf last-beat-tracked (slot-value *clock* 'beats))))))
+
+;;; pindex
+
+(defpattern pindex (pattern)
+  (list-pat
+   index-pat
+   (repeats :default 1)
+   (list-pat-ps :state t :initform nil)
+   (index-pat-ps :state t :initform nil)
+   (current-repeats-remaining :state t :initform nil))
+  "pindex calls next on its LIST-PAT for each step, and then calls next on the INDEX-PAT to get the index of the element from the LIST-PAT's result to return.")
+
+(defmethod as-pstream ((pattern pindex))
+  (with-slots (list-pat index-pat repeats) pattern
+    (make-instance 'pindex-pstream
+                   :list-pat list-pat
+                   :list-pat-ps (as-pstream list-pat)
+                   :index-pat index-pat
+                   :index-pat-ps (as-pstream index-pat)
+                   :repeats repeats
+                   :current-repeats-remaining (next repeats))))
+
+(defmethod next ((pattern pindex-pstream))
+  (with-slots (list-pat-ps index-pat index-pat-ps) pattern
+    (when (remainingp pattern 'current-repeats-remaining)
+      (let ((list (next list-pat-ps))
+            (idx (next index-pat-ps)))
+        (if (null idx)
+            (progn
+              (decf-remaining pattern 'current-repeats-remaining)
+              (setf index-pat-ps (as-pstream index-pat))
+              (next pattern))
+            (nth idx list))))))
+
+;;; pbjorklund
+
+(defun bjorklund (pulses &optional steps (offset 0))
+  "Generate a list representing a Euclidean rhythm using the Bjorklund algorithm. PULSES is the number of \"hits\" in the sequence, STEPS is number of divisions of the sequence, and OFFSET is the number to rotate the sequence by. This function returns a list, where 1 represents a note and 0 represents a rest. If you want to use bjorklund in a pattern, you may be more interested in `pbjorklund' instead, which returns events with the correct duration and type.
+
+Example: (bjorklund 3 7) ;=> (1 0 1 0 1 0 0)
+
+See also: `pbjorklund'"
+  (if (and (null steps) (typep pulses 'ratio))
+      (bjorklund (numerator pulses) (denominator pulses))
+      (progn
+        (assert (> steps 0) (steps))
+        (assert (>= steps pulses) (pulses))
+        (labels ((from-array (arr)
+                   (destructuring-bind (a b) (split arr)
+                     (if (and (> (length b) 1) (> (length a) 0))
+                         (from-array (lace a b))
+                         (alexandria:flatten (append a b)))))
+                 (split (arr)
+                   (let ((index (position (car (last arr)) arr :test #'equal)))
+                     (list (subseq arr 0 index)
+                           (subseq arr index))))
+                 (lace (a b)
+                   (append (loop
+                              :for x :in a
+                              :for i :from 0
+                              :collect (list x (nth i b)))
+                           (when (<= (length a) (length b))
+                             (subseq b (length a))))))
+          (alexandria:rotate
+           (from-array
+            (append (make-list pulses :initial-element (list 1))
+                    (make-list (- steps pulses) :initial-element (list 0))))
+           offset)))))
+
+(defpattern pbjorklund (pattern)
+  (pulses
+   steps
+   (offset :default 0))
+  "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, STEPS is number of steps in the sequence, and OFFSET is the number to rotate the sequence by. This pattern returns events which can be injected into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. The total duration of the sequence is 1 beat, so it can be easily multiplied if you want it to be longer or shorter. If you just want the raw output from the Bjorklund algorithm, use `bjorklund' instead.
+
+Example: (pbjorklund 3 7) ;=> FIX
+
+See also: `bjorklund'")
+
+;; FIX: add sustain-notes parameter which, when true, sustains each note until the next one instead of inserting rests.
+
+(defmethod as-pstream ((pattern pbjorklund))
+  (make-instance 'pbjorklund-pstream
+                 :pulses (slot-value pattern 'pulses)
+                 :steps (slot-value pattern 'steps)
+                 :offset (as-pstream (slot-value pattern 'offset))))
+
+(defmethod next ((pattern pbjorklund-pstream))
+  (with-slots (number pulses steps offset) pattern
+    (alexandria:when-let ((val (nth number (bjorklund pulses steps (next offset)))))
+      (event :type (if (= 1 val) :note :rest)
+             :dur (/ 1 steps)))))

@@ -19,7 +19,7 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pslide~ - done as ~pslide~.
 ** ~Ptuple~
 ** ~Pwalk~
-** ~Pindex~
+** ~Pindex~ - done as ~pindex~
 ** ~Place~
 ** ~Ppatlace~ - done as ~ppatlace~.
 ** ~Pswitch~
@@ -107,4 +107,4 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pfunc~ - done as ~pfunc~.
 ** ~Pfuncn~
 ** ~Prout~
-** ~Pbjorklund~
+** ~Pbjorklund~ - done as ~pbjorklund~
