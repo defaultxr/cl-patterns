@@ -14,9 +14,6 @@
                         (apply #'make-synth-msg *s* name-string next-id to pos args)
                         *s*)))
 
-(defun release (node)
-  (ctrl node :gate 0))
-
 (defun modify-params (params)
   (let ((param-names (loop :for x :in params :collect (car x))))
     (loop :for x :in (list

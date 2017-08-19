@@ -96,6 +96,7 @@ Only the SuperCollider backend is working right now. The Incudine and MIDI backe
 
 * doc/basics.org - explanation of the basic concepts of cl-patterns, meant for people who have never used SuperCollider's patterns.
 * doc/event-special-keys.org - description of keys that have special effects when used in an event or pbind.
+* doc/other-libraries.org - listing of other libraries that have similar goals or would be useful in conjunction with cl-patterns.
 * doc/roadmap.org - general overview of major goals for the future development of cl-patterns.
 * doc/sc-differences.org - comprehensive description of things that differ between cl-patterns and SuperCollider.
 * doc/sc.org - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
