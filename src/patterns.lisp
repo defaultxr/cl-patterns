@@ -268,11 +268,11 @@ See also: `pmono'"
              (alexandria:appendf res-pairs (list key value)))))
     (setf (slot-value pattern 'pairs) res-pairs)
     ;; handle pbind-special-post-keys
-    ;; FIX: should maybe remove these keys from the 'pairs of pbind so they aren't included in the output?
     (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
        :do
        (alexandria:when-let* ((func (getf *pbind-special-post-keys* key))
                               (res (funcall func value pattern)))
+         (setf (slot-value pattern 'pairs) (plist-set (slot-value pattern 'pairs) key nil))
          (setf pattern res)))
     ;; process :pdef key.
     (alexandria:when-let ((pos (position :pdef (keys pairs))))
