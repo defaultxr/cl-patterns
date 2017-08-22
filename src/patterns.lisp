@@ -268,12 +268,13 @@ See also: `pmono'"
              (alexandria:appendf res-pairs (list key value)))))
     (setf (slot-value pattern 'pairs) res-pairs)
     ;; handle pbind-special-post-keys
-    (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
-       :do
-       (alexandria:when-let* ((func (getf *pbind-special-post-keys* key))
-                              (res (funcall func value pattern)))
-         (setf (slot-value pattern 'pairs) (plist-set (slot-value pattern 'pairs) key nil))
-         (setf pattern res)))
+    (let ((pbind pattern))
+      (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
+         :do
+         (alexandria:when-let* ((func (getf *pbind-special-post-keys* key))
+                                (res (funcall func value pattern)))
+           (setf (slot-value pbind 'pairs) (plist-set (slot-value pbind 'pairs) key nil))
+           (setf pattern res))))
     ;; process :pdef key.
     (alexandria:when-let ((pos (position :pdef (keys pairs))))
       (pdef (nth (1+ pos) pairs) pattern))
