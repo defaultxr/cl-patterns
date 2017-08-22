@@ -158,10 +158,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 (defclass pstream (pattern)
   ((number :initform 0)
    (pattern-stack :initform (list))
-   (next-time :initarg :next-time :initform 0) ;; FIX: is this needed?
-   (history :initarg :history :initform (list))
-   (nodes :initarg :nodes :initform (list)) ;; FIX: move this to the 'task' class?
-   )
+   (history :initarg :history :initform (list)))
   (:documentation "Pattern stream class."))
 
 (defun remainingp (pattern &optional (key 'remaining))

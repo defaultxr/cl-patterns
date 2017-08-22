@@ -20,7 +20,7 @@
                             (consp symbol)))
                          (swank-backend:arglist (fdefinition (alexandria:ensure-symbol synth))))))) ;; FIX: remove this swank dependency
 
-(defun play-sc (item &optional pstream) ;; FIX: move the params stuff into its own function
+(defun play-sc (item &optional task) ;; FIX: move the params stuff into its own function
   (unless (eq (get-event-value item :type) :rest)
     (let* ((inst (instrument item))
            (synth-params (get-synth-args-list inst))
@@ -42,16 +42,16 @@
                                  list-item))
                            params)))
       (if (and (eq (get-event-value item :type) :mono)
-               (not (null pstream)))
+               (not (null task)))
           (let ((node (at time
-                        (if (and (not (null (slot-value pstream 'nodes))))
-                            (apply #'sc:ctrl (car (slot-value pstream 'nodes)) params)
+                        (if (and (not (null (slot-value task 'nodes))))
+                            (apply #'sc:ctrl (car (slot-value task 'nodes)) params)
                             (sc:synth inst params)))))
             (if (< (legato item) 1)
                 (at (+ time (dur-time (sustain item)))
-                  (setf (slot-value pstream 'nodes) (list))
+                  (setf (slot-value task 'nodes) (list))
                   (release node))
-                (setf (slot-value pstream 'nodes) (list node))))
+                (setf (slot-value task 'nodes) (list node))))
           (let ((node (at time
                         (sc:synth inst params))))
             (when (sc:has-gate-p node)

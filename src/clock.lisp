@@ -46,7 +46,8 @@
    (clock :initform *clock* :initarg :clock)
    (item :initform nil :initarg :item)
    (start-time :initform nil :initarg :start-time)
-   (next-time :initform nil :initarg :next-time)))
+   (next-time :initform nil :initarg :next-time)
+   (nodes :initarg :nodes :initform (list))))
 
 (defparameter *clock* nil)
 
@@ -78,9 +79,7 @@
             (remove-if
              (lambda (task)
                (when (eq (slot-value task 'gensym) (slot-value item 'gensym))
-                 (let ((item (slot-value task 'item)))
-                   (when (typep item 'pstream)
-                     (map nil #'release (slot-value item 'nodes))))
+                 (map nil #'release (slot-value task 'nodes))
                  t))
              tasks)))))
 
@@ -90,39 +89,44 @@
       (setf tasks nil))))
 
 (defun clock-process-task (task clock) ;; FIX: only remove patterns if they've returned NIL as their first output 4 times in a row.
-  "Process TASK on CLOCK. Processes meta-events like tempo changes, etc. Everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
+  "Process TASK on CLOCK. This function processes meta-events like tempo changes, etc, and everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
   (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
     (setf (slot-value task 'start-time) (slot-value clock 'beats)
           (slot-value task 'next-time) (slot-value clock 'beats)))
-  (let* ((item (slot-value task 'item))
-         (nv (next item)))
-    (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
-      (setf (slot-value task 'item) (as-pstream (pdef (slot-value (slot-value task 'item) 'key))))
-      (setf nv (next (slot-value task 'item)))
-      (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
-        (if (eq (get-event-value last :instrument) (get-event-value nv :instrument))
-            (setf (slot-value (slot-value task 'item) 'nodes) (slot-value item 'nodes))
-            (when (not (null (slot-value item 'nodes)))
-              (at (+ (get-event-value last :unix-time-at-start) (dur-time (sustain last)))
-                (release (car (slot-value item 'nodes)))))))
-      (setf item (slot-value task 'item)))
-    (when (not (null nv))
-      (if (eq (get-event-value nv :type) :tempo-change)
-          (if (and (numberp (get-event-value nv :tempo))
-                   (plusp (get-event-value nv :tempo)))
-              (setf (slot-value clock 'tempo) (get-event-value nv :tempo)
-                    (slot-value clock 'unix-time-at-tempo) (unix-time-byulparan)
-                    (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
-              (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
-          (progn
-            (funcall *event-output-function*
-                     (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)))
-                     (when (typep item 'pstream)
-                       item))
-            (incf (slot-value task 'next-time) (delta nv))
-            (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
-              (clock-process-task task clock)))))
-    (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
+  (restart-case
+      (let* ((item (slot-value task 'item))
+             (nv (next item)))
+        (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
+          (setf (slot-value task 'item) (as-pstream (pdef (slot-value (slot-value task 'item) 'key))))
+          (setf nv (next (slot-value task 'item)))
+          (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
+            (if (eq (get-event-value last :instrument) (get-event-value nv :instrument))
+                (when (not (null (slot-value task 'nodes)))
+                  (at (+ (get-event-value last :unix-time-at-start) (dur-time (sustain last)))
+                    (release (car (slot-value task 'nodes)))))))
+          (setf item (slot-value task 'item)))
+        (when (not (null nv))
+          (if (eq (get-event-value nv :type) :tempo-change)
+              (if (and (numberp (get-event-value nv :tempo))
+                       (plusp (get-event-value nv :tempo)))
+                  (setf (slot-value clock 'tempo) (get-event-value nv :tempo)
+                        (slot-value clock 'unix-time-at-tempo) (unix-time-byulparan)
+                        (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
+                  (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
+              (progn
+                (funcall *event-output-function*
+                         (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)))
+                         task)
+                (incf (slot-value task 'next-time) (delta nv))
+                (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
+                  (clock-process-task task clock)))))
+        (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
+          task))
+    (skip-event ()
+      :report "Skip this event, preserving the task on the clock so it can be run again."
+      nil)
+    (remove-task ()
+      :report "Remove this task from the clock."
       task)))
 
 (defun clock-tasks-names (&optional (clock *clock*))
