@@ -106,20 +106,22 @@
                     (release (car (slot-value task 'nodes)))))))
           (setf item (slot-value task 'item)))
         (when (not (null nv))
-          (if (eq (get-event-value nv :type) :tempo-change)
-              (if (and (numberp (get-event-value nv :tempo))
-                       (plusp (get-event-value nv :tempo)))
-                  (setf (slot-value clock 'tempo) (get-event-value nv :tempo)
-                        (slot-value clock 'unix-time-at-tempo) (unix-time-byulparan)
-                        (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
-                  (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv))
-              (progn
-                (funcall *event-output-function*
-                         (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)))
-                         task)
-                (incf (slot-value task 'next-time) (delta nv))
-                (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
-                  (clock-process-task task clock)))))
+          (case (get-event-value nv :type)
+            (:tempo-change
+             (if (and (numberp (get-event-value nv :tempo))
+                      (plusp (get-event-value nv :tempo)))
+                 (setf (slot-value clock 'tempo) (get-event-value nv :tempo)
+                       (slot-value clock 'unix-time-at-tempo) (unix-time-byulparan)
+                       (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
+                 (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv)))
+            (otherwise
+             (unless (eq (get-event-value nv :type) :rest)
+               (funcall *event-output-function*
+                        (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)))
+                        task))
+             (incf (slot-value task 'next-time) (delta nv))
+             (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
+               (clock-process-task task clock)))))
         (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
           task))
     (skip-event ()
@@ -137,14 +139,13 @@
 
 (defun task-should-run-now-p (task clock)
   "Determine whether TASK should be run now according to CLOCK and TASK's quant, etc."
-  (let* ((item (slot-value task 'item))
-         (quant (quant item)))
-    (if (typep item 'pstream)
-        (if (null (slot-value task 'next-time)) ;; if the pstream hasn't started yet...
-            (or (= 0 quant) ;; ...it starts when the :quant determines it.
-                (< (mod (slot-value clock 'beats) quant) (slot-value clock 'granularity)))
+  (destructuring-bind (quant &optional (phase 0) (offset 0)) (alexandria:ensure-list (quant (slot-value task 'item)))
+    (if (typep (slot-value task 'item) 'pstream)
+        (if (null (slot-value task 'next-time)) ;; if the pstream has already started, return t
+            (or (= 0 quant) ;; a quant of 0 means run immediately without waiting for a specific beat.
+                (< (abs (- (mod (slot-value clock 'beats) quant) phase)) (slot-value clock 'granularity)))
             (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity))))
-        t)))
+        t))))
 
 (defun tick (clock)
   (with-slots (tasks tasks-lock granularity tempo beats) clock

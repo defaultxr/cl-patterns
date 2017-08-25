@@ -25,7 +25,13 @@
     (let* ((inst (instrument item))
            (synth-params (get-synth-args-list inst))
            ;; (synth-params (remove-if-not (lambda (arg) (position arg (keys item))) (get-synth-args-list inst))) ;; FIX: not a good solution (i.e. what if midinote is provided by the event but the synth's key is freq? it will not be seen...)
-           (time (+ (or (raw-get-event-value item :latency) *latency*) (or (raw-get-event-value item :unix-time-at-start) (sc:now))))
+           (quant (alexandria:ensure-list (quant item)))
+           (offset (if (> (length quant) 2)
+                       (nth 2 quant)
+                       0))
+           (time (+ (or (raw-get-event-value item :latency) *latency*)
+                    (or (raw-get-event-value item :unix-time-at-start) (sc:now))
+                    offset))
            (params (if synth-params ;; make the parameters list for sc:synth.
                        (apply #'append
                               (remove-if #'null
