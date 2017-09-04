@@ -10,8 +10,8 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pshuf~ - done as ~pshuf~.
 ** ~Prand~ - done as ~prand~.
 ** ~Pxrand~ - done as ~pxrand~.
-** ~Pwrand~ - done as ~pwrand~
-** ~Pwxrand~
+** ~Pwrand~ - done as ~pwrand~.
+** ~Pwxrand~ - done as ~pwxrand~.
 ** ~Pdfsm~
 ** ~Pfpar~
 ** ~Pfsm~
@@ -19,7 +19,7 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pslide~ - done as ~pslide~.
 ** ~Ptuple~
 ** ~Pwalk~
-** ~Pindex~ - done as ~pindex~
+** ~Pindex~ - done as ~pindex~.
 ** ~Place~
 ** ~Ppatlace~ - done as ~ppatlace~.
 ** ~Pswitch~
@@ -56,7 +56,7 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Psym~
 ** ~Psync~ - see also: ~pbind~'s ~:psync~ key.
 ** ~Ptrace~ - done as ~ptrace~.
-** ~Pwrap~ - see also: ~(pnary #'wrap)~
+** ~Pwrap~ - see also: ~(pnary #'wrap)~.
 * math / randomness patterns
 ** ~Punop~ - done as ~punop~.
 ** ~Pbinop~ - done as ~pbinop~.
@@ -79,7 +79,7 @@ This list basically is a quick overview of the implementation status of various 
 * timing patterns
 ** ~Pseg~
 ** ~Penv~
-** ~Ptempo~ - see also: ~(pk :tempo)~
+** ~Ptempo~ - see also: ~(pk :tempo)~.
 ** ~Ptime~ - done as ~pbeats~. ~ptime~ in cl-patterns returns seconds, not beats.
 ** ~Pstep~
 * ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
@@ -107,4 +107,4 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pfunc~ - done as ~pfunc~.
 ** ~Pfuncn~
 ** ~Prout~
-** ~Pbjorklund~ - done as ~pbjorklund~
+** ~Pbjorklund~ - done as ~pbjorklund~.

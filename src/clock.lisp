@@ -145,7 +145,7 @@
             (or (= 0 quant) ;; a quant of 0 means run immediately without waiting for a specific beat.
                 (< (abs (- (mod (slot-value clock 'beats) quant) phase)) (slot-value clock 'granularity)))
             (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity))))
-        t))))
+        t)))
 
 (defun tick (clock)
   (with-slots (tasks tasks-lock granularity tempo beats) clock

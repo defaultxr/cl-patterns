@@ -541,6 +541,39 @@ See also: `prand', `pxrand', `pwxrand'")
              (num (random 1.0)))
         (nth (index-of-greater-than num cweights) list)))))
 
+;;; pwxrand
+
+(defpattern pwxrand (pattern)
+  (list
+   (weights :default (make-list (length list) :initial-element 1))
+   (length :default :inf)
+   (current-repeats-remaining :state t))
+  "pwxrand returns a random element from LIST weighted by respective values from WEIGHTS, for a total of LENGTH values, never repeating the same value twice in a row."
+  (assert (> (length (remove-duplicates list)) 1) (list)))
+
+(defmethod as-pstream ((pattern pwxrand))
+  (with-slots (list weights length) pattern
+    (let ((r (next length)))
+      (make-instance 'pwxrand-pstream
+                     :list list
+                     :weights weights
+                     :length r
+                     :current-repeats-remaining r))))
+
+(defmethod next ((pattern pwxrand-pstream))
+  (with-slots (list weights) pattern
+    (when (remainingp pattern 'current-repeats-remaining)
+      (decf-remaining pattern 'current-repeats-remaining)
+      (labels ((get-next ()
+                 (let* ((cweights (cumulative-list (normalized-sum weights)))
+                        (num (random 1.0))
+                        (res (nth (index-of-greater-than num cweights) list)))
+                   (when (not (null (slot-value pattern 'history)))
+                     (loop :while (eql res (pstream-nth -1 pattern))
+                        :do (setf res (get-next))))
+                   res)))
+        (get-next)))))
+
 ;;; pfunc
 ;; NOTE: This implementation doesn't provide the event as an argument to the function like the SuperCollider implementation does.
 ;; Instead, access the event using the special variable *event*.
