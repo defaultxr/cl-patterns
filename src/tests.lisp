@@ -86,6 +86,8 @@
 
 ;; pxrand (FIX)
 
+;; pwxrand (FIX)
+
 ;; pfunc
 
 (ok (next-n (pfunc (lambda () (random 9))) 9))
@@ -135,6 +137,8 @@
 ;; pwhite (FIX)
 
 ;; pbrown (FIX)
+
+;; pexprand (FIX)
 
 ;; pseries (FIX)
 

@@ -12,10 +12,10 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pxrand~ - done as ~pxrand~.
 ** ~Pwrand~ - done as ~pwrand~.
 ** ~Pwxrand~ - done as ~pwxrand~.
-** ~Pdfsm~
-** ~Pfpar~
 ** ~Pfsm~
+** ~Pdfsm~
 ** ~Ppar~
+** ~Pfpar~
 ** ~Pslide~ - done as ~pslide~.
 ** ~Ptuple~
 ** ~Pwalk~
@@ -61,10 +61,10 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Punop~ - done as ~punop~.
 ** ~Pbinop~ - done as ~pbinop~.
 ** ~Pnaryop~ - done as ~pnaryop~.
-** ~Paccum~
-** ~Pbeta~
+** ~Pwhite~ - done as ~pwhite~.
 ** ~Pbrown~ - done as ~pbrown~.
-** ~Pexprand~
+** ~Pexprand~ - done as ~pexprand~.
+** ~Pbeta~
 ** ~Pgbrown~
 ** ~Pcauchy~
 ** ~Pgauss~
@@ -75,7 +75,7 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pmeanrand~
 ** ~Ppoisson~
 ** ~Pprob~
-** ~Pwhite~ - done as ~pwhite~.
+** ~Paccum~
 * timing patterns
 ** ~Pseg~
 ** ~Penv~

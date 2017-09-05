@@ -863,6 +863,30 @@ See also: `pstutter', `pdurstutter', `parp'")
         (incf current-value (random-range (* -1 nstep) nstep))
         (setf current-value (alexandria:clamp current-value nlo nhi))))))
 
+;;; pexprand
+
+(defpattern pexprand (pattern)
+  ((lo :default 0.0001)
+   (hi :default 1)
+   (length :default :inf)
+   (current-repeats-remaining :state t :initform nil))
+  "pexprand yields LENGTH exponentially-distributed random numbers between LO and HI.")
+
+(defmethod as-pstream ((pattern pexprand))
+  (with-slots (lo hi length) pattern
+    (make-instance 'pexprand-pstream
+                   :lo (as-pstream lo)
+                   :hi (as-pstream hi)
+                   :length length
+                   :current-repeats-remaining (next length))))
+
+(defmethod next ((pattern pexprand-pstream))
+  (when (remainingp pattern 'current-repeats-remaining)
+    (decf-remaining pattern 'current-repeats-remaining)
+    (alexandria:when-let ((nlo (next (slot-value pattern 'lo)))
+                          (nhi (next (slot-value pattern 'hi))))
+      (exponential-random nlo nhi))))
+
 ;;; pseries
 
 (defpattern pseries (pattern)

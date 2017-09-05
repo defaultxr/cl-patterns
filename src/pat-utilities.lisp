@@ -90,6 +90,14 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
                        rval))))
       (random low)))
 
+(defun exponential-random (lo hi)
+  "Generate a random number between LO and HI, with exponential distribution."
+  ;; taken from supercollider/include/plugin_interface/SC_RGen.h
+  (* lo
+     (exp (* (log (/ hi
+                     lo))
+             (random 1.0)))))
+
 ;; macros / MOP stuff
 
 (defmacro create-global-dictionary (name)
