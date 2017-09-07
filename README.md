@@ -120,4 +120,4 @@ Only the SuperCollider backend is working right now. The Incudine and MIDI backe
 
 * src/incudine.lisp - code to interface cl-patterns with [incudine](https://github.com/titola/incudine).
 
-* src/midi.lisp - code to interface cl-patterns with [cl-alsaseq](https://github.com/rick-monster/cl-alsaseq).
+* src/midi.lisp - code to interface cl-patterns with [cl-alsaseq](https://github.com/defaultxr/cl-alsaseq).
