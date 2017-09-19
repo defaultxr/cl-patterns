@@ -962,7 +962,7 @@ See also: `pstutter', `pdurstutter', `parp'")
                        (get-event-value n key)
                        n)))
       (format stream "~a~a~%" prefix result)
-      result)))
+      n)))
 
 ;;; ppatlace
 
