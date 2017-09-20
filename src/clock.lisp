@@ -175,7 +175,6 @@
   (:documentation "Play an item or stop it if it is already playing. Returns T if the item will start playing, returns NIL if it will stop playing."))
 
 (defmethod play ((item event))
-  ;; (funcall *event-output-function* item)
   (clock-add item))
 
 (defmethod play ((pattern pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)

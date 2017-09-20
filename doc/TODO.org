@@ -65,3 +65,7 @@ this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide in
 ** maybe don't make it a macro so the step pattern could be a pseq, prand, etc?
 
 * ~pgatestorm~ - erogenous tones gatestorm-inspired pattern class with a mini-language for writing trigger-based patterns.
+
+* define a ~cl-patterns/basic~ system as a more minimal system that does not include clock or event special keys.
+** define ~cl-patterns/clock~ for the clock.
+** define ~cl-patterns/music-events~ for the event special keys.
