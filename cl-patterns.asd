@@ -14,6 +14,7 @@
   :serial t
   :components ((:file "package")
                (:file "src/pat-utilities")
+               (:file "src/conversions")
                (:file "src/patterns")
                (:file "src/event")
                (:file "src/scales")
@@ -23,7 +24,7 @@
 
 (asdf:defsystem #:cl-patterns/supercollider
   :name "cl-patterns/supercollider"
-  :author "modula t. defaultxr@gmail.com"
+  :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp with SuperCollider backend."
   :version "0.1"
   :depends-on (#:cl-patterns
@@ -34,7 +35,7 @@
 
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"
-  :author "modula t. defaultxr@gmail.com"
+  :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp with Incudine backend."
   :version "0.1"
   :depends-on (#:cl-patterns
@@ -44,7 +45,7 @@
 
 (asdf:defsystem #:cl-patterns/midi
   :name "cl-patterns/midi"
-  :author "modula t. defaultxr@gmail.com"
+  :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp with ALSA MIDI backend."
   :version "0.1"
   :depends-on (#:cl-patterns

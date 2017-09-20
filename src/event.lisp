@@ -1,15 +1,14 @@
 (in-package :cl-patterns)
 
-;; FIX: add 'strum'
+;; FIX: add 'strum'... maybe.
 ;; FIX: make versions of these generic functions that will work with supercollider ugens; put them in cl-collider-extensions.lisp..
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
 ;; FIX: when :freq is not provided, should use the synthdef's default value, not event's.
-;; FIX: make #'get-event-value return a second value: t if the key (or one of its translatable keys) is present in the event, nil if not.
 
 ;;; event glue
 
 (defclass event ()
-  ((other-params :initarg :other-params :initform (list)))
+  ((other-params :initarg :other-params :initform (list) :type 'list))
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
@@ -29,6 +28,9 @@
 (defparameter *latency* 0.1
   "Default latency for events.")
 
+(defparameter *event-special-slots* (list)
+  "Plist mapping event special slots to their case lists.")
+
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
   (with-slots (other-params) event
@@ -36,9 +38,15 @@
 
 (defun set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT, running any conversion functions that exist."
-  (if (fboundp (list 'setf slot))
-      (funcall (fdefinition (list 'setf slot)) value event)
-      (raw-set-event-value event slot value)))
+  (let* ((slot (alexandria:make-keyword slot))
+         (cases (getf *event-special-slots* slot)))
+    (when (cadr cases) ;; remove-keys
+      (let ((keys (remove-if (lambda (c) (eq c t)) (keys (car cases)))))
+        (loop :for i :in keys
+           :do (remove-event-value event i))))
+    (if (fboundp (list 'setf slot))
+        (funcall (fdefinition (list 'setf slot)) value event)
+        (raw-set-event-value event slot value))))
 
 (defun remove-event-value (event slot)
   "Removes SLOT from EVENT."
@@ -50,12 +58,23 @@
   (getf (slot-value event 'other-params) (alexandria:make-keyword slot)))
 
 (defun get-event-value (event slot)
-  "Return the value of SLOT in EVENT, running any necessary conversion functions."
-  (let ((slot (alexandria:ensure-symbol slot 'cl-patterns)))
-    (if (and (fboundp slot)
-             (eq 'standard-generic-function (type-of (fdefinition slot))))
-        (funcall slot event)
-        (raw-get-event-value event slot))))
+  "Get the value of SLOT in EVENT, running any necessary conversion functions.
+
+Returns 2 values: the value of the slot, and the name of the slot the value was derived from (or t if the default value of the slot was used, or nil if no value or default was provided)."
+  ;; (format t "~&~a ~a~%" event slot)
+  (let* ((slot (alexandria:make-keyword slot))
+         (cases (car (getf *event-special-slots* slot)))
+         (cases (if (not (position slot (keys cases)))
+                    (append (list slot (lambda (event) (raw-get-event-value event slot))) cases)
+                    cases))
+         (cases-keys (keys cases))
+         (key (car (or (member-if (lambda (k) (position k cases-keys)) (keys event))
+                       (member t cases-keys))))
+         (func (getf cases key)))
+    (values (if (null func)
+                nil
+                (funcall func event))
+            key)))
 
 (defun combine-events (&rest events)
   "Returns an event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events."
@@ -78,7 +97,7 @@
   (keys (slot-value item 'other-params)))
 
 (defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
-  "Return PLIST with its KEY set to VALUE. If VALUE is nil, return a plist without KEY."
+  "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
   (if (null value)
       (alexandria:remove-from-plist plist key)
       (if (getf plist key)
@@ -94,275 +113,194 @@
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
-(defmacro event-method (name default &optional documentation)
-  "Define slots for reading and writing to an event or plist."
-  `(progn
-     (defgeneric ,name (item) (:documentation ,documentation))
-     (defmethod ,name ((item event))
-       (let ((res (getf (event-plist item) ,(alexandria:make-keyword name))))
-         (if (not (null res))
-             res
-             ,default)))
-     (defmethod ,name ((item cons)) ;; unfortunately it's only possible to get the value from a plist, not set it...
-       (getf item ,(alexandria:make-keyword name)))
-     (defgeneric (setf ,name) (value item))
-     (defmethod (setf ,name) :around (value (item event))
-                (if (typep value (or 'string 'symbol)) ;; FIX
-                    (raw-set-event-value item :type :rest)
-                    (call-next-method)))
-     (defmethod (setf ,name) (value (item event))
-       (raw-set-event-value item ,(alexandria:make-keyword name) value))))
+(defmacro define-event-special-slot (name cases &optional (remove-keys t))
+  "Define a special slot with the key NAME for events (i.e. slots that take their values from other slots, or slots that have default values).
 
-(defmacro event-translation-method (destination source)
-  (let ((sdestination (symbol-name destination))
-        (ssource (symbol-name source)))
-    `(progn
-       (defgeneric ,destination (item))
-       (defmethod ,destination ((item event))
-         (,(intern (string-upcase (concatenate 'string ssource "-" sdestination))) (,source item)))
-       (defmethod (setf ,destination) (value (item event))
-         (raw-set-event-value item ',source (,(intern (string-upcase (concatenate 'string sdestination "-" ssource))) value))))))
+CASES is a plist of cases mapping event slot names to forms. When `get-event-value' is called on an event for the NAME slot, then the event is tested for the keys of CASES in the order they're listed. The associated form of the first key of CASES that exists in the event is evaluated to get the value of that call to `get-event-value'.
+
+If no case is provided with a KEY that's the same as NAME, one is automatically added at the start with a form that just returns the value of the event's NAME slot. If a case is provided with t as its KEY, that case is always run when found. This allows you to set a default value for the slot if none of the other keys from CASES exist in the event.
+
+REMOVE-KEYS is a list of keys to remove from the event when the NAME key is being set with `set-event-value'. If t, all keys in CASES will be removed from the event.
+
+Example:
+(define-event-special-slot amp (:db (db-amp (raw-get-event-value event :db))
+                                t 0.5))
+
+This defines the amp slot for events. Since the :amp KEY is implied, it doesn't need to be specified in the CASES. Thus if the event already has an :amp key, its value will be used by default. If no :amp key exists in the event, then the :db FUNC is run if the :db key exists. If neither :amp nor :db exist in the event, then the t key is run, giving a default of 0.5."
+  ;; FIX: does not handle cases with multiple keys. (i.e. (((:foo :bar) 5)))
+  (let ((name (alexandria:make-keyword name)))
+    (unless (position name (keys cases))
+      (setf cases (append (list name (list 'raw-get-event-value 'event name)) cases)))
+    `(setf *event-special-slots*
+           (plist-set *event-special-slots* ,name (list
+                                                   (list ,@(loop :for (key value) :on cases :by #'cddr
+                                                              :append (list
+                                                                       (if (eq key t)
+                                                                           key
+                                                                           (alexandria:make-keyword key))
+                                                                       `(lambda (event)
+                                                                          (declare (ignorable event))
+                                                                          ,value))))
+                                                   (list ,@(alexandria:ensure-list remove-keys)))))))
 
 ;;; instrument/group/out
 
-(event-method instrument :default)
+(define-event-special-slot instrument (t :default))
+
+(defgeneric instrument (item))
 
 (defmethod instrument ((item null)) nil)
 
-(event-method group 0)
+(defmethod instrument ((item event))
+  (get-event-value item :instrument))
 
-(event-method out 0)
+(define-event-special-slot group (t 0))
+
+(define-event-special-slot out (t 0))
 
 ;;; amp/pan
 
-(event-method amp 0.5)
+(define-event-special-slot amp (:db (db-amp (raw-get-event-value event :db))
+                                    t 0.5))
 
-(event-translation-method db amp)
+(define-event-special-slot db (:amp (amp-db (raw-get-event-value event :amp))
+                                    :t (amp-db 0.5)))
 
-(defun amp-db (amp)
-  "Convert amplitude to dB."
-  (* 20 (log amp 10)))
+(define-event-special-slot pan (t 0))
 
-(defun db-amp (db)
-  "Convert dB to amplitude."
-  (expt 10 (* db 0.05)))
+;;; dur/delta
 
-(event-method pan 0)
+(define-event-special-slot tempo (t (if (and (boundp '*clock*) (not (null *clock*)))
+                                         (tempo *clock*)
+                                         1)))
 
-;;; dur
-
-(event-method tempo (if (and (boundp '*clock*) (not (null *clock*)))
-                        (tempo *clock*)
-                        1))
+(define-event-special-slot delta (:dur (get-event-value event :dur)
+                                       t (get-event-value event :dur))
+  nil)
 
 (defgeneric delta (item))
 
 (defmethod delta ((item event))
-  (or (raw-get-event-value item :delta)
-      (dur item)))
+  (get-event-value item :delta))
 
 (defgeneric (setf delta) (value item))
 
 (defmethod (setf delta) (value (item event))
-  (raw-set-event-value item :delta value))
+  (set-event-value item :delta value))
+
+(define-event-special-slot dur (:delta (raw-get-event-value event :delta)
+                                       t 1)
+  nil)
 
 (defgeneric dur (item))
 
 (defmethod dur ((item event))
-  (or (raw-get-event-value item :dur)
-      1))
+  (get-event-value item :dur))
 
 (defgeneric (setf dur) (value item))
 
 (defmethod (setf dur) (value (item event))
-  (raw-set-event-value item :dur value))
+  (set-event-value item :dur value))
+
+;; sustain/legato
+
+(define-event-special-slot sustain (t (* (get-event-value event :legato)
+                                         (get-event-value event :dur)))
+  (:legato))
 
 (defgeneric sustain (item))
 
 (defmethod sustain ((item event))
-  (or (raw-get-event-value item :sustain)
-      (* (legato item)
-         (dur item))))
+  (get-event-value item :sustain))
 
 (defgeneric (setf sustain) (value item))
 
 (defmethod (setf sustain) (value (item event))
-  (remove-event-value item :legato)
-  (raw-set-event-value item :sustain value))
+  (set-event-value item :sustain value))
 
-(event-method timing-offset 0)
+(define-event-special-slot timing-offset (t 0))
+
+(define-event-special-slot legato (:sustain (* (raw-get-event-value event :sustain)
+                                               (get-event-value event :dur))
+                                            t 0.8)
+  (:sustain))
 
 (defgeneric legato (item))
 
 (defmethod legato ((item event))
-  (or (raw-get-event-value item :legato)
-      (when (and (raw-get-event-value item :sustain) (raw-get-event-value item :dur))
-        (* (sustain item)
-           (dur item)))
-      0.8))
+  (get-event-value item :legato))
 
 (defgeneric (setf legato) (value item))
 
 (defmethod (setf legato) (value (item event))
-  (remove-event-value item :sustain)
-  (raw-set-event-value item :legato value))
+  (set-event-value item :legato value))
 
-(defun delta-dur (delta)
-  delta)
+;;; quant
 
-(defun dur-delta (dur)
-  dur)
+(define-event-special-slot quant (t 1))
 
-(defun dur-time (dur &optional tempo)
-  "Convert duration in beats to time in seconds according to TEMPO in beats per second."
-  (/ dur (or tempo
-             (and (boundp '*clock*) (not (null *clock*)) (tempo *clock*))
-             1)))
+(defgeneric quant (item))
 
-(defun time-dur (time &optional tempo)
-  "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
-  (* time (or tempo
-              (and (boundp '*clock*) (not (null *clock*)) (tempo *clock*))
-              1)))
+(defmethod quant ((item event))
+  (get-event-value item :quant))
 
-(event-method quant 1)
+;;; freq/midinote/degree/octave/root/scale
 
-;;; freq
-
-(defun remove-freq-info (event)
-  (remove-event-value event :freq)
-  (remove-event-value event :midinote)
-  (remove-event-value event :degree))
-
-(defun get-freq-info (event)
-  "Return a keyword representing the type of freq info the event currently holds."
-  (let ((keys (keys event)))
-    (or (and (position :freq keys) :freq)
-        (and (position :midinote keys) :midinote)
-        (and (position :degree keys) :degree)
-        :freq)))
-
-(event-method freq 440)
+(define-event-special-slot freq (:midinote (midinote-freq (get-event-value event :midinote))
+                                           :degree (degree-freq (get-event-value event :degree)
+                                                       (get-event-value event :root)
+                                                       (get-event-value event :octave)
+                                                       (get-event-value event :scale))
+                                           t 440)
+  (:midinote :degree :root :octave))
 
 (defmethod freq ((item event))
-  (case (get-freq-info item)
-    (:freq (or (raw-get-event-value item :freq) 440))
-    (:midinote (midinote-freq (get-event-value item :midinote)))
-    (:degree (degree-freq (get-event-value item :degree)
-                          (get-event-value item :root)
-                          (get-event-value item :octave)
-                          (get-event-value item :scale)))))
+  (get-event-value item :freq))
 
-(defmethod (setf freq) (value (item event)) 
-  (when (position :octave (keys item))
-    (set-event-value item :octave (truncate (/ (freq-midinote value) 12))))
-  (remove-freq-info item)
-  (raw-set-event-value item :freq value))
+(defmethod (setf freq) (value (item event))
+  (set-event-value item :freq value))
 
-(defun midinote-freq (midinote)
-  "Convert a midi note number to a frequency."
-  (* 440 (expt 2 (/ (- midinote 69) 12))))
-
-(defun freq-midinote (freq)
-  "Convert a frequency to a midi note number."
-  (+ 69 (* 12 (log (/ freq 440) 2))))
-
-(event-method midinote 69)
+(define-event-special-slot midinote (:freq (freq-midinote (get-event-value event :freq))
+                                           :degree (degree-midinote (get-event-value event :degree)
+                                                                    (get-event-value event :root)
+                                                                    (get-event-value event :octave)
+                                                                    (get-event-value event :scale))
+                                           t 69)
+  (:freq :degree :root :octave))
 
 (defmethod midinote ((item event))
-  (case (get-freq-info item)
-    (:freq (freq-midinote (get-event-value item :freq)))
-    (:midinote (raw-get-event-value item :midinote))
-    (:degree (degree-midinote (get-event-value item :degree)
-                              (get-event-value item :root)
-                              (get-event-value item :octave)
-                              (get-event-value item :scale)))))
+  (get-event-value item :midinote))
 
 (defmethod (setf midinote) (value (item event))
-  (when (position :octave (keys item))
-    (set-event-value item :octave (truncate (/ value 12))))
-  (remove-freq-info item)
-  (raw-set-event-value item :midinote value))
+  (set-event-value item :midinote value))
 
-(event-method degree 5)
+;; FIX: this can return NIL. i.e. (degree (event :midinote 0))
+(define-event-special-slot degree (:freq (midinote-degree (freq-midinote (get-event-value event :freq))
+                                                          (get-event-value event :root) (get-event-value event :octave) (get-event-value event :scale))
+                                         :midinote (midinote-degree (get-event-value event :midinote)
+                                                                    (get-event-value event :root) (get-event-value event :octave) (get-event-value event :scale))
+                                         t 5)
+  (:freq :midinote))
 
-(defmethod degree ((item event)) ;; FIX: this can return NIL. i.e. (degree (event :midinote 0))
-  (let ((root (get-event-value item :root))
-        (octave (get-event-value item :octave))
-        (scale (get-event-value item :scale)))
-    (case (get-freq-info item)
-      (:freq (midinote-degree (freq-midinote (get-event-value item :freq))
-                              root octave scale))
-      (:midinote (midinote-degree (get-event-value item :midinote)
-                                  root octave scale))
-      (:degree (raw-get-event-value item :degree)))))
+(defmethod degree ((item event))
+  (get-event-value item :degree))
 
 (defmethod (setf degree) (value (item event))
-  (remove-freq-info item)
-  (raw-set-event-value item :degree value))
+  (set-event-value item :degree value))
 
-(event-method root 0)
+(define-event-special-slot root (t 0) ;; FIX: can we derive this when :freq, :midinote, :degree, etc are available?
+  (:freq :midinote))
 
 (defmethod (setf root) (value (item event))
-  (raw-set-event-value item :root value))
+  (set-event-value item :root value))
 
-(event-method octave 5)
+(define-event-special-slot octave (:freq (freq-octave (raw-get-event-value event :freq))
+                                         :midinote (midinote-octave (raw-get-event-value event :midinote))
+                                         t 5)
+  (:freq :midinote))
 
 (defmethod (setf octave) (value (item event))
-  (raw-set-event-value item :octave value))
+  (set-event-value item :octave value))
 
-(defun freq-octave (freq)
-  (truncate (/ (freq-midinote freq) 12)))
-
-(event-method scale :major)
-
-(defun midinote-degree (midinote &optional root octave scale)
-  (flet ((index-of-greater-than (n list) ;; FIX
-           ;; LIST should be a sorted list.
-           (position n (sort list #'<=) :test #'<=))))
-  (let* ((degrees (scale-degrees (scale (scale (or scale :major)))))
-         (octave (or octave (truncate (/ midinote 12))))
-         (diff (- midinote (* octave 12)))
-         (root (or root (- midinote ;; FIX
-                           (position diff degrees)))) ;; FIX
-         )
-    (position midinote (mapcar (lambda (n) (+ (* octave 12) root n))
-                               degrees))))
-
-(defun note-midinote (note &optional root octave scale)
-  (let ((root (or root (if (and (boundp '*event*) (not (null *event*)))
-                           (get-event-value *event* 'root)
-                           0)))
-        (octave (or octave (if (and (boundp '*event*) (not (null *event*)))
-                               (get-event-value *event* 'octave)
-                               5)))
-        (scale (scale (or scale (if (and (boundp '*event*) (not (null *event*)))
-                                    (get-event-value *event* 'scale)
-                                    :major)))))
-    (+ (* (+ (/ (+ note root)
-                (length (tuning-tuning (tuning (scale-tuning scale)))))
-             octave
-             -5)
-          (* 12 (log (tuning-octave-ratio (tuning (scale-tuning scale))) 2)))
-       60)))
-
-(defun degree-note (degree &optional (scale :major))
-  (let* ((scale (scale (or scale :major)))
-         (degrees (scale-degrees scale)))
-    (+ (nth-wrap degree degrees)
-       (* (length (tuning-tuning (tuning (scale-tuning scale))))
-          (floor (/ degree (length degrees)))))))
-
-(defun degree-midinote (degree &optional root octave scale)
-  (note-midinote (degree-note degree scale) root octave scale))
-
-(defun degree-freq (degree &optional root octave scale)
-  (midinote-freq (degree-midinote degree root octave scale)))
-
-(defun ratio-midi (ratio)
-  (* 12 (log ratio 2)))
-
-(defun midi-ratio (midi)
-  (expt 2 (/ midi 12)))
-
-(event-method other-params (list))
+(define-event-special-slot scale (t :major)
+  (:freq :midinote))

@@ -1,5 +1,7 @@
 (in-package :cl-patterns)
 
+;; FIX: `at' and `release' currently have to be defined here since clock.lisp uses them.
+
 (defmacro at (time &body body)
   `(sc:at ,time ,@body))
 
@@ -23,8 +25,11 @@
 (defun play-sc (item &optional task) ;; FIX: move the params stuff into its own function
   (unless (eq (get-event-value item :type) :rest)
     (let* ((inst (instrument item))
-           (synth-params (get-synth-args-list inst))
-           ;; (synth-params (remove-if-not (lambda (arg) (position arg (keys item))) (get-synth-args-list inst))) ;; FIX: not a good solution (i.e. what if midinote is provided by the event but the synth's key is freq? it will not be seen...)
+           (synth-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the synth's defaults, NOT the event's.
+                                      (multiple-value-bind (value key) (get-event-value item arg)
+                                        (declare (ignore value))
+                                        (eq key t)))
+                                    (get-synth-args-list inst)))
            (quant (alexandria:ensure-list (quant item)))
            (offset (if (> (length quant) 2)
                        (nth 2 quant)
@@ -42,13 +47,14 @@
                                                                           1
                                                                           val)))))))
                        (copy-list (event-plist item))))
-           (params (mapcar (lambda (list-item) ;; replace buffers in the parameters list with their buffer numbers.
-                             (if (typep list-item 'sc::buffer)
-                                 (sc:bufnum list-item)
-                                 list-item))
+           (params (mapcar (lambda (list-item) ;; replace buffers, buses, etc in the parameters list with their numbers.
+                             (typecase list-item
+                               (sc::buffer (sc:bufnum list-item))
+                               (sc::bus (sc:busnum list-item))
+                               (otherwise list-item)))
                            params)))
       (if (and (eq (get-event-value item :type) :mono)
-               (not (null task)))
+               (not (null task))) ;; if the user calls #'play manually, then we always start a note instead of checking if a node already exists.
           (let ((node (at time
                         (if (and (not (null (slot-value task 'nodes))))
                             (apply #'sc:ctrl (car (slot-value task 'nodes)) params)
