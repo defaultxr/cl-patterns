@@ -75,4 +75,4 @@
     `(defsynth ,name ,params
        ,@body)))
 
-(export '(synth release get-synthdef-metadata get-synthdef-parameters get-synthdef-parameter-names has-gate-p defsynth* ndef ndef-bus) :sc)
+(export '(synth release get-synthdef-metadata get-synthdef-parameters get-synthdef-parameter-names has-gate-p defsynth*) :sc)
