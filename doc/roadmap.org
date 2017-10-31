@@ -8,7 +8,8 @@ This is just a general overview of where this library is going. For more specifi
 
 ** clean up ~clock.lisp~ (use univeral time, etc)
 
-** clean up ~event.lisp~ (improve ~event-method~, ~event-translation-method~, the ~event~ class, etc)
+** DONE clean up ~event.lisp~ (improve ~event-method~, ~event-translation-method~, the ~event~ class, etc)
+CLOSED: [2017-10-25 Wed 18:49]
 
 ** DONE improve ~defpattern~ macro
 CLOSED: [2017-07-06 Thu 03:07]
@@ -25,7 +26,7 @@ CLOSED: [2017-07-06 Thu 03:07]
 
 ** remove all "FIX"es in the code
 
-** make lists in events
+** properly handle lists in events (i.e. multi-channel expansion)
 
 ** get on quicklisp
 

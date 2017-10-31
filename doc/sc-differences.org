@@ -10,3 +10,18 @@ i.e. amp/db, dur/delta, sustain/legato, etc
 ** all pstreams (pattern streams) keep a history of previous values that can be referred back to at any time using `pstream-nth`
 ** pwrand/pwxrand - weights are automatically normalized (FIX)
 ** pdurstutter - works on event streams as well as number streams.
+** non-patterns converted to pstreams only return one value:
+#+BEGIN_SRC lisp
+(defparameter *foo* (as-pstream 1))
+
+(next-n *foo* 3) ;=> (1 NIL NIL)
+#+END_SRC
+** patterns that have ~repeat~ or ~length~ arguments accept any pattern as "gate" patterns:
+#+BEGIN_SRC lisp
+  (let* ((foo 1)
+         (bar (as-pstream (pseq '(1 2 3) (pfunc (lambda () foo))))))
+    (print (next-n bar 10)) ;=> (1 2 3 1 2 3 1 2 3 1)
+    (setf foo 0)
+    (print (next-n bar 3)) ;=> (2 3 NIL)
+    )
+#+END_SRC

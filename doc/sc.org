@@ -2,7 +2,7 @@
 
 This is a listing of some of the pattern classes from SuperCollider and a few of the quarks I had installed. I'm planning on making equivalents of many of these for cl-patterns, but as I go through this list I might skip some of the more esoteric or less useful ones, since I didn't really go through them too in-depth when I copied the list from SC.
 
-This list basically is a quick overview of the implementation status of various pattern classes from SuperCollider, so if you're familiar with SC then hopefully this will be helpful. For more in-depth information, I recommend reading the "SC-differences.md" file instead, which will give more details about the ways cl-patterns differs from SuperCollider.
+This list basically is a quick overview of the implementation status of various pattern classes from SuperCollider, so if you're familiar with SC then hopefully this will be helpful. For more in-depth information, I recommend reading the [[file:sc-differences.org][sc-differences.org]] file instead, which will give more details about the ways cl-patterns differs from SuperCollider.
 
 * list patterns
 ** ~Pseq~ - done as ~pseq~.
