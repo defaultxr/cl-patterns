@@ -110,7 +110,7 @@ The Incudine backend is a stub and has very limited (if any) functionality.
 
 ** src
 
-- src/pat-utilities.lisp - random utilities that don't fit anywhere else. also some notes for myself in case i forget to use ~alexandria~.
+- src/utility.lisp - general utility functions.
 - src/patterns.lisp - the patterns themselves. includes the ~pattern~ superclass as well as ~pbind~ and ~pseq~, ~pk~, etc.
 - src/event.lisp - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - src/clock.lisp - the scheduling functionality to make sure that each event is played at the proper time.

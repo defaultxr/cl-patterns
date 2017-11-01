@@ -13,7 +13,7 @@
                )
   :serial t
   :components ((:file "package")
-               (:file "src/pat-utilities")
+               (:file "src/utility")
                (:file "src/conversions")
                (:file "src/patterns")
                (:file "src/event")
