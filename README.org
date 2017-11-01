@@ -117,7 +117,7 @@ The Incudine backend is a stub and has very limited (if any) functionality.
 - src/scales.lisp - musical pitch (scales/tuning) data and structs.
 - src/readtable.lisp - defines a named-readtable for optional syntax sugar.
 
-- src/tests.lisp - test suite using ~prove~.
+- src/tests.lisp - test suite using [[https://github.com/fukamachi/prove][prove]].
 
 - src/supercollider.lisp - code to interface cl-patterns with the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
 - src/cl-collider-extensions.lisp - a few additions to the cl-collider library for ease of use and cl-pattern interfacing.
