@@ -80,7 +80,7 @@ This list basically is a quick overview of the implementation status of various 
 ** ~Pseg~
 ** ~Penv~
 ** ~Ptempo~ - see also: ~(pk :tempo)~.
-** ~Ptime~ - done as ~pbeats~. ~ptime~ in cl-patterns returns seconds, not beats.
+** ~Ptime~ - done as ~pbeats~.
 ** ~Pstep~
 * ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
 ** ~PSinOsc~

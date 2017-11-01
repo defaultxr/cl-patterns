@@ -1384,53 +1384,38 @@ See also: `pr', `pstutter'")
      (slot-value pattern 'start-beat))
   (slot-value pattern 'beats))
 
-;;; ptime (FIX)
+;;; psinosc (FIX)
 
-(defpattern ptime (pattern)
-  ((start-time :state t :initform 0))
-  "ptime yields the amount of time in seconds since its embedding in the parent stream.")
+;; (defpattern psinosc (pattern)
+;;   ((freq :default 1)
+;;    (phase :default 0)
+;;    (mul :default 1)
+;;    (add :default 0)
+;;    (last-beat-tracked :state t :initform nil)
+;;    (current-phase :state t :initform 0)))
 
-(defmethod as-pstream ((pattern ptime))
-  (make-instance 'ptime-pstream
-                 :start-time (get-internal-real-time)))
+;; ;; (defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
+;; ;;   (make-instance 'psinosc
+;; ;;                  :freq freq
+;; ;;                  :phase phase
+;; ;;                  :mul mul
+;; ;;                  :add add))
 
-(defmethod next ((pattern ptime-pstream))
-  (/ (- (get-internal-real-time)
-        (slot-value pattern 'start-time))
-     1000))
+;; (defmethod as-pstream ((pattern psinosc))
+;;   (make-instance 'psinosc-pstream
+;;                  :freq (slot-value pattern 'freq)
+;;                  :phase (slot-value pattern 'phase)
+;;                  :mul (slot-value pattern 'mul)
+;;                  :add (slot-value pattern 'add)))
 
-;;; psinosc
-
-(defpattern psinosc (pattern)
-  ((freq :default 1)
-   (phase :default 0)
-   (mul :default 1)
-   (add :default 0)
-   (last-beat-tracked :state t :initform nil)
-   (current-phase :state t :initform 0)))
-
-;; (defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
-;;   (make-instance 'psinosc
-;;                  :freq freq
-;;                  :phase phase
-;;                  :mul mul
-;;                  :add add))
-
-(defmethod as-pstream ((pattern psinosc))
-  (make-instance 'psinosc-pstream
-                 :freq (slot-value pattern 'freq)
-                 :phase (slot-value pattern 'phase)
-                 :mul (slot-value pattern 'mul)
-                 :add (slot-value pattern 'add)))
-
-(defmethod next ((pattern psinosc-pstream))
-  (with-slots (freq phase mul add last-beat-tracked current-phase) pattern
-    (progn
-      (when last-beat-tracked
-        (incf current-phase (- (slot-value *clock* 'beats) last-beat-tracked)))
-      (prog1
-          (+ (next add) (* (next mul) (sin (+ current-phase phase))))
-        (setf last-beat-tracked (slot-value *clock* 'beats))))))
+;; (defmethod next ((pattern psinosc-pstream))
+;;   (with-slots (freq phase mul add last-beat-tracked current-phase) pattern
+;;     (progn
+;;       (when last-beat-tracked
+;;         (incf current-phase (- (slot-value *clock* 'beats) last-beat-tracked)))
+;;       (prog1
+;;           (+ (next add) (* (next mul) (sin (+ current-phase phase))))
+;;         (setf last-beat-tracked (slot-value *clock* 'beats))))))
 
 ;;; pindex
 
