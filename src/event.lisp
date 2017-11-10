@@ -61,7 +61,8 @@
   "Get the value of SLOT in EVENT, running any necessary conversion functions.
 
 Returns 2 values: the value of the slot, and the name of the slot the value was derived from (or t if the default value of the slot was used, or nil if no value or default was provided)."
-  ;; (format t "~&~a ~a~%" event slot)
+  (when (null event)
+    (return-from get-event-value (values nil nil)))
   (let* ((slot (alexandria:make-keyword slot))
          (cases (car (getf *event-special-slots* slot)))
          (cases (if (not (position slot (keys cases)))
@@ -304,3 +305,7 @@ This defines the amp slot for events. Since the :amp KEY is implied, it doesn't 
 
 (define-event-special-slot scale (t :major)
   (:freq :midinote))
+
+;;; remaining
+
+(define-event-special-slot remaining (t :inf))

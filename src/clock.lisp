@@ -7,12 +7,14 @@
 
 (defmacro at (time &body body)
   "Placeholder method; override this in cl-patterns' audio backend."
-  (warn "This is the generic at method; you should load a backend for cl-patterns before playing.")
+  (declare (ignore time body))
+  ;; (format t "This is the generic at method; you should load a backend for cl-patterns before playing.")
   nil)
 
 (defun release (node)
   "Placeholder method; override this in cl-patterns' audio backend."
-  (warn "This is the generic release method; you should load a backend for cl-patterns before playing.")
+  (declare (ignore node))
+  ;; (format t "This is the generic release method; you should load a backend for cl-patterns before playing.")
   nil)
 
 (defclass clock ()

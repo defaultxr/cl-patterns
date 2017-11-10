@@ -2,16 +2,22 @@
   (:nicknames :clp)
   (:use #:cl)
   (:export
-   #:plist-keys
+   #:pattern
    #:as-pstream
    #:next
    #:next-n
    #:next-upto-n
+   #:pstream
    #:pstream-nth
+   #:pstream-nth-future
+   #:beats-elapsed
 
    #:defpattern
+   #:*max-pattern-yield-length*
    
    #:pbind
+   #:pb
+   #:pmono
 
    ;; NOTE: pattern classes defined with defpattern are automatically exported.
 
@@ -24,6 +30,7 @@
 
    #:event
    #:*event*
+   #:keys
    #:*event-output-function*
    #:combine-events
 
