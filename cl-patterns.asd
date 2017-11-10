@@ -2,7 +2,7 @@
   :name "cl-patterns"
   :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp."
-  :version "0.2"
+  :version "0.3"
   :depends-on (#:alexandria
                #:bordeaux-threads
                #:closer-mop
@@ -26,7 +26,7 @@
   :name "cl-patterns/supercollider"
   :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp with SuperCollider backend."
-  :version "0.1"
+  :version "0.3"
   :depends-on (#:cl-patterns
                #:sc)
   :serial t
@@ -37,7 +37,7 @@
   :name "cl-patterns/incudine"
   :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp with Incudine backend."
-  :version "0.1"
+  :version "0.3"
   :depends-on (#:cl-patterns
                #:incudine)
   :serial t
@@ -47,7 +47,7 @@
   :name "cl-patterns/midi"
   :author "modula t. <defaultxr@gmail.com>"
   :description "SuperCollider-inspired patterns library for Common Lisp with ALSA MIDI backend."
-  :version "0.1"
+  :version "0.3"
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t

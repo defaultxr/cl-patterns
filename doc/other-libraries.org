@@ -2,7 +2,7 @@
 
 This document is a list of other libraries that you may find useful in conjunction with cl-patterns, and libraries with similar goals.
 
-* Lisp
+* Common Lisp
 
 ** [[https://github.com/byulparan/cl-collider][cl-collider]]
 The primary backend that cl-patterns was developed against, a Lisp interface to the SuperCollider sound server.
@@ -16,6 +16,9 @@ Another supported backend for cl-patterns. Written from the ground up and design
 ** [[https://github.com/vseloved/rutils][rutils]]
 "Radical Utilities for Common Lisp". Extends Common Lisp with many additional functions and syntactic sugar, but unlike CL21 it remains backwards compatible with standard Common Lisp.
 
+** [[https://github.com/rongarret/ergolib][ergolib]]
+"A library designed to make programming in Common Lisp easier"
+
 ** [[https://common-lisp.net/project/mcclim/][McCLIM]]
 A native Lisp graphical user interface library. Uses Lisp idioms and ideas for the development of user interaction modes. May be useful for visualization of pattern or other musical data, and interaction with the Lisp process.
 
@@ -25,7 +28,7 @@ A native Lisp graphical user interface library. Uses Lisp idioms and ideas for t
 ** [[https://github.com/vydd/sketch][Sketch]]
 Common Lisp environment for the creation of visual art, game prototyping, etc. Similar in operation to the [[https://processing.org/][Processing]] (Java) library.
 
-* Non-Lisp
+* Non-CL
 
 ** [[https://supercollider.github.io/][SuperCollider]]
 Audio engine, programming language and IDE. Includes the original patterns system that cl-patterns was based on, as well as scsynth, the primary backend cl-patterns was written for.
@@ -35,3 +38,6 @@ Pattern sequencing library written in Haskell. Also uses SuperCollider as a back
 
 ** [[http://www.pawfal.org/fluxus/][Fluxus]]
 Racket (Scheme-like)-based environment for the live coding of 3D graphics and games. Includes functionality for simple analysis of audio and functions to handle OSC messages.
+
+** [[https://overtone.github.io/][Overtone]]
+Audio live coding environment in Clojure using the SuperCollider server as a backend.
