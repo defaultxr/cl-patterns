@@ -1,0 +1,48 @@
+#+TITLE: Features
+
+This is a listing of notable features of cl-patterns. For a listing of new features relative to SuperCollider's patterns system, see [[file:sc-differences.org][sc-differences.org]].
+
+- Multiple sound server backends are supported:
+  - SuperCollider (via the [[https://github.com/byulparan/cl-collider][cl-collider]] library)
+  - Incudine
+  - ALSA MIDI
+- Event keys that are different representations of the same concept are automatically converted between each other. For example, if you set the ~amp~ of an event and then try to get its ~db~, cl-patterns converts the amplitude to decibels for you:
+#+BEGIN_SRC lisp
+  (db (event :amp 0.5))
+  ;=> -6.0205994
+  (amp (event :db -3))
+  ;=> 0.70794576
+#+END_SRC
+See [[file:event-special-keys.org][event-special-keys.org]] for a full listing of such keys.
+- pbind has "special" keys which alter the functionality of the pattern or pstream.
+For consistency, they're typically named after other patterns, i.e. ~pfin~/~remaining~, ~pfindur~, ~psync~, etc.
+See [[file:event-special-keys.org][event-special-keys.org]] for a full listing.
+- It's possible to "inject" an event's values into another from inside a pattern. For example:
+#+BEGIN_SRC lisp
+  (next-n (pbind :foo (pseq '(1 2 3 4))
+                 :inject (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
+          3)
+  ((EVENT :FOO 1)
+   (EVENT :FOO 2 :BAR 1 :BAZ 2)
+   (EVENT :FOO 3 :QUX 3))
+#+END_SRC
+- all pstreams keep a history of previous values that can be referred back to at any time using ~pstream-nth~.
+- patterns that have ~repeat~ or ~length~ arguments accept any pattern as "gate" patterns:
+#+BEGIN_SRC lisp
+  (let* ((foo 1)
+         (bar (as-pstream (pseq '(1 2 3) (pfunc (lambda () foo))))))
+    (print (next-n bar 10)) ;=> (1 2 3 1 2 3 1 2 3 1)
+    (setf foo 0)
+    (print (next-n bar 3)) ;=> (2 3 NIL)
+    )
+#+END_SRC
+- patterns keep track of their "parents":
+#+BEGIN_SRC lisp
+  (defparameter *pat* (pbind :foo (pseq '(1 2 3))))
+
+  (defparameter *pseq* (getf (slot-value *pat* 'cl-patterns::pairs) :foo))
+
+  (parent-pattern *pseq*) ;=> #<PBIND {1003480F53}>
+
+  (eq *pat* (parent-pattern *pseq*)) ;=> T
+#+END_SRC

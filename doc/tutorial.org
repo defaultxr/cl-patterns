@@ -1,0 +1,67 @@
+#+TITLE: cl-patterns Tutorial
+
+* Introduction
+
+cl-patterns is a library for creating and manipulating patterns. "Patterns" in this case refers to a set of functions and classes provided by the library that produce numeric or compound output. "Pattern" can also refer to the structures built out of these functions.
+
+Though it can be used for any purpose, cl-patterns is primarily written with music composition and performance in mind. In this regard, it can be thought of as a sequencing library, however unlike most step sequencers or piano rolls, cl-patterns offers much more flexibility, and can be used to define far more complex behaviors.
+
+cl-patterns is based on and inspired by SuperCollider's patterns system; however, there have been many changes and improvements to it such that experienced SuperCollider users may need to re-learn some things, and perhaps break some old habits.
+
+If you're familiar with SuperCollider's patterns, you may find it useful to look at [[file:sc-differences.org][sc-differences.org]] instead. This document is meant for people who are not familiar with SuperCollider's patterns system at all, and need a general overview of what it is and how to use it.
+
+* Basics
+
+As mentioned above, this library is based around the idea of "patterns", which are basically functions that produce a sequence of related or unrelated outputs.
+
+Outputs typically take the form of numbers or "events". An event is similar to a hash table or dictionary, but specialized for cl-patterns' purposes with specific get/set methods that wrap extra functionality. Events are usually used to represent actions for a music synthesizer to take, such as playing a note or changing a parameter.
+
+The simplest pattern class provided by cl-patterns is probably ~pseq~, which accepts a list and a repeat count as its arguments and returns successive elements from the list as its outputs. To create an instance of ~pseq~, we would write something like the following:
+
+#+BEGIN_SRC lisp
+  (pseq '(1 2 3) 2)
+#+END_SRC
+
+This creates a pseq with ~(1 2 3)~ as its list, and ~2~ as its repeat count. After you type that into the REPL, you should see the pseq instance returned. To get the values from a pattern, we can use functions like ~next-n~:
+
+#+BEGIN_SRC lisp
+  (next-n (pseq '(1 2 3) 2) 7) ;=> (1 2 3 1 2 3 NIL)
+#+END_SRC
+
+~next-n~ takes a source to pull values from (in this case, our pseq) and an integer representing the number of results we want from it. As you can see, it returns a list of the results from the pseq: the list repeated twice, and then a ~NIL~, which is the value returned by patterns after they've finished their output.
+
+When called like this, ~next-n~ is doing a lot of things "under the hood". Most obviously, what it's doing is calling ~next~ repeatedly. We can also call ~next~ ourselves like so:
+
+#+BEGIN_SRC lisp
+  (next (pseq '(1 2 3) 2)) ;=> 1
+#+END_SRC
+
+And when we do so, we get only one output, as expected. In this case, it's ~1~, the first element of the pseq's list. However, if we evaluate the same line again, we'll keep getting ~1~. That means ~next-n~ must be doing more than just calling ~next~ if it's able to get more results from the pseq. And indeed; ~next-n~ also calls ~as-pstream~ "under the hood". We can do the same:
+
+#+BEGIN_SRC lisp
+  (as-pstream (pseq '(1 2 3) 2))
+#+END_SRC
+
+When we run this line of code, we get a pstream object instead of a pattern. Now, if we call ~next~ repeatedly on this pstream, we'll get all of the outputs:
+
+#+BEGIN_SRC lisp
+  (defparameter pstr (as-pstream (pseq '(1 2 3) 2)))
+
+  (next pstr) ;=> 1
+
+  (next pstr) ;=> 2
+
+  (next pstr) ;=> 3
+
+  ;; ...and so on.
+#+END_SRC
+
+This is because patterns are basically "templates" that define behavior; they don't keep track of execution state. Only pstreams keep track of execution state.
+
+* More Patterns
+
+There are, of course, many other types of patterns aside from pseq.
+
+* Events
+
+cl-patterns also has patterns that output events, as described above. ~pbind~ is the primary of these, as it's used to define most note, rest, and parameter change events. Most of the time, when you're using cl-patterns with an audio server, playing a pbind will trigger sounds to occur. 

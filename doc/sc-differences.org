@@ -2,26 +2,25 @@
 
 This document is a WIP.
 
+* Terminology
+
+- SuperCollider requires you to coerce a pattern into a ~Stream~ in order to get results from it. Common Lisp already has the notion of a stream, so pattern streams are known as ~pstream~s.
+
 * New features
 
-** event values representing the same things are automatically converted for you
-i.e. amp/db, dur/delta, sustain/legato, etc
-** pbind has special keys which alter the functionality of it
-** all pstreams (pattern streams) keep a history of previous values that can be referred back to at any time using `pstream-nth`
-** pwrand/pwxrand - weights are automatically normalized (FIX)
-** pdurstutter - works on event streams as well as number streams.
-** non-patterns converted to pstreams only return one value:
+This section lists new features relative to SuperCollider's patterns system. For more, and for a complete listing of notable cl-patterns features, see [[file:features.org][features.org]].
+
+- ~pwrand~/~pwxrand~ - weights are automatically normalized.
+- pdurstutter - works on event streams as well as number streams. (as do any duration-based patterns)
+
+* Changed behaviors
+
+- non-patterns converted to pstreams only return one value:
 #+BEGIN_SRC lisp
 (defparameter *foo* (as-pstream 1))
 
 (next-n *foo* 3) ;=> (1 NIL NIL)
 #+END_SRC
-** patterns that have ~repeat~ or ~length~ arguments accept any pattern as "gate" patterns:
-#+BEGIN_SRC lisp
-  (let* ((foo 1)
-         (bar (as-pstream (pseq '(1 2 3) (pfunc (lambda () foo))))))
-    (print (next-n bar 10)) ;=> (1 2 3 1 2 3 1 2 3 1)
-    (setf foo 0)
-    (print (next-n bar 3)) ;=> (2 3 NIL)
-    )
-#+END_SRC
+- ~pbeats~ is the pattern that returns the number of beats elapsed in the pstream (in SuperCollider it's known as ~Ptime~).
+- pdefs loop by default when played.
+This is because their ~loop-p~ slot default to ~t~. Set it to ~nil~ to prevent this.
