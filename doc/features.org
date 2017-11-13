@@ -4,8 +4,8 @@ This is a listing of notable features of cl-patterns. For a listing of new featu
 
 - Multiple sound server backends are supported:
   - SuperCollider (via the [[https://github.com/byulparan/cl-collider][cl-collider]] library)
-  - Incudine
-  - ALSA MIDI
+  - [[https://incudine.sourceforge.net/][Incudine]]
+  - ALSA MIDI (via the [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]] library)
 - Event keys that are different representations of the same concept are automatically converted between each other. For example, if you set the ~amp~ of an event and then try to get its ~db~, cl-patterns converts the amplitude to decibels for you:
 #+BEGIN_SRC lisp
   (db (event :amp 0.5))
@@ -15,7 +15,7 @@ This is a listing of notable features of cl-patterns. For a listing of new featu
 #+END_SRC
 See [[file:event-special-keys.org][event-special-keys.org]] for a full listing of such keys.
 - pbind has "special" keys which alter the functionality of the pattern or pstream.
-For consistency, they're typically named after other patterns, i.e. ~pfin~/~remaining~, ~pfindur~, ~psync~, etc.
+For consistency, they're typically named after other patterns, i.e. ~pfin~ / ~remaining~, ~pfindur~, ~psync~, etc.
 See [[file:event-special-keys.org][event-special-keys.org]] for a full listing.
 - It's possible to "inject" an event's values into another from inside a pattern. For example:
 #+BEGIN_SRC lisp
