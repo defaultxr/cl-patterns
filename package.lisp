@@ -10,6 +10,8 @@
    #:pstream
    #:pstream-nth
    #:pstream-nth-future
+   #:parent-pattern
+   #:parent-pbind
    #:beats-elapsed
 
    #:defpattern

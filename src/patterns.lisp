@@ -113,7 +113,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 (defclass pattern ()
   ((remaining :initarg :remaining :initform :inf)
    (quant :initarg :quant :initform 1 :accessor quant)
-   (parent :initarg :parent :initform nil :accessor parent)
+   (parent :initarg :parent :initform nil)
    (loop-p :initarg :loop-p :initform nil :accessor loop-p)
    (cleanup-functions :initarg :cleanup-functions :initform (list)))
   (:documentation "Abstract pattern superclass."))
@@ -224,7 +224,10 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
       (alexandria:appendf (slot-value pattern 'history) (list result))
       result)))
 
-(defgeneric as-pstream (pattern))
+(defgeneric as-pstream (thing)
+  (:documentation "Return THING as a pstream object.
+
+See also: `pattern-as-pstream'"))
 
 (defun pattern-as-pstream (thing)
   "Like `as-pstream', but only converts THING to a pstream if it is a pattern."
@@ -306,12 +309,27 @@ See also: `pstream-nth', `pfuture'"
           (let ((sub-history (subseq history 0 (position nil history))))
             (nth (+ n (length sub-history)) sub-history))))))
 
-(defun parent-pbind (pattern)
-  "Get the containing pbind of PATTERN, or NIL if there isn't one."
-  (let ((par (parent pattern)))
+(defgeneric parent-pattern (pattern)
+  (:documentation "Get the containing pattern of PATTERN, or NIL if there isn't one.
+
+See also: `parent-pbind'"))
+
+(defmethod parent-pattern ((pattern pattern))
+  (slot-value pattern 'parent))
+
+(defgeneric parent-pbind (pattern)
+  (:documentation "Get the containing pbind of PATTERN, or NIL if there isn't one.
+
+See also: `parent-pattern'"))
+
+(defmethod parent-pbind ((pattern pattern))
+  (let ((par (parent-pattern pattern)))
     (loop :until (or (null par) (typep par 'pbind))
        :do (setf par (slot-value par 'parent)))
     par))
+
+(defgeneric beats-elapsed (pstream)
+  (:documentation "Get the number of beats elapsed in PSTREAM's execution."))
 
 (defmethod beats-elapsed ((pstream pstream))
   (float
@@ -321,7 +339,7 @@ See also: `pstream-nth', `pfuture'"
       :if (null i)
       :do (loop-finish)
       :if (and (not (typep i 'event)) (not (null i)))
-      :do (error "beats-elapsed only works on event pstreams!"))))
+      :do (error "beats-elapsed only works on pstreams that have duration information, such as those from a pbind."))))
 
 ;;; pbind
 
