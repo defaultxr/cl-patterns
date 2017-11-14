@@ -1,14 +1,16 @@
 #+TITLE: cl-patterns
 
-A library for conveniently writing patterns to generate or process sequences of mathematically(?) (un)related (compound) values in Lisp. Heavily inspired by SuperCollider's patterns system, with aims to emulate most of it, but more robust, expressive, consistent, reflective, and lispy.
+A library for conveniently writing patterns to generate or process sequences of mathematically(?) (un)related (compound) values in Lisp.
 
-- robust - strongly prefer coercing values into something "correct" rather than failing or giving an error.
-- expressive - make writing music as easy and "natural" as possible, so that patterns can be built in real-time, in performance settings, without having to think so hard about how to bend the library to your will. i feel this is a weakness of SuperCollider.
-- consistent - edge cases minimized, arguments for the various functions in an intuitive order. pretty self-explanatory.
-- reflective - store more data about the stream state and more metadata about the patterns. make it easier for a pattern to access the values of another pattern, for patterns to affect other patterns, etc.
-- lispy - prefer lisp idioms rather than direct translations of the SuperCollider way of doing things (while still keeping things relatively similar so it's not a huge adjustment for SC users to make).
+Heavily inspired by [[https://supercollider.github.io/][SuperCollider]]'s [[http://doc.sccode.org/Tutorials/A-Practical-Guide/PG_01_Introduction.html][patterns system]], with aims to implement much of it, but in a more robust, expressive, consistent, reflective, and lispy way:
 
-In addition to emulating most of SuperCollider's patterns system, another goal is to further extend it with more tools and more ways to write patterns/sequences, for example "drum sequence" notation like ~k - - - k - - - k - - - k - - -~ for a four-to-the-floor beat. The idea is that Lisp's macros should make it possible to more expressively write music with code.
+- robust: strongly prefer coercing values into something "correct" rather than failing or giving an error.
+- expressive: make writing music as easy and "natural" as possible, so that patterns can be built in real-time, in performance settings, without having to think so hard about how to bend the library to your will. i feel this is a weakness of SuperCollider.
+- consistent: edge cases minimized, arguments for the various functions in an intuitive order. pretty self-explanatory.
+- reflective: store more data about the stream state and more metadata about the patterns. make it easier for a pattern to access the values of another pattern, for patterns to affect other patterns, etc.
+- lispy: prefer lisp idioms rather than direct translations of the SuperCollider way of doing things (while still keeping things relatively similar so it's not a huge adjustment for SC users to make).
+
+In addition to emulating most of SuperCollider's patterns system, another goal is to further extend it with more tools and more ways to write patterns/sequences. The most obvious example being a "drum sequence" notation like ~k - - - k - - - k - - - k - - -~ for a four-to-the-floor beat. The idea is that Lisp's macros should make it possible to more expressively write music with code.
 
 * Intro
 
@@ -56,7 +58,7 @@ And finally we can play patterns and hear sound:
   (play (pbind :instrument :kik :freq (pseq '(100 200 400 800) 1)))
 #+END_SRC
 
-From here, you can take a look at the code in the [[file:doc/supercollider-example.lisp][doc/supercollider-example.lisp]] file for a short example of how to define your own synths. You may also be interested in [[https://defaultxr.github.io/cl-collider-tutorial/][my cl-collider tutorial]] for a more in-depth introduction to cl-collider.
+From here, you can take a look at the code in the [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] file for a short example of how to define your own synths. You may also be interested in [[https://defaultxr.github.io/cl-collider-tutorial/][my cl-collider tutorial]] for a more in-depth introduction to cl-collider.
 
 For more information on how to use cl-patterns, refer to [[file:doc/tutorial.org][tutorial.org]] for an introduction.
 
@@ -70,7 +72,7 @@ If you're familiar with SuperCollider, you may also want to look at [[file:doc/s
 
 Right now, the library may be described as being in a "alpha" state, as major changes (which may break code you write) are still very likely to happen. However, these changes should be documented in commit messages, so check those if you have any issues after updating.
 
-However, lots of functionality is already written and the library should be stable enough for normal usage in most cases.
+Despite that, lots of functionality is already written and the library should be stable enough for normal usage in most cases.
 
 Many [[file:src/tests.lisp][tests]] have already been written to help guard against regressions.
 
@@ -91,17 +93,17 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:LICENSE][LICENSE]] - the GPLv3 license.
 - [[file:cl-patterns.asd][cl-patterns.asd]] - cl-patterns systems definition file.
 
-** docs
+** doc
 
-- [[file:doc/event-special-keys.org][event-special-keys.org]] - description of keys that have special effects when used in an event or pbind.
 - [[file:doc/features.org][features.org]] - listing of notable features of cl-patterns.
-- [[file:doc/other-libraries.org][other-libraries.org]] - listing of other libraries that have similar goals or would be useful in conjunction with cl-patterns.
+- [[file:doc/other-libraries.org][other-libraries.org]] - listing of other libraries that have similar goals or may be useful in conjunction with cl-patterns.
 - [[file:doc/roadmap.org][roadmap.org]] - general overview of major goals for the future development of cl-patterns.
-- [[file:doc/sc-differences.org][sc-differences.org]] - comprehensive description of things that differ between cl-patterns and SuperCollider.
 - [[file:doc/sc.org][sc.org]] - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
+- [[file:doc/sc-differences.org][sc-differences.org]] - comprehensive description of things that differ between cl-patterns and SuperCollider.
+- [[file:doc/special-keys.org][special-keys.org]] - description of keys that have special effects when used in an event or pbind.
+- [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] - short example of how to use cl-patterns with cl-collider.
 - [[file:doc/TODO.org][TODO.org]] - a list of things and ideas that have not yet been implemented into cl-patterns, but may be in the future.
 - [[file:doc/tutorial.org][tutorial.org]] - explanation of the basic concepts of cl-patterns, meant for people who have never used SuperCollider's patterns.
-- [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] - short example of how to use cl-patterns with cl-collider.
 - [[file:doc/writing-your-own.org][writing-your-own.org]] - information about how to write your own pattern classes.
 
 ** src

@@ -2,7 +2,7 @@
 
 The future of cl-patterns.
 
-This is just a general overview of where this library is going. For more specific tasks, see [[file:TODO.org][TODO.org]].
+This is just a general overview of where this library is going. For more specific tasks and ideas, see [[file:TODO.org][TODO.org]].
 
 * 0.5
 
@@ -16,15 +16,15 @@ CLOSED: [2017-07-06 Thu 03:07]
 
 * 1.0
 
-** SuperCollider backend (SC-compatible functions overlay the ones in the "cl-patterns" package via the "cl-patterns-sc" package)
+** SuperCollider backend
 
-** complete reimplementation of all built-in SuperCollider patterns
+** implementation of most common/useful SuperCollider patterns (see [[file:sc.org][sc.org]])
 
-** tests for all patterns
+** [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests]] for all patterns, event keys, clock, etc
 
 ** documentation for all patterns and exported symbols
 
-** remove all "FIX"es in the code
+** remove all (or most) "FIX"es in the code
 
 ** properly handle lists in events (i.e. multi-channel expansion)
 

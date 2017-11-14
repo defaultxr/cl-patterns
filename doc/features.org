@@ -13,10 +13,10 @@ This is a listing of notable features of cl-patterns. For a listing of new featu
   (amp (event :db -3))
   ;=> 0.70794576
 #+END_SRC
-See [[file:event-special-keys.org][event-special-keys.org]] for a full listing of such keys.
+See [[file:special-keys.org][special-keys.org]] for a full listing of such keys.
 - pbind has "special" keys which alter the functionality of the pattern or pstream.
 For consistency, they're typically named after other patterns, i.e. ~pfin~ / ~remaining~, ~pfindur~, ~psync~, etc.
-See [[file:event-special-keys.org][event-special-keys.org]] for a full listing.
+See [[file:special-keys.org][special-keys.org]] for a full listing.
 - It's possible to "inject" an event's values into another from inside a pattern. For example:
 #+BEGIN_SRC lisp
   (next-n (pbind :foo (pseq '(1 2 3 4))

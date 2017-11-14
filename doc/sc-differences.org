@@ -4,14 +4,14 @@ This document is a WIP.
 
 * Terminology
 
-- SuperCollider requires you to coerce a pattern into a ~Stream~ in order to get results from it. Common Lisp already has the notion of a stream, so pattern streams are known as ~pstream~s.
+- SuperCollider requires you to coerce a pattern into a ~Stream~ in order to get results from it. Common Lisp already has the notion of a stream, so a pattern streams is known as a ~pstream~.
 
 * New features
 
 This section lists new features relative to SuperCollider's patterns system. For more, and for a complete listing of notable cl-patterns features, see [[file:features.org][features.org]].
 
 - ~pwrand~ / ~pwxrand~ - weights are automatically normalized.
-- pdurstutter - works on event streams as well as number streams. (as do any duration-based patterns)
+- ~pdurstutter~ - works on event streams as well as number streams. (as do any duration-based patterns)
 
 * Changed behaviors
 
