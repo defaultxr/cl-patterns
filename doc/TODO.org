@@ -89,3 +89,5 @@ make other libraries that expand upon cl-patterns' feature sets (i.e. libraries 
 * "performance mode" 
 ...where any pattern that signals a condition/error is automatically removed from the clock, so the music doesn't come to a screeching halt.
 still trying to think of ideas for how to make a good "performance mode" without just dumbly removing any patterns with errors... (is it possible to continue the rest of the clock's tasks while the user/coder is responding to the error condition?)
+* pattern plotting
+* pgeom/pseries fromEndPoints
