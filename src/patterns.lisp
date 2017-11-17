@@ -449,10 +449,10 @@ See also: `pbind', `pdef'"
   (parp pattern value))
 
 (define-pbind-special-post-key pfin
-  (pfin value pattern))
+  (pfin pattern value))
 
 (define-pbind-special-post-key pfindur
-  (pfindur value pattern))
+  (pfindur pattern value))
 
 (define-pbind-special-post-key pdurstutter
   (pdurstutter value pattern))
@@ -1445,52 +1445,50 @@ Example: (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6)))
             (combine-events current-pattern-event nxt))))))
 
 ;;; pfin
-;; FIX: swap count and pattern order?
 
 (defpattern pfin (pattern)
-  (count
-   pattern)
+  (pattern
+   count)
   "pfin yields up to COUNT outputs from PATTERN.
 
-Example: (next-n (pfin 3 (pseq '(1 2 3) :inf)) 5) ;=> (1 2 3 NIL NIL)
+Example: (next-n (pfin (pseq '(1 2 3) :inf) 3) 5) ;=> (1 2 3 NIL NIL)
 
 See also: `pfindur'")
 
 (defmethod as-pstream ((pfin pfin))
   (with-slots (count pattern) pfin
     (make-instance 'pfin-pstream
-                   :count (next count)
-                   :pattern (as-pstream pattern))))
+                   :pattern (as-pstream pattern)
+                   :count (next count))))
 
 (defmethod next ((pfin pfin-pstream))
-  (with-slots (count pattern number) pfin
+  (with-slots (pattern count number) pfin
     (when (< number count)
       (next pattern))))
 
 ;;; pfindur
-;; FIX: swap dur and pattern order?
 ;; FIX: does this work properly?
 
 (defpattern pfindur (pattern)
-  (dur
-   pattern
+  (pattern
+   dur
    (tolerance :default 0.001)
    (current-elapsed :state t :initform 0))
   "pfindur yields events from PATTERN until their total dur is within TOLERANCE of DUR, or greater than DUR.
 
-Example: (next-n (pfindur 2 (pbind :dur 1 :foo (pseries))) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
+Example: (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
 
 See also: `pfin'")
 
 (defmethod as-pstream ((pfindur pfindur))
-  (with-slots (dur pattern tolerance) pfindur
+  (with-slots (pattern dur tolerance) pfindur
     (make-instance 'pfindur-pstream
-                   :dur (next dur)
                    :pattern (as-pstream pattern)
+                   :dur (next dur)
                    :tolerance (next tolerance))))
 
 (defmethod next ((pfindur pfindur-pstream))
-  (with-slots (dur pattern tolerance current-elapsed) pfindur
+  (with-slots (pattern dur tolerance current-elapsed) pfindur
     (alexandria:when-let ((n-event (next pattern)))
       (when (< (round-up current-elapsed tolerance) dur)
         (prog1

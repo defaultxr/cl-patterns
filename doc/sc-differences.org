@@ -24,3 +24,4 @@ This section lists new features relative to SuperCollider's patterns system. For
 - ~pbeats~ is the pattern that returns the number of beats elapsed in the pstream (in SuperCollider it's known as ~Ptime~).
 - pdefs loop by default when played.
 This is because their ~loop-p~ slot default to ~t~. Set it to ~nil~ to prevent this.
+- ~pfin~ and ~pfindur~ have their source pattern as the first input instead of the second, for consistency.

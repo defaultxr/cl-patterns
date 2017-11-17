@@ -431,17 +431,17 @@
 ;; pfin
 
 (ok (= 3
-       (length (next-upto-n (pfin 3 (pseq '(1 2 3) :inf)))))
+       (length (next-upto-n (pfin (pseq '(1 2 3) :inf) 3))))
     "pfin correctly limits its source pattern when COUNT is a number.")
 
 (ok (= 3
-       (length (next-upto-n (pfin (pseq '(3)) (pseq '(1 2 3) :inf)))))
+       (length (next-upto-n (pfin (pseq '(1 2 3) :inf) (pseq '(3))))))
     "pfin correctly limits its source pattern when COUNT is a pattern.")
 
 ;; pfindur (FIX)
 
 (ok (= 5 ;; FIX - fails
-       (reduce #'+ (gete (next-upto-n (pfindur 5 (pbind :dur (pwhite 0.0 1.0)))) :dur)))
+       (reduce #'+ (gete (next-upto-n (pfindur (pbind :dur (pwhite 0.0 1.0)) 5)) :dur)))
     "pfindur patterns have a correct total duration.")
 
 ;; pstutter
