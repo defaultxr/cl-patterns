@@ -10,6 +10,16 @@
 
 (plan 93)
 
+;;; utility
+
+(ok (= 2.04
+       (round-up 2.03 0.02))
+    "round-up gives correct results for positive numbers.")
+
+(ok (= -2.02
+       (round-up -2.03 0.02))
+    "round-up gives correct results for negative numbers.")
+
 ;;; patterns
 
 ;; stack (patterns embedded in patterns)
