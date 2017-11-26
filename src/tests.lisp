@@ -13,11 +13,11 @@
 ;;; utility
 
 (ok (= 2.04
-       (round-up 2.03 0.02))
+       (cl-patterns::round-up 2.03 0.02))
     "round-up gives correct results for positive numbers.")
 
 (ok (= -2.02
-       (round-up -2.03 0.02))
+       (cl-patterns::round-up -2.03 0.02))
     "round-up gives correct results for negative numbers.")
 
 ;;; patterns
@@ -73,12 +73,12 @@
 ;; parent
 
 (ok (let ((pb (pbind :foo (pseq '(1 2 3)))))
-      (eq (cl-patterns::parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
+      (eq (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
           pb))
     "pbind subpatterns have correct parents for pseq.")
 
 (ok (let ((pb (pbind :foo (pfunc (lambda () (random 5))))))
-      (eq (cl-patterns::parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
+      (eq (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
           pb))
     "pbind subpatterns have correct parents for pfunc.")
 
