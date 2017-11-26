@@ -119,7 +119,9 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   (:documentation "Abstract pattern superclass."))
 
 (defgeneric next (pattern)
-  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.")
+  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.
+
+See also: `next-n', `next-upto-n'")
   (:method-combination pattern))
 
 (defmethod next ((pattern t))
@@ -132,29 +134,25 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   (funcall pattern))
 
 (defun next-n (pattern n)
-  "Returns the next N values of a pattern stream, function, or other object, advancing the pattern forward N times in the process."
+  "Returns the next N results of a pattern stream, function, or other object, advancing the pattern forward N times in the process.
+
+See also: `next', `next-upto-n'"
   (let ((pstream (as-pstream pattern)))
     (loop
        :for i :from 0 :below n
        :collect (next pstream))))
 
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
-  "Return a list of up to N values of PATTERN. If PATTERN ends after less than N values, then only that many values will be returned."
-  (let ((pstream (if (typep pattern 'pstream)
-                     pattern
-                     (as-pstream pattern)))
-        (results (list))
-        (number 0))
-    (block loop
-      (loop
-         (let ((val (next pstream)))
-           (if (or (null val)
-                   (= number n))
-               (return-from loop)
-               (progn
-                 (setf results (append results (list val)))
-                 (incf number))))))
-    results))
+  "Return a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
+
+See also: `next', `next-upto-n'"
+  (let ((pstream (as-pstream pattern)))
+    (loop
+       :for number :from 0 :upto n
+       :for val = (next pstream)
+       :while (and (not (null val))
+                   (< number n))
+       :append (list val))))
 
 ;;; pstream
 
