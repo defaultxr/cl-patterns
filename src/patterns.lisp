@@ -112,11 +112,14 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 
 (defclass pattern ()
   ((remaining :initarg :remaining :initform :inf)
-   (quant :initarg :quant :initform 1 :accessor quant)
+   (quant :initarg :quant :initform (list 1) :reader quant) ;; quant, phase, timing-offset
    (parent :initarg :parent :initform nil)
    (loop-p :initarg :loop-p :initform nil :accessor loop-p)
    (cleanup-functions :initarg :cleanup-functions :initform (list)))
   (:documentation "Abstract pattern superclass."))
+
+(defmethod (setf quant) (value (pattern pattern))
+  (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
 
 (defgeneric next (pattern)
   (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.
@@ -376,6 +379,12 @@ See also: `pmono'"
                                 (res (funcall func value pattern)))
            (setf (slot-value pbind 'pairs) (plist-set (slot-value pbind 'pairs) key nil))
            (setf pattern res))))
+    ;; process :quant key. ;; FIX: should this be applied to the pdef, or the pattern itself?
+    (alexandria:when-let ((quant (getf pairs :quant)))
+      (setf (quant pattern)
+            (if (functionp quant)
+                (funcall quant)
+                quant)))
     ;; process :pdef key.
     (alexandria:when-let ((pos (position :pdef (keys pairs))))
       (pdef (nth (1+ pos) pairs) pattern))
@@ -418,13 +427,6 @@ See also: `pbind', `pdef'"
            (lambda (value pattern)
              (declare (ignorable value pattern))
              ,@body))))
-
-(define-pbind-special-init-key quant
-  (setf (slot-value pattern 'quant)
-        (if (functionp value)
-            (funcall value)
-            value))
-  (list :quant value))
 
 (define-pbind-special-init-key remaining
   (setf (slot-value pattern 'remaining) (next value))
@@ -789,7 +791,7 @@ See also: `pstutter', `pdurstutter', `parp'")
   (quant (pdef-pattern object)))
 
 (defmethod quant ((object null))
-  1)
+  (list 1))
 
 (defmethod as-pstream ((pattern pdef))
   (with-slots (key) pattern
