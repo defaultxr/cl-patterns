@@ -386,8 +386,8 @@ See also: `pmono'"
                 (funcall quant)
                 quant)))
     ;; process :pdef key.
-    (alexandria:when-let ((pos (position :pdef (keys pairs))))
-      (pdef (nth (1+ pos) pairs) pattern))
+    (alexandria:when-let ((pdef-name (getf pairs :pdef)))
+      (pdef pdef-name pattern))
     pattern))
 
 (setf (documentation 'pbind 'type) (documentation 'pbind 'function))
