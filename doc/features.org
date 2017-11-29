@@ -2,11 +2,11 @@
 
 This is a listing of notable features of cl-patterns. For a listing of new features relative to SuperCollider's patterns system, see [[file:sc-differences.org][sc-differences.org]].
 
-- Multiple sound server backends are supported:
+- multiple sound server backends are supported:
   - SuperCollider (via the [[https://github.com/byulparan/cl-collider][cl-collider]] library)
   - [[https://incudine.sourceforge.net/][Incudine]]
   - ALSA MIDI (via the [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]] library)
-- Event keys that are different representations of the same concept are automatically converted between each other. For example, if you set the ~amp~ of an event and then try to get its ~db~, cl-patterns converts the amplitude to decibels for you:
+- event keys that are different representations of the same concept are automatically converted between each other. For example, if you set the ~amp~ of an event and then try to get its ~db~, cl-patterns converts the amplitude to decibels for you:
 #+BEGIN_SRC lisp
   (db (event :amp 0.5))
   ;=> -6.0205994
@@ -17,7 +17,7 @@ See [[file:special-keys.org][special-keys.org]] for a full listing of such keys.
 - pbind has "special" keys which alter the functionality of the pattern or pstream.
 For consistency, they're typically named after other patterns, i.e. ~pfin~ / ~remaining~, ~pfindur~, ~psync~, etc.
 See [[file:special-keys.org][special-keys.org]] for a full listing.
-- It's possible to "inject" an event's values into another from inside a pattern. For example:
+- it's possible to "inject" an event's values into another from inside a pattern. For example:
 #+BEGIN_SRC lisp
   (next-n (pbind :foo (pseq '(1 2 3 4))
                  :inject (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))

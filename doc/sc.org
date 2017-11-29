@@ -5,106 +5,106 @@ This is a listing of some of the pattern classes from SuperCollider and a few of
 This list basically is a quick overview of the implementation status of various pattern classes from SuperCollider, so if you're familiar with SC then hopefully this will be helpful. For more in-depth information, I recommend reading the [[file:sc-differences.org][sc-differences.org]] file instead, which will give more details about the ways cl-patterns differs from SuperCollider.
 
 * list patterns
-** ~Pseq~ - done as ~pseq~.
-** ~Pser~ - done as ~pser~.
-** ~Pshuf~ - done as ~pshuf~.
-** ~Prand~ - done as ~prand~.
-** ~Pxrand~ - done as ~pxrand~.
-** ~Pwrand~ - done as ~pwrand~.
-** ~Pwxrand~ - done as ~pwxrand~.
-** ~Pfsm~
-** ~Pdfsm~
-** ~Ppar~
-** ~Pfpar~
-** ~Pslide~ - done as ~pslide~.
-** ~Ptuple~
-** ~Pwalk~
-** ~Pindex~ - done as ~pindex~.
-** ~Place~
-** ~Ppatlace~ - done as ~ppatlace~.
-** ~Pswitch~
+- ~Pseq~ - done as ~pseq~.
+- ~Pser~ - done as ~pser~.
+- ~Pshuf~ - done as ~pshuf~.
+- ~Prand~ - done as ~prand~.
+- ~Pxrand~ - done as ~pxrand~.
+- ~Pwrand~ - done as ~pwrand~.
+- ~Pwxrand~ - done as ~pwxrand~.
+- ~Pfsm~
+- ~Pdfsm~
+- ~Ppar~
+- ~Pfpar~
+- ~Pslide~ - done as ~pslide~.
+- ~Ptuple~
+- ~Pwalk~
+- ~Pindex~ - done as ~pindex~.
+- ~Place~
+- ~Ppatlace~ - done as ~ppatlace~.
+- ~Pswitch~
 * filter patterns
-** ~Pavaroh~
-** ~Pbus~
-** ~Pclump~
-** ~Pclutch~
-** ~Pconst~
-** ~Pdelay~
-** ~Pdelta~
-** ~Pdiff~
-** ~Pdrop~
-** ~PfadeIn~
-** ~Pfin~ - done as ~pfin~. see also: ~pbind~'s ~:pfin~ key.
-** ~PfinQuant~
-** ~Pfindur~ - done as ~pfindur~. see also: ~pbind~'s ~:pfindur~ key.
-** ~Pfx~
-** ~Pinterp~
-** ~Plag~
-** ~Pn~ - done as ~pn~.
-** ~PpatRewrite~
-** ~Pplayer~
-** ~Pprotect~ - not implemented yet; in the future you will also be able to use ~pbind~'s ~:cleanup~ key. (FIX)
-** ~Prewrite~
-** ~Prorate~
-** ~Pscratch~ - done as ~pscratch~.
-** ~Pseed~
-** ~Pset~
-** ~Psetpre~
-** ~Pstretch~
-** ~Pstutter~ - done as ~pstutter~. see also: ~pr~
-** ~PdurStutter~ - done as ~pdurstutter~. see also: ~pbind~'s ~:pdurstutter~ key.
-** ~Psym~
-** ~Psync~ - see also: ~pbind~'s ~:psync~ key.
-** ~Ptrace~ - done as ~ptrace~.
-** ~Pwrap~ - see also: ~(pnary #'wrap)~.
+- ~Pavaroh~
+- ~Pbus~
+- ~Pclump~
+- ~Pclutch~
+- ~Pconst~
+- ~Pdelay~
+- ~Pdelta~
+- ~Pdiff~
+- ~Pdrop~
+- ~PfadeIn~
+- ~Pfin~ - done as ~pfin~. see also: ~pbind~'s ~:pfin~ key.
+- ~PfinQuant~
+- ~Pfindur~ - done as ~pfindur~. see also: ~pbind~'s ~:pfindur~ key.
+- ~Pfx~
+- ~Pinterp~
+- ~Plag~
+- ~Pn~ - done as ~pn~.
+- ~PpatRewrite~
+- ~Pplayer~
+- ~Pprotect~ - not implemented yet; in the future you will also be able to use ~pbind~'s ~:cleanup~ key. (FIX)
+- ~Prewrite~
+- ~Prorate~
+- ~Pscratch~ - done as ~pscratch~.
+- ~Pseed~
+- ~Pset~
+- ~Psetpre~
+- ~Pstretch~
+- ~Pstutter~ - done as ~pstutter~. see also: ~pr~
+- ~PdurStutter~ - done as ~pdurstutter~. see also: ~pbind~'s ~:pdurstutter~ key.
+- ~Psym~
+- ~Psync~ - see also: ~pbind~'s ~:psync~ key.
+- ~Ptrace~ - done as ~ptrace~.
+- ~Pwrap~ - see also: ~(pnary #'wrap)~.
 * math / randomness patterns
-** ~Punop~ - done as ~punop~.
-** ~Pbinop~ - done as ~pbinop~.
-** ~Pnaryop~ - done as ~pnaryop~.
-** ~Pwhite~ - done as ~pwhite~.
-** ~Pbrown~ - done as ~pbrown~.
-** ~Pexprand~ - done as ~pexprand~.
-** ~Pbeta~
-** ~Pgbrown~
-** ~Pcauchy~
-** ~Pgauss~
-** ~Pseries~ - done as ~pseries~.
-** ~Pgeom~ - done as ~pgeom~.
-** ~Phprand~
-** ~Plprand~
-** ~Pmeanrand~
-** ~Ppoisson~
-** ~Pprob~
-** ~Paccum~
+- ~Punop~ - done as ~punop~.
+- ~Pbinop~ - done as ~pbinop~.
+- ~Pnaryop~ - done as ~pnaryop~.
+- ~Pwhite~ - done as ~pwhite~.
+- ~Pbrown~ - done as ~pbrown~.
+- ~Pexprand~ - done as ~pexprand~.
+- ~Pbeta~
+- ~Pgbrown~
+- ~Pcauchy~
+- ~Pgauss~
+- ~Pseries~ - done as ~pseries~.
+- ~Pgeom~ - done as ~pgeom~.
+- ~Phprand~
+- ~Plprand~
+- ~Pmeanrand~
+- ~Ppoisson~
+- ~Pprob~
+- ~Paccum~
 * timing patterns
-** ~Pseg~
-** ~Penv~
-** ~Ptempo~ - see also: ~(pk :tempo)~.
-** ~Ptime~ - done as ~pbeats~.
-** ~Pstep~
+- ~Pseg~
+- ~Penv~
+- ~Ptempo~ - see also: ~(pk :tempo)~.
+- ~Ptime~ - done as ~pbeats~.
+- ~Pstep~
 * ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
-** ~PSinOsc~
-** ~POsc~
+- ~PSinOsc~
+- ~POsc~
 * other / unsorted patterns
-** ~Pbind~ - done as ~pbind~.
-** ~Pbindf~
-** ~Pmono~ - done as ~pmono~.
-** ~PmonoArtic~ - ~pmono~ covers this functionality.
-** ~Pdef~ - done as ~pdef~. see also: ~pbind~'s ~:name~ / ~:pdef~ keys.
-** ~Pchain~ - see also: ~pbind~'s ~:inject~ key.
-** ~Pdict~
-** ~Penvir~
-** ~Peventmod~
-** ~Pif~ - done as ~pif~.
-** ~Pkey~ - done as ~pk~.
-** ~Plazy~ - done as ~plazy~.
-** ~Plambda~
-** ~Plet~
-** ~Pget~
-** ~Ppatmod~
-** ~Pproto~ - maybe just use a ~pbind~ key like ~:init~ instead?
-** ~Pvoss~
-** ~Pfunc~ - done as ~pfunc~.
-** ~Pfuncn~
-** ~Prout~
-** ~Pbjorklund~ - done as ~pbjorklund~.
+- ~Pbind~ - done as ~pbind~.
+- ~Pbindf~
+- ~Pmono~ - done as ~pmono~.
+- ~PmonoArtic~ - ~pmono~ covers this functionality.
+- ~Pdef~ - done as ~pdef~. see also: ~pbind~'s ~:name~ / ~:pdef~ keys.
+- ~Pchain~ - see also: ~pbind~'s ~:inject~ key.
+- ~Pdict~
+- ~Penvir~
+- ~Peventmod~
+- ~Pif~ - done as ~pif~.
+- ~Pkey~ - done as ~pk~.
+- ~Plazy~ - done as ~plazy~.
+- ~Plambda~
+- ~Plet~
+- ~Pget~
+- ~Ppatmod~
+- ~Pproto~ - maybe just use a ~pbind~ key like ~:init~ instead?
+- ~Pvoss~
+- ~Pfunc~ - done as ~pfunc~.
+- ~Pfuncn~
+- ~Prout~
+- ~Pbjorklund~ - done as ~pbjorklund~.
