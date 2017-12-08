@@ -8,7 +8,7 @@
 ;;; TODO:
 ;; * make sure all patterns are given parents
 
-(plan 93)
+(plan 96)
 
 ;;; utility
 
@@ -490,6 +490,10 @@
      (list 3 2 1 3 2 1 nil)
      (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2)) 2) 7))
     "pindex returns correct results.")
+
+(ok (equal (list 99 98 97 99 99 98 97 99 nil)
+           (next-n (pindex (list 99 98 97) (pseries 0 1 4) 2 t) 9))
+    "pindex returns correct results when its WRAP-P is t.")
 
 ;; pbjorklund (FIX)
 

@@ -1619,32 +1619,37 @@ See also: `beats-elapsed', `prun'")
   (list-pat
    index-pat
    (repeats :default 1)
-   (list-pat-ps :state t :initform nil)
-   (index-pat-ps :state t :initform nil)
-   (current-repeats-remaining :state t :initform nil))
-  "pindex calls next on its LIST-PAT for each step, and then calls next on the INDEX-PAT to get the index of the element from the LIST-PAT's result to return.")
+   (wrap-p :default nil)
+   (list-pat-ps :state t)
+   (index-pat-ps :state t)
+   (current-repeats-remaining :state t))
+  "pindex uses INDEX-PAT to index into the list returned by LIST-PAT. REPEATS is the number of times that INDEX-PAT will be run to its end. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil (default).
 
-(defmethod as-pstream ((pattern pindex))
-  (with-slots (list-pat index-pat repeats) pattern
+Example: (next-upto-n (pindex (list 99 98 97) (pseries 0 1 3) 2)) ;=> (99 98 97 99 98 97)
+
+See also: `pswitch'")
+
+(defmethod as-pstream ((pindex pindex))
+  (with-slots (list-pat index-pat repeats wrap-p) pindex
     (make-instance 'pindex-pstream
                    :list-pat list-pat
                    :list-pat-ps (pattern-as-pstream list-pat)
                    :index-pat index-pat
                    :index-pat-ps (pattern-as-pstream index-pat)
-                   :repeats repeats
-                   :current-repeats-remaining (next repeats))))
+                   :repeats (as-pstream repeats)
+                   :wrap-p wrap-p)))
 
-(defmethod next ((pattern pindex-pstream))
-  (with-slots (list-pat-ps index-pat index-pat-ps) pattern
-    (when (remainingp pattern 'current-repeats-remaining)
+(defmethod next ((pindex pindex-pstream))
+  (with-slots (list-pat-ps index-pat index-pat-ps wrap-p) pindex
+    (when (remainingp pindex)
       (let ((list (next list-pat-ps))
             (idx (next index-pat-ps)))
         (if (null idx)
             (progn
-              (decf-remaining pattern 'current-repeats-remaining)
-              (setf index-pat-ps (as-pstream index-pat))
-              (next pattern))
-            (nth idx list))))))
+              (decf-remaining pindex 'current-repeats-remaining)
+              (setf index-pat-ps (pattern-as-pstream index-pat))
+              (next pindex))
+            (funcall (if wrap-p 'nth-wrap 'nth) idx list))))))
 
 ;;; pbjorklund
 
