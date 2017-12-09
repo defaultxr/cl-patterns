@@ -506,7 +506,7 @@ See also: `pbind'"
 
 (defpattern pseq (pattern)
   (list
-   (repeats :default 1)
+   (repeats :default :inf)
    (current-repeats-remaining :state t))
   "pseq yields values from LIST in the same order they were provided, repeating the whole list REPEATS times.
 
@@ -535,7 +535,7 @@ See also: `pser'")
 
 (defpattern pser (pattern)
   (list
-   (length :default 1)
+   (length :default :inf)
    (current-repeats-remaining :state t)
    (current-index :state t))
   "pser yields values from LIST in the same order they were provided, returning a total of LENGTH values.
@@ -923,7 +923,7 @@ See also: `pstutter', `pdurstutter', `parp'")
 
 (defpattern pshuf (pattern)
   (list
-   (repeats :default 1)
+   (repeats :default :inf)
    (shuffled-list :state t)
    (current-repeats-remaining :state t))
   "pshuf shuffles LIST, then yields each item from the shuffled list, repeating the list REPEATS times.")
@@ -1618,7 +1618,7 @@ See also: `beats-elapsed', `prun'")
 (defpattern pindex (pattern)
   (list-pat
    index-pat
-   (repeats :default 1)
+   (repeats :default 1) ;; FIX: remove this?
    (wrap-p :default nil)
    (list-pat-ps :state t)
    (index-pat-ps :state t)
