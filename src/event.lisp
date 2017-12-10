@@ -69,7 +69,7 @@ Returns 2 values: the value of the slot, and the name of the slot the value was 
                     (append (list slot (lambda (event) (raw-get-event-value event slot))) cases)
                     cases))
          (cases-keys (keys cases))
-         (key (car (or (member-if (lambda (k) (position k cases-keys)) (keys event))
+         (key (car (or (member-if (lambda (k) (position k (keys event))) cases-keys)
                        (member t cases-keys))))
          (func (getf cases key)))
     (values (if (null func)
@@ -165,7 +165,7 @@ This defines the amp slot for events. Since the :amp KEY is implied, it doesn't 
                                     t 0.5))
 
 (define-event-special-slot db (:amp (amp-db (raw-get-event-value event :amp))
-                                    :t (amp-db 0.5)))
+                                    t (amp-db 0.5)))
 
 (define-event-special-slot pan (t 0))
 
