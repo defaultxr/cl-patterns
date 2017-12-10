@@ -1477,9 +1477,9 @@ See also: `pfindur'")
 (defpattern pfindur (pattern)
   (pattern
    dur
-   (tolerance :default 0.001)
+   (tolerance :default 0)
    (current-elapsed :state t :initform 0))
-  "pfindur yields events from PATTERN until their total dur is within TOLERANCE of DUR, or greater than DUR.
+  "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR.
 
 Example: (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
 
@@ -1495,12 +1495,19 @@ See also: `pfin'")
 (defmethod next ((pfindur pfindur-pstream))
   (with-slots (pattern dur tolerance current-elapsed) pfindur
     (alexandria:when-let ((n-event (next pattern)))
-      (when (< (round-up current-elapsed tolerance) dur)
-        (prog1
-            (if (> (round-up (+ (delta n-event) current-elapsed) tolerance) dur)
-                (combine-events n-event (event :delta (- dur current-elapsed)))
-                n-event)
-          (incf current-elapsed (delta n-event)))))))
+      (when (< (if (= 0 tolerance)
+                   current-elapsed
+                   (round-up current-elapsed tolerance))
+               dur)
+        (let ((new-elapsed (+ (delta n-event) current-elapsed)))
+          (prog1
+              (if (> (if (= 0 tolerance)
+                         new-elapsed
+                         (round-up new-elapsed tolerance))
+                     dur)
+                  (combine-events n-event (event :dur (- dur current-elapsed)))
+                  n-event)
+            (incf current-elapsed (delta n-event))))))))
 
 ;;; pstutter
 
