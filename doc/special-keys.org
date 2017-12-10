@@ -14,3 +14,27 @@ Some event keys are used to set standard parameters for the synth (i.e. ~instrum
 ** ~tempo~ - set the clock's tempo.
 ** ~pdef~ - the name of the pattern. (see the ~pdef~ pattern for more information.)
 ** ~pbeat~ - how many beats have elapsed in the pattern.
+
+* pbind pattern convenience keys
+
+pbind supports a set of special keys that effectively surround the pbind in another type of pattern. For example, a pbind that looks like this:
+
+#+BEGIN_SRC lisp
+  (pbind :midinote (pseq '(60 62 64) 1)
+         :pdurstutter (pseq '(3 2 1) 1))
+#+END_SRC
+
+...actually returns this:
+
+#+BEGIN_SRC lisp
+  (pdurstutter (pbind :midinote (pseq '(60 62 64) 1))
+               (pseq '(3 2 1) 1))
+#+END_SRC
+
+Here is a listing of all such keys:
+
+** ~parp~ - ~(parp (pbind ...) value)~
+** ~pfin~ - ~(pfin (pbind ...) value)~
+** ~pfindur~ - ~(pfindur (pbind ...) value)~
+** ~pdurstutter~ - ~(pdurstutter (pbind ...) value)~
+** ~ptrace~ - ~(ptrace (pbind ...))~
