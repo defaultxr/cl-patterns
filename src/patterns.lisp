@@ -455,7 +455,7 @@ See also: `pbind', `pdef'"
   (pfindur pattern value))
 
 (define-pbind-special-post-key pdurstutter
-  (pdurstutter value pattern))
+  (pdurstutter pattern value))
 
 (defparameter *pbind-special-keys* '())
 
@@ -1530,25 +1530,25 @@ See also: `pr', `pdurstutter'")
 ;;; pdurstutter
 
 (defpattern pdurstutter (pattern)
-  (n
-   pattern
+  (pattern
+   n
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t :initform 0))
   "pdurstutter yields each output from PATTERN N times, dividing it by N. If the output from PATTERN is an event, its dur is divided; if it's a number, the number itself is divided instead of being yielded directly.
 
-Example: (next-n (pdurstutter (pseq '(3 2 1 0 2)) (pseq '(1 2 3 4 5))) 9) ;=> (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
+Example: (next-n (pdurstutter (pseq '(1 2 3 4 5)) (pseq '(3 2 1 0 2))) 9) ;=> (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
 
-Example: (next-n (pdurstutter (pseq '(3 2 1 0 2)) (pbind :dur (pseq '(1 2 3 4 5)))) 9) ;=>
+Example: (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5))) (pseq '(3 2 1 0 2))) 9) ;=>
 ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1)
  (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
 
 See also: `pr', `pstutter'")
 
 (defmethod as-pstream ((pdurstutter pdurstutter))
-  (with-slots (n pattern) pdurstutter
+  (with-slots (pattern n) pdurstutter
     (make-instance 'pdurstutter-pstream
-                   :n (pattern-as-pstream n)
-                   :pattern (as-pstream pattern))))
+                   :pattern (as-pstream pattern)
+                   :n (pattern-as-pstream n))))
 
 (defmethod next ((pattern pdurstutter-pstream))
   (with-slots (n current-value current-repeats-remaining) pattern
