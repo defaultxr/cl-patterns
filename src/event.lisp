@@ -1,9 +1,7 @@
 (in-package :cl-patterns)
 
-;; FIX: add 'strum'... maybe.
 ;; FIX: make versions of these generic functions that will work with supercollider ugens; put them in cl-collider-extensions.lisp..
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
-;; FIX: when :freq is not provided, should use the synthdef's default value, not event's.
 
 ;;; event glue
 
@@ -21,9 +19,6 @@
                  (accumulator (cddr pairs)))))
       (accumulator params)
       ev)))
-
-(defparameter r :rest
-  "Rest.")
 
 (defparameter *latency* 0.1
   "Default latency for events.")
@@ -57,10 +52,13 @@
   "Get the value of SLOT in EVENT without running any conversion functions."
   (getf (slot-value event 'other-params) (alexandria:make-keyword slot)))
 
-(defun get-event-value (event slot)
+(defun get-event-value (event &optional slot)
   "Get the value of SLOT in EVENT, running any necessary conversion functions.
 
 Returns 2 values: the value of the slot, and the name of the slot the value was derived from (or t if the default value of the slot was used, or nil if no value or default was provided)."
+  (when (null slot) ;; if called like (get-event-value :foo) then assume *event* is the event and :foo is the slot.
+    (assert (typep event 'symbol))
+    (return-from get-event-value (get-event-value *event* event)))
   (when (null event)
     (return-from get-event-value (values nil nil)))
   (let* ((slot (alexandria:make-keyword slot))

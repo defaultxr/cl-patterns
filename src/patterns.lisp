@@ -40,7 +40,8 @@ SLOTS is a list of slots that the pattern and pstreams derived from it have. Eac
 DOCUMENTATION is a docstring describing the pattern. We recommend providing at least one example, and a \"See also\" section to refer to similar pattern classes.
 
 CREATION-FUNCTION is an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
-  (let ((slots (mapcar #'alexandria:ensure-list slots))
+  (let ((superclasses (or superclasses (list 'pattern)))
+        (slots (mapcar #'alexandria:ensure-list slots))
         (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
         (super-pstream (if (eq 'pattern (car superclasses))
                            'pstream
@@ -284,20 +285,26 @@ Example: (let ((pstream (as-pstream (pseq '(1 2 3)))))
 
 See also: `pstream-nth-future', `phistory'"
   (assert (integerp n) (n))
+  (unless (typep pstream 'pstream)
+    (return-from pstream-nth (pstream-nth n (as-pstream pstream))))
   (with-slots (history) pstream
     (if (>= n (length history))
               (error 'pstream-out-of-range :index n)
               (nth-wrap n history))))
 
-(defun pstream-nth-future (n pstream) ;; FIX: need example.
+(defun pstream-nth-future (n pstream)
   "Return the Nth element from PSTREAM's history, automatically advancing PSTREAM as necessary if the Nth element has not yet occurred.
 
 When N is negative, NILs at the end of PSTREAM's history are not included in indexing, but NIL may be returned if the negative index points to a position prior to the first element in history. Be careful when using negative numbers for N, since infinite-length patterns will cause this function to never return.
 
 Note that if the Nth element has not yet occurred, this function will advance the pstream, thus affecting what will be returned when `next' is called on the pstream. However, this behavior may change in the future.
 
+Example: (pstream-nth-future -1 (as-pstream (pbind :foo (pseq '(1 2 3) 1)))) ;=> (EVENT :FOO 3)
+
 See also: `pstream-nth', `pfuture'"
   (assert (integerp n) (n))
+  (unless (typep pstream 'pstream)
+    (return-from pstream-nth-future (pstream-nth-future n (as-pstream pstream))))
   (with-slots (history) pstream
     (flet ((should-advance ()
              (if (>= n 0)
