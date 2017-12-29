@@ -1,8 +1,11 @@
 (in-package :cl-patterns)
 
+;;; general functionality
+
 (defstruct scale name degrees tuning)
 
-(defparameter *scales* (list))
+(defparameter *scales* (list)
+  "Plist of all defined scales.")
 
 (defun define-scale (name degrees &optional (tuning :et12) aliases)
   "Define a scale and add it to the *scales* list."
@@ -19,7 +22,14 @@
            (setf *scales* (plist-set *scales* x key)))
          aliases)))
 
-(defgeneric scale (item))
+(defun all-scales ()
+  "Get a list of all defined scales."
+  (loop :for i :in (keys *scales*)
+     :unless (symbolp (getf *scales* i))
+     :collect (scale i)))
+
+(defgeneric scale (item)
+  (:documentation "Get a scale struct by name."))
 
 (defmethod scale ((item symbol))
   (let ((scale (getf *scales* item)))
@@ -36,7 +46,8 @@
 
 (defstruct tuning name tuning octave-ratio)
 
-(defparameter *tunings* (list))
+(defparameter *tunings* (list)
+  "Plist of all defined tunings.")
 
 (defun define-tuning (name tuning octave-ratio &optional aliases)
   "Define a tuning and add it to the *tunings* list."
@@ -46,12 +57,25 @@
                                (make-tuning :name name
                                             :tuning tuning
                                             :octave-ratio octave-ratio)))
+    (apply #'define-tuning-aliases name aliases)))
+
+(defun define-tuning-aliases (tuning-name &rest aliases)
+  "Define aliases for the tuning named TUNING-NAME."
+  (let ((key (string-keyword tuning-name)))
+    (assert (position key (keys *tunings*)) (tuning-name) "No tuning named ~a defined." tuning-name)
     (map nil
          (lambda (x)
            (setf *tunings* (plist-set *tunings* x key)))
          aliases)))
 
-(defgeneric tuning (item))
+(defun all-tunings ()
+  "Get a list of all defined tunings."
+  (loop :for i :in (keys *tunings*)
+     :unless (symbolp (getf *tunings* i))
+     :collect (tuning i)))
+
+(defgeneric tuning (item)
+  (:documentation "Get a tuning struct by name."))
 
 (defmethod tuning ((item symbol))
   (let ((tuning (getf *tunings* item)))
@@ -65,6 +89,47 @@
 
 (defmethod tuning ((item tuning))
   item)
+
+;;; loading Scala (.scl) scale files
+;; Scala refers to these as "scales" but we call them tunings.
+;; http://www.huygens-fokker.org/scala/scl_format.html
+
+(defun load-scala-scale (file &optional aliases)
+  "Load a Scala (.scl) scale file and define a tuning and scale from it.
+
+Note that Scala refers to these as \"scales\" but in cl-patterns we call them tunings."
+  (with-open-file (stream file :direction :input :if-does-not-exist :error)
+    (let* ((lines (loop :for line = (read-line stream nil 'eof)
+                     :if (eq line 'eof)
+                     :do (loop-finish)
+                     :unless (char= #\! (elt line 0))
+                     :collect (string-left-trim '(#\space) line)))
+           (name (car lines))
+           (count (parse-integer (cadr lines)))
+           (pitches (append (list 0)
+                            (mapcar (lambda (line) (let ((line (subseq line
+                                                                       (position-if (lambda (char) (char/= #\space char)) line)
+                                                                       (position-if (lambda (char) (char= #\space char)) line))))
+                                                     (if (position #\. line :test #'char=) ;; if it has a . it's a cents value
+                                                         (/ (read-from-string line) 100) ;; cents
+                                                         (ratio-midi (read-from-string line)))))
+                                    (cddr lines))))
+           (octave-ratio (car (last pitches)))
+           (pitches (butlast pitches))
+           (aliases (append (list (file-namestring (subseq file 0 (search ".scl" file :from-end t)))) aliases)))
+      (when (/= (length pitches) count)
+        (warn "There are ~a pitches listed in ~a but the file says there should be ~a pitches." (length pitches) file count))
+      (unless (loop :for i :in (all-tunings)
+                 :if (equal (tuning-tuning i) pitches)
+                 :return (progn
+                           (warn "~&Tuning already exists as ~a; adding aliases: ~a" (tuning-name i) aliases)
+                           (apply #'define-tuning-aliases (tuning-name i) aliases)
+                           ;; FIX: define scale aliases too
+                           t))
+        (define-tuning name pitches octave-ratio aliases)
+        (define-scale name (alexandria:iota (length pitches)) name aliases)))))
+
+;;; define a base set of tunings and scales (copied from SuperCollider)
 
 (map nil ;; tunings
      (lambda (sd)
@@ -122,7 +187,7 @@
        ("Wendy Carlos Beta" ,(mapcar (lambda (n) (* n 0.638)) (alexandria:iota 18)) ,(midi-ratio (* 19 0.638)) (:wcBeta))
        ("Wendy Carlos Gamma" ,(mapcar (lambda (n) (* n 0.351)) (alexandria:iota 33)) ,(midi-ratio (* 34 0.351)) (:wcGamma))))
 
-(map nil
+(map nil ;; scales
      (lambda (sd)
        (apply #'define-scale sd))
      '(;; twelve tones per octave
