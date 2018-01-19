@@ -119,6 +119,9 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
    (cleanup-functions :initarg :cleanup-functions :initform (list)))
   (:documentation "Abstract pattern superclass."))
 
+(defun all-patterns ()
+  (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern))))
+
 (defmethod (setf quant) (value (pattern pattern))
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
 
