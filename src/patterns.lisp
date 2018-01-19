@@ -464,6 +464,9 @@ See also: `pbind', `pdef'"
 (define-pbind-special-post-key pdurstutter
   (pdurstutter pattern value))
 
+(define-pbind-special-post-key pr
+  (pr pattern value))
+
 (define-pbind-special-post-key ptrace
   (if value
       (ptrace pattern)

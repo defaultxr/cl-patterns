@@ -38,3 +38,4 @@ Here is a listing of all such keys:
 ** ~pfindur~ - ~(pfindur (pbind ...) value)~
 ** ~pdurstutter~ - ~(pdurstutter (pbind ...) value)~
 ** ~ptrace~ - ~(ptrace (pbind ...))~
+** ~pr~ - ~(pr (pbind ...) value)~
