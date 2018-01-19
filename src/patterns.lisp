@@ -1487,7 +1487,7 @@ See also: `pfin', `psync'")
                    current-elapsed
                    (round-up current-elapsed tolerance))
                dur)
-        (let ((new-elapsed (+ (delta n-event) current-elapsed)))
+        (let ((new-elapsed (+ (get-event-value n-event :delta) current-elapsed)))
           (prog1
               (if (> (if (= 0 tolerance)
                          new-elapsed
