@@ -1,13 +1,32 @@
 (in-package :cl-patterns)
 
-;;; general functionality
+;;; NOTES:
+;; FIX: make describe-object methods for scales, tunings, and chords.
 
-(defstruct scale name degrees tuning)
+;;; notes
+
+(defparameter *note-names* '((:c :b#) (:c# :db) (:d) (:d# :eb) (:e :fb) (:f :e#) (:f# :gb) (:g) (:g# :ab) (:a) (:a# :bb) (:b :cb)))
+
+(defun note-number (note)
+  "Given a note name or note number, return the note number."
+  (etypecase note
+    (number note)
+    (symbol (position note *note-names* :test #'position))))
+
+(defun note-name (note-number)
+  "Given a note number, return its note name.
+
+Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\"."
+  (car (nth-wrap note-number *note-names*)))
+
+;;; scales
+
+(defstruct scale name notes tuning)
 
 (defparameter *scales* (list)
   "Plist of all defined scales.")
 
-(defun define-scale (name degrees &optional (tuning :et12) aliases)
+(defun define-scale (name notes &optional (tuning :et12) aliases)
   "Define a scale and add it to the *scales* list."
   (let ((key (string-keyword name)))
     (when (not (tuning tuning))
@@ -15,7 +34,7 @@
     (setf *scales* (plist-set *scales*
                               key
                               (make-scale :name name
-                                          :degrees degrees
+                                          :notes notes
                                           :tuning tuning)))
     (map nil
          (lambda (x)
@@ -43,6 +62,14 @@
 
 (defmethod scale ((item scale))
   item)
+
+(defun scale-midinotes (scale &key (start-note :c) (octave 5)) ;; FIX: auto-parse arguments instead of requiring them to be specified manually?
+  "Given a scale, return its midi note numbers."
+  (let ((scale (scale scale))
+        (root (note-number start-note)))
+    (mapcar (lambda (note) (note-midinote note root octave)) (scale-notes scale))))
+
+;;; tunings
 
 (defstruct tuning name tuning octave-ratio)
 
@@ -90,7 +117,7 @@
 (defmethod tuning ((item tuning))
   item)
 
-;;; loading Scala (.scl) scale files
+;;; Scala (.scl) scale file support
 ;; Scala refers to these as "scales" but we call them tunings.
 ;; http://www.huygens-fokker.org/scala/scl_format.html
 
@@ -129,7 +156,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
         (define-tuning name pitches octave-ratio aliases)
         (define-scale name (alexandria:iota (length pitches)) name aliases)))))
 
-;;; define a base set of tunings and scales (copied from SuperCollider)
+;;; base set of tunings and scales (copied from SuperCollider)
 
 (map nil ;; tunings
      (lambda (sd)
