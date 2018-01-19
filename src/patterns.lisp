@@ -1374,8 +1374,8 @@ Example: (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4)))
                                                 :append (list (nth i h-keys) e))))))))
            (if r-ev
                (alexandria:appendf result (list (combine-events h-ev r-ev)))
-               (incf (dur (car (last result))) (dur h-ev)))))
-      (pseq result))))
+               (incf (event-value (car (last result)) :dur) (dur h-ev)))))
+      (pseq result 1))))
 
 ;; (defmethod next ((pattern ptracker-pstream))
 ;;   )
