@@ -382,6 +382,7 @@ See also: `pmono'"
                                                          value))))))
     (setf (slot-value pattern 'pairs) res-pairs)
     ;; handle pbind-special-post-keys
+    ;; FIX: normal keys after these should be pchain'd rather than applied before the special-post-keys
     (let ((pbind pattern))
       (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
          :do
@@ -402,7 +403,7 @@ See also: `pmono'"
 
 (setf (documentation 'pbind 'type) (documentation 'pbind 'function))
 
-(defmacro pb (name &body pairs)
+(defmacro pb (name &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
   "pb is a small convenience wrapper around `pbind'. NAME is a keyword for the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind.
 
 See also: `pbind', `pdef'"
@@ -1347,6 +1348,8 @@ Example: (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4)))
         (next false))))
 
 ;;; ptracker (FIX)
+;; FIX: allow each row to have keyword arguments
+;; FIX: make as-pstream method so any functions in the rows will be executed each time.
 
 (defpattern ptracker (pattern)
   (header
@@ -1458,7 +1461,6 @@ See also: `pfindur'")
       (next pattern))))
 
 ;;; pfindur
-;; FIX: does this work properly?
 
 (defpattern pfindur (pattern)
   (pattern
@@ -1469,7 +1471,7 @@ See also: `pfindur'")
 
 Example: (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
 
-See also: `pfin'")
+See also: `pfin', `psync'")
 
 (defmethod as-pstream ((pfindur pfindur))
   (with-slots (pattern dur tolerance) pfindur
@@ -1478,7 +1480,7 @@ See also: `pfin'")
                    :dur (next dur)
                    :tolerance (next tolerance))))
 
-(defmethod next ((pfindur pfindur-pstream))
+(defmethod next ((pfindur pfindur-pstream)) ;; FIX: make this affect the dur AND delta properly.
   (with-slots (pattern dur tolerance current-elapsed) pfindur
     (alexandria:when-let ((n-event (next pattern)))
       (when (< (if (= 0 tolerance)

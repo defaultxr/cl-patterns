@@ -88,3 +88,6 @@ make other libraries that expand upon cl-patterns' feature sets (i.e. libraries 
 still trying to think of ideas for how to make a good "performance mode" without just dumbly removing any patterns with errors... (is it possible to continue the rest of the clock's tasks while the user/coder is responding to the error condition?)
 * pattern plotting
 * pgeom/pseries fromEndPoints
+* "triggered mode" that causes patterns that proceed to the next event only when they receive an external trigger
+** keys like ~dur~ and ~delta~ would no longer have effect. perhaps enable triggered mode by setting a pattern's ~dur~ to ~:trigger~ instead of a number?
+** ~legato~ and ~sustain~ would have limited effect. perhaps if ~legato~ is < 1, received triggers start a note and end a note, whereas if ~legato~ is >= 1, triggers start a note, or if a note is already playing, both stop it and start the next one.

@@ -2,6 +2,67 @@
   (:nicknames :clp)
   (:use #:cl)
   (:export
+
+   ;;; utility.lisp
+
+   #:gete
+   #:keys
+
+   ;;; conversions.lisp
+
+   #:amp-db
+   #:db-amp
+
+   #:dur-time
+   #:time-dur
+   #:delta-dur
+   #:dur-delta
+
+   #:midinote-freq
+   #:freq-midinote
+   #:freq-octave
+   #:midinote-octave
+   #:midinote-degree
+   #:note-midinote
+   #:degree-note
+   #:degree-midinote
+   #:degree-freq
+   #:ratio-midi
+   #:midi-ratio
+
+   ;;; event.lisp
+
+   #:event
+   #:*event*
+   #:*event-output-function*
+   #:combine-events
+   #:event-plist
+
+   #:event-value
+   #:get-event-value
+   #:set-event-value
+
+   #:instrument
+   #:group
+   #:out
+
+   #:amp
+   #:db
+
+   #:pan
+
+   #:tempo
+   #:dur
+   #:legato
+   #:sustain
+   #:delta
+   #:timing-offset
+
+   #:freq
+   #:midinote
+
+   ;;; patterns.lisp
+
    #:pattern
    #:as-pstream
    #:next
@@ -16,12 +77,12 @@
 
    #:defpattern
    #:*max-pattern-yield-length*
-   
+
    #:pbind
    #:pb
    #:pmono
 
-   ;; NOTE: pattern classes defined with defpattern are automatically exported.
+   ;; NOTE: pattern classes defined with `defpattern' are automatically exported.
 
    #:p+
    #:p-
@@ -30,46 +91,38 @@
 
    #:bjorklund
 
-   #:event
-   #:*event*
-   #:keys
-   #:*event-output-function*
-   #:combine-events
+   ;;; cycles.lisp
 
-   #:instrument
-   #:group
-   #:out
+   ;;; scales.lisp
 
-   #:amp
-   #:db
-   #:amp-db
-   #:db-amp
+   #:*note-names*
+   #:note-number
+   #:note-name
+   #:scale-midinotes
 
-   #:pan
+   #:define-scale
+   #:all-scales
+   #:scale
+   #:scale-name
+   #:scale-notes
+   #:scale-tuning
 
-   #:tempo
-   #:dur
-   #:legato
-   #:sustain
-   #:delta
-   #:timing-offset
-   #:delta-dur
-   #:dur-delta
-   #:dur-time
-   #:time-dur
-   
-   #:freq
-   #:midinote
-   #:freq-midinote
-   #:midinote-freq
-   #:other-params
+   #:define-tuning
+   #:all-tunings
+   #:tuning
+   #:tuning-name
+   #:tuning-tuning
+   #:tuning-octave-ratio
 
-   #:get-event-value
-   #:set-event-value
-   #:gete
+   #:load-scala-scale
+
+   ;;; clock.lisp
 
    #:*clock*
    #:make-clock
    #:play
    #:stop
-   #:play-or-stop))
+   #:play-or-stop
+   #:pdefs-playing
+
+   ))

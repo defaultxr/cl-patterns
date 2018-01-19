@@ -1,7 +1,7 @@
 (asdf:defsystem #:cl-patterns
   :name "cl-patterns"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "SuperCollider-inspired patterns library for Common Lisp."
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp."
   :version "0.3"
   :depends-on (#:alexandria
                #:bordeaux-threads
@@ -26,7 +26,7 @@
 (asdf:defsystem #:cl-patterns/supercollider
   :name "cl-patterns/supercollider"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "SuperCollider-inspired patterns library for Common Lisp with SuperCollider backend."
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp with SuperCollider backend."
   :version "0.3"
   :depends-on (#:cl-patterns
                #:sc)
@@ -37,7 +37,7 @@
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "SuperCollider-inspired patterns library for Common Lisp with Incudine backend."
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp with Incudine backend."
   :version "0.3"
   :depends-on (#:cl-patterns
                #:incudine)
@@ -47,7 +47,7 @@
 (asdf:defsystem #:cl-patterns/midi
   :name "cl-patterns/midi"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "SuperCollider-inspired patterns library for Common Lisp with ALSA MIDI backend."
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
   :version "0.3"
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
@@ -55,7 +55,7 @@
   :components ((:file "src/midi")))
 
 (asdf:defsystem #:cl-patterns/tests
-  :name "cl-patterns tests"
+  :name "cl-patterns tests suite."
   :depends-on (#:cl-patterns
                #:prove)
   :components ((:file "src/tests"))
