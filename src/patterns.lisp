@@ -12,7 +12,7 @@
   "The event special variable. Can be referenced inside a pattern's code.")
 
 (defun make-default-event ()
-  (combine-events (event) *event*))
+  (or *event* (event)))
 
 (defun set-parents (pattern)
   "Set all of PATTERN's subpatterns' \"parent\" slot to PATTERN."
