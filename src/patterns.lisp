@@ -875,33 +875,6 @@ See also: `pstutter', `pdurstutter', `parp'")
               (next current-pstream))
             nv)))))
 
-;;; pcycles
-;; inspired by tidalcycles
-;; FIX: remove this and write it as regular functions instead?
-
-(defpattern pcycles (pattern) ;; FIX: add REPEATS slot
-  (list
-   (parsed-list :state t))
-  "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once.")
-
-(defun pcycles-parse-list (list)
-  (labels ((recurse (list dur)
-             (loop :for i :in list
-                :collect (if (consp i)
-                             (recurse i (* dur (/ 1 (length i))))
-                             (event :value i :dur dur)))))
-    (alexandria:flatten (recurse list (/ 1 (length list))))))
-
-(defmethod as-pstream ((pattern pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
-  (with-slots (list) pattern
-    (make-instance 'pcycles-pstream
-                   :list list
-                   :parsed-list (pcycles-parse-list list))))
-
-(defmethod next ((pattern pcycles-pstream))
-  (with-slots (number parsed-list) pattern
-    (nth number parsed-list)))
-
 ;;; pshift
 ;; shift a pattern N forward or backward, wrapping around
 

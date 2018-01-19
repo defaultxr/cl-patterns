@@ -109,12 +109,13 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 ** src
 
 - [[file:src/utility.lisp][utility.lisp]] - general utility functions.
-- [[file:src/patterns.lisp][patterns.lisp]] - the patterns themselves. includes the ~pattern~ superclass as well as ~pbind~ and ~pseq~, ~pk~, etc.
-- [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
-- [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/conversions.lisp][conversions.lisp]] - functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
+- [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
+- [[file:src/patterns.lisp][patterns.lisp]] - the patterns themselves. includes the ~pattern~ superclass as well as ~pbind~ and ~pseq~, ~pk~, etc.
+- [[file:src/cycles.lisp][cycles.lisp]] - ~pcycles~ and associated functions and macros for TidalCycles-inspired pattern notation.
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
-- [[file:src/readtable.lisp][readtable.lisp]] - defines a named-readtable for optional syntax sugar.
+- [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
+- [[file:src/readtable.lisp][readtable.lisp]] - defines a named-readtable for optional syntax sugar. may be removed in the future.
 
 - [[file:src/tests.lisp][tests.lisp]] - test suite using [[https://github.com/fukamachi/prove][prove]].
 

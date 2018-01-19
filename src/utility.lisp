@@ -40,6 +40,10 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
   "Get the index of the first element of LIST greater than N."
   (position-if (lambda (num) (> num n)) list))
 
+(defun flatten-1 (list)
+  "Like `alexandria:flatten', but only flattens one layer."
+  (apply #'append (mapcar #'alexandria:ensure-list list)))
+
 (defgeneric keys (item)
   (:documentation "Get the keys of ITEM, whether it be a plist, event, etc."))
 
