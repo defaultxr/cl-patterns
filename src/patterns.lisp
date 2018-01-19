@@ -40,12 +40,12 @@ SLOTS is a list of slots that the pattern and pstreams derived from it have. Eac
 DOCUMENTATION is a docstring describing the pattern. We recommend providing at least one example, and a \"See also\" section to refer to similar pattern classes.
 
 CREATION-FUNCTION is an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
-  (let ((superclasses (or superclasses (list 'pattern)))
-        (slots (mapcar #'alexandria:ensure-list slots))
-        (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
-        (super-pstream (if (eq 'pattern (car superclasses))
-                           'pstream
-                           (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM") 'cl-patterns))))
+  (let* ((superclasses (or superclasses (list 'pattern)))
+         (slots (mapcar #'alexandria:ensure-list slots))
+         (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
+         (super-pstream (if (eq 'pattern (car superclasses))
+                            'pstream
+                            (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM") 'cl-patterns))))
     (labels ((desugar-slot (slot)
                "Convert a slot into something appropriate for defclass to handle."
                (let ((name (car slot))
