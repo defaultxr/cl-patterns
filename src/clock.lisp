@@ -1,7 +1,12 @@
 ;;; clock.lisp - keep playing patterns in sync by running each clock in its own thread and all patterns on a clock.
+;; NOTES:
+;; * I use the local-time system instead of Lisp's built-in get-internal-real-time function because local-time is more accurate and is portable. For example, CMUCL's internal-time-units-per-second is only 100, which is pretty low. A local-time timestamp includes nanoseconds. In some implementations, local-time derives nanoseconds from less granular units of time, however it looks like it's still more accurate than using internal time would be... I'm not sure how much all of the above really matters, though, since the sleep function that we use is not guaranteed to be accurate either.
+
 ;; FIX: changing :instrument in pmono causes the old one to stay playing.
-;; FIX: use a universal timestamp (with microseconds) instead of a unix timestamp. move unix-time-byulparan to supercollider.lisp
-;; FIX: get rid of clock's "granularity" slot
+;; FIX: use a universal timestamp (with microseconds) instead of a unix timestamp. move cl-collider-now to supercollider.lisp
+;; FIX: get rid of clock's "granularity" slot?
+;; FIX: don't play "expired" events... i.e. if the event should have already ended by the time we get around to playing it, just don't play it. this way, if the user takes too long to select a restart when an error occurs on the clock, the events won't be played all at once.
+;; FIX: print a warning after the clock has finished "catching up"... or perhaps print a warning each time the sleep amount is 0?
 
 (in-package :cl-patterns)
 
@@ -19,12 +24,14 @@
 
 (defclass clock ()
   ((beats :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
-   (tempo :initform 1 :initarg :tempo :accessor tempo :documentation "The tempo of the clock, in beats per second.")
-   (granularity :initform 1/10 :initarg :granularity :documentation "How often the clock \"wakes up\" to process events in each beat. Shouldn't need to be adjusted.")
+   (tempo :initarg :tempo :initform 1 :accessor tempo :documentation "The tempo of the clock, in beats per second.")
+   (granularity :initarg :granularity :initform 1/10 :documentation "How often the clock \"wakes up\" to process events in each beat. Shouldn't need to be adjusted.")
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
-   (unix-time-at-tempo :initform (unix-time-byulparan) :documentation "The Unix time when the tempo was last changed.")
-   (when-tempo-changed :initform 0 :documentation "The number of 'beats' on the clock when the tempo was last changed.")))
+   (unix-time-at-tempo :initform (cl-collider-now) :documentation "The Unix time when the tempo was last changed.")
+   (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
+   (time-at-tempo :initform (get-internal-real-time) :documentation "The internal real time when the tempo was last changed.")
+   (when-tempo-changed :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")))
 
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
@@ -38,17 +45,16 @@
   "Get the current universal time with microseconds."
   (timestamp-to-universal (local-time:now)))
 
-(defun unix-time-byulparan () ;; FIX: pull request this to byulparan/scheduler??
+(defun cl-collider-now () ;; FIX: pull request this to byulparan/scheduler??
   "Get the current unix time in the same format as byulparan/scheduler."
-  (let ((now (local-time:now)))
-    (+ (local-time:timestamp-to-unix now) (* (local-time:nsec-of now) 1.0d-9))))
+  (timestamp-to-cl-collider (local-time:now)))
 
 (defclass task ()
   ((gensym :initform (gensym))
-   (clock :initform *clock* :initarg :clock)
-   (item :initform nil :initarg :item)
-   (start-time :initform nil :initarg :start-time)
-   (next-time :initform nil :initarg :next-time)
+   (clock :initarg :clock :initform *clock*)
+   (item :initarg :item :initform nil)
+   (start-time :initarg :start-time :initform nil)
+   (next-time :initarg :next-time :initform nil)
    (nodes :initarg :nodes :initform (list))))
 
 (defparameter *clock* nil)
@@ -56,6 +62,16 @@
 (defun absolute-beats-to-unix-time (beats clock)
   "Convert a clock's number of beats to a unix time. Number of beats is only guaranteed to be accurate if it's greater than the clock's when-tempo-changed slot."
   (+ (slot-value clock 'unix-time-at-tempo) (dur-time (- beats (slot-value clock 'when-tempo-changed)) (tempo clock))))
+
+(defun absolute-beats-to-timestamp (beats clock)
+  "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's when-tempo-changed slot."
+  (with-slots (timestamp-at-tempo when-tempo-changed) clock
+    (local-time:timestamp+ timestamp-at-tempo (dur-time (- beats when-tempo-changed) (tempo clock)) :sec)))
+
+(defun absolute-beats-to-internal-time (beats clock)
+  "Convert a clock's number of beats to an internal real time. The result is only guaranteed to be accurate if it's greater than the clock's when-tempo-changed slot."
+  (with-slots (time-at-tempo when-tempo-changed) clock
+    (+ time-at-tempo (* internal-time-units-per-second (dur-time (- beats when-tempo-changed) (tempo clock))))))
 
 (defun make-clock (&optional (tempo 1) tasks)
   "Create a clock. The clock automatically starts running in a new thread."
@@ -65,7 +81,8 @@
     clock))
 
 (defmethod print-object ((clock clock) stream)
-  (format stream "#<CLOCK :tempo ~f :beats ~f>" (slot-value clock 'tempo) (slot-value clock 'beats)))
+  (with-slots (tempo beats) clock
+    (format stream "#<CLOCK :tempo ~f :beats ~f>" tempo beats)))
 
 (defun clock-add (item &optional (clock *clock*))
   (with-slots (tasks tasks-lock) clock
@@ -92,46 +109,58 @@
 
 (defun clock-process-task (task clock) ;; FIX: only remove patterns if they've returned NIL as their first output 4 times in a row.
   "Process TASK on CLOCK. This function processes meta-events like tempo changes, etc, and everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
-  (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
-    (setf (slot-value task 'start-time) (slot-value clock 'beats)
-          (slot-value task 'next-time) (slot-value clock 'beats)))
-  (restart-case
-      (let* ((item (slot-value task 'item))
-             (nv (next item)))
-        (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
-          (setf (slot-value task 'item) (as-pstream (pdef (slot-value (slot-value task 'item) 'key))))
-          (setf nv (next (slot-value task 'item)))
-          (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
-            (if (eq (get-event-value last :instrument) (get-event-value nv :instrument))
-                (when (not (null (slot-value task 'nodes)))
-                  (at (+ (get-event-value last :unix-time-at-start) (dur-time (sustain last)))
-                    (release (car (slot-value task 'nodes)))))))
-          (setf item (slot-value task 'item)))
-        (when (not (null nv))
-          (case (get-event-value nv :type)
-            (:tempo-change
-             (if (and (numberp (get-event-value nv :tempo))
-                      (plusp (get-event-value nv :tempo)))
-                 (setf (slot-value clock 'tempo) (get-event-value nv :tempo)
-                       (slot-value clock 'unix-time-at-tempo) (unix-time-byulparan)
-                       (slot-value clock 'when-tempo-changed) (slot-value clock 'beats))
-                 (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv)))
-            (otherwise
-             (unless (eq (get-event-value nv :type) :rest)
-               (funcall *event-output-function*
-                        (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)))
-                        task))
-             (incf (slot-value task 'next-time) (delta nv))
-             (when (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity)))
-               (clock-process-task task clock)))))
-        (when (or (null nv) (not (typep item 'pstream))) ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens.
-          task))
-    (skip-event ()
-      :report "Skip this event, preserving the task on the clock so it can be run again."
-      nil)
-    (remove-task ()
-      :report "Remove this task from the clock."
-      task)))
+  (with-slots (beats tempo granularity unix-time-at-tempo timestamp-at-tempo time-at-tempo when-tempo-changed) clock
+    (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
+      (setf (slot-value task 'start-time) beats
+            (slot-value task 'next-time) beats))
+    (restart-case
+        (let* ((item (slot-value task 'item))
+               (nv (next item)))
+          (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
+            (setf (slot-value task 'item) (as-pstream (pdef (slot-value item 'key))))
+            (setf nv (next (slot-value task 'item)))
+            ;; (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
+            ;;   (if (eq (get-event-value last :instrument) (get-event-value nv :instrument)) ;; FIX: need the else for this
+            ;;       (unless (null (slot-value task 'nodes))
+            ;;         (release-at (+ (absolute-beats-to-unix-time (- (slot-value task 'next-time) (get-event-value last :delta)) clock)
+            ;;                        (dur-time (sustain last)))
+            ;;                     (car (slot-value task 'nodes))))))
+            (setf item (slot-value task 'item)))
+          (unless (null nv)
+            (let ((type (get-event-value nv :type)))
+              ;; actually "play" the event
+              (case type
+                (:tempo-change
+                 (if (and (numberp (get-event-value nv :tempo))
+                          (plusp (get-event-value nv :tempo)))
+                     (setf tempo (get-event-value nv :tempo)
+                           unix-time-at-tempo (cl-collider-now)
+                           timestamp-at-tempo (local-time:now)
+                           time-at-tempo (get-internal-real-time) ;; FIX: calculate the current internal real time from the beat instead of using this function.
+                           when-tempo-changed beats)
+                     (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv)))
+                (:rest
+                 nil)
+                (otherwise
+                 (funcall *event-output-function*
+                          (combine-events nv (event :unix-time-at-start (absolute-beats-to-unix-time (slot-value task 'next-time) clock)
+                                                    :timestamp-at-start (absolute-beats-to-timestamp (slot-value task 'next-time) clock)
+                                                    :time-at-start (absolute-beats-to-internal-time (slot-value task 'next-time) clock)))
+                          task)))
+              ;; play the next event from this task if it occurs before the clock's next "wakeup time"
+              (unless (position type '(:tempo-change))
+                (incf (slot-value task 'next-time) (delta nv))
+                (when (< (slot-value task 'next-time) (+ beats granularity))
+                  (clock-process-task task clock)))))
+          ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens
+          (when (or (null nv) (not (typep item 'pstream)))
+            task))
+      (skip-event ()
+        :report "Skip this event, preserving the task on the clock so it can be run again."
+        nil)
+      (remove-task ()
+        :report "Remove this task from the clock."
+        task))))
 
 (defun clock-tasks-names (&optional (clock *clock*))
   "Get a list of names of pdefs currently scheduled on CLOCK."
@@ -145,7 +174,8 @@
     (if (typep (slot-value task 'item) 'pstream)
         (if (null (slot-value task 'next-time)) ;; if the pstream has already started, return t
             (or (= 0 quant) ;; a quant of 0 means run immediately without waiting for a specific beat.
-                (< (abs (- (mod (slot-value clock 'beats) quant) phase)) (slot-value clock 'granularity)))
+                (< (abs (- (mod (slot-value clock 'beats) quant) phase))
+                   (slot-value clock 'granularity)))
             (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity))))
         t)))
 
@@ -163,7 +193,10 @@
                  (when (not (null task)) ;; if it's nil it means it's not done with yet so we do nothing.
                    (clock-remove task clock)))
                results)
-         (sleep (max 0 (- (absolute-beats-to-unix-time (+ beats granularity) clock) (unix-time-byulparan)))))
+         (sleep (max 0 (- (absolute-beats-to-unix-time (+ beats granularity) clock) (cl-collider-now) (/ *latency* 2)))) ;; FIX: not sure if adding this halved latency is a good idea?
+         ;; (sleep (max 0 (local-time:timestamp-difference (absolute-beats-to-timestamp (+ beats granularity) clock) (local-time:now))))
+         ;; (sleep (max 0 (/ (- (absolute-beats-to-internal-time (+ beats granularity) clock) (get-internal-real-time)) internal-time-units-per-second)))
+         )
        ;; FIX: do we need to acquire a lock on the clock's tempo as well?
        (incf beats granularity))))
 
@@ -220,3 +253,8 @@
     (if playing
         (progn (stop item) nil)
         (progn (play item) t))))
+
+(defun pdefs-playing (&optional (clock *clock*))
+  "Get a list of the names of all pdefs playing on CLOCK."
+  (loop :for i :in (slot-value clock 'tasks)
+     :collect (slot-value (slot-value i 'item) 'key)))
