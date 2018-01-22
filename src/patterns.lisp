@@ -1571,7 +1571,7 @@ See also: `pr', `pstutter'")
 
 (defpattern pbeats (pattern)
   ()
-  "pbeats yields the number of beats elapsed since its embedding in the parent stream.
+  "pbeats yields the number of beats elapsed since its embedding in the pstream.
 
 Example: (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeats)) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 2 :FOO 1) (EVENT :DUR 3 :FOO 3))
 
