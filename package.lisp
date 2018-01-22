@@ -116,6 +116,13 @@
 
    #:load-scala-scale
 
+   ;;; backend.lisp
+
+   #:register-backend
+   #:all-backends
+   #:enable-backend
+   #:disable-backend
+
    ;;; clock.lisp
 
    #:*clock*
@@ -124,5 +131,7 @@
    #:stop
    #:play-or-stop
    #:pdefs-playing
+
+   ;;; readtable.lisp
 
    ))

@@ -19,6 +19,7 @@
                (:file "src/patterns")
                (:file "src/cycles")
                (:file "src/scales")
+               (:file "src/backend")
                (:file "src/clock")
                (:file "src/readtable"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
@@ -31,8 +32,7 @@
   :depends-on (#:cl-patterns
                #:sc)
   :serial t
-  :components ((:file "src/cl-collider-extensions")
-               (:file "src/supercollider")))
+  :components ((:file "src/supercollider")))
 
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"

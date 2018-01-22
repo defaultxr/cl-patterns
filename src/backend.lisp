@@ -1,0 +1,29 @@
+(in-package #:cl-patterns)
+
+(defparameter *enabled-backends* nil
+  "List of registered and enabled backends for cl-patterns. Any event that is played is tested against each of these backends' respond-p functions in order. The event is then played on the first backend to return true.")
+
+(defparameter *backends* nil
+  "Plist of registered backends for cl-patterns. This holds all the information about each backend and should not be modified by the user; change the `*enabled-backends*' variable to set which backends are enabled.")
+
+(defun register-backend (name respond-p play release release-at timestamp-conversion)
+  "Register a cl-patterns backend."
+  (let ((name (alexandria:make-keyword name)))
+    (setf *backends*
+          (plist-set *backends* name (list :name name :respond-p respond-p :play play :release release :release-at release-at :timestamp-conversion timestamp-conversion)))))
+
+(defun all-backends ()
+  "Get a list of all registered backends."
+  (keys *backends*))
+
+(defun enable-backend (name)
+  "Enable a registered backend."
+  (assert (position (alexandria:make-keyword name)
+                    (keys *backends*))
+          (name) "No backend named ~s registered." name)
+  (pushnew (alexandria:make-keyword name) *enabled-backends*))
+
+(defun disable-backend (name)
+  "Disable a registered backend."
+  (setf *enabled-backends*
+        (delete (alexandria:make-keyword name) *enabled-backends*)))
