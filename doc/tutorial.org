@@ -2,9 +2,9 @@
 
 * Introduction
 
-cl-patterns is a library for creating and manipulating patterns. "Patterns" in this case refers to a set of functions and classes provided by the library that produce numeric or compound output. "Pattern" can also refer to the structures built out of these functions.
+cl-patterns is a library for creating and manipulating patterns. "Patterns" in this case refers to a set of functions and classes provided by the library that produce numeric or compound output. The term "pattern" can also refer to the structures built out of these functions.
 
-Though it can be used for any purpose, cl-patterns is primarily written with music composition and performance in mind. In this regard, it can be thought of as a sequencing library, however unlike most step sequencers or piano rolls, cl-patterns offers much more flexibility, and can be used to define far more complex behaviors.
+Though it can be used for any purpose, cl-patterns is primarily written with music composition and performance in mind. In this regard, it can be thought of as a sequencing library, however unlike most step sequencers or piano rolls, cl-patterns offers much more flexibility, and can be used to define far more complex and dynamic behaviors.
 
 cl-patterns is based on and inspired by SuperCollider's patterns system; however, there have been many changes and improvements to it such that experienced SuperCollider users may need to re-learn some things, and perhaps break some old habits.
 

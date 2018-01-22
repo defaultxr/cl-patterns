@@ -41,6 +41,20 @@ This is just a list of various ideas, or tasks that need to be done for this lib
 ...then the ~:bar~ pattern's events will play 0.25 beats after each of ~:foo~'s events play, because it's set to ~:pefollow~ that pattern.
 *** similarly, a ~:pfollow~ key could be used to automatically start the pattern for each event of the source pattern. the default event would be the event from the source pattern that triggered the subpattern to play.
 ** or maybe have an ~:action~ key for patterns that can be used to fork the pattern, launch another pattern, etc...?
+** allow a pattern play another by using it for its ~:instrument~ key. example:
+#+BEGIN_SRC lisp
+  (pdef :foo (pbind :midinote (pseq '(40 50 60) 1)
+                    :dur 1))
+
+  (pdef :bar (pbind :instrument :foo
+                    :dur 2
+                    :legato 1
+                    :pfin 2))
+
+  (next-upto-n (pdef :bar))
+
+  ;;...results in ((EVENT :MIDINOTE 40 :DUR 1) (EVENT :MIDINOTE 50 :DUR 1) (EVENT :MIDINOTE 40 :DUR 1) (EVENT :MIDINOTE 50 :DUR 1))
+#+END_SRC
 
 * ~:cleanup~ key for patterns. this can either contain a function or a list of functions. when the pattern ends or is stopped, the function or functions will be called.
 ** not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
