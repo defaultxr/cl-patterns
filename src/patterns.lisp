@@ -1495,7 +1495,7 @@ See also: `pfin', `psync'")
                      dur)
                   (combine-events n-event (event :dur (- dur current-elapsed)))
                   n-event)
-            (incf current-elapsed (delta n-event))))))))
+            (incf current-elapsed (get-event-value n-event :delta))))))))
 
 ;;; pstutter
 
