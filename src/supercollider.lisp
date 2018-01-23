@@ -14,9 +14,9 @@
   (+ (local-time:timestamp-to-unix time) (* (local-time:timestamp-microsecond time) 1.0d-6)))
 
 (defun get-synthdef-controls (name)
-  (if (typep name 'node)
-      (get-synthdef-controls (slot-value name 'name))
+  (if (typep name 'sc::node)
       (get-synthdef-metadata name :controls)))
+      (get-synthdef-controls (slot-value name 'sc::name))
 
 (defun get-synthdef-control-names (name)
   (mapcar #'car (get-synthdef-controls name)))
