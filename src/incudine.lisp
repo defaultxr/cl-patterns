@@ -1,14 +1,12 @@
 (in-package :cl-patterns)
 
-;; FIX: `at' and `release' currently have to be defined here since clock.lisp uses them.
+;; (defmacro at (time &body body)
+;;   `(incudine:at ,time (lambda () ,@body)))
 
-(defmacro at (time &body body)
-  `(incudine:at ,time (lambda () ,@body)))
-
-(defun release (node)
+(defun release (node) ;; FIX: remove this
   (incudine:set-control node :gate 0))
 
-(defun local-time-incudine (time)
+(defun timestamp-to-incudine (time)
   "Convert a local-time timestamp into the timestamp format used by Incudine."
   )
 
@@ -18,7 +16,8 @@
           (remove-if (lambda (symbol)
                        (or
                         (position symbol (list '&key 'incudine.vug::id 'incudine.vug::head 'incudine.vug::tail 'incudine.vug::before 'incudine.vug::after 'incudine.vug::action 'incudine.vug::stop-hook 'incudine.vug::free-hook 'incudine.vug::fade-time 'incudine.vug::fade-curve 'incudine.scratch::replace))))
-                     (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))))))
+                     (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))) ;; this is the only thing we require swank for, so remove the swank dependency from the .asd file once this is removed.
+                     )))
 
 ;; incudine's (now) function returns the number of samples elapsed.
 ;; we will need to keep track of the value of (now) when the clock is started or when the backend is launched.

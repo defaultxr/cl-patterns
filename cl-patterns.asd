@@ -8,9 +8,7 @@
                #:closer-mop
                #:named-readtables
                #:split-sequence
-               #:local-time
-               #:swank ;; FIX: remove this.
-               )
+               #:local-time)
   :serial t
   :components ((:file "package")
                (:file "src/utility")
@@ -40,6 +38,7 @@
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with Incudine backend."
   :version "0.3"
   :depends-on (#:cl-patterns
+               #:swank ;; FIX: remove this.
                #:incudine)
   :serial t
   :components ((:file "src/incudine")))
