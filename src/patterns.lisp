@@ -595,10 +595,12 @@ Example: (next-n (pbind :foo (pseq '(1 2 3)) :bar (pk :foo)) 3) ;=> ((EVENT :FOO
                    :key key
                    :default default)))
 
-(defmethod next ((pattern pk-pstream))
-  (with-slots (key default) pattern
-    (or (get-event-value *event* key)
-        default)))
+(defmethod next ((pk pk-pstream))
+  (with-slots (key default) pk
+    (or (event-value *event* key)
+        (if (string= :number key)
+            (slot-value pk 'number)
+            default))))
 
 ;;; prand
 
