@@ -6,3 +6,6 @@ install:
 
 script:
   - ros -s prove -e '(or (prove:run :cl-patterns/tests) (uiop:quit -1))'
+
+notifications:
+  email: false
