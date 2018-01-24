@@ -57,6 +57,6 @@
   :name "cl-patterns tests suite."
   :depends-on (#:cl-patterns
                #:prove)
-  :components ((:file "src/tests"))
+  :components ((:test-file "src/tests"))
   :perform (test-op (op c)
                     (uiop:symbol-call :prove :run c)))
