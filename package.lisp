@@ -37,6 +37,7 @@
    #:*event-output-function*
    #:combine-events
    #:event-plist
+   #:event-equal
 
    #:event-value
    #:get-event-value
