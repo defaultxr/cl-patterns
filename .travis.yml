@@ -1,11 +1,19 @@
 language: common-lisp
 sudo: required
 
+# install ros
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
+# test with prove
+# script:
+#   - ros -s prove -e '(or (prove:run :cl-patterns/tests) (uiop:quit -1))'
+
+# test with fiveam
 script:
-  - ros -s prove -e '(or (prove:run :cl-patterns/tests) (uiop:quit -1))'
+  - ros -e "(ql:quickload :cl-patterns/tests)
+            (uiop:quit (if (fiveam:run! 'cl-patterns/tests::cl-patterns-tests)
+                           0 1))"
 
 notifications:
   email: false

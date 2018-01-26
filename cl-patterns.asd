@@ -56,7 +56,9 @@
 (asdf:defsystem #:cl-patterns/tests
   :name "cl-patterns tests suite."
   :depends-on (#:cl-patterns
-               #:prove)
-  :components ((:test-file "src/tests"))
+               #:fiveam)
+  :components ((:file "src/tests"))
   :perform (test-op (op c)
-                    (uiop:symbol-call :prove :run c)))
+                    (uiop:symbol-call :fiveam :run!
+                                      (uiop:find-symbol* '#:cl-patterns-tests
+                                                         :cl-patterns/tests))))
