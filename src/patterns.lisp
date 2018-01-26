@@ -920,7 +920,14 @@ See also: `pstutter', `pdurstutter', `parp'")
    (repeats :default :inf)
    (shuffled-list :state t)
    (current-repeats-remaining :state t))
-  "pshuf shuffles LIST, then yields each item from the shuffled list, repeating the list REPEATS times.")
+  "pshuf shuffles LIST, then yields each item from the shuffled list, repeating the list REPEATS times.
+
+Example:
+
+;; (next-upto-n (pshuf '(1 2 3) 2))
+;; => (3 1 2 3 1 2)
+
+See also: `prand'")
 
 (defmethod as-pstream ((pattern pshuf))
   (with-slots (list repeats) pattern
@@ -939,7 +946,7 @@ See also: `pstutter', `pdurstutter', `parp'")
       (decf-remaining pattern 'current-repeats-remaining))
     (alexandria:when-let ((rem (remainingp pattern)))
       (when (eq :reset rem)
-        (setf shuffled-list (alexandria:shuffle list)))
+        (setf shuffled-list (alexandria:shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
       (nth (mod number (length shuffled-list))
            shuffled-list))))
 
