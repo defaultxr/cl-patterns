@@ -27,3 +27,13 @@
   "Disable a registered backend."
   (setf *enabled-backends*
         (delete (alexandria:make-keyword name) *enabled-backends*)))
+
+(defun enabled-backends ()
+  "Get a list of all enabled backends."
+  *enabled-backends*)
+
+(defun which-backend-for-event (event)
+  "Return the name of the first backend in `*enabled-backends*' that will handle EVENT."
+  (loop :for i :in *enabled-backends*
+     :if (funcall (getf (getf *backends* i) :respond-p) event)
+     :return i))
