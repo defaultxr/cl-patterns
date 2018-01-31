@@ -13,18 +13,10 @@
   "Convert a local-time timestamp into the timestamp format used by cl-collider."
   (+ (local-time:timestamp-to-unix time) (* (local-time:timestamp-microsecond time) 1.0d-6)))
 
-(defun get-synthdef-controls (name)
-  (if (typep name 'sc::node)
-      (get-synthdef-metadata name :controls)))
-      (get-synthdef-controls (slot-value name 'sc::name))
-
-(defun get-synthdef-control-names (name)
-  (mapcar #'car (get-synthdef-controls name)))
-
 (defgeneric has-gate-p (item))
 
 (defmethod has-gate-p ((item t))
-  (position :gate (get-synthdef-control-names item) :test #'string-equal))
+  (position :gate (sc::get-synthdef-control-names item) :test #'string-equal))
 
 (defmethod has-gate-p ((item sc::node))
   (has-gate-p (sc::name item)))
@@ -38,7 +30,7 @@
                                    (multiple-value-bind (value key) (get-event-value event arg)
                                      (declare (ignore value))
                                      (eq key t)))
-                                 (get-synthdef-control-names instrument))))
+                                 (sc::get-synthdef-control-names instrument))))
     (if synth-params
         (loop :for sparam :in synth-params
            :for val = (get-event-value event sparam)
@@ -71,7 +63,7 @@
                        (nth 2 quant)
                        0))
            (time (+ (or (raw-get-event-value item :latency) *latency*)
-                    (or (raw-get-event-value item :unix-time-at-start) (sc:now))
+                    (or (timestamp-to-cl-collider (raw-get-event-value item :timestamp-at-start)) (sc:now))
                     offset))
            (params (convert-sc-objects-to-numbers (generate-plist-for-synth inst item))))
       (if (or (and (eq (get-event-value item :type) :mono)
@@ -103,12 +95,16 @@
                 (release node))))))))
 
 (defun is-sc-event-p (event)
-  (gethash (get-event-value event :instrument) sc::*synthdef-metadata*))
+  (let ((inst (event-value event :instrument)))
+    (or (gethash inst sc::*synthdef-metadata*)
+        (typep inst 'sc::node))))
 
 (defun timestamp-to-cl-collider (timestamp)
   "Convert a local-time timestamp to the format used by cl-collider."
   (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
 
 (register-backend :cl-collider #'is-sc-event-p #'play-sc #'release #'release-at #'timestamp-to-cl-collider)
+
+(enable-backend :cl-collider)
 
 (setf *event-output-function* 'play-sc)
