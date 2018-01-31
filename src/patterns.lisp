@@ -255,8 +255,8 @@ See also: `pattern-as-pstream'"))
           (funcall value)
           value))))
 
-(defmethod as-pstream ((pattern pstream))
-  pattern)
+(defmethod as-pstream ((pstream pstream))
+  pstream)
 
 (defmethod as-pstream ((pattern pattern))
   (let ((slots (remove-if (lambda (x) (eq x 'parent)) (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
@@ -346,7 +346,7 @@ See also: `parent-pattern'"))
   (float
    (loop :for i :in (slot-value pstream 'history)
       :if (typep i 'event)
-      :sum (get-event-value i :dur)
+      :sum (event-value i :dur)
       :if (null i)
       :do (loop-finish)
       :if (and (not (typep i 'event)) (not (null i)))
@@ -360,9 +360,12 @@ See also: `parent-pattern'"))
 
 (defun pbind (&rest pairs)
   "pbind yields events determined by its PAIRS, which are a list of keys and values. Each key corresponds to a key in the resulting events, and each value is treated as a pattern that is evaluated for each step of the pattern to generate the value for its key.
-Example: (next-n (pbind :foo (pseq '(1 2 3)) :bar :hello) 4) ;=>
-;;((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO)
-;; (EVENT :FOO 3 :BAR :HELLO) NIL)
+
+Example:
+
+;; (next-n (pbind :foo (pseq '(1 2 3)) :bar :hello) 4)
+;; => ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) NIL)
+
 See also: `pmono'"
   (assert (evenp (length pairs)) (pairs))
   (let* ((res-pairs nil)
@@ -446,7 +449,7 @@ See also: `pbind', `pdef'"
 (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well. maybe just rename to 'synth'?
   (list :instrument value))
 
-(defparameter *pbind-special-post-keys* '())
+(defparameter *pbind-special-post-keys* (list))
 
 (defmacro define-pbind-special-post-key (key &body body)
   "Define a special key for pbind that does post-processing on the pbind after it has been constructed. Each is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
@@ -495,14 +498,14 @@ See also: `pbind', `pdef'"
                  (if (position (car pairs) (keys *pbind-special-keys*))
                      (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
                        (setf *event* (combine-events *event* result)))
-                     (set-event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns) next-cadr))
+                     (setf (event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
                  (if (not (null (cddr pairs)))
                      (pbind-accumulator (cddr pairs))
                      *event*)))))
     (let ((*event* (make-default-event)))
       (unless (or (null (slot-value pattern 'remaining))
                   (eq :inf (slot-value pattern 'remaining)))
-        (set-event-value *event* :remaining (slot-value pattern 'remaining)))
+        (setf (event-value *event* :remaining) (slot-value pattern 'remaining)))
       (pbind-accumulator (slot-value pattern 'pairs)))))
 
 (defmethod as-pstream ((item pbind-pstream))
@@ -521,45 +524,53 @@ See also: `pbind'"
          pairs))
 
 ;;; pseq
-;; FIX: add offset parameter?
 
 (defpattern pseq (pattern)
   (list
    (repeats :default :inf)
+   (offset :default 0) ;; FIX: add tests for this
    (current-repeats-remaining :state t))
-  "pseq yields values from LIST in the same order they were provided, repeating the whole list REPEATS times.
+  "pseq yields values from LIST in the same order they were provided, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
 
-Example: (next-n (pseq '(5 6 7) 2) 7) ;=> (5 6 7 5 6 7 NIL)
+Example:
+
+;; (next-n (pseq '(5 6 7) 2) 7)
+;; => (5 6 7 5 6 7 NIL)
+;;
+;; (next-upto-n (pseq '(5 6 7) 2 1))
+;; => (6 7 5 6 7 5)
 
 See also: `pser'")
 
 (defmethod as-pstream ((pattern pseq))
-  (with-slots (repeats list) pattern
+  (with-slots (repeats list offset) pattern
     (make-instance 'pseq-pstream
                    :list (next list)
-                   :repeats (as-pstream repeats))))
+                   :repeats (as-pstream repeats)
+                   :offset (pattern-as-pstream offset))))
 
-(defmethod next ((pattern pseq-pstream))
-  (with-slots (number list) pattern
-    (when (and (not (= number 0))
+(defmethod next ((pseq pseq-pstream))
+  (with-slots (number list offset) pseq
+    (when (and (plusp number)
                (= 0 (mod number (length list))))
-      (decf-remaining pattern 'current-repeats-remaining))
-    (when (if (plusp number)
-              (and ;; (not (null (pstream-nth -1 pattern))) ;; FIX: not sure if commenting this breaks anything??
-               (remainingp pattern))
-              (remainingp pattern))
-      (nth-wrap number list))))
+      (decf-remaining pseq 'current-repeats-remaining))
+    (when (remainingp pseq)
+      (nth-wrap (+ (or (next offset) 0) number) list))))
 
 ;;; pser
 
 (defpattern pser (pattern)
   (list
    (length :default :inf)
+   ;; FIX: add offset and tests for it
    (current-repeats-remaining :state t)
    (current-index :state t))
   "pser yields values from LIST in the same order they were provided, returning a total of LENGTH values.
 
-Example: (next-n (pser '(5 6 7) 2) 3) ;=> (5 6 NIL)
+Example:
+
+;; (next-n (pser '(5 6 7) 2) 3)
+;; => (5 6 NIL)
 
 See also: `pseq'")
 
@@ -587,7 +598,12 @@ See also: `pseq'")
    (default :default 1))
   "pk returns the value of KEY in the current *event* context, returning DEFAULT if that value is nil.
 
-Example: (next-n (pbind :foo (pseq '(1 2 3)) :bar (pk :foo)) 3) ;=> ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))")
+Example:
+
+;; (next-n (pbind :foo (pseq '(1 2 3)) :bar (pk :foo)) 3)
+;; => ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))
+
+See also: `event-value', `*event*'")
 
 (defmethod as-pstream ((pattern pk))
   (with-slots (key default) pattern
@@ -1110,7 +1126,7 @@ See also: `prand'")
     (let* ((n (next pattern))
            (result (if (and (not (null key))
                             (not (null n)))
-                       (get-event-value n key)
+                       (event-value n key)
                        n)))
       (format stream "~a~a~%" prefix result)
       n)))
@@ -1210,18 +1226,18 @@ Example: (next-upto-n (pslide (list 0 1 2 3 4 5 6) 3 3 2 1 t)) ;=> (1 2 3 3 4 5 
 
 See also: `pscratch'")
 
-  (defmethod as-pstream ((pattern pslide))
-    (with-slots (list repeats len step start wrap-at-end) pattern
-      (make-instance 'pslide-pstream
-                     :list (next list)
-                     :repeats (pattern-as-pstream repeats)
-                     :len (pattern-as-pstream len)
-                     :step (pattern-as-pstream step)
-                     :start (next start)
-                     :wrap-at-end (next wrap-at-end)
-                     :current-repeats 0
-                     :remaining-current-segment len
-                     :current-value start)))
+(defmethod as-pstream ((pattern pslide))
+  (with-slots (list repeats len step start wrap-at-end) pattern
+    (make-instance 'pslide-pstream
+                   :list (next list)
+                   :repeats (pattern-as-pstream repeats)
+                   :len (pattern-as-pstream len)
+                   :step (pattern-as-pstream step)
+                   :start (next start)
+                   :wrap-at-end (next wrap-at-end)
+                   :current-repeats 0
+                   :remaining-current-segment len
+                   :current-value start)))
 
 (defmethod next ((pattern pslide-pstream))
   (with-slots (list repeats len step start wrap-at-end current-repeats-remaining current-repeats remaining-current-segment current-value) pattern
@@ -1496,7 +1512,7 @@ See also: `pfin', `psync'")
                    current-elapsed
                    (round-up current-elapsed tolerance))
                dur)
-        (let ((new-elapsed (+ (get-event-value n-event :delta) current-elapsed)))
+        (let ((new-elapsed (+ (event-value n-event :delta) current-elapsed)))
           (prog1
               (if (> (if (= 0 tolerance)
                          new-elapsed
@@ -1504,7 +1520,7 @@ See also: `pfin', `psync'")
                      dur)
                   (combine-events n-event (event :dur (- dur current-elapsed)))
                   n-event)
-            (incf current-elapsed (get-event-value n-event :delta))))))))
+            (incf current-elapsed (event-value n-event :delta))))))))
 
 ;;; pstutter
 
@@ -1569,7 +1585,7 @@ See also: `pr', `pstutter'")
          (when (and (not (null current-repeats-remaining))
                     (not (eq 0 current-repeats-remaining)))
            (setf current-value (ctypecase e
-                                 (event (combine-events e (event :dur (/ (get-event-value e :dur) current-repeats-remaining))))
+                                 (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
                                  (number (/ e current-repeats-remaining))
                                  (null nil))))))
     (when (not (null current-repeats-remaining))
