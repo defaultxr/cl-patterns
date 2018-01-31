@@ -43,7 +43,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pn~ - done as ~pn~.
 - ~PpatRewrite~
 - ~Pplayer~
-- ~Pprotect~ - not implemented yet; in the future you will also be able to use ~pbind~'s ~:cleanup~ key. (FIX)
+- ~Pprotect~ - not implemented yet; in the future you will also be able to use ~pbind~'s ~:cleanup~ key.
 - ~Prewrite~
 - ~Prorate~
 - ~Pscratch~ - done as ~pscratch~.
