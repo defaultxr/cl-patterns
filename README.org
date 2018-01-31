@@ -126,3 +126,11 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:src/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
 
 - [[file:src/midi.lisp][midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
+
+* Community
+
+As far as I'm aware there isn't a huge community of people using this library to make music yet. However, if you need support or want to chat about it, the "official" room is on [[https://matrix.to/#/#cl-patterns:matrix.org][Matrix: cl-patterns:matrix.org]].
+
+You can contact me (the primary author) on IRC as well; I'm usually idling on Freenode with the nick ~defaultxr~.
+
+Obviously, any bugs or feature requests can be submitted to the GitHub [[https://github.com/defaultxr/cl-patterns/issues][issue tracker]].
