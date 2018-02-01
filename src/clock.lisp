@@ -25,7 +25,6 @@
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
-   (time-at-tempo :initform (get-internal-real-time) :documentation "The internal real time when the tempo was last changed.")
    (when-tempo-changed :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")))
 
 (defmethod (setf tempo) (value (item clock))
@@ -42,12 +41,7 @@
 (defun absolute-beats-to-timestamp (beats clock)
   "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's when-tempo-changed slot."
   (with-slots (timestamp-at-tempo when-tempo-changed) clock
-    (local-time:timestamp+ timestamp-at-tempo (dur-time (- beats when-tempo-changed) (tempo clock)) :sec)))
-
-(defun absolute-beats-to-internal-time (beats clock)
-  "Convert a clock's number of beats to an internal real time. The result is only guaranteed to be accurate if it's greater than the clock's when-tempo-changed slot."
-  (with-slots (time-at-tempo when-tempo-changed) clock
-    (+ time-at-tempo (* internal-time-units-per-second (dur-time (- beats when-tempo-changed) (tempo clock))))))
+    (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats when-tempo-changed) (tempo clock)) 1000000000)) :nsec)))
 
 (defun make-clock (&optional (tempo 1) tasks)
   "Create a clock. The clock automatically starts running in a new thread."
@@ -85,7 +79,7 @@
 
 (defun clock-process-task (task clock) ;; FIX: only remove patterns if they've returned NIL as their first output 4 times in a row.
   "Process TASK on CLOCK. This function processes meta-events like tempo changes, etc, and everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
-  (with-slots (beats tempo granularity timestamp-at-tempo time-at-tempo when-tempo-changed) clock
+  (with-slots (beats tempo granularity timestamp-at-tempo when-tempo-changed) clock
     (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
       (setf (slot-value task 'start-time) beats
             (slot-value task 'next-time) beats))
@@ -98,7 +92,7 @@
             ;; (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
             ;;   (if (eq (get-event-value last :instrument) (get-event-value nv :instrument)) ;; FIX: need the else for this
             ;;       (unless (null (slot-value task 'nodes))
-            ;;         (release-at (+ (absolute-beats-to-unix-time (- (slot-value task 'next-time) (get-event-value last :delta)) clock)
+            ;;         (release-at (+ (absolute-beats-to-unix-time (- (slot-value task 'next-time) (event-value last :delta)) clock)
             ;;                        (dur-time (sustain last)))
             ;;                     (car (slot-value task 'nodes))))))
             (setf item (slot-value task 'item)))
@@ -110,22 +104,20 @@
                  (if (and (numberp (get-event-value nv :tempo))
                           (plusp (get-event-value nv :tempo)))
                      (setf tempo (get-event-value nv :tempo)
-                           timestamp-at-tempo (local-time:now)
-                           time-at-tempo (get-internal-real-time) ;; FIX: calculate the current internal real time from the beat instead of using this function.
+                           timestamp-at-tempo (absolute-beats-to-timestamp beats clock)
                            when-tempo-changed beats)
                      (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv)))
                 (:rest
                  nil)
                 (otherwise
-                 (let* ((event (combine-events nv (event :timestamp-at-start (absolute-beats-to-timestamp (slot-value task 'next-time) clock)
-                                                         :time-at-start (absolute-beats-to-internal-time (slot-value task 'next-time) clock))))
+                 (let* ((event (combine-events nv (event :timestamp-at-start (absolute-beats-to-timestamp (slot-value task 'next-time) clock))))
                         (backend (which-backend-for-event event)))
                    (if backend
                        (funcall (getf (getf *backends* backend) :play) event task)
                        (warn "No backend claims to handle ~s; skipping." nv)))))
               ;; play the next event from this task if it occurs before the clock's next "wakeup time"
               (unless (position type '(:tempo-change))
-                (incf (slot-value task 'next-time) (delta nv))
+                (incf (slot-value task 'next-time) (event-value nv :delta))
                 (when (< (slot-value task 'next-time) (+ beats granularity))
                   (clock-process-task task clock)))))
           ;; if the task is done with or isn't a pstream, we return it so it can be removed from the clock, else we return nil so nothing happens
