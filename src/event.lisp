@@ -116,9 +116,6 @@ See also: `event-value'"
   (declare (ignore pstream))
   (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
 
-(defparameter *event-output-function* 'play-test
-  "Which function to `play' an event with.")
-
 (defmethod keys ((item event))
   (keys (slot-value item 'other-params)))
 

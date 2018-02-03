@@ -34,7 +34,6 @@
 
    #:event
    #:*event*
-   #:*event-output-function*
    #:combine-events
    #:event-plist
    #:event-equal
