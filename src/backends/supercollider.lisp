@@ -1,17 +1,6 @@
 (in-package :cl-patterns)
 
-;; FIX: `at' and `release' currently have to be defined here since clock.lisp uses them.
-
-(defun release (node)
-  (sc:release node))
-
-(defun release-at (time node)
-  (sc:at time
-    (release node)))
-
-(defun local-time-cl-collider (time)
-  "Convert a local-time timestamp into the timestamp format used by cl-collider."
-  (+ (local-time:timestamp-to-unix time) (* (local-time:timestamp-microsecond time) 1.0d-6)))
+;; helper functions
 
 (defgeneric has-gate-p (item))
 
@@ -54,6 +43,13 @@
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'sc::name))))
       (gethash name (sc::node-proxy-table sc::*s*))))
 
+;; backend functions
+
+(defun is-sc-event-p (event)
+  (let ((inst (event-value event :instrument)))
+    (or (gethash inst sc::*synthdef-metadata*)
+        (typep inst 'sc::node))))
+
 (defun play-sc (item &optional task)
   "Play ITEM on the SuperCollider sound server. TASK is an internal parameter used when this function is called from the clock."
   (unless (eq (get-event-value item :type) :rest)
@@ -86,25 +82,30 @@
               (if (< (legato item) 1)
                   (sc:at (+ time (dur-time (sustain item)))
                     (setf (slot-value task 'nodes) (list))
-                    (release node))
+                    (release-sc node))
                   (setf (slot-value task 'nodes) (list node)))))
           (let ((node (sc:at time
                         (sc::synth inst params))))
             (when (has-gate-p node)
               (sc:at (+ time (dur-time (sustain item)))
-                (release node))))))))
+                (release-sc node))))))))
 
-(defun is-sc-event-p (event)
-  (let ((inst (event-value event :instrument)))
-    (or (gethash inst sc::*synthdef-metadata*)
-        (typep inst 'sc::node))))
+(defun release-sc (node)
+  (sc:release node))
+
+(defun release-sc-at (time node)
+  (sc:at time
+    (release-sc node)))
 
 (defun timestamp-to-cl-collider (timestamp)
   "Convert a local-time timestamp to the format used by cl-collider."
   (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
 
-(register-backend :cl-collider #'is-sc-event-p #'play-sc #'release #'release-at #'timestamp-to-cl-collider)
+(register-backend :cl-collider
+                  :respond-p #'is-sc-event-p
+                  :play #'play-sc
+                  :release #'release-sc
+                  :release-at #'release-sc-at
+                  :timestamp-conversion #'timestamp-to-cl-collider)
 
 (enable-backend :cl-collider)
-
-(setf *event-output-function* 'play-sc)

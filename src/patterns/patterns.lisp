@@ -468,6 +468,12 @@ See also: `pbind', `pdef'"
 (define-pbind-special-post-key pfindur
   (pfindur pattern value))
 
+(define-pbind-special-post-key psync
+  (if (listp value)
+      (destructuring-bind (quant &optional (maxdur quant)) value
+        (psync pattern quant maxdur))
+      (psync pattern value value)))
+
 (define-pbind-special-post-key pdurstutter
   (pdurstutter pattern value))
 
@@ -476,7 +482,9 @@ See also: `pbind', `pdef'"
 
 (define-pbind-special-post-key ptrace
   (if value
-      (ptrace pattern)
+      (if (eq t value)
+          (ptrace pattern)
+          (ptrace pattern value))
       pattern))
 
 (defparameter *pbind-special-keys* '())
@@ -827,8 +835,8 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defmethod quant ((object pdef))
   (quant (pdef-pattern object)))
 
-(defmethod quant ((object null))
-  (list 1))
+;; (defmethod quant ((object null))
+;;   (list 1))
 
 (defmethod as-pstream ((pattern pdef))
   (with-slots (key) pattern
@@ -1372,62 +1380,6 @@ Example: (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4)))
         (next true)
         (next false))))
 
-;;; ptracker (FIX)
-;; FIX: allow each row to have keyword arguments
-;; FIX: make as-pstream method so any functions in the rows will be executed each time.
-
-(defpattern ptracker (pattern)
-  (header
-   rows)
-  "ptracker " ;; FIX: docstring needed
-  (defun ptracker (header rows)
-    (assert (evenp (length header)) (header))
-    (let* ((h-ev (apply #'event header))
-           (h-keys (keys h-ev))
-           (result (list)))
-      (loop :for row :in rows :do
-         (let ((r-ev (cond ((equal row (list :-))
-                            (when (= 0 (length result))
-                              (event :type :rest)))
-                           ((position (car row) (list :r :rest))
-                            (event :type :rest))
-                           (t
-                            (progn
-                              (apply #'event (loop
-                                                :for e :in row
-                                                :for i :from 0
-                                                :append (list (nth i h-keys) e))))))))
-           (if r-ev
-               (alexandria:appendf result (list (combine-events h-ev r-ev)))
-               (incf (event-value (car (last result)) :dur) (dur h-ev)))))
-      (pseq result 1))))
-
-;; (defmethod next ((pattern ptracker-pstream))
-;;   )
-
-(defun tracker-shorthand (stream char subchar)
-  "Reader macro for `ptracker' preprocessing. "
-  (declare (ignore char subchar))
-  (let ((*readtable* (copy-readtable nil)))
-    (set-macro-character #\; (lambda (stream ignore)
-                               (funcall (get-macro-character #\; nil) stream ignore)
-                               (values :+ptracker-shorthand-separator-symbol+)))
-    (set-macro-character #\newline (lambda (xx yy)
-                                     (declare (ignore xx yy))
-                                     (values :+ptracker-shorthand-separator-symbol+)))
-    (let ((rows (remove-if #'null (split-sequence:split-sequence :+ptracker-shorthand-separator-symbol+ (read-preserving-whitespace stream nil nil)))))
-      `(list ,@(mapcar (lambda (row)
-                         (append (list 'list)
-                                 (mapcar (lambda (atom)
-                                           (if (and (symbolp atom)
-                                                    (string= "-" (symbol-name atom)))
-                                               :-
-                                               atom))
-                                         row)))
-                       rows)))))
-
-(set-dispatch-macro-character #\# #\T #'tracker-shorthand)
-
 ;;; parp
 
 (defpattern parp (pattern)
@@ -1522,6 +1474,31 @@ See also: `pfin', `psync'")
                   n-event)
             (incf current-elapsed (event-value n-event :delta))))))))
 
+;;; psync
+
+(defpattern psync (pattern)
+  (pattern
+   quant
+   (maxdur :default nil)
+   (tolerance :default 0.001))
+  "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of QUANT.
+
+Example: (next-upto-n (psync (pbind :dur (pseq '(5) 1)) 4 16)) ;=> ((EVENT :DUR 5) (EVENT :TYPE :REST :DUR 3))
+
+See also: `pfindur'")
+
+(defmethod as-pstream ((psync psync))
+  (with-slots (pattern quant maxdur tolerance) psync
+    (make-instance 'psync-pstream
+                   :pattern (as-pstream pattern)
+                   :quant (next quant)
+                   :maxdur (next maxdur)
+                   :tolerance (next tolerance))))
+
+(defmethod next ((psync psync-pstream))
+  (with-slots (pattern quant maxdur tolerance) psync ;; NOTE: maxdur can be omitted, in which case only the quant argument has an effect.
+    ))
+
 ;;; pstutter
 
 (defpattern pstutter (pattern)
@@ -1605,6 +1582,31 @@ See also: `beats-elapsed', `prun'")
 (defmethod next ((pbeats pbeats-pstream))
   (beats-elapsed (parent-pbind pbeats)))
 
+;;; ptime
+
+(defpattern ptime (pattern) ;; FIX: need example.
+  ((last-beat-checked :state t :initform nil)
+   (tempo-at-beat :state t :initform nil)
+   (elapsed-time :state t :initform 0))
+  "ptime yields the number of seconds elapsed since its embedding in the pstream.
+
+Note: May give inaccurate results if the clock's tempo changes occur more frequently than events in the parent pbind.
+
+Example:
+
+See also: `pbeats', `beats-elapsed', `prun'")
+
+(defmethod next ((ptime ptime-pstream)) ;; FIX: take into account the previous tempo if it has been changed since the last-beat-checked.
+  (with-slots (last-beat-checked tempo-at-beat elapsed-time) ptime
+    (with-slots (tempo) *clock*
+      (let ((beats-elapsed (beats-elapsed (parent-pbind ptime))))
+        (prog1
+            (incf elapsed-time (if (null last-beat-checked)
+                                   0
+                                   (dur-time (- beats-elapsed last-beat-checked) tempo)))
+          (setf last-beat-checked beats-elapsed
+                tempo-at-beat tempo))))))
+
 ;;; psinosc (FIX)
 
 ;; (defpattern psinosc (pattern)
@@ -1676,66 +1678,6 @@ See also: `pswitch'")
               (next pindex))
             (funcall (if wrap-p 'nth-wrap 'nth) idx list))))))
 
-;;; pbjorklund
-
-(defun bjorklund (pulses &optional steps (offset 0))
-  "Generate a list representing a Euclidean rhythm using the Bjorklund algorithm. PULSES is the number of \"hits\" in the sequence, STEPS is number of divisions of the sequence, and OFFSET is the number to rotate the sequence by. This function returns a list, where 1 represents a note and 0 represents a rest. If you want to use bjorklund in a pattern, you may be more interested in `pbjorklund' instead, which returns events with the correct duration and type.
-
-Example: (bjorklund 3 7) ;=> (1 0 1 0 1 0 0)
-
-See also: `pbjorklund'"
-  (if (and (null steps) (typep pulses 'ratio))
-      (bjorklund (numerator pulses) (denominator pulses))
-      (progn
-        (assert (> steps 0) (steps))
-        (assert (>= steps pulses) (pulses))
-        (labels ((from-array (arr)
-                   (destructuring-bind (a b) (split arr)
-                     (if (and (> (length b) 1) (> (length a) 0))
-                         (from-array (lace a b))
-                         (alexandria:flatten (append a b)))))
-                 (split (arr)
-                   (let ((index (position (car (last arr)) arr :test #'equal)))
-                     (list (subseq arr 0 index)
-                           (subseq arr index))))
-                 (lace (a b)
-                   (append (loop
-                              :for x :in a
-                              :for i :from 0
-                              :collect (list x (nth i b)))
-                           (when (<= (length a) (length b))
-                             (subseq b (length a))))))
-          (alexandria:rotate
-           (from-array
-            (append (make-list pulses :initial-element (list 1))
-                    (make-list (- steps pulses) :initial-element (list 0))))
-           offset)))))
-
-(defpattern pbjorklund (pattern)
-  (pulses
-   steps
-   (offset :default 0))
-  "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, STEPS is number of steps in the sequence, and OFFSET is the number to rotate the sequence by. This pattern returns events which can be injected into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. The total duration of the sequence is 1 beat, so it can be easily multiplied if you want it to be longer or shorter. If you just want the raw output from the Bjorklund algorithm, use `bjorklund' instead.
-
-Example: (next-upto-n (pbjorklund 3 7)) ;=> ((EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7))
-
-See also: `bjorklund'")
-
-;; FIX: add sustain-notes parameter which, when true, sustains each note until the next one instead of inserting rests.
-
-(defmethod as-pstream ((pbjorklund pbjorklund))
-  (with-slots (pulses steps offset) pbjorklund
-    (make-instance 'pbjorklund-pstream
-                   :pulses pulses
-                   :steps steps
-                   :offset (pattern-as-pstream offset))))
-
-(defmethod next ((pattern pbjorklund-pstream))
-  (with-slots (number pulses steps offset) pattern
-    (alexandria:when-let ((val (nth number (bjorklund pulses steps (next offset)))))
-      (event :type (if (= 1 val) :note :rest)
-             :dur (/ 1 steps)))))
-
 ;;; prun
 
 (defpattern prun (pattern)
@@ -1771,3 +1713,39 @@ See also: `beats-elapsed', `pbeats'")
           (let* ((clist (cumulative-list dur-history))
                  (idx (or (index-of-greater-than beats clist) 0)))
             (pstream-nth-future idx pattern)))))))
+
+;;; psym
+
+(defpattern psym (pattern)
+  (pattern
+   ;; (dict :default nil) ;; FIX: implement this
+   (current-pstream :state t :initform nil))
+  "Use a pattern of symbols to embed `pdef's. PATTERN is the source pattern that yields symbols naming the pdef to embed.
+
+Example:
+
+;; (pdef :foo (pseq '(1 2 3) 1))
+;;
+;; (pdef :bar (pseq '(4 5 6) 1))
+;;
+;; (next-upto-n (psym (pseq '(:foo :bar) 1)))
+;;
+;; ;=> (1 2 3 4 5 6)
+
+See also: `pdef'" ;; FIX: also ppar, once it's implemented
+  )
+
+(defmethod as-pstream ((psym psym))
+  (with-slots (pattern) psym
+    (make-instance 'psym-pstream
+                   :pattern (as-pstream pattern))))
+
+(defmethod next ((psym psym-pstream)) ;; FIX: process lists as parallel patterns when ppar is implemented
+  (with-slots (pattern current-pstream) psym
+    (let ((n (next current-pstream)))
+      (if n
+          n
+          (let ((next-pdef (next pattern)))
+            (unless (null next-pdef)
+              (setf current-pstream (as-pstream (pdef next-pdef)))
+              (next psym)))))))

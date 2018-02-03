@@ -15,8 +15,10 @@
                (:file "src/utility")
                (:file "src/conversions")
                (:file "src/event")
-               (:file "src/patterns")
-               (:file "src/cycles")
+               (:file "src/patterns/patterns")
+               (:file "src/patterns/bjorklund")
+               (:file "src/patterns/cycles")
+               (:file "src/patterns/tracker")
                (:file "src/scales")
                (:file "src/backend")
                (:file "src/clock")
@@ -32,7 +34,7 @@
   :depends-on (#:cl-patterns
                #:sc)
   :serial t
-  :components ((:file "src/supercollider")))
+  :components ((:file "src/backends/supercollider")))
 
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"
@@ -44,7 +46,7 @@
                #:swank ;; FIX: remove this.
                #:incudine)
   :serial t
-  :components ((:file "src/incudine")))
+  :components ((:file "src/backends/incudine")))
 
 (asdf:defsystem #:cl-patterns/midi
   :name "cl-patterns/midi"
@@ -55,7 +57,7 @@
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t
-  :components ((:file "src/midi")))
+  :components ((:file "src/backends/midi")))
 
 (asdf:defsystem #:cl-patterns/tests
   :name "cl-patterns/tests"

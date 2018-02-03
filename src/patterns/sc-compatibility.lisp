@@ -1,4 +1,5 @@
 ;;; sc-compatibility.lisp - SuperCollider-compatible versions of cl-patterns patterns
+;; this is a major work in progress and is considered low priority. don't expect much.
 
 (in-package :cl-patterns/sc-compat)
 

@@ -78,7 +78,7 @@ Many [[file:src/tests.lisp][tests]] have already been written to help guard agai
 
 Much documentation is still being written, but there is already a good amount of information in the [[file:doc/][doc]] directory, and in the docstrings for the patterns, functions, etc.
 
-The SuperCollider backend has most functionality complete and should be usable for most purposes.
+The SuperCollider backend is the primary backend that cl-patterns is tested against so it should generally work the best and should be usable for most purposes.
 
 The MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
 
@@ -111,21 +111,25 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:src/utility.lisp][utility.lisp]] - general utility functions.
 - [[file:src/conversions.lisp][conversions.lisp]] - functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
 - [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
-- [[file:src/patterns.lisp][patterns.lisp]] - the patterns themselves. includes the ~pattern~ superclass as well as ~pbind~ and ~pseq~, ~pk~, etc.
-- [[file:src/cycles.lisp][cycles.lisp]] - ~pcycles~ and associated functions and macros for TidalCycles-inspired pattern notation.
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/readtable.lisp][readtable.lisp]] - defines a named-readtable for optional syntax sugar. may be removed in the future.
-
 - [[file:src/tests.lisp][tests.lisp]] - test suite using [[https://github.com/sionescu/fiveam][FiveAM]].
 
-- [[file:src/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
-- [[file:src/sc-compatibility.lisp][sc-compatibility.lisp]] - patterns that are 100% compatible with SuperCollider's (unlike the ones in patterns.lisp which aren't guaranteed to be).
+*** patterns
 
-- [[file:src/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
+- [[file:src/patterns/patterns.lisp][patterns.lisp]] - general pattern macros and functionality + the standard set of patterns; includes the ~pattern~ superclass, ~pbind~, ~pseq~, ~pk~, etc.
+- [[file:src/patterns/bjorklund.lisp][bjorklund.lisp]] - Euclidean pattern functionality such as ~pbjorklund~, etc.
+- [[file:src/patterns/cycles.lisp][cycles.lisp]] - TidalCycles-inspired patterns and notation, i.e. ~pcycles~, etc.
+- [[file:src/patterns/tracker.lisp][tracker.lisp]] - tracker-inspired patterns and notation, i.e. ~ptracker~ and associated functions, macros, reader macros, etc.
+- [[file:src/patterns/sc-compatibility.lisp][sc-compatibility.lisp]] - patterns that are 100% compatible with SuperCollider's patterns system.
 
-- [[file:src/midi.lisp][midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
+*** backends
+
+- [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
+- [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
+- [[file:src/backends/midi.lisp][midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
 
 * Community
 

@@ -1,14 +1,6 @@
 (in-package :cl-patterns)
 
-;; (defmacro at (time &body body)
-;;   `(incudine:at ,time (lambda () ,@body)))
-
-(defun release (node) ;; FIX: remove this
-  (incudine:set-control node :gate 0))
-
-(defun timestamp-to-incudine (time)
-  "Convert a local-time timestamp into the timestamp format used by Incudine."
-  )
+;; helper functions
 
 (defun get-dsp-args-list (dsp)
   "Return the argument list for an Incudine DSP."
@@ -19,8 +11,12 @@
                      (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))) ;; this is the only thing we require swank for, so remove the swank dependency from the .asd file once this is removed.
                      )))
 
-;; incudine's (now) function returns the number of samples elapsed.
-;; we will need to keep track of the value of (now) when the clock is started or when the backend is launched.
+;; backend functions
+
+(defun is-incudine-event-p (event)
+  ;; FIX
+  nil
+  )
 
 (defun play-incudine (item &optional task)
   (unless (eq (get-event-value item :type) :rest)
@@ -46,4 +42,26 @@
               ())
           (warn "No DSP with the name ~a defined - skipping." instrument)))))
 
-(setf *event-output-function* 'play-incudine)
+(defun release-incudine (node)
+  (incudine:set-control node :gate 0))
+
+(defun release-incudine-at (node) ;; FIX
+  (incudine:set-control node :gate 0))
+
+;; incudine's (now) function returns the number of samples elapsed.
+;; we will need to keep track of the value of (now) when the clock is started or when the backend is launched.
+
+(defun timestamp-to-incudine (timestamp)
+  "Convert a local-time timestamp into the timestamp format used by Incudine."
+  ;; FIX
+  nil
+  )
+
+(register-backend :incudine
+                  :respond-p #'is-incudine-event-p
+                  :play #'play-incudine
+                  :release #'release-incudine
+                  :release-at #'release-incudine-at
+                  :timestamp-conversion #'timestamp-to-incudine)
+
+(enable-backend :incudine)
