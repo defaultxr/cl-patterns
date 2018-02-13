@@ -1,6 +1,6 @@
 ;;; clock.lisp - keep playing patterns in sync by running each clock in its own thread and all patterns on a clock.
-;; NOTES:
-;; * I use the local-time system instead of Lisp's built-in get-internal-real-time function because local-time is more accurate and is portable. For example, CMUCL's internal-time-units-per-second is only 100, which is pretty low. A local-time timestamp includes nanoseconds. In some implementations, local-time derives nanoseconds from less granular units of time, however it looks like it's still more accurate than using internal time would be... I'm not sure how much all of the above really matters, though, since the sleep function that we use is not guaranteed to be accurate either.
+;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
+;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately `*latency*' seconds before they're supposed to be heard.
 
 ;; FIX: changing :instrument in pmono causes the old one to stay playing.
 ;; FIX: get rid of clock's "granularity" slot?
@@ -25,7 +25,8 @@
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
-   (when-tempo-changed :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")))
+   (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")
+   (thread :documentation "The bordeaux-threads thread that is running the clock.")))
 
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
@@ -39,15 +40,15 @@
    (nodes :initarg :nodes :initform (list))))
 
 (defun absolute-beats-to-timestamp (beats clock)
-  "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's when-tempo-changed slot."
-  (with-slots (timestamp-at-tempo when-tempo-changed) clock
-    (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats when-tempo-changed) (tempo clock)) 1000000000)) :nsec)))
+  "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's beat-at-tempo slot."
+  (with-slots (timestamp-at-tempo beat-at-tempo) clock
+    (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
 
 (defun make-clock (&optional (tempo 1) tasks)
   "Create a clock. The clock automatically starts running in a new thread."
   (let ((clock (make-instance 'clock :tempo tempo)))
     (mapc (lambda (task) (clock-add task clock)) tasks)
-    (bt:make-thread (lambda () (tick clock)) :name "cl-patterns clock")
+    (setf (slot-value clock 'thread) (bt:make-thread (lambda () (clock-loop clock)) :name "cl-patterns clock"))
     clock))
 
 (defmethod print-object ((clock clock) stream)
@@ -68,7 +69,7 @@
             (remove-if
              (lambda (task)
                (when (eq (slot-value task 'gensym) (slot-value item 'gensym))
-                 (map nil #'release (slot-value task 'nodes))
+                 (map nil #'release (slot-value task 'nodes)) ;; FIX: use the correct backend's release function.
                  t))
              tasks)))))
 
@@ -79,7 +80,7 @@
 
 (defun clock-process-task (task clock) ;; FIX: only remove patterns if they've returned NIL as their first output 4 times in a row.
   "Process TASK on CLOCK. This function processes meta-events like tempo changes, etc, and everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
-  (with-slots (beats tempo granularity timestamp-at-tempo when-tempo-changed) clock
+  (with-slots (beats tempo granularity timestamp-at-tempo beat-at-tempo) clock
     (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
       (setf (slot-value task 'start-time) beats
             (slot-value task 'next-time) beats))
@@ -101,11 +102,11 @@
               ;; actually "play" the event
               (case type
                 (:tempo-change
-                 (if (and (numberp (get-event-value nv :tempo))
-                          (plusp (get-event-value nv :tempo)))
-                     (setf tempo (get-event-value nv :tempo)
-                           timestamp-at-tempo (absolute-beats-to-timestamp beats clock)
-                           when-tempo-changed beats)
+                 (if (and (numberp (event-value nv :tempo))
+                          (plusp (event-value nv :tempo)))
+                     (setf timestamp-at-tempo (absolute-beats-to-timestamp beats clock)
+                           tempo (event-value nv :tempo)
+                           beat-at-tempo beats)
                      (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." nv)))
                 (:rest
                  nil)
@@ -148,23 +149,27 @@
             (< (slot-value task 'next-time) (+ (slot-value clock 'beats) (slot-value clock 'granularity))))
         t)))
 
+(defun clock-loop (clock)
+  (loop (tick clock)))
+
 (defun tick (clock)
   (with-slots (tasks tasks-lock granularity tempo beats) clock
-    (loop :do
-       (let ((results (bt:with-lock-held (tasks-lock)
-                        (mapcar (lambda (task)
-                                  (clock-process-task task clock))
-                                (remove-if-not
-                                 (lambda (task) (task-should-run-now-p task clock))
-                                 tasks))))) ;; FIX: this does consing, may be slow...
-         ;; remove dead tasks
-         (mapc (lambda (task)
-                 (when (not (null task)) ;; if it's nil it means it's not done with yet so we do nothing.
-                   (clock-remove task clock)))
-               results)
-         (sleep (max 0 (- (local-time:timestamp-difference (absolute-beats-to-timestamp (+ beats granularity) clock) (local-time:now)) (/ *latency* 2)))))
-       ;; FIX: do we need to acquire a lock on the clock's tempo as well?
-       (incf beats granularity))))
+    (let ((results (bt:with-lock-held (tasks-lock)
+                     (mapcar (lambda (task)
+                               (clock-process-task task clock))
+                             (remove-if-not
+                              (lambda (task) (task-should-run-now-p task clock))
+                              tasks))))) ;; FIX: this does consing, may be slow...
+      ;; remove dead tasks
+      (mapc (lambda (task)
+              (when (not (null task)) ;; if it's nil it means it's not done with yet so we do nothing.
+                (clock-remove task clock)))
+            results)
+      (sleep (max 0 (- (local-time:timestamp-difference (absolute-beats-to-timestamp (+ beats granularity) clock)
+                                                        (local-time:now))
+                       (/ *latency* 2)))))
+    ;; FIX: do we need to acquire a lock on the clock's tempo as well?
+    (incf beats granularity)))
 
 (defgeneric play (item)
   (:documentation "Play an item (typically an event or pattern) according to the current *event-output-function*."))
