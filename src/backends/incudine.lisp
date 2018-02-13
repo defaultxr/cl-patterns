@@ -58,10 +58,10 @@
   )
 
 (register-backend :incudine
-                  :respond-p #'is-incudine-event-p
-                  :play #'play-incudine
-                  :release #'release-incudine
-                  :release-at #'release-incudine-at
-                  :timestamp-conversion #'timestamp-to-incudine)
+                  :respond-p 'is-incudine-event-p
+                  :play 'play-incudine
+                  :release 'release-incudine
+                  :release-at 'release-incudine-at
+                  :timestamp-conversion 'timestamp-to-incudine)
 
 (enable-backend :incudine)

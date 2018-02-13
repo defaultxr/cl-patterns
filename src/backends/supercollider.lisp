@@ -102,10 +102,10 @@
   (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
 
 (register-backend :cl-collider
-                  :respond-p #'is-sc-event-p
-                  :play #'play-sc
-                  :release #'release-sc
-                  :release-at #'release-sc-at
-                  :timestamp-conversion #'timestamp-to-cl-collider)
+                  :respond-p 'is-sc-event-p
+                  :play 'play-sc
+                  :release 'release-sc
+                  :release-at 'release-sc-at
+                  :timestamp-conversion 'timestamp-to-cl-collider)
 
 (enable-backend :cl-collider)

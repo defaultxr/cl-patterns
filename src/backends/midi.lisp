@@ -28,7 +28,8 @@
                         (midihelper:send-event (midihelper:ev-pgmchange channel pgm)))
                       (midihelper:send-event (midihelper:ev-noteon channel note velocity))
                       (sleep (dur-time (sustain event)))
-                      (midihelper:send-event (midihelper:ev-noteoff channel note velocity))))))
+                      (midihelper:send-event (midihelper:ev-noteoff channel note velocity)))
+                    :name "cl-patterns temporary midi note thread")))
 
 (defun release-midi (&rest foo)
   (declare (ignore foo))
@@ -49,10 +50,10 @@
   )
 
 (register-backend :midi
-                  :respond-p #'is-midi-event-p
-                  :play #'play-midi
-                  :release #'release-midi
-                  :release-at #'release-midi-at
-                  :timestamp-conversion #'timestamp-to-midi)
+                  :respond-p 'is-midi-event-p
+                  :play 'play-midi
+                  :release 'release-midi
+                  :release-at 'release-midi-at
+                  :timestamp-conversion 'timestamp-to-midi)
 
 (enable-backend :midi)
