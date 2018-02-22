@@ -6,7 +6,7 @@
 ;;; event glue
 
 (defclass event ()
-  ((other-params :initarg :other-params :initform (list) :type 'list))
+  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type 'list))
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
@@ -67,8 +67,8 @@ Returns 2 values: the value of the slot, and the name of the slot the value was 
 
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
-  (with-slots (other-params) event
-    (setf other-params (plist-set other-params (alexandria:make-keyword slot) value))))
+  (with-slots (event-plist) event
+    (setf event-plist (plist-set event-plist (alexandria:make-keyword slot) value))))
 
 (defun set-event-value (event slot value) ;; kind of deprecated. prefer (setf (event-value EVENT SLOT) VALUE) instead.
   "Set the value of SLOT to VALUE in EVENT, running any conversion functions that exist.
@@ -80,12 +80,12 @@ This function is semi-deprecated; use `(setf event-value)' instead, i.e.:
 
 (defun remove-event-value (event slot)
   "Removes SLOT from EVENT."
-  (with-slots (other-params) event
-    (setf other-params (alexandria:remove-from-plist other-params (alexandria:make-keyword slot)))))
+  (with-slots (event-plist) event
+    (setf event-plist (alexandria:remove-from-plist event-plist (alexandria:make-keyword slot)))))
 
 (defun raw-get-event-value (event slot)
   "Get the value of SLOT in EVENT without running any conversion functions."
-  (getf (slot-value event 'other-params) (alexandria:make-keyword slot)))
+  (getf (slot-value event 'event-plist) (alexandria:make-keyword slot)))
 
 (defun get-event-value (event &optional slot) ;; FIX: swap argument order, stop using this in cl-patterns
   "Get the value of SLOT in EVENT, running any necessary conversion functions.
@@ -117,7 +117,7 @@ See also: `event-value'"
   (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
 
 (defmethod keys ((item event))
-  (keys (slot-value item 'other-params)))
+  (keys (slot-value item 'event-plist)))
 
 (defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
   "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
@@ -128,10 +128,6 @@ See also: `event-value'"
             (setf (getf plist key) value)
             plist)
           (append plist (list key value)))))
-
-(defun event-plist (event)
-  "Return EVENT as a plist."
-  (slot-value event 'other-params))
 
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
