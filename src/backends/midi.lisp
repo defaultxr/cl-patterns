@@ -18,8 +18,8 @@
                    (truncate (event-value event :instrument))))
          (note (truncate (event-value event :midinote)))
          (velocity (round (* 127 (event-value event :amp)))) ;; FIX: maybe this shouldn't be linear
-         (time (local-time:timestamp+ (or (raw-get-event-value event :timestamp-at-start) (local-time:now))
-                                      (truncate (* (or (raw-get-event-value event :latency) *latency*) 1000000000))
+         (time (local-time:timestamp+ (or (raw-event-value event :timestamp-at-start) (local-time:now))
+                                      (truncate (* (or (raw-event-value event :latency) *latency*) 1000000000))
                                       :nsec)))
     (bt:make-thread (lambda ()
                       (sleep (local-time:timestamp-difference time (local-time:now)))

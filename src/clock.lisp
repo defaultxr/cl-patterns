@@ -91,14 +91,14 @@
             (setf (slot-value task 'item) (as-pstream (pdef (slot-value item 'key))))
             (setf nv (next (slot-value task 'item)))
             ;; (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
-            ;;   (if (eq (get-event-value last :instrument) (get-event-value nv :instrument)) ;; FIX: need the else for this
+            ;;   (if (eq (event-value last :instrument) (event-value nv :instrument)) ;; FIX: need the else for this
             ;;       (unless (null (slot-value task 'nodes))
             ;;         (release-at (+ (absolute-beats-to-unix-time (- (slot-value task 'next-time) (event-value last :delta)) clock)
             ;;                        (dur-time (sustain last)))
             ;;                     (car (slot-value task 'nodes))))))
             (setf item (slot-value task 'item)))
           (unless (null nv)
-            (let ((type (get-event-value nv :type)))
+            (let ((type (event-value nv :type)))
               ;; actually "play" the event
               (case type
                 (:tempo-change

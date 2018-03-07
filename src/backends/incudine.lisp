@@ -19,7 +19,7 @@
   )
 
 (defun play-incudine (item &optional task)
-  (unless (eq (get-event-value item :type) :rest)
+  (unless (eq (event-value item :type) :rest)
     (let* ((instrument (instrument item))
            (incudine-dsp-name (intern (symbol-name instrument) 'incudine.scratch))
            (synth-params (get-dsp-args-list instrument))
@@ -27,14 +27,14 @@
            (offset (if (> (length quant) 2)
                        (nth 2 quant)
                        0))
-           (time (+ (or (raw-get-event-value )))) ;; FIX
+           (time (+ (or (raw-event-value )))) ;; FIX
            (params (mapcar (lambda (param)
                              (if (eq :gate param)
                                  1
-                                 (get-event-value item param)))
+                                 (event-value item param)))
                            synth-params)))
       (if (position incudine-dsp-name (incudine::all-dsp-names))
-          (if (and (eq (get-event-value item :type) :mono)
+          (if (and (eq (event-value item :type) :mono)
                    (not (null task)))
               (let* ((node-id (incudine:next-node-id)) ;; FIX: THIS IS NOT THREAD-SAFE! since no locking is done and the node ID and DSP instantiation are not done atomically, it's possible that two threads may get the same ID and launch two different DSPs with it. Not sure how to resolve this.
                      (params (append params (list :id node-id))))

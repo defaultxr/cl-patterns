@@ -35,7 +35,7 @@ Returns 2 values: the value of the slot, and the name of the slot the value was 
   (let* ((slot (alexandria:make-keyword slot))
          (cases (car (getf *event-special-slots* slot)))
          (cases (if (not (position slot (keys cases)))
-                    (append (list slot (lambda (event) (raw-get-event-value event slot))) cases)
+                    (append (list slot (lambda (event) (raw-event-value event slot))) cases)
                     cases))
          (cases-keys (keys cases))
          (key (car (or (member-if (lambda (k) (position k (keys event))) cases-keys)
@@ -63,7 +63,8 @@ Returns 2 values: the value of the slot, and the name of the slot the value was 
       (let ((keys (remove-if (lambda (c) (eq c t)) (keys (car cases)))))
         (loop :for i :in keys
            :do (remove-event-value event i))))
-    (raw-set-event-value event slot value)))
+    (raw-set-event-value event slot value)
+    value))
 
 (defun raw-set-event-value (event slot value)
   "Set the value of SLOT to VALUE in EVENT without running any conversion functions."
@@ -83,7 +84,7 @@ This function is semi-deprecated; use `(setf event-value)' instead, i.e.:
   (with-slots (event-plist) event
     (setf event-plist (alexandria:remove-from-plist event-plist (alexandria:make-keyword slot)))))
 
-(defun raw-get-event-value (event slot)
+(defun raw-event-value (event slot)
   "Get the value of SLOT in EVENT without running any conversion functions."
   (getf (slot-value event 'event-plist) (alexandria:make-keyword slot)))
 
@@ -106,7 +107,7 @@ See also: `event-value'"
                    :if (null ev)
                    :return nil
                    :append (loop :for key :in (keys ev)
-                              :append (list key (get-event-value ev key))))))
+                              :append (list key (event-value ev key))))))
     (when (and result
                (null (position-if #'null result)))
       (apply #'event result))))
@@ -135,7 +136,7 @@ See also: `event-value'"
 (defmacro define-event-special-slot (name cases &key (remove-keys t) (define-methods nil))
   "Define a special slot with the key NAME for events (i.e. slots that take their values from other slots, or slots that have default values).
 
-CASES is a plist of cases mapping event slot names to forms. When `get-event-value' is called on an event for the NAME slot, then the event is tested for the keys of CASES in the order they're listed. The associated form of the first key of CASES that exists in the event is evaluated to get the value of that call to `get-event-value'.
+CASES is a plist of cases mapping event slot names to forms. When `event-value' is called on an event for the NAME slot, then the event is tested for the keys of CASES in the order they're listed. The associated form of the first key of CASES that exists in the event is evaluated to get the value of that call to `event-value'.
 
 If no case is provided with a KEY that's the same as NAME, one is automatically added at the start with a form that just returns the value of the event's NAME slot. If a case is provided with t as its KEY, that case is always run when found. This allows you to set a default value for the slot if none of the other keys from CASES exist in the event.
 
@@ -144,7 +145,7 @@ REMOVE-KEYS is a list of keys to remove from the event when the NAME key is bein
 DEFINE-METHODS, if true, will cause the macro to define methods for getting and setting the slot in an event.
 
 Example:
-;; (define-event-special-slot amp (:db (db-amp (raw-get-event-value event :db))
+;; (define-event-special-slot amp (:db (db-amp (raw-event-value event :db))
 ;;                                 t 0.5)
 ;;   :define-methods t)
 
@@ -158,7 +159,7 @@ Additionally, because :define-methods is true, we can also do the following:
   ;; FIX: does not handle cases with multiple keys. (i.e. (((:foo :bar) 5)))
   (let ((kwname (alexandria:make-keyword name)))
     (unless (position kwname (keys cases))
-      (setf cases (append (list kwname (list 'raw-get-event-value 'event kwname)) cases)))
+      (setf cases (append (list kwname (list 'raw-event-value 'event kwname)) cases)))
     `(progn
        (setf *event-special-slots*
              (plist-set *event-special-slots* ,kwname (list
@@ -189,7 +190,7 @@ Additionally, because :define-methods is true, we can also do the following:
 ;; (defmethod instrument ((item null)) nil)
 
 ;; (defmethod instrument ((item event))
-;;   (get-event-value item :instrument))
+;;   (event-value item :instrument))
 
 (define-event-special-slot group (t 0))
 
@@ -197,11 +198,11 @@ Additionally, because :define-methods is true, we can also do the following:
 
 ;;; amp/pan
 
-(define-event-special-slot amp (:db (db-amp (raw-get-event-value event :db))
+(define-event-special-slot amp (:db (db-amp (raw-event-value event :db))
                                     t 0.5)
   :define-methods t)
 
-(define-event-special-slot db (:amp (amp-db (raw-get-event-value event :amp))
+(define-event-special-slot db (:amp (amp-db (raw-event-value event :amp))
                                     t (amp-db 0.5))
   :define-methods t)
 
@@ -214,27 +215,27 @@ Additionally, because :define-methods is true, we can also do the following:
                                          (tempo *clock*)
                                          1)))
 
-(define-event-special-slot delta (:dur (get-event-value event :dur)
-                                       t (get-event-value event :dur))
+(define-event-special-slot delta (:dur (event-value event :dur)
+                                       t (event-value event :dur))
   :remove-keys nil
   :define-methods t)
 
-(define-event-special-slot dur (:delta (raw-get-event-value event :delta)
+(define-event-special-slot dur (:delta (raw-event-value event :delta)
                                        t 1)
   :remove-keys nil
   :define-methods t)
 
 ;; sustain/legato
 
-(define-event-special-slot sustain (t (* (get-event-value event :legato)
-                                         (get-event-value event :dur)))
+(define-event-special-slot sustain (t (* (event-value event :legato)
+                                         (event-value event :dur)))
   :remove-keys (:legato)
   :define-methods t)
 
 (define-event-special-slot timing-offset (t 0))
 
-(define-event-special-slot legato (:sustain (* (raw-get-event-value event :sustain)
-                                               (get-event-value event :dur))
+(define-event-special-slot legato (:sustain (* (raw-event-value event :sustain)
+                                               (event-value event :dur))
                                             t 0.8)
   :remove-keys (:sustain)
   :define-methods t)
@@ -246,29 +247,29 @@ Additionally, because :define-methods is true, we can also do the following:
 
 ;;; freq/midinote/degree/octave/root/scale
 
-(define-event-special-slot freq (:midinote (midinote-freq (get-event-value event :midinote))
-                                           :degree (degree-freq (get-event-value event :degree)
-                                                                (get-event-value event :root)
-                                                                (get-event-value event :octave)
-                                                                (get-event-value event :scale))
+(define-event-special-slot freq (:midinote (midinote-freq (event-value event :midinote))
+                                           :degree (degree-freq (event-value event :degree)
+                                                                (event-value event :root)
+                                                                (event-value event :octave)
+                                                                (event-value event :scale))
                                            t 440)
   :remove-keys (:midinote :degree :root :octave)
   :define-methods t)
 
-(define-event-special-slot midinote (:freq (freq-midinote (get-event-value event :freq))
-                                           :degree (degree-midinote (get-event-value event :degree)
-                                                                    (get-event-value event :root)
-                                                                    (get-event-value event :octave)
-                                                                    (get-event-value event :scale))
+(define-event-special-slot midinote (:freq (freq-midinote (event-value event :freq))
+                                           :degree (degree-midinote (event-value event :degree)
+                                                                    (event-value event :root)
+                                                                    (event-value event :octave)
+                                                                    (event-value event :scale))
                                            t 69)
   :remove-keys (:freq :degree :root :octave)
   :define-methods t)
 
 ;; FIX: this can return NIL. i.e. (degree (event :midinote 0))
-(define-event-special-slot degree (:freq (midinote-degree (freq-midinote (get-event-value event :freq))
-                                                          (get-event-value event :root) (get-event-value event :octave) (get-event-value event :scale))
-                                         :midinote (midinote-degree (get-event-value event :midinote)
-                                                                    (get-event-value event :root) (get-event-value event :octave) (get-event-value event :scale))
+(define-event-special-slot degree (:freq (midinote-degree (freq-midinote (event-value event :freq))
+                                                          (event-value event :root) (event-value event :octave) (event-value event :scale))
+                                         :midinote (midinote-degree (event-value event :midinote)
+                                                                    (event-value event :root) (event-value event :octave) (event-value event :scale))
                                          t 5)
   :remove-keys (:freq :midinote)
   :define-methods t)
@@ -277,8 +278,8 @@ Additionally, because :define-methods is true, we can also do the following:
   :remove-keys (:freq :midinote)
   :define-methods t)
 
-(define-event-special-slot octave (:freq (freq-octave (raw-get-event-value event :freq))
-                                         :midinote (midinote-octave (raw-get-event-value event :midinote))
+(define-event-special-slot octave (:freq (freq-octave (raw-event-value event :freq))
+                                         :midinote (midinote-octave (raw-event-value event :midinote))
                                          t 5)
   :remove-keys (:freq :midinote)
   :define-methods t)
