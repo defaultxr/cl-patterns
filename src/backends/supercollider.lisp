@@ -2,10 +2,13 @@
 
 ;; helper functions
 
+(defun get-synthdef-control-names (name)
+  (mapcar #'car (sc::get-synthdef-metadata name :controls)))
+
 (defgeneric has-gate-p (item))
 
 (defmethod has-gate-p ((item t))
-  (position :gate (sc::get-synthdef-control-names item) :test #'string-equal))
+  (position :gate (get-synthdef-control-names item) :test #'string-equal))
 
 (defmethod has-gate-p ((item sc::node))
   (has-gate-p (sc::name item)))
@@ -19,7 +22,7 @@
                                    (multiple-value-bind (value key) (event-value event arg)
                                      (declare (ignore value))
                                      (eq key t)))
-                                 (sc::get-synthdef-control-names instrument))))
+                                 (get-synthdef-control-names instrument))))
     (if synth-params
         (loop :for sparam :in synth-params
            :for val = (event-value event sparam)
@@ -28,14 +31,11 @@
            :append (list (alexandria:make-keyword sparam) (if (eq :gate sparam) 1 val)))
         (copy-list (event-plist event)))))
 
-(defun convert-sc-objects-to-numbers (list)
-  "Replace all SuperCollider objects in LIST (i.e. buses, buffers, etc) with their equivalent numbers."
-  (mapcar (lambda (list-item)
-            (typecase list-item
-              (sc::buffer (sc:bufnum list-item))
-              (sc::bus (sc:busnum list-item))
-              (otherwise list-item)))
-          list))
+(defmethod convert-object ((object sc::buffer))
+  (sc:bufnum object))
+
+(defmethod convert-object ((object sc::bus))
+  (sc:busnum object))
 
 (defun get-proxys-node-id (name)
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
@@ -61,7 +61,8 @@
            (time (+ (or (raw-event-value item :latency) *latency*)
                     (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (sc:now))
                     offset))
-           (params (convert-sc-objects-to-numbers (generate-plist-for-synth inst item))))
+           (params (loop :for (key value) :on (generate-plist-for-synth inst item) :by #'cddr
+                      :append (list key (convert-object value)))))
       (if (or (and (eq (event-value item :type) :mono)
                    (not (null task))) ;; if the user calls #'play manually, then we always start a note instead of checking if a node already exists.
               (typep inst 'sc::node))
@@ -76,7 +77,7 @@
                                                inst)))
                                  (apply #'sc:ctrl node params)))
                               (t
-                               (sc::synth inst params))))))
+                               (apply #'sc:synth inst params))))))
             (unless (or (typep inst 'sc::node)
                         (not (has-gate-p inst)))
               (if (< (legato item) 1)
@@ -85,7 +86,7 @@
                     (release-sc node))
                   (setf (slot-value task 'nodes) (list node)))))
           (let ((node (sc:at time
-                        (sc::synth inst params))))
+                        (apply #'sc:synth inst params))))
             (when (has-gate-p node)
               (sc:at (+ time (dur-time (sustain item)))
                 (release-sc node))))))))

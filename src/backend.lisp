@@ -37,3 +37,9 @@
   (loop :for i :in *enabled-backends*
      :if (funcall (getf (getf *backends* i) :respond-p) event)
      :return i))
+
+(defgeneric convert-object (object)
+  (:documentation "Convert objects in events to a format that the backend will accept."))
+
+(defmethod convert-object ((object t))
+  object)
