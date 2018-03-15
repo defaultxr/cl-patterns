@@ -15,7 +15,7 @@
   (or *event* (event)))
 
 (defun set-parents (pattern)
-  "Set all of PATTERN's subpatterns' \"parent\" slot to PATTERN."
+  "Loop through PATTERN's slots and set the \"parent\" slot of any patterns to this pattern."
   (labels ((set-parent (list parent)
              "Recurse through LIST, setting the parent of any pattern found to PARENT."
              (cond ((typep list 'list)
@@ -28,7 +28,7 @@
          (set-parent (slot-value pattern slot) pattern)))
     pattern))
 
-(defmacro defpattern (name superclasses slots &optional documentation creation-function)
+(defmacro defpattern (name superclasses slots &optional documentation creation-function) ;; FIX: should warn if `set-parents' is not called in the creation-function.
   "Define a pattern. This macro automatically generates the pattern's class, its pstream class, and the function to create an instance of the pattern, and makes them external in the cl-patterns package.
 
 NAME is the name of the pattern. Typically a word or two that describes its function, prefixed with p.
@@ -370,31 +370,38 @@ See also: `pmono'"
   (assert (evenp (length pairs)) (pairs))
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
-  (let* ((res-pairs nil)
+  (let* ((res-pairs (list))
+         (pattern-chain (list))
          (pattern (make-instance 'pbind)))
     (loop :for (key value) :on pairs :by #'cddr
        :do
        (progn
          (when (typep value 'pattern)
            (setf (slot-value value 'parent) pattern))
-         (if (position key *pbind-special-init-keys*)
-             (let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
-               (when result
-                 (setf res-pairs (append res-pairs result))))
-             (alexandria:appendf res-pairs (list key (if (and (eq key :inject)
-                                                              (typep value 'symbol))
-                                                         (pdef value)
-                                                         value))))))
-    (setf (slot-value pattern 'pairs) res-pairs)
-    ;; handle pbind-special-post-keys
-    ;; FIX: normal keys after these should be pchain'd rather than applied before the special-post-keys
-    (let ((pbind pattern))
-      (loop :for (key value) :on (slot-value pattern 'pairs) :by #'cddr
-         :do
-         (alexandria:when-let* ((func (getf *pbind-special-post-keys* key))
-                                (res (funcall func value pattern)))
-           (setf (slot-value pbind 'pairs) (plist-set (slot-value pbind 'pairs) key nil))
-           (setf pattern res))))
+         (cond ((position key *pbind-special-init-keys*)
+                (alexandria:when-let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
+                  (setf res-pairs (append res-pairs result))))
+               ((position key *pbind-special-wrap-keys*)
+                (unless (null res-pairs)
+                  (setf (slot-value pattern 'pairs) res-pairs)
+                  (setf res-pairs (list)))
+                (unless (null pattern-chain)
+                  (setf pattern (apply #'pchain (append pattern-chain (list pattern))))
+                  (setf pattern-chain (list)))
+                (setf pattern (funcall (getf *pbind-special-wrap-keys* key) value pattern)))
+               (t
+                (unless (typep pattern 'pbind)
+                  (alexandria:appendf pattern-chain (list pattern))
+                  (setf pattern (make-instance 'pbind)))
+                (alexandria:appendf res-pairs (list key (if (and (eq key :inject)
+                                                                 (typep value 'symbol))
+                                                            (pdef value)
+                                                            value)))))))
+    (unless (null res-pairs)
+      (setf (slot-value pattern 'pairs) res-pairs))
+    (alexandria:appendf pattern-chain (list pattern))
+    (unless (= 1 (length pattern-chain))
+      (setf pattern (apply #'pchain pattern-chain)))
     ;; process :quant key. ;; FIX: should this be applied to the pdef, or the pattern itself?
     (alexandria:when-let ((quant (getf pairs :quant)))
       (setf (quant pattern)
@@ -434,10 +441,10 @@ See also: `pbind', `pdef'"
               :else
               :collect (slot-value pattern slot)))))
 
-(defparameter *pbind-special-init-keys* '())
+(defparameter *pbind-special-init-keys* (list))
 
 (defmacro define-pbind-special-init-key (key &body body)
-  "Define a special key for pbind that alters the pbind as part of its initialization (\"pre-processing\"). These functions are called once as the pbind is initializing and must return a list if the key should inject values into the pbind pairs, or NIL if they should not."
+  "Define a special key for pbind that alters the pbind during its initialization, either by injecting a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should inject values into the pbind pairs, or NIL if it should not."
   (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-init-keys* ,keyname)
            (lambda (value pattern)
@@ -451,62 +458,62 @@ See also: `pbind', `pdef'"
 (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well. maybe just rename to 'synth'?
   (list :instrument value))
 
-(defparameter *pbind-special-post-keys* (list))
+(defparameter *pbind-special-wrap-keys* (list))
 
-(defmacro define-pbind-special-post-key (key &body body)
-  "Define a special key for pbind that does post-processing on the pbind after it has been constructed. Each is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
+(defmacro define-pbind-special-wrap-key (key &body body)
+  "Define a special key for pbind that replaces the pbind with another pattern during the pbind's initialization. Each encapsulation key is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
   (let ((keyname (alexandria:make-keyword key)))
-    `(setf (getf *pbind-special-post-keys* ,keyname)
+    `(setf (getf *pbind-special-wrap-keys* ,keyname)
            (lambda (value pattern)
              (declare (ignorable value pattern))
              ,@body))))
 
-(define-pbind-special-post-key parp
+(define-pbind-special-wrap-key parp
   (parp pattern value))
 
-(define-pbind-special-post-key pfin
+(define-pbind-special-wrap-key pfin
   (pfin pattern value))
 
-(define-pbind-special-post-key pfindur
+(define-pbind-special-wrap-key pfindur
   (pfindur pattern value))
 
-(define-pbind-special-post-key psync
+(define-pbind-special-wrap-key psync
   (if (listp value)
       (destructuring-bind (quant &optional (maxdur quant)) value
         (psync pattern quant maxdur))
       (psync pattern value value)))
 
-(define-pbind-special-post-key pdurstutter
+(define-pbind-special-wrap-key pdurstutter
   (pdurstutter pattern value))
 
-(define-pbind-special-post-key pr
+(define-pbind-special-wrap-key pr
   (pr pattern value))
 
-(define-pbind-special-post-key ptrace
+(define-pbind-special-wrap-key ptrace
   (if value
       (if (eq t value)
           (ptrace pattern)
           (ptrace pattern value))
       pattern))
 
-(defparameter *pbind-special-keys* '())
+(defparameter *pbind-special-process-keys* (list))
 
-(defmacro define-pbind-special-key (key &body body)
+(defmacro define-pbind-special-process-key (key &body body)
   "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should inject values into the event stream, or NIL if it should not."
   (let ((keyname (alexandria:make-keyword key)))
-    `(setf (getf *pbind-special-keys* ,keyname)
+    `(setf (getf *pbind-special-process-keys* ,keyname)
            (lambda (value)
              ,@body))))
 
-(define-pbind-special-key inject
+(define-pbind-special-process-key inject
   value)
 
 (defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
              (let ((next-cadr (next (cadr pairs))))
                (unless (null next-cadr)
-                 (if (position (car pairs) (keys *pbind-special-keys*))
-                     (let ((result (funcall (getf *pbind-special-keys* (car pairs)) next-cadr)))
+                 (if (position (car pairs) (keys *pbind-special-process-keys*))
+                     (let ((result (funcall (getf *pbind-special-process-keys* (car pairs)) next-cadr)))
                        (setf *event* (combine-events *event* result)))
                      (setf (event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
                  (if (not (null (cddr pairs)))
@@ -1767,8 +1774,9 @@ Example:
 
 See also: `pbind''s :inject key"
   (defun pchain (&rest patterns)
-    (make-instance 'pchain
-                   :patterns patterns)))
+    (set-parents
+     (make-instance 'pchain
+                    :patterns patterns))))
 
 (defmethod as-pstream ((pchain pchain))
   (with-slots (patterns) pchain

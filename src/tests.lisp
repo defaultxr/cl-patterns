@@ -78,6 +78,26 @@
                  pb))
            "pbind subpatterns have correct parents for pfunc"))
 
+(test special-keys
+  "Test pbind special keys"
+  (is-true (every #'event-equal
+                  (list (event :bar 1 :qux 69 :dur 1/3)
+                        (event :bar 1 :qux 69 :dur 1/3)
+                        (event :bar 1 :qux 69 :dur 1/3)
+                        (event :bar 2 :qux 420 :dur 1/2)
+                        (event :bar 2 :qux 420 :dur 1/2)
+                        (event :bar 2 :qux 666 :dur 1)
+                        (event :bar 3 :qux 69 :dur 1/3)
+                        (event :bar 3 :qux 69 :dur 1/3)
+                        (event :bar 3 :qux 69 :dur 1/3)
+                        (event :bar 3 :qux 420 :dur 1/2)
+                        (event :bar 3 :qux 420 :dur 1/2)
+                        (event :bar 3 :qux 666 :dur 1))
+                  (next-upto-n (pbind :bar (pseq '(1 2 3) 1)
+                                      :pr (pseq '(1 2 3))
+                                      :qux (pseq '(69 420 666))
+                                      :pdurstutter (pseq '(3 2 1)))))))
+
 ;; parent-pbind (FIX)
 
 (test t-pstream
