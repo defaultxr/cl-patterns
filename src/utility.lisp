@@ -103,11 +103,11 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 
 ;; macros / MOP stuff
 
-(defmacro create-global-dictionary (name)
+(defmacro create-global-dictionary (name) ;; FIX: remove/refactor this?
   (let* ((name-name (symbol-name name))
          (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
     `(progn
-       (defparameter ,dict-symbol '()
+       (defparameter ,dict-symbol (list)
          ,(concatenate 'string "The global " name-name " dictionary."))
        (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
          ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")

@@ -126,7 +126,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
 
 (defgeneric next (pattern)
-  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern forward in the process.
+  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern stream forward in the process.
 
 See also: `next-n', `next-upto-n'")
   (:method-combination pattern))
@@ -141,7 +141,7 @@ See also: `next-n', `next-upto-n'")
   (funcall pattern))
 
 (defun next-n (pattern n)
-  "Returns the next N results of a pattern stream, function, or other object, advancing the pattern forward N times in the process.
+  "Returns the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
 
 See also: `next', `next-upto-n'"
   (let ((pstream (as-pstream pattern)))
@@ -368,6 +368,8 @@ Example:
 
 See also: `pmono'"
   (assert (evenp (length pairs)) (pairs))
+  (when (> (count :pdef (keys pairs)) 1)
+    (warn "More than one :pdef key detected in pbind."))
   (let* ((res-pairs nil)
          (pattern (make-instance 'pbind)))
     (loop :for (key value) :on pairs :by #'cddr
@@ -1617,19 +1619,20 @@ See also: `pbeats', `beats-elapsed', `prun'")
 ;;    (last-beat-tracked :state t :initform nil)
 ;;    (current-phase :state t :initform 0)))
 
-;; ;; (defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
-;; ;;   (make-instance 'psinosc
-;; ;;                  :freq freq
-;; ;;                  :phase phase
-;; ;;                  :mul mul
-;; ;;                  :add add))
+;; (defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
+;;   (make-instance 'psinosc
+;;                  :freq freq
+;;                  :phase phase
+;;                  :mul mul
+;;                  :add add))
 
-;; (defmethod as-pstream ((pattern psinosc))
-;;   (make-instance 'psinosc-pstream
-;;                  :freq (slot-value pattern 'freq)
-;;                  :phase (slot-value pattern 'phase)
-;;                  :mul (slot-value pattern 'mul)
-;;                  :add (slot-value pattern 'add)))
+;; (defmethod as-pstream ((psinosc psinosc))
+;;   (with-slots (freq phase mul add) psinosc
+;;     (make-instance 'psinosc-pstream
+;;                    :freq freq
+;;                    :phase phase
+;;                    :mul mul
+;;                    :add add)))
 
 ;; (defmethod next ((pattern psinosc-pstream))
 ;;   (with-slots (freq phase mul add last-beat-tracked current-phase) pattern
