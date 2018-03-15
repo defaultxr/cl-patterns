@@ -1752,3 +1752,31 @@ See also: `pdef'" ;; FIX: also ppar, once it's implemented
             (unless (null next-pdef)
               (setf current-pstream (as-pstream (pdef next-pdef)))
               (next psym)))))))
+
+;;; pchain
+
+(defpattern pchain (pattern)
+  (patterns)
+  "Combine multiple patterns into one event stream.
+
+Example:
+
+;; (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4)
+;;
+;; ;=> ((EVENT :FOO 1 :BAR 7) (EVENT :FOO 2 :BAR 8) (EVENT :FOO 3 :BAR 9) NIL)
+
+See also: `pbind''s :inject key"
+  (defun pchain (&rest patterns)
+    (make-instance 'pchain
+                   :patterns patterns)))
+
+(defmethod as-pstream ((pchain pchain))
+  (with-slots (patterns) pchain
+    (make-instance 'pchain-pstream
+                   :patterns (loop :for pattern :in patterns
+                                :collect (as-pstream pattern)))))
+
+(defmethod next ((pchain pchain-pstream))
+  (with-slots (patterns) pchain
+    (apply #'combine-events (loop :for pattern :in patterns
+                               :collect (next pattern)))))

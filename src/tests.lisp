@@ -446,6 +446,14 @@
                   (next-upto-n (pbind :foo (pseq '(1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
            "prun returns correct results"))
 
+;; pchain
+
+(test pchain
+  "Test pchain"
+  (is-true (every #'event-equal
+                  (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
+                  (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))))
+
 ;;; conversions (FIX: add more)
 
 (test conversions
