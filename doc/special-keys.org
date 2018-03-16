@@ -6,14 +6,29 @@ This is a list of special keys for events/pbind. These keys have additional func
 
 Some event keys are used to set standard parameters for the synth (i.e. ~instrument~, ~out~, etc). Additionally, cl-collider will automatically convert between different units of measurement for data that represents the same property. For example, you can write a pattern that generates pitches based on midi note numbers with ~midinote~. Then, in another key after that, you can use ~(pk :freq)~ to get the frequency of the note (which is automagically converted from the ~midinote~ value, as if you had used ~midinote-freq~ on it).
 
-** ~instrument~ / ~inst~ - name of the synth you want to trigger.
-** ~amp~ / ~db~ - volume of the synth.
-** ~freq~ / ~midinote~ / ~degree~ + ~octave~ + ~root~ - various ways to specify the pitch of the synth.
-** ~dur~ / ~delta~ - how long before the next note starts.
-** ~sustain~ / ~legato~ - how long the synth is held before being released.
-** ~tempo~ - set the clock's tempo.
-** ~pdef~ - the name of the pattern. (see the ~pdef~ pattern for more information.)
-** ~pbeat~ - how many beats have elapsed in the pattern.
+** ~instrument~ / ~inst~
+Name of the synth you want to trigger.
+** ~group~
+Group to put the synth in on the server.
+NOTE: Not implemented yet.
+** ~out~
+Bus that the synth should write its output to.
+** ~amp~ / ~db~
+Volume of the synth.
+** ~pan~
+Stereo panning of the synth's output.
+** ~tempo~
+Set the clock's tempo.
+** ~dur~ / ~delta~
+How long before the next note starts.
+** ~sustain~ / ~legato~
+How long the synth is held before being released.
+** ~timing-offset~
+The timing offset of the event, added onto the time when it would normally occur.
+NOTE: Not implemented yet.
+FIX: Not sure if this should be in beats or seconds.
+** ~freq~ / ~midinote~ / ~degree~ + ~octave~ + ~root~ + ~scale~
+Various ways to specify the pitch of the synth.
 
 * pbind special init keys
 
@@ -32,6 +47,8 @@ Here is a listing of all of the pbind special init keys:
 Sets the pattern's ~remaining~ slot, which limits the number of results it will yield.
 ** ~inst~
 Effectively an alias for the ~instrument~ key. This may be removed in the future.
+** ~quant~
+Set the ~quant~ of the pattern, which determines when the pattern is allowed to start playing.
 
 * pbind special wrap keys
 
@@ -63,9 +80,13 @@ or ~(psync (pbind ...) (first value) (second value))~
 ** ~pdurstutter~
 Results in ~(pdurstutter (pbind ...) value)~
 ** ~ptrace~
-Results in ~(ptrace (pbind ...))~
+Results in ~(ptrace (pbind ...))~ when value is ~t~
+or traces the specified key when value is the name of a key.
 ** ~pr~
 Results in ~(pr (pbind ...) value)~
+** ~pdef~
+Results in ~(pdef value (pbind ...))~
+Unlike other wrap keys or init keys, this key is always processed last regardless of where it appears in the pbind.
 
 * pbind special process keys
 
@@ -84,9 +105,13 @@ pbind's last type of special keys are the process keys. Unlike the init and wrap
    (EVENT :FOO 3 :BAR 7))
 #+END_SRC
 
-This is because the ~inject~ key injects whatever its value's outputs are into the pbind.
+This is because the ~inject~ key injects whatever its value's outputs are into the pbind's output events.
 
 Here is a listing of all special process keys:
 
 ** ~inject~
 Injects its value's outputs into the pbind.
+** ~pbeat~
+The number of beats elapsed in the pattern. This can be set as an alternative to ~dur~ or ~delta~ if you want to give an event's start beat instead of its inter-onset time.
+If you are setting this from a pattern, you need to make sure its values do not decrease with successive events otherwise event scheduling will fail.
+NOTE: Not implemented yet.

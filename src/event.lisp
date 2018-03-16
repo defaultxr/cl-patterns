@@ -232,13 +232,15 @@ Additionally, because :define-methods is true, we can also do the following:
   :remove-keys (:legato)
   :define-methods t)
 
-(define-event-special-slot timing-offset (t 0))
-
 (define-event-special-slot legato (:sustain (* (raw-event-value event :sustain)
                                                (event-value event :dur))
                                             t 0.8)
   :remove-keys (:sustain)
   :define-methods t)
+
+;;; timing-offset
+
+(define-event-special-slot timing-offset (t 0))
 
 ;;; quant
 
