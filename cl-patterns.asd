@@ -22,7 +22,7 @@
                (:file "src/scales")
                (:file "src/backend")
                (:file "src/clock")
-               (:file "src/readtable"))
+               (:file "src/sugar"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
 (asdf:defsystem #:cl-patterns/supercollider

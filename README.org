@@ -114,7 +114,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
-- [[file:src/readtable.lisp][readtable.lisp]] - defines a named-readtable for optional syntax sugar. may be removed in the future.
+- [[file:src/sugar.lisp][sugar.lisp]] - defines optional syntax sugar including a named-readtable. may be moved to a separate system in the future.
 - [[file:src/tests.lisp][tests.lisp]] - test suite using [[https://github.com/sionescu/fiveam][FiveAM]].
 
 *** patterns

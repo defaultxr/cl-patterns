@@ -132,6 +132,6 @@
    #:play-or-stop
    #:pdefs-playing
 
-   ;;; readtable.lisp
+   ;;; sugar.lisp
 
    ))
