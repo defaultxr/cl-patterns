@@ -12,11 +12,6 @@
 (defparameter *clock* nil
   "The default clock to run tasks on.")
 
-(defun release (node)
-  "Placeholder method; override this in cl-patterns' audio backend."
-  (declare (ignore node))
-  ;; (format t "This is the generic release method; you should load a backend for cl-patterns before playing.")
-  nil)
 
 (defclass clock ()
   ((beats :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
@@ -68,9 +63,14 @@
       (setf tasks
             (remove-if
              (lambda (task)
-               (when (eq (slot-value task 'gensym) (slot-value item 'gensym))
-                 (map nil #'release (slot-value task 'nodes)) ;; FIX: use the correct backend's release function.
-                 t))
+               (let ((nodes (slot-value task 'nodes))
+                     (eq (eq (slot-value task 'gensym) (slot-value item 'gensym))))
+                 (when (and nodes eq)
+                   (let ((backend (car (last (remove-if #'null (mapcar #'which-backend-for-event (slot-value (slot-value task 'item) 'history)))))))
+                     (if backend
+                         (map nil (getf (getf *backends* backend) :release) nodes)
+                         (error "No backends found for the events from task ~a; unable to release ~d nodes!" task (length nodes)))))
+                 eq))
              tasks)))))
 
 (defun clock-clear-tasks (&optional (clock *clock*))
@@ -90,12 +90,6 @@
           (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
             (setf (slot-value task 'item) (as-pstream (pdef (slot-value item 'key))))
             (setf nv (next (slot-value task 'item)))
-            ;; (let ((last (pstream-nth -2 item))) ;; FIX: make sure this is the last non-nil event from the pstream!!!!
-            ;;   (if (eq (event-value last :instrument) (event-value nv :instrument)) ;; FIX: need the else for this
-            ;;       (unless (null (slot-value task 'nodes))
-            ;;         (release-at (+ (absolute-beats-to-unix-time (- (slot-value task 'next-time) (event-value last :delta)) clock)
-            ;;                        (dur-time (sustain last)))
-            ;;                     (car (slot-value task 'nodes))))))
             (setf item (slot-value task 'item)))
           (unless (null nv)
             (let ((type (event-value nv :type)))
