@@ -1,6 +1,6 @@
 #+TITLE: cl-patterns
 
-A library for conveniently(?) writing patterns to generate or process (a)musical sequences of mathematically (un)related compound(?) values in Lisp.
+A library for conveniently(?) writing patterns to generate or process (a)musical sequences of mathematically (un)related (non-)compound values in Lisp.
 
 Heavily inspired by [[https://supercollider.github.io/][SuperCollider]]'s [[http://doc.sccode.org/Tutorials/A-Practical-Guide/PG_01_Introduction.html][patterns system]], with aims to implement much of it, but in a more robust, expressive, consistent, reflective, and lispy way:
 

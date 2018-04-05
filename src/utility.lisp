@@ -1,7 +1,5 @@
 (in-package :cl-patterns)
 
-;; NOTES: use alexandria:clamp instead of clip
-
 ;; glue
 
 (defun gete (list key)

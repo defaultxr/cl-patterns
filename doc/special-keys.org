@@ -9,8 +9,9 @@ Some event keys are used to set standard parameters for the synth (i.e. ~instrum
 ** ~instrument~ / ~inst~
 Name of the synth you want to trigger.
 ** ~group~
-Group to put the synth in on the server.
 NOTE: Not implemented yet.
+
+Group to put the synth in on the server.
 ** ~out~
 Bus that the synth should write its output to.
 ** ~amp~ / ~db~
@@ -24,8 +25,10 @@ How long before the next note starts.
 ** ~sustain~ / ~legato~
 How long the synth is held before being released.
 ** ~timing-offset~
-The timing offset of the event, added onto the time when it would normally occur.
 NOTE: Not implemented yet.
+
+The timing offset of the event, added onto the time when it would normally occur.
+
 FIX: Not sure if this should be in beats or seconds.
 ** ~freq~ / ~midinote~ / ~degree~ + ~octave~ + ~root~ + ~scale~
 Various ways to specify the pitch of the synth.
@@ -110,8 +113,10 @@ This is because the ~inject~ key injects whatever its value's outputs are into t
 Here is a listing of all special process keys:
 
 ** ~inject~
-Injects its value's outputs into the pbind.
+Injects its value's outputs into the pbind's output events.
 ** ~pbeat~
-The number of beats elapsed in the pattern. This can be set as an alternative to ~dur~ or ~delta~ if you want to give an event's start beat instead of its inter-onset time.
-If you are setting this from a pattern, you need to make sure its values do not decrease with successive events otherwise event scheduling will fail.
 NOTE: Not implemented yet.
+
+The number of beats elapsed in the pattern. This can be set as an alternative to ~dur~ or ~delta~ if you want to give an event's start beat instead of its inter-onset time.
+
+If you are setting this from a pattern, you need to make sure its values do not decrease with successive events otherwise event scheduling will fail.
