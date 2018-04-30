@@ -133,7 +133,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 * Community
 
-As far as I'm aware there isn't a huge community of people using this library to make music yet. However, if you need support or want to chat about it, the "official" room is on [[https://matrix.to/#/#cl-patterns:matrix.org][Matrix: cl-patterns:matrix.org]].
+As far as I'm aware there isn't a huge community of people using this library to make music yet. However, if you need support or want to chat about it, the "official" room is on [[https://matrix.to/#/#cl-patterns:struct.ws][Matrix: #cl-patterns:struct.ws]].
 
 You can contact me (the primary author) on IRC as well; I'm usually idling on Freenode with the nick ~defaultxr~.
 
