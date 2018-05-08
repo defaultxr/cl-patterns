@@ -34,6 +34,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pdiff~ - done as ~pdiff~
 - ~Pdrop~
 - ~PfadeIn~
+- ~PfadeOut~
 - ~Pfin~ - done as ~pfin~. see also: ~pbind~'s ~:pfin~ key.
 - ~PfinQuant~
 - ~Pfindur~ - done as ~pfindur~. see also: ~pbind~'s ~:pfindur~ key.

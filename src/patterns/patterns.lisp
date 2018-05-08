@@ -1801,9 +1801,6 @@ Example:
 ;;
 ;; ;=> (-2 3 -1 NIL)")
 
-;; (defmethod as-pstream ((pdiff pdiff))
-;;   (with-slots ))
-
 (defmethod next ((pdiff pdiff-pstream))
   (with-slots (pattern) pdiff
     (when (null (slot-value pattern 'history))
