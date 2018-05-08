@@ -58,7 +58,7 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 ;; math stuff
 
 (defun wrap (number bottom top)
-  "Wraps a number between BOTTOM and TOP, similar to `mod'."
+  "Wraps a number between BOTTOM and TOP, similar to `cl:mod'."
   (+ (mod (- number bottom) (- top bottom)) bottom))
 
 (defun round-up (number &optional (tolerance 1))
@@ -68,7 +68,9 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
       (+ number (* (if (plusp number) 1 -1) (rem number tolerance)))))
 
 (defun random-range (low &optional high)
-  "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW)."
+  "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW).
+
+See also: `exponential-random-range'"
   (if high
       (let ((rval (- high low)))
         (+ low
@@ -91,13 +93,58 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
                       rval))))
         (rnd low))))
 
-(defun exponential-random (lo hi)
-  "Generate a random number between LO and HI, with exponential distribution."
-  ;; adapted from supercollider/include/plugin_interface/SC_RGen.h
-  (* lo
-     (exp (* (log (/ hi
-                     lo))
+(defun exponential-random-range (low high) ;; adapted from supercollider/include/plugin_interface/SC_RGen.h
+  "Generate a random number between LOW and HIGH, with exponential distribution.
+
+See also: `random-range'"
+  (* low
+     (exp (* (log (/ high
+                     low))
              (random 1.0)))))
+
+(defun seq (&key start end limit step)
+  "Generate a sequence of numbers as a list.
+
+START is the start of the range, END is the end. LIMIT is a hard limit on the number of results in the sequence. STEP is the interval between each number in the sequence.
+
+When STEP is omitted and LIMIT is provided, the step is automatically calculated by dividing the range between LIMIT steps.
+
+See also: `seq-range'"
+  (cond ((and limit step)
+         (loop :for i :from start :upto end :by step :repeat limit
+            :collect i))
+        ((and limit (null step))
+         (loop :for i :from start :upto end :by (/ (- end start) (1- limit))
+            :collect i))
+        ((and step (null limit))
+         (loop :for i :from start :upto end :by step
+            :collect i))
+        ((and (null step) (null limit))
+         (loop :for i :from start :upto end
+            :collect i))))
+
+(defun seq-range (num &optional stop step)
+  "Conveniently generate a sequence of numbers as a list. This function is based off Python's range() function, and thus has three ways of being called:
+
+With one argument NUM, generate a range from 0 to (1- NUM):
+
+;; (rng 4) ;=> (0 1 2 3)
+
+With two arguments NUM and STOP, generate a range from NUM to (1- STOP):
+
+;; (rng 2 4) ;=> (2 3)
+
+With three arguments NUM, STOP, and STEP, generate a range from NUM to (1- STOP), each step increasing by STEP:
+
+;; (rng 2 8 2) ;=> (2 4 6)
+
+See also: `seq'"
+  (cond ((null stop)
+         (seq :start 0 :end (1- num)))
+        ((null step)
+         (seq :start num :end (1- stop)))
+        (t
+         (seq :start num :end (1- stop) :step step))))
 
 ;; macros / MOP stuff
 

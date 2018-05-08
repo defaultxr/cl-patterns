@@ -1060,7 +1060,7 @@ See also: `prand'")
       (decf-remaining pattern 'current-repeats-remaining)
       (alexandria:when-let ((nlo (next lo))
                             (nhi (next hi)))
-        (exponential-random nlo nhi)))))
+        (exponential-random-range nlo nhi)))))
 
 ;;; pseries
 

@@ -8,6 +8,11 @@
    #:gete
    #:keys
 
+   #:random-range
+   #:exponential-random-range
+   #:seq
+   #:seq-range
+
    ;;; conversions.lisp
 
    #:amp-db
