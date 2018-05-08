@@ -9,7 +9,8 @@
                #:closer-mop
                #:named-readtables
                #:split-sequence
-               #:local-time)
+               #:local-time
+               #:dissect)
   :serial t
   :components ((:file "package")
                (:file "src/utility")

@@ -2,21 +2,28 @@
 ;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
 ;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately `*latency*' seconds before they're supposed to be heard.
 
-;; FIX: changing :instrument in pmono causes the old one to stay playing.
-;; FIX: get rid of clock's "granularity" slot?
 ;; FIX: don't play "expired" events... i.e. if the event should have already ended by the time we get around to playing it, just don't play it. this way, if the user takes too long to select a restart when an error occurs on the clock, the events won't be played all at once.
 ;; FIX: print a warning after the clock has finished "catching up"... or perhaps print a warning each time the sleep amount is 0?
+;; FIX: make the clock's "beats" slot always completely accurate, so it can be referenced from within patterns or the like.
 
 (in-package :cl-patterns)
 
 (defparameter *clock* nil
   "The default clock to run tasks on.")
 
+(defparameter *performance-mode* nil
+  "Whether \"performance mode\" is enabled. In performance mode, all errors signaled within a task will be caught and the task will be removed automatically, to prevent other tasks on the clock from pausing. The task and its stack trace are saved to `*performance-errors*'.")
+
+(defparameter *performance-errors* (list)
+  "A list of tasks' errors caught by the clock while `*performance-mode*' is enabled. Each entry in the list is a plist containing the task, the error, and the stack trace.")
+
+(defparameter *performance-errors-lock* (bt:make-lock)
+  "The lock on `*performance-errors*' to make it thread-safe.")
 
 (defclass clock ()
   ((beats :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
    (tempo :initarg :tempo :initform 1 :reader tempo :documentation "The tempo of the clock, in beats per second.")
-   (granularity :initarg :granularity :initform 1/10 :documentation "How often the clock \"wakes up\" to process events in each beat. Shouldn't need to be adjusted.")
+   (granularity :initarg :granularity :initform 1/10 :documentation "How often the clock \"wakes up\" to process events in each beat. You generally will not need to adjust this.")
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
@@ -74,12 +81,13 @@
              tasks)))))
 
 (defun clock-clear-tasks (&optional (clock *clock*))
+  "Remove all tasks from CLOCK."
   (with-slots (tasks tasks-lock) clock
     (bt:with-lock-held (tasks-lock)
       (setf tasks nil))))
 
 (defun clock-process-task (task clock) ;; FIX: only remove patterns if they've returned NIL as their first output 4 times in a row.
-  "Process TASK on CLOCK. This function processes meta-events like tempo changes, etc, and everything else is sent to to *EVENT-OUTPUT-FUNCTION*."
+  "Process TASK on CLOCK. This function processes meta-events like tempo changes, etc, and everything else is sent to to `*event-output-function*'."
   (with-slots (beats tempo granularity timestamp-at-tempo beat-at-tempo) clock
     (when (null (slot-value task 'next-time)) ;; pstream hasn't started yet.
       (setf (slot-value task 'start-time) beats
@@ -125,6 +133,16 @@
         :report "Remove this task from the clock."
         task))))
 
+(defun clock-safe-process-task (task clock)
+  "Like `clock-process-task', process TASK on CLOCK, but automatically remove the task from the clock if it has any errors, recording the error and stack to `*performance-errors*'."
+  (handler-bind
+      ((error (lambda (e)
+                (bt:with-lock-held (*performance-errors-lock*)
+                  (warn "Task ~s had error ~s; removed from clock, with state recorded as index ~s in ~s" task e (length *performance-errors*) '*performance-errors*.)
+                  (alexandria:appendf *performance-errors* (list (list :task task :error e :stack (dissect:stack))))
+                  (invoke-restart 'remove-task)))))
+    (clock-process-task task clock)))
+
 (defun clock-tasks-names (&optional (clock *clock*))
   "Get a list of names of pdefs currently scheduled on CLOCK."
   (mapcar
@@ -148,12 +166,14 @@
 
 (defun tick (clock)
   (with-slots (tasks tasks-lock granularity tempo beats) clock
-    (let ((results (bt:with-lock-held (tasks-lock)
+    (let ((results (bt:with-lock-held (tasks-lock) ;; FIX: if a tempo-change occurs at the same time as a regular event, make sure the tempo-change is processed first
                      (mapcar (lambda (task)
-                               (clock-process-task task clock))
+                               (if *performance-mode*
+                                   (clock-safe-process-task task clock)
+                                   (clock-process-task task clock)))
                              (remove-if-not
                               (lambda (task) (task-should-run-now-p task clock))
-                              tasks))))) ;; FIX: this does consing, may be slow...
+                              tasks)))))
       ;; remove dead tasks
       (mapc (lambda (task)
               (when (not (null task)) ;; if it's nil it means it's not done with yet so we do nothing.
@@ -162,7 +182,6 @@
       (sleep (max 0 (- (local-time:timestamp-difference (absolute-beats-to-timestamp (+ beats granularity) clock)
                                                         (local-time:now))
                        (/ *latency* 2)))))
-    ;; FIX: do we need to acquire a lock on the clock's tempo as well?
     (incf beats granularity)))
 
 (defgeneric play (item)

@@ -46,3 +46,18 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
 
   (eq *pat* (parent-pattern *pseq*)) ;=> T
 #+END_SRC
+- errors in pattern execution give you the option to remove the task from the clock, or just skip one event.
+  - alternatively, "performance mode" gives you the option to automatically remove erroring patterns from the clock, with their error and stack trace recorded to a variable:
+#+BEGIN_SRC lisp
+  (setf *performance-mode* t)
+
+  (play (pbind :x (p/ 1 (pseq '(440 220 0)))))
+
+  ;; ...and then the error occurs:
+  ;; WARNING: Task #<CL-PATTERNS::TASK {100438A803}> had error #<DIVISION-BY-ZERO {10043ABA93}>; removed from clock, with state recorded as index 0 in CL-PATTERNS::*PERFORMANCE-ERRORS*.
+
+  (car (last *performance-errors*))
+  ;;=> (:TASK #<CL-PATTERNS::TASK {100438A803}>
+  ;;    :ERROR #<DIVISION-BY-ZERO {10043ABA93}>
+  ;;    :STACK (#<DISSECT::SBCL-CALL [1] ...> ...)
+#+END_SRC

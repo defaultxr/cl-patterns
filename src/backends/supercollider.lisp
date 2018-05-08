@@ -1,3 +1,6 @@
+;;; supercollider.lisp - the SuperCollider/cl-collider backend for cl-patterns.
+;; FIX: changing :instrument in pmono causes the old one to stay playing.
+
 (in-package :cl-patterns)
 
 ;; helper functions

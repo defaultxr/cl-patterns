@@ -126,6 +126,9 @@
    ;;; clock.lisp
 
    #:*clock*
+   #:*performance-mode*
+   #:*performance-errors*
+
    #:make-clock
    #:play
    #:stop
