@@ -474,6 +474,13 @@
                   (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
                   (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))))
 
+;; pdiff
+
+(test pdiff
+  "Test pdiff"
+  (is (equal (list -2 3 -1 nil)
+             (next-n (pdiff (pseq (list 3 1 4 3) 1)) 4))))
+
 ;;; conversions (FIX: add more)
 
 (test conversions

@@ -1788,3 +1788,26 @@ See also: `pbind''s :inject key"
   (with-slots (patterns) pchain
     (apply #'combine-events (loop :for pattern :in patterns
                                :collect (next pattern)))))
+
+;;; pdiff
+
+(defpattern pdiff (pattern)
+  (pattern)
+  "Output the difference between successive outputs of PATTERN.
+
+Example:
+
+;; (next-n (pdiff (pseq '(3 1 4 3) 1)) 4)
+;;
+;; ;=> (-2 3 -1 NIL)")
+
+;; (defmethod as-pstream ((pdiff pdiff))
+;;   (with-slots ))
+
+(defmethod next ((pdiff pdiff-pstream))
+  (with-slots (pattern) pdiff
+    (when (null (slot-value pattern 'history))
+      (next pattern))
+    (alexandria:when-let ((last (pstream-nth -1 pattern))
+                          (next (next pattern)))
+      (- next last))))
