@@ -19,7 +19,7 @@
 ;; list stuff
 
 (defun nth-wrap (n list)
-  "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length.x"
+  "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length."
   (nth (mod n (length list)) list))
 
 (defun normalized-sum (list)
@@ -93,7 +93,7 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 
 (defun exponential-random (lo hi)
   "Generate a random number between LO and HI, with exponential distribution."
-  ;; taken from supercollider/include/plugin_interface/SC_RGen.h
+  ;; adapted from supercollider/include/plugin_interface/SC_RGen.h
   (* lo
      (exp (* (log (/ hi
                      lo))
