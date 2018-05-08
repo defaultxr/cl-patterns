@@ -481,6 +481,13 @@
   (is (equal (list -2 3 -1 nil)
              (next-n (pdiff (pseq (list 3 1 4 3) 1)) 4))))
 
+;; pdrop
+
+(test pdrop
+  "Test pdrop"
+  (is (equal (list 3 4 nil nil)
+             (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4))))
+
 ;;; conversions (FIX: add more)
 
 (test conversions

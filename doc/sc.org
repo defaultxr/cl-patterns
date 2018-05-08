@@ -32,7 +32,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pdelay~
 - ~Pdelta~
 - ~Pdiff~ - done as ~pdiff~
-- ~Pdrop~
+- ~Pdrop~ - done as ~pdrop~
 - ~PfadeIn~
 - ~PfadeOut~
 - ~Pfin~ - done as ~pfin~. see also: ~pbind~'s ~:pfin~ key.

@@ -1808,3 +1808,29 @@ Example:
     (alexandria:when-let ((last (pstream-nth -1 pattern))
                           (next (next pattern)))
       (- next last))))
+
+;;; pdrop
+
+(defpattern pdrop (pattern)
+  (pattern
+   (n :default 0))
+  "Drop the first N outputs from PATTERN and yield the rest.
+
+Example:
+
+;; (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4)
+;;
+;; ;=> (3 4 NIL NIL)")
+
+(defmethod as-pstream ((pdrop pdrop))
+  (with-slots (pattern n) pdrop
+    (make-instance 'pdrop-pstream
+                   :pattern (as-pstream pattern)
+                   :n n)))
+
+(defmethod next ((pdrop pdrop-pstream))
+  (with-slots (pattern n) pdrop
+    (when (null (slot-value pattern 'history))
+      (loop :repeat n
+         :do (next pattern)))
+    (next pattern)))
