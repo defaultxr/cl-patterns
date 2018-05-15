@@ -61,11 +61,12 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
   "Wraps a number between BOTTOM and TOP, similar to `cl:mod'."
   (+ (mod (- number bottom) (- top bottom)) bottom))
 
-(defun round-up (number &optional (tolerance 1))
-  "Round NUMBER up to the next multiple of TOLERANCE if it isn't already a multiple of it."
-  (if (= 0 (mod number tolerance))
+(defun round-up (number &optional (divisor 1))
+  "Round NUMBER up to the next multiple of DIVISOR if it isn't already a multiple of it."
+  (if (= 0 (mod number divisor))
       number
-      (+ number (* (if (plusp number) 1 -1) (rem number tolerance)))))
+      (let ((diff (multiple-value-bind (res div) (floor number divisor) (declare (ignore res)) div)))
+        (+ number (- divisor diff)))))
 
 (defun random-range (low &optional high)
   "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW).

@@ -19,7 +19,10 @@
       "round-up gives correct results for positive numbers")
   (is (= -2.02
          (cl-patterns::round-up -2.03 0.02))
-      "round-up gives correct results for negative numbers"))
+      "round-up gives correct results for negative numbers")
+  (is (= 8
+         (cl-patterns::round-up 5 4))
+      "round-up gives correct results for arguments 5, 4"))
 
 ;;; patterns
 
