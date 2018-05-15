@@ -42,6 +42,7 @@
    #:combine-events
    #:event-plist
    #:event-equal
+   #:every-event-equal
 
    #:event-value
    #:get-event-value

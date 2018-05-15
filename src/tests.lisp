@@ -83,23 +83,23 @@
 
 (test special-keys
   "Test pbind special keys"
-  (is-true (every #'event-equal
-                  (list (event :bar 1 :qux 69 :dur 1/3)
-                        (event :bar 1 :qux 69 :dur 1/3)
-                        (event :bar 1 :qux 69 :dur 1/3)
-                        (event :bar 2 :qux 420 :dur 1/2)
-                        (event :bar 2 :qux 420 :dur 1/2)
-                        (event :bar 2 :qux 666 :dur 1)
-                        (event :bar 3 :qux 69 :dur 1/3)
-                        (event :bar 3 :qux 69 :dur 1/3)
-                        (event :bar 3 :qux 69 :dur 1/3)
-                        (event :bar 3 :qux 420 :dur 1/2)
-                        (event :bar 3 :qux 420 :dur 1/2)
-                        (event :bar 3 :qux 666 :dur 1))
-                  (next-upto-n (pbind :bar (pseq '(1 2 3) 1)
-                                      :pr (pseq '(1 2 3))
-                                      :qux (pseq '(69 420 666))
-                                      :pdurstutter (pseq '(3 2 1)))))))
+  (is-true (every-event-equal
+            (list (event :bar 1 :qux 69 :dur 1/3)
+                  (event :bar 1 :qux 69 :dur 1/3)
+                  (event :bar 1 :qux 69 :dur 1/3)
+                  (event :bar 2 :qux 420 :dur 1/2)
+                  (event :bar 2 :qux 420 :dur 1/2)
+                  (event :bar 2 :qux 666 :dur 1)
+                  (event :bar 3 :qux 69 :dur 1/3)
+                  (event :bar 3 :qux 69 :dur 1/3)
+                  (event :bar 3 :qux 69 :dur 1/3)
+                  (event :bar 3 :qux 420 :dur 1/2)
+                  (event :bar 3 :qux 420 :dur 1/2)
+                  (event :bar 3 :qux 666 :dur 1))
+            (next-upto-n (pbind :bar (pseq '(1 2 3) 1)
+                                :pr (pseq '(1 2 3))
+                                :qux (pseq '(69 420 666))
+                                :pdurstutter (pseq '(3 2 1)))))))
 
 ;; parent-pbind (FIX)
 
@@ -464,18 +464,18 @@
 
 (test prun
   "Test prun"
-  (is-true (every #'event-equal
-                  (list (event :foo 1 :bar 4) (event :foo 2 :bar 5) (event :foo 3 :bar 5) (event :foo 4 :bar 6) (event :foo 5 :bar 8))
-                  (next-upto-n (pbind :foo (pseq '(1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
+  (is-true (every-event-equal
+            (list (event :foo 1 :bar 4) (event :foo 2 :bar 5) (event :foo 3 :bar 5) (event :foo 4 :bar 6) (event :foo 5 :bar 8))
+            (next-upto-n (pbind :foo (pseq '(1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
            "prun returns correct results"))
 
 ;; pchain
 
 (test pchain
   "Test pchain"
-  (is-true (every #'event-equal
-                  (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
-                  (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))))
+  (is-true (every-event-equal
+            (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
+            (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))))
 
 ;; pdiff
 
@@ -534,6 +534,23 @@
   (is (= (db-amp -7)
          (event-value (event :db -7) :amp))
       "event correctly converts db to amp"))
+
+(test event-equal
+  "Test event-equal"
+  (is-true
+   (event-equal (event :dur 1) (event :dur 1))
+   "event-equal returns true for equivalent events"))
+
+(test every-event-equal
+  "Test every-event-equal"
+  (is-true (every-event-equal
+            (list (event :freq 440))
+            (list (event :freq 440)))
+           "every-event-equal returns true for two lists of equivalent events")
+  (is-false (every-event-equal
+             (list (event :dur 1))
+             (list))
+            "every-event-equal returns false for two lists of different length"))
 
 ;;; clock (FIX)
 

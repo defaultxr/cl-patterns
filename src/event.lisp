@@ -55,6 +55,11 @@ Returns 2 values: the value of the slot, and the name of the slot the value was 
           :return nil
           :finally (return t))))
 
+(defun every-event-equal (&rest lists)
+  "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length."
+  (and (apply #'= (mapcar #'length lists))
+       (apply #'every #'event-equal lists)))
+
 (defun (setf event-value) (value event slot)
   "Set the value of SLOT to VALUE in EVENT, running any conversion functions that exist."
   (let* ((slot (alexandria:make-keyword slot))
