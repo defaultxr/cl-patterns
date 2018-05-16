@@ -1505,8 +1505,19 @@ See also: `pfindur'")
                    :tolerance (next tolerance))))
 
 (defmethod next ((psync psync-pstream))
-  (with-slots (pattern quant maxdur tolerance) psync ;; NOTE: maxdur can be omitted, in which case only the quant argument has an effect.
-    ))
+  (with-slots (pattern quant maxdur tolerance history) psync
+    (let* ((n-event (next pattern))
+           (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (alexandria:circular-list :delta))))
+           (delta (- (round-up elapsed-dur quant) elapsed-dur)))
+      (if (null n-event)
+          (when (plusp delta)
+            (event :type :rest :dur delta))
+          (when (or (null maxdur)
+                    (not (>= elapsed-dur maxdur)))
+            (if (and (not (null maxdur))
+                     (> (+ elapsed-dur (event-value n-event :dur)) maxdur))
+                (combine-events n-event (event :delta (- maxdur elapsed-dur)))
+                n-event))))))
 
 ;;; pstutter
 

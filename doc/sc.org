@@ -55,7 +55,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pstutter~ - done as ~pstutter~. see also: ~pr~
 - ~PdurStutter~ - done as ~pdurstutter~. see also: ~pbind~'s ~:pdurstutter~ key.
 - ~Psym~
-- ~Psync~ - see also: ~pbind~'s ~:psync~ key.
+- ~Psync~ - done as ~psync~. see also: ~pbind~'s ~:psync~ key.
 - ~Ptrace~ - done as ~ptrace~.
 - ~Pwrap~ - see also: ~(pnary #'wrap)~.
 * math / randomness patterns
