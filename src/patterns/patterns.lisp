@@ -1412,17 +1412,17 @@ Example: (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6)))
                      :current-pattern-event (next pstr)
                      :current-arpeggiator-stream (as-pstream arpeggiator)))))
 
-(defmethod next ((pattern parp-pstream))
-  (with-slots (arpeggiator current-pattern-event current-arpeggiator-stream) pattern
-    (when (not (null current-pattern-event))
-      (let ((nxt (let ((*event* current-pattern-event))
+(defmethod next ((parp parp-pstream))
+  (with-slots (pattern arpeggiator current-pattern-event current-arpeggiator-stream) parp
+    (unless (null current-pattern-event)
+      (let ((nxt (let ((*event* (combine-events current-pattern-event)))
                    (next current-arpeggiator-stream))))
         (if (null nxt)
             (progn
-              (setf current-pattern-event (next (slot-value pattern 'pattern)))
-              (setf current-arpeggiator-stream (as-pstream arpeggiator))
-              (next pattern))
-            (combine-events current-pattern-event nxt))))))
+              (setf current-pattern-event (next pattern)
+                    current-arpeggiator-stream (as-pstream arpeggiator))
+              (next parp))
+            nxt)))))
 
 ;;; pfin
 

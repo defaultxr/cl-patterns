@@ -405,7 +405,19 @@
 
 ;; ptracker (FIX)
 
-;; parp (FIX)
+(test parp
+  "Test parp"
+  (is-true (every-event-equal
+            (list (event :freq 200 :xx 400)
+                  (event :freq 200 :xx 200)
+                  (event :freq 300 :xx 600)
+                  (event :freq 300 :xx 300)
+                  (event :freq 400 :xx 800)
+                  (event :freq 400 :xx 400)
+                  nil)
+            (next-n (parp (pbind :freq (pseq (list 200 300 400) 1))
+                          (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
+                    7))))
 
 (test pfin
   "Test pfin"
