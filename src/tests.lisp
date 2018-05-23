@@ -498,7 +498,12 @@
   "Test pchain"
   (is-true (every-event-equal
             (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
-            (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))))
+            (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))
+           "pchain correctly combines the outputs from each of its input patterns")
+  (is-true (every-event-equal
+            (list (event :foo 1 :bar 1) (event :foo 2 :bar 2) (event :foo 3 :bar 3) nil)
+            (next-n (pchain (pbind :foo (pseq '(1 2 3) 1)) (pbind :bar (pk :foo))) 4))
+           "values from previous patterns are accessible in subsequent patterns when pchain'd"))
 
 ;; pdiff
 

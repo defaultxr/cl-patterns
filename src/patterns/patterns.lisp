@@ -1797,8 +1797,11 @@ See also: `pbind''s :inject key"
 
 (defmethod next ((pchain pchain-pstream))
   (with-slots (patterns) pchain
-    (apply #'combine-events (loop :for pattern :in patterns
-                               :collect (next pattern)))))
+    (let ((c-event (make-default-event)))
+      (loop :for pattern :in patterns
+         :do (setf c-event (combine-events c-event (let ((*event* c-event))
+                                                     (next pattern)))))
+      c-event)))
 
 ;;; pdiff
 
