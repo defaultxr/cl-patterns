@@ -479,7 +479,7 @@ See also: `pbind', `pdef'"
 
 (define-pbind-special-wrap-key psync
   (if (listp value)
-      (destructuring-bind (quant &optional (maxdur quant)) value
+      (destructuring-bind (quant &optional maxdur) value
         (psync pattern quant maxdur))
       (psync pattern value value)))
 
@@ -1492,7 +1492,13 @@ See also: `pfin', `psync'")
    (tolerance :default 0.001))
   "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of QUANT.
 
-Example: (next-upto-n (psync (pbind :dur (pseq '(5) 1)) 4 16)) ;=> ((EVENT :DUR 5) (EVENT :TYPE :REST :DUR 3))
+Example:
+
+;; (next-upto-n (psync (pbind :dur (pseq '(5) 1)) 4 16))
+;; => ((EVENT :DUR 5) (EVENT :TYPE :REST :DUR 3))
+;;
+;; (next-upto-n (psync (pbind :dur (pseq '(5) 5)) 4 16))
+;; => ((EVENT :DUR 5) (EVENT :DUR 5) (EVENT :DUR 5) (EVENT :DUR 5 :DELTA 1))
 
 See also: `pfindur'")
 
@@ -1504,7 +1510,7 @@ See also: `pfindur'")
                    :maxdur (next maxdur)
                    :tolerance (next tolerance))))
 
-(defmethod next ((psync psync-pstream))
+(defmethod next ((psync psync-pstream)) ;; FIX: implement tolerance
   (with-slots (pattern quant maxdur tolerance history) psync
     (let* ((n-event (next pattern))
            (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (alexandria:circular-list :delta))))
