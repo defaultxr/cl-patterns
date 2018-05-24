@@ -1567,11 +1567,13 @@ See also: `pr', `pdurstutter'")
    (current-repeats-remaining :state t :initform 0))
   "pdurstutter yields each output from PATTERN N times, dividing it by N. If the output from PATTERN is an event, its dur is divided; if it's a number, the number itself is divided instead of being yielded directly.
 
-Example: (next-n (pdurstutter (pseq '(1 2 3 4 5)) (pseq '(3 2 1 0 2))) 9) ;=> (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
+Example:
 
-Example: (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5))) (pseq '(3 2 1 0 2))) 9) ;=>
-((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1)
- (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
+;; (next-n (pdurstutter (pseq '(1 2 3 4 5)) (pseq '(3 2 1 0 2))) 9)
+;; => (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
+;;
+;; (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5))) (pseq '(3 2 1 0 2))) 9)
+;; => ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
 
 See also: `pr', `pstutter'")
 
@@ -1613,7 +1615,7 @@ See also: `beats-elapsed', `prun'")
 
 ;;; ptime
 
-(defpattern ptime (pattern) ;; FIX: need example.
+(defpattern ptime (pattern)
   ((last-beat-checked :state t :initform nil)
    (tempo-at-beat :state t :initform nil)
    (elapsed-time :state t :initform 0))
@@ -1622,6 +1624,10 @@ See also: `beats-elapsed', `prun'")
 Note: May give inaccurate results if the clock's tempo changes occur more frequently than events in the parent pbind.
 
 Example:
+
+;; (setf (tempo *clock*) 1) ;; 60 BPM
+;; (next-n (pbind :dur 1 :time (ptime)) 2)
+;; => ((EVENT :DUR 1 :TIME 0) (EVENT :DUR 1 :TIME 1.0))
 
 See also: `pbeats', `beats-elapsed', `prun'")
 
