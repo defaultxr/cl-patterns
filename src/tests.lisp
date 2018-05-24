@@ -190,7 +190,12 @@
   (is (equal
        (list 2 2 2 nil)
        (gete (next-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :baz 2)) 4) :bar))
-      "pk returns correct results when a default is provided and its KEY is not in the source"))
+      "pk returns correct results when a default is provided and its KEY is not in the source")
+  (is (=
+       3
+       (let ((*event* (event :foo 3)))
+         (event-value (next (pbind :bar (pk :foo))) :bar)))
+      "*EVENT* is correctly propagated to pbinds when it is bound and pk returns correct results"))
 
 (test prand
   "Test prand"
@@ -417,15 +422,16 @@
                   nil)
             (next-n (parp (pbind :freq (pseq (list 200 300 400) 1))
                           (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
-                    7))))
+                    7))
+           "parp returns correct results when the arpeggiator pattern references values from the base pattern via pk"))
 
 (test pfin
   "Test pfin"
   (is (= 3
-         (length (next-upto-n (pfin (pseq '(1 2 3) :inf) 3))))
+         (length (next-upto-n (pfin (pseq (list 1 2 3) :inf) 3))))
       "pfin correctly limits its source pattern when COUNT is a number")
   (is (= 3
-         (length (next-upto-n (pfin (pseq '(1 2 3) :inf) (pseq '(3))))))
+         (length (next-upto-n (pfin (pseq (list 1 2 3) :inf) (pseq (list 3))))))
       "pfin correctly limits its source pattern when COUNT is a pattern"))
 
 (test pfindur
