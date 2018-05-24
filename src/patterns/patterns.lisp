@@ -1522,21 +1522,24 @@ See also: `pfindur'")
 ;;; pstutter
 
 (defpattern pstutter (pattern)
-  (n
-   pattern
+  (pattern
+   n
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t :initform 0))
   "pstutter yields each output from PATTERN N times before moving on to the next output from PATTERN.
 
-Example: (next-n (pstutter (pseq '(3 2 1 0 2)) (pseries)) 9) ;=> (0 0 0 1 1 2 4 4 NIL)
+Example:
+
+;; (next-n (pstutter (pseries) (pseq '(3 2 1 0 2) 1)) 9)
+;; => (0 0 0 1 1 2 4 4 NIL)
 
 See also: `pr', `pdurstutter'")
 
 (defmethod as-pstream ((pstutter pstutter))
   (with-slots (n pattern) pstutter
     (make-instance 'pstutter-pstream
-                   :n (pattern-as-pstream n)
-                   :pattern (as-pstream pattern))))
+                   :pattern (as-pstream pattern)
+                   :n (pattern-as-pstream n))))
 
 (defmethod next ((pattern pstutter-pstream))
   (with-slots (n current-value current-repeats-remaining) pattern

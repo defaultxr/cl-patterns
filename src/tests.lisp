@@ -448,10 +448,10 @@
 (test pstutter
   "Test pstutter"
   (is (equal (list 1 1 1 2 2 2 3 3 3)
-             (next-upto-n (pstutter 3 (pseq '(1 2 3) 1))))
+             (next-upto-n (pstutter (pseq '(1 2 3) 1) 3)))
       "pstutter returns correct results")
   (is (equal (list 2 3 3)
-             (next-upto-n (pstutter (pseq '(0 1 2) 1) (pseq '(1 2 3) 1))))
+             (next-upto-n (pstutter (pseq '(1 2 3) 1) (pseq '(0 1 2) 1))))
       "pstutter returns correct results when its N is a pattern, and when N is 0"))
 
 (test pdurstutter
