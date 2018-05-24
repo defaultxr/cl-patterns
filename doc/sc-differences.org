@@ -10,20 +10,49 @@ This document is a WIP.
 
 This section lists new features relative to SuperCollider's patterns system. For more, and for a complete listing of notable cl-patterns features, see [[file:features.org][features.org]].
 
+- coercion of patterns into pstreams is done automatically for you if you call ~next~ on a pattern:
+
+#+BEGIN_SRC sclang
+Pseq([1,2,3]).next;
+// => a Pseq
+#+END_SRC
+
+#+BEGIN_SRC lisp
+  (next (pseq '(1 2 3)))
+  ;; => 1
+#+END_SRC
+
 - ~pwrand~ / ~pwxrand~ - weights are automatically normalized.
+
 - ~pdurstutter~ - works on event streams as well as number streams. (as do any duration-based patterns)
 
 * Changed behaviors
 
 - non-patterns converted to pstreams only return one value:
+
 #+BEGIN_SRC lisp
 (defparameter *foo* (as-pstream 1))
 
 (next-n *foo* 3) ;=> (1 NIL NIL)
 #+END_SRC
+
 - ~pbeats~ is the pattern that returns the number of beats elapsed in the pstream (in SuperCollider it's known as ~Ptime~).
+
 - pdefs loop by default when played.
 
 This is because their ~loop-p~ slot defaults to ~t~. Set it to ~nil~ to prevent this.
 
-- ~pfin~ and ~pfindur~ have their source pattern as the first input instead of the second, for consistency.
+- ~pfin~, ~pfindur~, ~pstutter~, ~pdurstutter~, etc, have their source pattern as the first input instead of the second, for consistency.
+# FIX: remove "etc" above, list all patterns with argument order changed
+
+- ~pchain~ overwrites pattern data from first to last.
+
+#+BEGIN_SRC sclang
+  Pchain(Pbind(\foo,1),Pbind(\foo,2)).asStream.next(())
+  // => (\foo:1)
+#+END_SRC
+
+#+BEGIN_SRC lisp
+  (next (pchain (pbind :foo 1) (pbind :foo 2)))
+  ;; => (event :foo 2)
+#+END_SRC
