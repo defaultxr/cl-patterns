@@ -42,6 +42,16 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
   "Like `alexandria:flatten', but only flattens one layer."
   (apply #'append (mapcar #'alexandria:ensure-list list)))
 
+(defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
+  "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
+  (if (null value)
+      (alexandria:remove-from-plist plist key)
+      (if (getf plist key)
+          (progn
+            (setf (getf plist key) value)
+            plist)
+          (append plist (list key value)))))
+
 (defgeneric keys (item)
   (:documentation "Get the keys of ITEM, whether it be a plist, event, etc."))
 

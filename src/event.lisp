@@ -125,16 +125,6 @@ See also: `event-value'"
 (defmethod keys ((item event))
   (keys (slot-value item 'event-plist)))
 
-(defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
-  "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
-  (if (null value)
-      (alexandria:remove-from-plist plist key)
-      (if (getf plist key)
-          (progn
-            (setf (getf plist key) value)
-            plist)
-          (append plist (list key value)))))
-
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
