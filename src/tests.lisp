@@ -24,6 +24,69 @@
          (cl-patterns::round-up 5 4))
       "round-up gives correct results for arguments 5, 4"))
 
+;;; conversions (FIX: add more)
+
+(test conversions
+  "Test unit conversion functions"
+  (is (=
+       0.5
+       (db-amp (amp-db 0.5)))
+      "db-to-amp conversion is equivalent to amp-to-db conversion"))
+
+;;; scales (FIX)
+
+;;; event (FIX: add more)
+
+(test event
+  "Test event functionality"
+  (is (=
+       1
+       (event-value (event :dur 0 :sustain 1) :sustain))
+      "event returns the correct sustain when sustain is provided and dur is 0")
+  (is (=
+       0.8
+       (event-value (event) :sustain))
+      "event returns the correct default value for sustain")
+  (is (=
+       0.5
+       (event-value (event :dur 0 :legato 0.5) :legato))
+      "event returns the correct legato when legato is provided and dur is 0")
+  (is (=
+       0.8
+       (event-value (event) :legato))
+      "event returns the correct default value for legato")
+  (is (=
+       1
+       (event-value (event) :dur))
+      "event returns the correct default value for dur")
+  (is (eq
+       :default
+       (event-value (event) :instrument))
+      "event returns the correct default value for instrument")
+  (is (= (amp-db 0.125)
+         (event-value (event :amp 0.125) :db))
+      "event correctly converts amp to db")
+  (is (= (db-amp -7)
+         (event-value (event :db -7) :amp))
+      "event correctly converts db to amp"))
+
+(test event-equal
+  "Test event-equal"
+  (is-true
+   (event-equal (event :dur 1) (event :dur 1))
+   "event-equal returns true for equivalent events"))
+
+(test every-event-equal
+  "Test every-event-equal"
+  (is-true (every-event-equal
+            (list (event :freq 440))
+            (list (event :freq 440)))
+           "every-event-equal returns true for two lists of equivalent events")
+  (is-false (every-event-equal
+             (list (event :dur 1))
+             (list))
+            "every-event-equal returns false for two lists of different length"))
+
 ;;; patterns
 
 (test embedding
@@ -205,9 +268,35 @@
          (length (next-upto-n (prand '(1 2 3) 3))))
       "prand returns the correct number of results"))
 
-;; pxrand (FIX)
+(test pxrand
+  "Test pxrand"
+  (is-true
+   (block pxrand-test-1
+     (let ((prev))
+       (dolist (cur (next-n (pxrand (list 1 2)) 10000))
+         (when (eq cur prev)
+           (return-from pxrand-test-1 nil))
+         (setf prev cur))
+       t))
+   "pxrand does not yield the same item twice in a row"))
 
-;; pwxrand (FIX)
+(test pwrand
+  "Test pwrand"
+  (is-false
+   (position 0 (next-n (pwrand (list 0 1) (list 0 1)) 1000))
+   "pwrand does not yield items whose weight is 0."))
+
+(test pwxrand
+  "Test pwxrand"
+  (is-true
+   (block pwxrand-test-1
+     (let ((prev))
+       (dolist (cur (next-n (pwxrand (list 1 2)) 10000))
+         (when (eq cur prev)
+           (return-from pwxrand-test-1 nil))
+         (setf prev cur))
+       t))
+   "pwxrand does not yield the same item twice in a row"))
 
 (test pfunc
   "Test pfunc"
@@ -489,16 +578,12 @@
              (next-n (pindex (list 99 98 97) (pseries 0 1 4) 2 t) 9))
       "pindex returns correct results when its WRAP-P is t"))
 
-;; pbjorklund (FIX)
-
 (test prun
   "Test prun"
   (is-true (every-event-equal
             (list (event :foo 1 :bar 4) (event :foo 2 :bar 5) (event :foo 3 :bar 5) (event :foo 4 :bar 6) (event :foo 5 :bar 8))
             (next-upto-n (pbind :foo (pseq '(1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
            "prun returns correct results"))
-
-;; pchain
 
 (test pchain
   "Test pchain"
@@ -511,91 +596,30 @@
             (next-n (pchain (pbind :foo (pseq '(1 2 3) 1)) (pbind :bar (pk :foo))) 4))
            "values from previous patterns are accessible in subsequent patterns when pchain'd"))
 
-;; pdiff
-
 (test pdiff
   "Test pdiff"
   (is (equal (list -2 3 -1 nil)
              (next-n (pdiff (pseq (list 3 1 4 3) 1)) 4))))
-
-;; pdrop
 
 (test pdrop
   "Test pdrop"
   (is (equal (list 3 4 nil nil)
              (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4))))
 
-;;; conversions (FIX: add more)
+;;; bjorklund (FIX)
 
-(test conversions
-  "Test unit conversion functions"
-  (is (=
-       0.5
-       (db-amp (amp-db 0.5)))
-      "db-to-amp conversion is equivalent to amp-to-db conversion"))
+;;; cycles (FIX)
 
-;;; events (FIX: add more)
+;;; tracker (FIX)
 
-(test events
-  "Test events"
-  (is (=
-       1
-       (event-value (event :dur 0 :sustain 1) :sustain))
-      "event returns the correct sustain when sustain is provided and dur is 0")
-  (is (=
-       0.8
-       (event-value (event) :sustain))
-      "event returns the correct default value for sustain")
-  (is (=
-       0.5
-       (event-value (event :dur 0 :legato 0.5) :legato))
-      "event returns the correct legato when legato is provided and dur is 0")
-  (is (=
-       0.8
-       (event-value (event) :legato))
-      "event returns the correct default value for legato")
-  (is (=
-       1
-       (event-value (event) :dur))
-      "event returns the correct default value for dur")
-  (is (eq
-       :default
-       (event-value (event) :instrument))
-      "event returns the correct default value for instrument")
-  (is (= (amp-db 0.125)
-         (event-value (event :amp 0.125) :db))
-      "event correctly converts amp to db")
-  (is (= (db-amp -7)
-         (event-value (event :db -7) :amp))
-      "event correctly converts db to amp"))
-
-(test event-equal
-  "Test event-equal"
-  (is-true
-   (event-equal (event :dur 1) (event :dur 1))
-   "event-equal returns true for equivalent events"))
-
-(test every-event-equal
-  "Test every-event-equal"
-  (is-true (every-event-equal
-            (list (event :freq 440))
-            (list (event :freq 440)))
-           "every-event-equal returns true for two lists of equivalent events")
-  (is-false (every-event-equal
-             (list (event :dur 1))
-             (list))
-            "every-event-equal returns false for two lists of different length"))
+;;; backend (FIX)
 
 ;;; clock (FIX)
 
-;;; tsubseq
+;;; sugar (FIX)
 
-;; (let* ((pb (pbind :dur 1/3)))
-;;   (is (= 2/3 (reduce #'+ (gete (tsubseq pb 1 1.5) :dur))))
-;;   (is (= 2/3 (reduce #'+ (gete (tsubseq (as-pstream pb) 1 1.5) :dur))))
-;;   (is (= 2/3 (reduce #'+ (gete (tsubseq (next-n pb 15) 1 1.5) :dur)))))
+;;; cl-collider backend (FIX)
 
-;; (let* ((pb (pbind :dur 1/3)))
-;;   (is (= 0.25 (reduce #'+ (gete (tsubseq* pb 1.25 1.5) :dur))))
-;;   (is (= 0.25 (reduce #'+ (gete (tsubseq* (as-pstream pb) 1.25 1.5) :dur))))
-;;   (is (= 0.25 (reduce #'+ (gete (tsubseq* (next-n pb 15) 1.25 1.5) :dur)))))
+;;; incudine backend (FIX)
+
+;;; midi backend (FIX)
