@@ -56,3 +56,5 @@ This is because their ~loop-p~ slot defaults to ~t~. Set it to ~nil~ to prevent 
   (next (pchain (pbind :foo 1) (pbind :foo 2)))
   ;; => (event :foo 2)
 #+END_SRC
+
+- ~pindex~ does not have a ~repeats~ argument.

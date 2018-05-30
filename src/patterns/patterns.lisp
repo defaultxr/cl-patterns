@@ -1681,38 +1681,32 @@ See also: `pbeats', `beats-elapsed', `prun'")
 (defpattern pindex (pattern)
   (list-pat
    index-pat
-   (repeats :default 1) ;; FIX: remove this?
-   (wrap-p :default nil)
-   (list-pat-ps :state t)
-   (index-pat-ps :state t)
-   (current-repeats-remaining :state t))
-  "pindex uses INDEX-PAT to index into the list returned by LIST-PAT. REPEATS is the number of times that INDEX-PAT will be run to its end. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil (default).
+   (wrap-p :default nil))
+  "pindex uses INDEX-PAT to index into the list returned by LIST-PAT. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil (default).
 
-Example: (next-upto-n (pindex (list 99 98 97) (pseries 0 1 3) 2)) ;=> (99 98 97 99 98 97)
+Example:
+
+;; (next-n (pindex (list 99 98 97) (pseq (list 0 1 2 3))) 4)
+;; => (99 98 97 NIL)
+;;
+;; (next-upto-n (pindex (list 99 98 97) (pseries 0 1 6) t))
+;; => (99 98 97 99 98 97)
 
 See also: `pswitch'")
 
 (defmethod as-pstream ((pindex pindex))
-  (with-slots (list-pat index-pat repeats wrap-p) pindex
+  (with-slots (list-pat index-pat wrap-p) pindex
     (make-instance 'pindex-pstream
-                   :list-pat list-pat
-                   :list-pat-ps (pattern-as-pstream list-pat)
-                   :index-pat index-pat
-                   :index-pat-ps (pattern-as-pstream index-pat)
-                   :repeats (as-pstream repeats)
+                   :list-pat (pattern-as-pstream list-pat)
+                   :index-pat (pattern-as-pstream index-pat)
                    :wrap-p wrap-p)))
 
 (defmethod next ((pindex pindex-pstream))
-  (with-slots (list-pat-ps index-pat index-pat-ps wrap-p) pindex
-    (when (remainingp pindex)
-      (let ((list (next list-pat-ps))
-            (idx (next index-pat-ps)))
-        (if (null idx)
-            (progn
-              (decf-remaining pindex 'current-repeats-remaining)
-              (setf index-pat-ps (pattern-as-pstream index-pat))
-              (next pindex))
-            (funcall (if wrap-p 'nth-wrap 'nth) idx list))))))
+  (with-slots (list-pat index-pat wrap-p) pindex
+    (let ((list (next list-pat))
+          (idx (next index-pat)))
+      (when idx
+        (funcall (if wrap-p 'nth-wrap 'nth) idx list)))))
 
 ;;; prun
 

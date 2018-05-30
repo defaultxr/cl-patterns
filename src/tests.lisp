@@ -571,11 +571,11 @@
 (test pindex
   "Test pindex"
   (is (equal
-       (list 3 2 1 3 2 1 nil)
-       (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2) 1) 2) 7))
+       (list 3 2 1 nil nil nil nil)
+       (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2) 1)) 7))
       "pindex returns correct results")
-  (is (equal (list 99 98 97 99 99 98 97 99 nil)
-             (next-n (pindex (list 99 98 97) (pseries 0 1 4) 2 t) 9))
+  (is (equal (list 99 98 97 99 98 97 99 98 97)
+             (next-n (pindex (list 99 98 97) (pseries 0 1) t) 9))
       "pindex returns correct results when its WRAP-P is t"))
 
 (test prun
