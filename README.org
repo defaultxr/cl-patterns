@@ -88,7 +88,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 * Tour
 
-- [[file:README.md][README.md]] - this file. self-expanatory, i'd hope.
+- [[file:README.org][README.org]] - this file. self-expanatory, i'd hope.
 - [[file:package.lisp][package.lisp]] - the package definition file.
 - [[file:LICENSE][LICENSE]] - the GPLv3 license.
 - [[file:cl-patterns.asd][cl-patterns.asd]] - cl-patterns systems definition file.
@@ -108,10 +108,10 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 ** src
 
-- [[file:src/utility.lisp][utility.lisp]] - general utility functions.
+- [[file:src/utility.lisp][utility.lisp]] - general utility functions and special variable definitions.
 - [[file:src/conversions.lisp][conversions.lisp]] - functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
-- [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
+- [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/sugar.lisp][sugar.lisp]] - defines optional syntax sugar including a named-readtable. may be moved to a separate system in the future.

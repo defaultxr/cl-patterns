@@ -8,9 +8,6 @@
 
 (in-package :cl-patterns)
 
-(defparameter *clock* nil
-  "The default clock to run tasks on.")
-
 (defparameter *performance-mode* nil
   "Whether \"performance mode\" is enabled. In performance mode, all errors signaled within a task will be caught and the task will be removed automatically, to prevent other tasks on the clock from pausing. The task and its stack trace are saved to `*performance-errors*'.")
 

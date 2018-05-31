@@ -1,6 +1,14 @@
 (in-package :cl-patterns)
 
-;; glue
+;;; special variables
+
+(defparameter *event* nil
+  "The event special variable. Can be referenced inside a pattern's code.")
+
+(defparameter *clock* nil
+  "The default clock to run tasks on.")
+
+;;; glue
 
 (defun gete (list key)
   "Get a list of the value of KEY for each element in LIST."
@@ -16,7 +24,7 @@
                                                                (alpha-char-p letter)))
                                                          string))))
 
-;; list stuff
+;;; list stuff
 
 (defun nth-wrap (n list)
   "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length."
@@ -65,7 +73,7 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 (defmethod keys ((item null))
   nil)
 
-;; math stuff
+;;; math stuff
 
 (defun wrap (number bottom top)
   "Wraps a number between BOTTOM and TOP, similar to `cl:mod'."
@@ -157,7 +165,7 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
-;; macros / MOP stuff
+;;; macros / MOP stuff
 
 (defmacro create-global-dictionary (name) ;; FIX: remove/refactor this?
   (let* ((name-name (symbol-name name))
@@ -194,4 +202,3 @@ See also: `seq'"
                           (,@(rest around)
                              (make-method ,form))))
           form))))
-
