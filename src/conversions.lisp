@@ -3,11 +3,11 @@
 ;;; amp/db
 
 (defun amp-db (amp)
-  "Convert amplitude to dB."
+  "Convert amplitude to decibels."
   (* 20 (log amp 10)))
 
 (defun db-amp (db)
-  "Convert dB to amplitude."
+  "Convert decibels to amplitude."
   (expt 10 (* db 0.05)))
 
 ;;; dur
@@ -28,11 +28,11 @@
 
 (defun midinote-freq (midinote)
   "Convert a midi note number to a frequency."
-  (* 440 (expt 2 (/ (- midinote 69) 12))))
+  (* 440d0 (expt 2d0 (/ (- midinote 69d0) 12))))
 
 (defun freq-midinote (freq)
   "Convert a frequency to a midi note number."
-  (+ 69 (* 12 (log (/ freq 440) 2))))
+  (+ 69d0 (* 12d0 (log (/ freq 440) 2d0))))
 
 (defun freq-octave (freq)
   "Given FREQ, return the octave number that it occurs in."
