@@ -21,10 +21,11 @@
 
 (defun generate-plist-for-synth (instrument event)
   "Generate a plist of parameters for a synth based off of the synth's arguments. Unlike `event-plist', this function doesn't include event keys that aren't also one of the synth's arguments."
-  (let ((synth-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the synth's defaults, NOT the event's.
-                                   (multiple-value-bind (value key) (event-value event arg)
-                                     (declare (ignore value))
-                                     (eq key t)))
+  (let ((synth-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the synth's defaults, NOT the event's...
+                                   (unless (string= (symbol-name arg) "SUSTAIN") ;; ...with the exception of sustain, which the synth should always get.
+                                     (multiple-value-bind (value key) (event-value event arg)
+                                       (declare (ignore value))
+                                       (eq key t))))
                                  (get-synthdef-control-names instrument))))
     (if synth-params
         (loop :for sparam :in synth-params
