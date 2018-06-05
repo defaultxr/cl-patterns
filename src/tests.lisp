@@ -246,7 +246,15 @@
                (next-n bar 3) ;=> (2 3 NIL)
                (slot-value bar 'cl-patterns::history) ;=> (1 2 3 1 2 3 1 2 3 1 2 3 NIL)
                ))
-      "pseq returns correct results when its REPEATS is used as a gate"))
+      "pseq returns correct results when its REPEATS is used as a gate")
+  (is (equal
+       (list 6 7 5 6 7 5)
+       (next-upto-n (pseq '(5 6 7) 2 1)))
+      "pseq's OFFSET argument works with an integer")
+  (is (equal
+       (list 6 5 6)
+       (next-upto-n (pseq '(5 6 7) 2 (pseq '(1 2 -1) 1))))
+      "pseq's OFFSET argument works with a pattern"))
 
 (test pser
   "Test pser"

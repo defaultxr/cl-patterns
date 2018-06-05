@@ -551,7 +551,7 @@ See also: `pbind'"
 (defpattern pseq (pattern)
   (list
    (repeats :default :inf)
-   (offset :default 0) ;; FIX: add tests for this
+   (offset :default 0)
    (current-repeats-remaining :state t))
   "pseq yields values from LIST in the same order they were provided, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
 
@@ -577,8 +577,10 @@ See also: `pser'")
     (when (and (plusp number)
                (= 0 (mod number (length list))))
       (decf-remaining pseq 'current-repeats-remaining))
-    (when (remainingp pseq)
-      (nth-wrap (+ (or (next offset) 0) number) list))))
+    (alexandria:when-let ((off (next offset)))
+      (when (and (remainingp pseq)
+                 list)
+        (nth-wrap (+ off number) list)))))
 
 ;;; pser
 
