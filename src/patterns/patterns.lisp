@@ -141,9 +141,9 @@ See also: `next-n', `next-upto-n'")
   "Returns the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
 
 See also: `next', `next-upto-n'"
+  (assert (numberp n) (n) "next-n's N argument must be a number (getting infinity results from a pstream is not supported).")
   (let ((pstream (as-pstream pattern)))
-    (loop
-       :for i :from 0 :below n
+    (loop :repeat n
        :collect (next pstream))))
 
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
@@ -155,7 +155,8 @@ See also: `next', `next-upto-n'"
        :for number :from 0 :upto n
        :for val = (next pstream)
        :while (and (not (null val))
-                   (< number n))
+                   (or (eq :inf n)
+                       (< number n)))
        :append (list val))))
 
 ;;; pstream
