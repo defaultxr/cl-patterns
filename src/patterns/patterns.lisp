@@ -341,14 +341,14 @@ See also: `parent-pattern'"))
   (:documentation "Get the number of beats elapsed in PSTREAM's execution."))
 
 (defmethod beats-elapsed ((pstream pstream))
-  (float
-   (loop :for i :in (slot-value pstream 'history)
-      :if (typep i 'event)
-      :sum (event-value i :dur)
-      :if (null i)
-      :do (loop-finish)
-      :if (and (not (typep i 'event)) (not (null i)))
-      :do (error "beats-elapsed only works on pstreams that have duration information, such as those from a pbind."))))
+  (loop :for i :in (slot-value pstream 'history)
+     :repeat (+ (slot-value pstream 'pstream-offset) (length (slot-value pstream 'history)))
+     :if (typep i 'event)
+     :sum (event-value i :delta)
+     :if (null i)
+     :do (loop-finish)
+     :if (and (not (typep i 'event)) (not (null i)))
+     :do (error "beats-elapsed only works on pstreams that have duration information, such as those from a pbind.")))
 
 ;;; pbind
 

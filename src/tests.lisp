@@ -587,11 +587,13 @@
 
 (test pbeats
   "Test pbeats"
-  (is (equal (list 0.0 0.25 0.5 0.75 1.0 1.25)
-             (let ((pstr (as-pstream (pbind :foo (pbeats) :dur 0.25))))
-               (loop :for i :upto 5
-                  :collect (event-value (next pstr) :foo))))
-      "pbeats returns correct results"))
+  (is (equalp (list 0.0 0.25 0.5 0.75 1.0 1.25)
+              (let ((pstr (as-pstream (pbind :foo (pbeats) :dur 0.25))))
+                (loop :for i :upto 5
+                   :collect (event-value (next pstr) :foo))))
+      "pbeats returns correct results")
+  ;; FIX: test for peek
+  )
 
 ;; psinosc (FIX)
 
