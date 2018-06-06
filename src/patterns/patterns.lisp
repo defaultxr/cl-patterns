@@ -161,10 +161,11 @@ See also: `next', `next-upto-n'"
 ;;; pstream
 
 (defclass pstream (pattern)
-  ((number :initform 0)
-   (pattern-stack :initform (list))
-   (history :initarg :history :initform (list)))
-  (:documentation "Pattern stream class."))
+  ((number :initform 0 :documentation "The number of outputs yielded from the pstream.") ;; FIX: maybe remove this and just use (length (slot-value pstream 'history)) instead?
+   (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
+   (history :initform (list) :documentation "The history of outputs yielded by the pstream.")
+   (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1."))
+  (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
 (defun value-remaining-p (value)
   "Return t if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
