@@ -171,7 +171,7 @@ See also: `next', `next-upto-n'"
   "Return t if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
   (typecase value
     (null nil)
-    (symbol t)
+    (symbol (eq value :inf))
     (number (plusp value))
     (otherwise nil)))
 
@@ -183,11 +183,11 @@ See also: `next', `next-upto-n'"
                :reset)))
     (if (not (slot-boundp pattern remaining-key))
         (set-next)
-        (progn
-          (typecase (slot-value pattern remaining-key)
+        (let ((rem-key (slot-value pattern remaining-key)))
+          (typecase rem-key
             (null nil)
-            (symbol t) ;; :inf or the like
-            (number (if (plusp (slot-value pattern remaining-key))
+            (symbol (eq rem-key :inf))
+            (number (if (plusp rem-key)
                         t
                         (set-next))) ;; if it's already set to 0, it was decf'd to 0 in the pattern, so we get the next one. if the next is 0, THEN we return nil.
             (otherwise nil))))))
