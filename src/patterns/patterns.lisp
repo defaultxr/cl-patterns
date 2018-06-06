@@ -123,7 +123,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
 
 (defgeneric next (pattern)
-  (:documentation "Returns the next value of a pattern stream, function, or other object, advancing the pattern stream forward in the process.
+  (:documentation "Get the next value of a pstream, function, or other object, advancing the pstream forward in the process.
 
 See also: `next-n', `next-upto-n'")
   (:method-combination pattern))
@@ -380,7 +380,7 @@ Example:
 ;; (next-n (pbind :foo (pseq '(1 2 3)) :bar :hello) 4)
 ;; => ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) NIL)
 
-See also: `pmono'"
+See also: `pmono', `pb'"
   (assert (evenp (length pairs)) (pairs))
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
@@ -885,8 +885,8 @@ See also: `pstutter', `pdurstutter', `parp'")
          :while (or (null current-pstream)
                     (null nv))
          :do
-         (setf current-pstream (as-pstream (funcall func)))
-         (setf nv (next current-pstream)))
+           (setf current-pstream (as-pstream (funcall func)))
+           (setf nv (next current-pstream)))
       nv)))
 
 ;;; plazyn
@@ -949,10 +949,10 @@ See also: `pstutter', `pdurstutter', `parp'")
         (setf current-pstream (as-pstream pattern)))
       (let ((nv (next current-pstream)))
         (loop :while (and (null nv) rem) :do
-           (decf-remaining pn 'current-repeats-remaining)
-           (setf rem (remainingp pn))
-           (setf current-pstream (as-pstream pattern))
-           (setf nv (next current-pstream)))
+             (decf-remaining pn 'current-repeats-remaining)
+             (setf rem (remainingp pn))
+             (setf current-pstream (as-pstream pattern))
+             (setf nv (next current-pstream)))
         (when rem
           nv)))))
 
@@ -1562,8 +1562,8 @@ See also: `pr', `pdurstutter'")
     (loop :while (and (not (null current-repeats-remaining))
                       (= 0 current-repeats-remaining))
        :do
-       (setf current-value (next (slot-value pattern 'pattern)))
-       (setf current-repeats-remaining (next n)))
+         (setf current-value (next (slot-value pattern 'pattern)))
+         (setf current-repeats-remaining (next n)))
     (when (not (null current-repeats-remaining))
       (decf-remaining pattern 'current-repeats-remaining)
       current-value)))
@@ -1598,14 +1598,14 @@ See also: `pr', `pstutter'")
     (loop :while (and (not (null current-repeats-remaining))
                       (= 0 current-repeats-remaining))
        :do
-       (setf current-repeats-remaining (next n))
-       (let ((e (next (slot-value pattern 'pattern))))
-         (when (and (not (null current-repeats-remaining))
-                    (not (eq 0 current-repeats-remaining)))
-           (setf current-value (ctypecase e
-                                 (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
-                                 (number (/ e current-repeats-remaining))
-                                 (null nil))))))
+         (setf current-repeats-remaining (next n))
+         (let ((e (next (slot-value pattern 'pattern))))
+           (when (and (not (null current-repeats-remaining))
+                      (not (eq 0 current-repeats-remaining)))
+             (setf current-value (ctypecase e
+                                   (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
+                                   (number (/ e current-repeats-remaining))
+                                   (null nil))))))
     (when (not (null current-repeats-remaining))
       (decf-remaining pattern 'current-repeats-remaining)
       current-value)))

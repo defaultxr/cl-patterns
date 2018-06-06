@@ -34,6 +34,8 @@ CLOSED: [2017-07-06 Thu 03:07]
 
 ** Incudine backend
 
+** MIDI backend
+
 * other (related) projects
 
 ** basic GUI interfaces
