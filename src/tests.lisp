@@ -630,6 +630,18 @@
             (next-upto-n (pbind :foo (pseq '(1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
            "prun returns correct results"))
 
+(test psym ;; FIX: add more
+  "Test psym"
+  (is-true (let ((cl-patterns::*pdef-dictionary*))
+             (pdef :foo1 (pbind :dur (pn 1/2 8)))
+             (pdef :foo2 (pbind :dur (pn 2/3 8)))
+             (every-event-equal
+              (mapcar (lambda (e) (remove-event-value e :pdef))
+                      (next-upto-n (psym (pseq (list (list :foo1 :foo2)) 1))))
+              (next-upto-n (ppar (list (cl-patterns::pdef-pattern (pdef :foo1))
+                                       (cl-patterns::pdef-pattern (pdef :foo2)))))))
+           "psym and ppar give the same results when provided the same patterns as inputs"))
+
 (test pchain
   "Test pchain"
   (is-true (every-event-equal
@@ -654,6 +666,31 @@
   "Test pdrop"
   (is (equal (list 3 4 nil nil)
              (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4))))
+
+(test ppar
+  "Test ppar"
+  (is-true (every-event-equal
+            (list (event :dur 1/2 :delta 0)
+                  (event :dur 2/3 :delta 1/2)
+                  (event :dur 1/2 :delta 1/6)
+                  (event :dur 2/3 :delta 1/3)
+                  (event :dur 1/2 :delta 1/3)
+                  (event :dur 2/3 :delta 1/6)
+                  (event :dur 1/2 :delta 1/2)
+                  (event :dur 1/2 :delta 0)
+                  (event :dur 2/3 :delta 1/2)
+                  (event :dur 1/2 :delta 1/6)
+                  (event :dur 2/3 :delta 1/3)
+                  (event :dur 1/2 :delta 1/3)
+                  (event :dur 2/3 :delta 1/6)
+                  (event :dur 1/2 :delta 1/2))
+            (next-upto-n (ppar (list (pbind :dur (pn 1/2 8))
+                                     (pbind :dur (pn 2/3 8))))))
+           "ppar returns correct results")
+  (is-true (not (typep (cl-patterns::quant (as-pstream (ppar (list (pseq '(1 2 3) 1)))))
+                       'pstream))
+           "Ensure that patterns that use the default as-pstream method don't have their quant converted to a t-pstream" ;; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
+           ))
 
 ;;; bjorklund (FIX)
 

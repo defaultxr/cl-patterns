@@ -1778,22 +1778,23 @@ Example:
 ;;
 ;; ;=> (1 2 3 4 5 6)
 
-See also: `pdef'" ;; FIX: also ppar, once it's implemented
-  )
+See also: `pdef', `ppar'")
 
 (defmethod as-pstream ((psym psym))
   (with-slots (pattern) psym
     (make-instance 'psym-pstream
                    :pattern (as-pstream pattern))))
 
-(defmethod next ((psym psym-pstream)) ;; FIX: process lists as parallel patterns when ppar is implemented
+(defmethod next ((psym psym-pstream))
   (with-slots (pattern current-pstream) psym
     (let ((n (next current-pstream)))
       (if n
           n
           (let ((next-pdef (next pattern)))
             (unless (null next-pdef)
-              (setf current-pstream (as-pstream (pdef next-pdef)))
+              (setf current-pstream (as-pstream (if (listp next-pdef)
+                                                    (ppar (mapcar #'pdef next-pdef))
+                                                    (pdef next-pdef))))
               (next psym)))))))
 
 ;;; pchain
@@ -1873,3 +1874,43 @@ Example:
       (loop :repeat n
          :do (next pattern)))
     (next pattern)))
+
+;;; ppar
+
+(defpattern ppar (pattern)
+  (list
+   (pstreams :state t :initform nil)
+   (next-beats :state t))
+  "Combine multiple event patterns into one pstream with all events in temporal order. LIST is the list of patterns, or a pattern yielding lists of patterns. The ppar ends when all of the patterns in LIST end.
+
+Example:
+
+;; (next-upto-n (ppar (list (pbind :dur (pn 1/2 4))
+;;                          (pbind :dur (pn 2/3 4)))))
+;; => ((EVENT :DUR 1/2 :DELTA 0) (EVENT :DUR 2/3 :DELTA 1/2)
+;;     (EVENT :DUR 1/2 :DELTA 1/6) (EVENT :DUR 2/3 :DELTA 1/3)
+;;     (EVENT :DUR 1/2 :DELTA 1/3) (EVENT :DUR 2/3 :DELTA 1/6)
+;;     (EVENT :DUR 1/2 :DELTA 1/2))
+
+See also: `psym'")
+
+(defmethod next ((ppar ppar-pstream))
+  (with-slots (list pstreams next-beats) ppar
+    (labels ((next-in-pstreams ()
+               (alexandria:when-let ((res (remove-if (lambda (pstream)
+                                                       (and (not (null (slot-value pstream 'history)))
+                                                            (null (pstream-nth -1 pstream))))
+                                                     pstreams)))
+                 (most-x res #'< #'beats-elapsed)))
+             (maybe-reset-pstreams ()
+               (when (null (remove-if #'null pstreams))
+                 (let ((next-list (next list)))
+                   (when (null next-list)
+                     (return-from maybe-reset-pstreams nil))
+                   (setf pstreams (mapcar #'as-pstream next-list))
+                   (setf next-beats (make-list (length pstreams) :initial-element 0))))))
+      (let ((nxt (next (next-in-pstreams))))
+        (if (and (null nxt)
+                 (maybe-reset-pstreams))
+            (next ppar)
+            (combine-events nxt (event :delta (- (beats-elapsed (next-in-pstreams)) (beats-elapsed ppar)))))))))

@@ -50,6 +50,17 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
   "Like `alexandria:flatten', but only flattens one layer."
   (apply #'append (mapcar #'alexandria:ensure-list list)))
 
+(defun most-x (list predicate key) ;; from https://stackoverflow.com/questions/30273802/how-would-i-get-the-min-max-of-a-list-using-a-key
+  "Get the most PREDICATE item in LIST by comparing the value returned by KEY."
+  (when list
+    (let* ((m0 (first list))
+           (m1 (funcall key m0)))
+      (mapc (lambda (e0 &aux (e1 (funcall key e0)))
+              (when (funcall predicate e1 m1)
+                (psetf m0 e0 m1 e1)))
+            list)
+      m0)))
+
 (defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
   "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
   (if (null value)
