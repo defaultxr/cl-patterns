@@ -1887,7 +1887,7 @@ Example:
 (defpattern pdrop (pattern)
   (pattern
    (n :default 0))
-  "Drop the first N outputs from PATTERN and yield the rest.
+  "Drop the first N outputs from PATTERN and yield the rest. If N is negative, drop the last N outputs from PATTERN instead.
 
 Example:
 
@@ -1903,9 +1903,13 @@ Example:
 
 (defmethod next ((pdrop pdrop-pstream))
   (with-slots (pattern n) pdrop
-    (when (null (slot-value pattern 'history))
-      (loop :repeat n
-         :do (next pattern)))
+    (if (minusp n)
+        (loop :while (<= n (slot-value pattern 'pstream-offset))
+           :do (when (null (peek pattern))
+                 (return-from next nil)))
+        (when (null (slot-value pattern 'history))
+          (loop :repeat n
+             :do (next pattern))))
     (next pattern)))
 
 ;;; ppar

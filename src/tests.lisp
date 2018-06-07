@@ -676,7 +676,11 @@
 (test pdrop
   "Test pdrop"
   (is (equal (list 3 4 nil nil)
-             (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4))))
+             (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4))
+      "pdrop correctly drops first N outputs")
+  (is (equal (list 1 2 3 nil)
+             (next-n (pdrop (pseq '(1 2 3 4 5) 1) -2) 4))
+      "pdrop correctly drops last N outputs"))
 
 (test ppar
   "Test ppar"
