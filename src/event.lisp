@@ -87,7 +87,8 @@ This function is semi-deprecated; use `(setf event-value)' instead, i.e.:
 (defun remove-event-value (event slot)
   "Removes SLOT from EVENT."
   (with-slots (event-plist) event
-    (setf event-plist (alexandria:remove-from-plist event-plist (alexandria:make-keyword slot)))))
+    (setf event-plist (alexandria:remove-from-plist event-plist (alexandria:make-keyword slot))))
+  event)
 
 (defun raw-event-value (event slot)
   "Get the value of SLOT in EVENT without running any conversion functions."
