@@ -265,7 +265,7 @@ See also: `pattern-as-pstream'"))
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
               :collect (alexandria:make-keyword slot)
-              :collect (as-pstream (slot-value pattern slot))))))
+              :collect (pattern-as-pstream (slot-value pattern slot))))))
 
 (defmethod as-pstream :around ((pattern pattern))
   (let ((pstream (call-next-method)))
