@@ -5,6 +5,7 @@
 ;; FIX: remove :remaining key and just use :pfin instead?
 ;; FIX: make a "peek" function to get future values of a pstream without affecting `next'.
 ;; FIX: take each pattern's name out of its docstring, and make sure the first sentence in each docstring is a good concise description of the functionality.
+;; FIX: use &key instead of &optional for defpattern
 
 ;;; pattern glue
 
@@ -104,19 +105,20 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
          (export '(,name ,name-pstream))))))
 
 (defparameter *max-pattern-yield-length* 64
-  "The maximum amount of events or values that will be used by patterns like pshift, etc, in order to prevent hangs caused by infinite-length patterns.")
+  "The default maximum number of events or values that will be used by functions like `next-n' or patterns like `pshift', in order to prevent hangs caused by infinite-length patterns.")
 
 ;;; pattern
 
 (defclass pattern ()
-  ((remaining :initarg :remaining :initform :inf)
-   (quant :initarg :quant :initform (list 1) :reader quant) ;; quant, phase, timing-offset
-   (parent :initarg :parent :initform nil)
-   (loop-p :initarg :loop-p :initform nil :accessor loop-p)
-   (cleanup-functions :initarg :cleanup-functions :initform (list)))
+  ((remaining :initarg :remaining :initform :inf :documentation "The number of outputs remaining to be yielded by pstreams of this pattern. This is primarily used to limit the amount of outputs a pattern will yield. This is deprecated and is likely going to be removed in the future--use `pfin' instead.")
+   (quant :initarg :quant :initform (list 1) :reader quant :documentation "A number or list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT PHASE TIMING-OFFSET). For example, a quant of 4 means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
+   (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
+   (loop-p :initarg :loop-p :initform nil :accessor loop-p :documentation "Whether or not the pattern should loop when played.")
+   (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped."))
   (:documentation "Abstract pattern superclass."))
 
 (defun all-patterns ()
+  "Get a list of all defined patterns."
   (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern))))
 
 (defmethod (setf quant) (value (pattern pattern))
@@ -240,8 +242,8 @@ See also: `pattern-as-pstream'"))
       thing))
 
 (defclass t-pstream (pstream)
-  ((value :initarg :value :initform nil))
-  (:documentation "Pattern stream object that returns itself only once."))
+  ((value :initarg :value :initform nil :documentation "The value that is yielded by the t-pstream."))
+  (:documentation "Pattern stream object that yields its value only once."))
 
 (defmethod as-pstream ((pattern t))
   (make-instance 't-pstream
@@ -291,8 +293,8 @@ See also: `pstream-nth-future', `phistory'"
     (return-from pstream-nth (pstream-nth n (as-pstream pstream))))
   (with-slots (history) pstream
     (if (>= n (length history))
-              (error 'pstream-out-of-range :index n)
-              (nth-wrap n history))))
+        (error 'pstream-out-of-range :index n)
+        (nth-wrap n history))))
 
 (defun pstream-nth-future (n pstream)
   "Return the Nth element from PSTREAM's history, automatically advancing PSTREAM as necessary if the Nth element has not yet occurred.
@@ -369,7 +371,7 @@ See also: `define-pbind-special-wrap-key'")
 See also: `define-pbind-special-process-key'")
 
 (defclass pbind (pattern)
-  ((pairs :initarg :pairs :initform (list)))
+  ((pairs :initarg :pairs :initform (list) :documentation "The pattern pairs of the pbind; a plist mapping its keys to their values."))
   (:documentation "Please refer to the `pbind' documentation."))
 
 (defun pbind (&rest pairs)
@@ -794,21 +796,21 @@ See also: `pstutter', `pdurstutter', `parp'")
                           (not (null current-value))
                           (not (value-remaining-p current-repeats-remaining))))
        :do
-       (setf current-value (next pattern))
-       (when current-value
-         (setf current-repeats-remaining
-               (if (typep repeats 'function)
-                   (let ((fle (function-lambda-expression repeats)))
-                     (if fle
-                         (if (= (length (cadr fle)) 0)
-                             (funcall repeats)
-                             (funcall repeats current-value))
-                         (handler-case
-                             (funcall repeats current-value)
-                           #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
-                                    (declare (ignore e))
-                                    (funcall repeats)))))
-                   (next repeats)))))
+         (setf current-value (next pattern))
+         (when current-value
+           (setf current-repeats-remaining
+                 (if (typep repeats 'function)
+                     (let ((fle (function-lambda-expression repeats)))
+                       (if fle
+                           (if (= (length (cadr fle)) 0)
+                               (funcall repeats)
+                               (funcall repeats current-value))
+                           (handler-case
+                               (funcall repeats current-value)
+                             #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
+                                      (declare (ignore e))
+                                      (funcall repeats)))))
+                     (next repeats)))))
     (when (value-remaining-p current-repeats-remaining)
       (decf-remaining pr 'current-repeats-remaining)
       current-value)))

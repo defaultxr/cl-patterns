@@ -163,6 +163,10 @@
                  pb))
            "pbind subpatterns have correct parents for pfunc"))
 
+(test beats-elapsed
+  ;; FIX
+  )
+
 (test special-keys
   "Test pbind special keys"
   (is-true (every-event-equal
@@ -352,7 +356,9 @@
              (next-n (pr (pseq '(1 2 3) 1) (pseq '(2 1 0) 1)) 4))
       "pr skips elements when REPEATS is 0"))
 
-;; pdef (FIX)
+(test pdef
+  ;; FIX
+  )
 
 (test plazy
   "Test plazy"
@@ -435,9 +441,13 @@
          (length (next-upto-n (pwhite 0 1 7))))
       "pwhite returns the correct number of results"))
 
-;; pbrown (FIX)
+(test pbrown
+  ;; FIX
+  )
 
-;; pexprand (FIX)
+(test pexprand
+  ;; FIX
+  )
 
 (test pseries
   "Test pseries"
@@ -457,7 +467,9 @@
              (next-upto-n (pgeom 1 (pseq '(1 2 3 0.5 0.7) 1) :inf)))
       "pgeom returns correct results when its GROW is a pattern"))
 
-;; ptrace (FIX)
+(test ptrace
+  ;; FIX
+  )
 
 (test ppatlace
   "Test ppatlace"
@@ -523,8 +535,6 @@
                           (pseq '(3 nil 4)))
                      5))
       "pif returns correct results"))
-
-;; ptracker (FIX)
 
 (test parp
   "Test parp"
@@ -595,7 +605,13 @@
   ;; FIX: test for peek
   )
 
-;; psinosc (FIX)
+(test ptime
+  ;; FIX
+  )
+
+;; (test psinosc
+;;   ;; FIX
+;;   )
 
 (test pindex
   "Test pindex"
@@ -629,6 +645,10 @@
   "Test pdiff"
   (is (equal (list -2 3 -1 nil)
              (next-n (pdiff (pseq (list 3 1 4 3) 1)) 4))))
+
+(test pdelta
+  "Test pdelta"
+  )
 
 (test pdrop
   "Test pdrop"

@@ -6,7 +6,7 @@
 ;;; event glue
 
 (defclass event ()
-  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type 'list))
+  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type 'list :documentation "The plist containing all of the event's keys and values."))
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)

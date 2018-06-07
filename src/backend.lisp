@@ -16,6 +16,10 @@
   "Get a list of all registered backends."
   (keys *backends*))
 
+(defun enabled-backends ()
+  "Get a list of all enabled backends."
+  *enabled-backends*)
+
 (defun enable-backend (name)
   "Enable a registered backend."
   (assert (position (alexandria:make-keyword name)
@@ -27,10 +31,6 @@
   "Disable a registered backend."
   (setf *enabled-backends*
         (delete (alexandria:make-keyword name) *enabled-backends*)))
-
-(defun enabled-backends ()
-  "Get a list of all enabled backends."
-  *enabled-backends*)
 
 (defun which-backend-for-event (event)
   "Return the name of the first backend in `*enabled-backends*' that will handle EVENT."

@@ -35,6 +35,29 @@
    #:ratio-midi
    #:midi-ratio
 
+   ;;; scales.lisp
+
+   #:*note-names*
+   #:note-number
+   #:note-name
+   #:scale-midinotes
+
+   #:define-scale
+   #:all-scales
+   #:scale
+   #:scale-name
+   #:scale-notes
+   #:scale-tuning
+
+   #:define-tuning
+   #:all-tunings
+   #:tuning
+   #:tuning-name
+   #:tuning-tuning
+   #:tuning-octave-ratio
+
+   #:load-scala-scale
+
    ;;; event.lisp
 
    #:event
@@ -47,6 +70,7 @@
    #:event-value
    #:get-event-value
    #:set-event-value
+   #:remove-event-value
 
    #:instrument
    #:group
@@ -71,6 +95,7 @@
 
    #:pattern
    #:as-pstream
+   #:all-patterns
    #:next
    #:next-n
    #:next-upto-n
@@ -95,37 +120,19 @@
    #:p*
    #:p/
 
+   ;;; bjorklund.lisp
+
    #:bjorklund
 
    ;;; cycles.lisp
 
-   ;;; scales.lisp
-
-   #:*note-names*
-   #:note-number
-   #:note-name
-   #:scale-midinotes
-
-   #:define-scale
-   #:all-scales
-   #:scale
-   #:scale-name
-   #:scale-notes
-   #:scale-tuning
-
-   #:define-tuning
-   #:all-tunings
-   #:tuning
-   #:tuning-name
-   #:tuning-tuning
-   #:tuning-octave-ratio
-
-   #:load-scala-scale
+   ;;; tracker.lisp
 
    ;;; backend.lisp
 
    #:register-backend
    #:all-backends
+   #:enabled-backends
    #:enable-backend
    #:disable-backend
 
