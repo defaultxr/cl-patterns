@@ -115,6 +115,8 @@
 
    ;; NOTE: pattern classes defined with `defpattern' are automatically exported.
 
+   #:all-pdefs
+
    #:p+
    #:p-
    #:p*

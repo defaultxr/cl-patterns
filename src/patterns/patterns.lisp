@@ -850,6 +850,10 @@ See also: `pstutter', `pdurstutter', `parp'")
 
 (create-global-dictionary pdef)
 
+(defun all-pdefs ()
+  "Get a list of all pdefs."
+  (keys *pdef-dictionary*))
+
 (defmethod pdef-pattern ((object pdef))
   (pdef-ref-get (pdef-key object) :pattern))
 
