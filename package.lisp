@@ -96,6 +96,9 @@
    #:pattern
    #:as-pstream
    #:all-patterns
+   #:peek
+   #:peek-n
+   #:peek-upto-n
    #:next
    #:next-n
    #:next-upto-n

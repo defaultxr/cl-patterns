@@ -139,6 +139,17 @@
                (mapcar (lambda (e) (event-value e :foo)) (next-upto-n pstr 8))))
       "pstream's number can be accessed by pk"))
 
+(test peek
+  "Test peek functionality"
+  (is-false (position nil (let ((pstr (as-pstream (pwhite 0 127))))
+                            (loop :for i :upto 200 :collect (= (peek pstr) (next pstr)))))
+            "peek and next return the same values")
+  (is (= 0
+         (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq '(1 2 3) 1)))))
+           (peek pstr)
+           (beats-elapsed pstr)))
+      "beats-elapsed should not count peeked outputs"))
+
 (test pbind
   "Test pbind functionality"
   (is (equal (list :foo :bar :baz)

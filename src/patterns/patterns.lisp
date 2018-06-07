@@ -3,7 +3,6 @@
 ;; NOTES:
 ;; FIX: make fork method, which copies the pstream and continues it from the same position in the copy and the original.
 ;; FIX: remove :remaining key and just use :pfin instead?
-;; FIX: make a "peek" function to get future values of a pstream without affecting `next'.
 ;; FIX: take each pattern's name out of its docstring, and make sure the first sentence in each docstring is a good concise description of the functionality.
 ;; FIX: use &key instead of &optional for defpattern
 
@@ -124,10 +123,31 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 (defmethod (setf quant) (value (pattern pattern))
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
 
+(defgeneric peek (pattern)
+  (:documentation "\"Peek\" at the next value of a pstream, without advancing its current position.
+
+See also: `next', `peek-n'"))
+
+(defun peek-n (pstream n)
+  "Peek at the next N results of a pstream, without advancing it forward in the process.
+
+See also: `peek', `peek-upto-n'"
+  (loop :repeat n
+     :collect (peek pstream)))
+
+(defun peek-upto-n (pstream &optional (n *max-pattern-yield-length*))
+  "Peek at up to the next N results of a pstream, without advancing it forward in the process.
+
+See also: `peek', `peek-n'"
+  (loop :repeat n ;; FIX: just this function from next-upto-n (so :inf will work too)
+     :for val = (peek pstream)
+     :until (null val)
+     :collect val))
+
 (defgeneric next (pattern)
   (:documentation "Get the next value of a pstream, function, or other object, advancing the pstream forward in the process.
 
-See also: `next-n', `next-upto-n'")
+See also: `peek', `next-n', `next-upto-n'")
   (:method-combination pattern))
 
 (defmethod next ((pattern t))
@@ -200,6 +220,14 @@ See also: `next', `next-upto-n'"
   (when (numberp (slot-value pattern key))
     (decf (slot-value pattern key))))
 
+(defmethod peek ((pstream pstream))
+  (with-slots (pstream-offset) pstream
+    (let ((c-offset pstream-offset))
+      (setf pstream-offset 0)
+      (prog1
+          (next pstream)
+        (setf pstream-offset (1- c-offset))))))
+
 (defmethod next :around ((pattern pstream))
   (labels ((pattern-embed (pattern embed)
              (assert (typep pattern 'pstream) (pattern))
@@ -224,11 +252,16 @@ See also: `next', `next-upto-n'"
                   (pattern-embed pattern res)
                   (get-value-from-stack pattern))
                  (t res)))))
-    (let ((result (when (or (not (slot-boundp pattern 'remaining))
-                            (value-remaining-p (slot-value pattern 'remaining)))
-                    (get-value-from-stack pattern))))
-      (alexandria:appendf (slot-value pattern 'history) (list result))
-      result)))
+    (with-slots (pstream-offset) pattern
+      (if (minusp pstream-offset)
+          (prog1
+              (pstream-nth pstream-offset pattern)
+            (incf pstream-offset))
+          (let ((result (when (or (not (slot-boundp pattern 'remaining))
+                                  (value-remaining-p (slot-value pattern 'remaining)))
+                          (get-value-from-stack pattern))))
+            (alexandria:appendf (slot-value pattern 'history) (list result))
+            result)))))
 
 (defgeneric as-pstream (thing)
   (:documentation "Return THING as a pstream object.
