@@ -1809,7 +1809,7 @@ Example:
 ;;
 ;; (next-upto-n (psym (pseq '(:foo :bar) 1)))
 ;;
-;; ;=> (1 2 3 4 5 6)
+;; => (1 2 3 4 5 6)
 
 See also: `pdef', `ppar'")
 

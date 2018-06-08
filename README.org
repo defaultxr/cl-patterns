@@ -24,20 +24,20 @@ Download cl-patterns and put it in your quicklisp ~local-projects~ directory, th
 Create a pattern like so:
 
 #+BEGIN_SRC lisp
-  (defparameter pat (pbind :foo (pseq '(1 2 3))
-                           :bar (prand '(9 8 7) 5)))
+  (defparameter *pat* (pbind :foo (pseq '(1 2 3))
+                             :bar (prand '(9 8 7) 5)))
 #+END_SRC
 
 Since patterns are basically "templates", you need to turn them into ~pstream~ objects in order to actually get output from them:
 
 #+BEGIN_SRC lisp
-  (defparameter pstream (as-pstream pat))
+  (defparameter *pstream* (as-pstream *pat*))
 #+END_SRC
 
-Then, you can get results from the pstream one at a time with ~next~, or many at a time with ~next-n~:
+Then, you can get results from the pstream one at a time with ~next~, or many at a time with ~next-n~ or ~next-upto-n~:
 
 #+BEGIN_SRC lisp
-  (defparameter results (next-n pstream 3))
+  (defparameter *results* (next-n *pstream* 3))
   results
   ;; => ((EVENT :FOO 1 :BAR 8) (EVENT :FOO 2 :BAR 9) (EVENT :FOO 3 :BAR 8))
 #+END_SRC
@@ -61,6 +61,8 @@ And finally we can play patterns and hear sound:
 From here, you can take a look at the code in the [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] file for a short example of how to define your own synths. You may also be interested in [[https://defaultxr.github.io/cl-collider-tutorial/][my cl-collider tutorial]] for a more in-depth introduction to cl-collider.
 
 For more information on how to use cl-patterns, refer to [[file:doc/tutorial.org][tutorial.org]] for an introduction.
+
+You can get a list of all currently-defined patterns using ~(all-patterns)~. All patterns should have usage information and examples in their docstrings, which of course can be accessed using the standand ~describe~ or ~documentation~ functions.
 
 * Features
 
