@@ -110,7 +110,6 @@
                   :respond-p 'is-sc-event-p
                   :play 'play-sc
                   :release 'release-sc
-                  :release-at 'release-sc-at
-                  :timestamp-conversion 'timestamp-to-cl-collider)
+                  :release-at 'release-sc-at)
 
 (enable-backend :cl-collider)

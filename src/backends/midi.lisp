@@ -53,7 +53,6 @@
                   :respond-p 'is-midi-event-p
                   :play 'play-midi
                   :release 'release-midi
-                  :release-at 'release-midi-at
-                  :timestamp-conversion 'timestamp-to-midi)
+                  :release-at 'release-midi-at)
 
 (enable-backend :midi)

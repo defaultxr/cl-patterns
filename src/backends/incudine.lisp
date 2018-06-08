@@ -61,7 +61,6 @@
                   :respond-p 'is-incudine-event-p
                   :play 'play-incudine
                   :release 'release-incudine
-                  :release-at 'release-incudine-at
-                  :timestamp-conversion 'timestamp-to-incudine)
+                  :release-at 'release-incudine-at)
 
 (enable-backend :incudine)

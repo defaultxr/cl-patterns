@@ -6,11 +6,11 @@
 (defparameter *backends* nil
   "Plist of registered backends for cl-patterns. This holds all the information about each backend and should not be modified by the user; change the `*enabled-backends*' variable to set which backends are enabled.")
 
-(defun register-backend (name &key respond-p play release release-at timestamp-conversion)
+(defun register-backend (name &key respond-p play release release-at)
   "Register a cl-patterns backend."
   (let ((name (alexandria:make-keyword name)))
     (setf *backends*
-          (plist-set *backends* name (list :name name :respond-p respond-p :play play :release release :release-at release-at :timestamp-conversion timestamp-conversion)))))
+          (plist-set *backends* name (list :name name :respond-p respond-p :play play :release release :release-at release-at)))))
 
 (defun all-backends ()
   "Get a list of all registered backends."
