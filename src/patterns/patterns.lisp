@@ -118,7 +118,8 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 
 (defun all-patterns ()
   "Get a list of all defined patterns."
-  (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern))))
+  (remove-if (lambda (s) (eq s 'pstream))
+             (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern)))))
 
 (defmethod (setf quant) (value (pattern pattern))
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
