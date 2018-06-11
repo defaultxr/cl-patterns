@@ -8,7 +8,7 @@
 
 (in-package :cl-patterns)
 
-(defparameter *performance-mode* nil
+(defvar *performance-mode* nil
   "Whether \"performance mode\" is enabled. In performance mode, all errors signaled within a task will be caught and the task will be removed automatically, to prevent other tasks on the clock from pausing. The task and its stack trace are saved to `*performance-errors*'.")
 
 (defparameter *performance-errors* (list)

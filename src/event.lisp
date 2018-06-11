@@ -20,7 +20,7 @@
       (accumulator params)
       ev)))
 
-(defparameter *latency* 0.1
+(defvar *latency* 0.1
   "Default latency for events.")
 
 (defparameter *event-special-slots* (list)
@@ -149,9 +149,9 @@ This defines the amp slot for events. Since the :amp KEY is implied, it doesn't 
 
 Additionally, because :define-methods is true, we can also do the following:
 
-;; (defparameter foo (event :amp 0.9))
-;; (amp foo) ;=> 0.9
-;; (setf (amp foo) 0.7)"
+;; (defparameter *foo* (event :amp 0.9))
+;; (amp *foo*) ;=> 0.9
+;; (setf (amp *foo*) 0.7)"
   ;; FIX: does not handle cases with multiple keys. (i.e. (((:foo :bar) 5)))
   (let ((kwname (alexandria:make-keyword name)))
     (unless (position kwname (keys cases))

@@ -5,7 +5,7 @@
 (defparameter *event* nil
   "The event special variable. Can be referenced inside a pattern's code.")
 
-(defparameter *clock* nil
+(defvar *clock* nil
   "The default clock to run tasks on.")
 
 ;;; glue

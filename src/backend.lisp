@@ -1,9 +1,9 @@
 (in-package #:cl-patterns)
 
-(defparameter *enabled-backends* nil
+(defvar *enabled-backends* nil
   "List of registered and enabled backends for cl-patterns. Any event that is played is tested against each of these backends' respond-p functions in order. The event is then played on the first backend to return true.")
 
-(defparameter *backends* nil
+(defvar *backends* nil
   "Plist of registered backends for cl-patterns. This holds all the information about each backend and should not be modified by the user; change the `*enabled-backends*' variable to set which backends are enabled.")
 
 (defun register-backend (name &key respond-p play release release-at)
