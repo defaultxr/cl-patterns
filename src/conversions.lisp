@@ -42,10 +42,12 @@
   "Get the octave number that MIDINOTE occurs in."
   (truncate (/ midinote 12)))
 
-(defun midinote-degree (midinote &optional root octave scale)
-  (flet ((index-of-greater-than (n list) ;; FIX
-           ;; LIST should be a sorted list.
-           (position n (sort list #'<=) :test #'<=))))
+(defun midinote-degree (midinote &key root octave (scale :major))
+  "Get the degree of MIDINOTE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
+  (warn "#'midinote-degree is not done yet.")
+  ;; (flet ((index-of-greater-than (n list) ;; FIX
+  ;;          ;; LIST should be a sorted list.
+  ;;          (position n (sort list #'<=) :test #'<=))))
   (let* ((notes (scale-notes (scale (scale (or scale :major)))))
          (octave (or octave (truncate (/ midinote 12))))
          (diff (- midinote (* octave 12)))
@@ -55,7 +57,8 @@
     (position midinote (mapcar (lambda (n) (+ (* octave 12) root n))
                                notes))))
 
-(defun note-midinote (note &optional (root 0) (octave 5))
+(defun note-midinote (note &key (root 0) (octave 5)) ;; FIX?
+  "Get the midinote of NOTE taking into account the ROOT and OCTAVE if provided."
   (+ root (* octave 12) (note-number note)))
 
 (defun degree-note (degree &optional (scale :major))
@@ -66,7 +69,8 @@
        (* (length (tuning-tuning (tuning (scale-tuning scale))))
           (floor (/ degree (length notes)))))))
 
-(defun degree-midinote (degree &optional root octave scale)
+(defun degree-midinote (degree &key root octave scale)
+  "Get the midi note number of DEGREE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
   ;; (let* ((root (or root (if (and (boundp '*event*) (not (null *event*)))
   ;;                           (event-value *event* 'root)
   ;;                           0)))
@@ -77,7 +81,7 @@
   ;;                                    (event-value *event* 'scale)
   ;;                                    :major))))
   ;;        (note (degree-note degree scale))))
-  (note-midinote (degree-note degree scale) root octave)
+  (note-midinote (degree-note degree scale) :root root :octave octave)
   ;; (+ (* (+ (/ (+ note root)
   ;;             (length (tuning-tuning (tuning (scale-tuning scale)))))
   ;;          octave
@@ -86,8 +90,9 @@
   ;;    60)
   )
 
-(defun degree-freq (degree &optional root octave scale)
-  (midinote-freq (degree-midinote degree root octave scale)))
+(defun degree-freq (degree &key root octave scale)
+  "Get the frequency of DEGREE, based on the ROOT, OCTAVE, and SCALE, if provided."
+  (midinote-freq (degree-midinote degree :root root :octave octave :scale scale)))
 
 (defun ratio-midi (ratio)
   (* 12 (log ratio 2)))
