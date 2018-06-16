@@ -474,6 +474,9 @@ See also: `pmono', `pb'"
 
 (setf (documentation 'pbind 'type) (documentation 'pbind 'function))
 
+(defmethod print-object ((pbind pbind) stream)
+  (format stream "#<~s~{ ~s ~s~}>" 'pbind (slot-value pbind 'pairs)))
+
 (defmacro pb (name &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
   "pb is a small convenience wrapper around `pbind'. NAME is a keyword for the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind.
 
