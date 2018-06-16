@@ -46,6 +46,11 @@
                                           input
                                           (mapcar #'freq-midinote (mapcar #'midinote-freq input)))))
             "freq-midinote conversion is equivalent to midinote-freq conversion")
+  (is (every (lambda (x) (eq x t))
+             (mapcar #'=
+                     (list 13.75 27.5 55 110 220 440 880 3520)
+                     (mapcar 'midinote-freq (list 9 21 33 45 57 69 81 105))))
+      "midinote-freq conversion is correct")
   (is (equal
        (loop :for i :from 0 :upto 10
           :append (make-list 12 :initial-element i))
