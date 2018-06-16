@@ -50,7 +50,23 @@
        (loop :for i :from 0 :upto 10
           :append (make-list 12 :initial-element i))
        (mapcar #'midinote-octave (alexandria:iota 132)))
-      "midinote-octave conversion is correct"))
+      "midinote-octave conversion is correct")
+  (is (every (lambda (x) (eq x t))
+             (mapcar #'=
+                     (list 55 110 220 440 880 1760)
+                     (mapcar #'rate-freq (list 1/8 0.25 0.5 1 2 4))))
+      "rate-freq conversion is correct")
+  (is (= 300
+         (rate-freq 1 300))
+      "rate-freq conversion is correct when base-freq is provided")
+  (is (every (lambda (x) (eq x t))
+             (mapcar #'=
+                     (list 1/8 0.25 0.5 1 2 4)
+                     (mapcar #'freq-rate (list 55 110 220 440 880 1760))))
+      "freq-rate conversion is correct")
+  (is (= 2
+         (freq-rate 2600 1300))
+      "freq-rate conversion is correct when base-freq is provided"))
 
 ;;; scales (FIX)
 

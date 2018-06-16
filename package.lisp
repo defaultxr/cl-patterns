@@ -34,6 +34,10 @@
    #:degree-freq
    #:ratio-midi
    #:midi-ratio
+   #:freq-rate
+   #:rate-freq
+   #:midinote-rate
+   #:rate-midinote
 
    ;;; scales.lisp
 

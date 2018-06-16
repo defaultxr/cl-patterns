@@ -95,3 +95,18 @@
 (defun midi-ratio (midi)
   (expt 2 (/ midi 12)))
 
+(defun freq-rate (freq &optional (base-freq 440))
+  "Convert the frequency FREQ to a playback rate, based on BASE-FREQ. Useful to convert musical pitch information to a number usable for sample playback synths."
+  (/ freq base-freq))
+
+(defun rate-freq (rate &optional (base-freq 440))
+  "Convert a playback rate RATE to a frequency, based on BASE-FREQ."
+  (* base-freq rate))
+
+(defun midinote-rate (midinote &optional (base-note 69))
+  "Convert a midinote to a playback rate."
+  (freq-rate (midinote-freq midinote) (midinote-freq base-note)))
+
+(defun rate-midinote (rate &optional (base-note 69))
+  "Convert a playback rate to a midinote."
+  (freq-midinote (rate-freq rate (midinote-freq base-note))))
