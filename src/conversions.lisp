@@ -35,11 +35,11 @@
   (+ 69d0 (* 12d0 (log (/ freq 440) 2d0))))
 
 (defun freq-octave (freq)
-  "Given FREQ, return the octave number that it occurs in."
+  "Get the octave number that the frequency FREQ occurs in."
   (midinote-octave (freq-midinote freq)))
 
 (defun midinote-octave (midinote)
-  "Given MIDINOTE, return the octave number that it occurs in."
+  "Get the octave number that MIDINOTE occurs in."
   (truncate (/ midinote 12)))
 
 (defun midinote-degree (midinote &optional root octave scale)
@@ -59,6 +59,7 @@
   (+ root (* octave 12) (note-number note)))
 
 (defun degree-note (degree &optional (scale :major))
+  "Get the relative note number in the tuning of SCALE based on the DEGREE provided."
   (let* ((scale (scale (or scale :major)))
          (notes (scale-notes scale)))
     (+ (nth-wrap degree notes)

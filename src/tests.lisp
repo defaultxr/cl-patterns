@@ -25,12 +25,12 @@
       "round-up gives correct results for arguments 5, 4"))
 
 ;;; conversions (FIX: add more)
+;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
+;; This is why only some numbers are tested for db-amp, freq-midinote, etc.
+;; The point here is mainly to guard against regressions, not to ensure that all functions have mathematically correct results.
+;; Because as far as I know, it's not possible--at least in SBCL--to get more accurate results than what we have currently.
 
 (test conversions
-  ;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
-  ;; This is why only some numbers are tested for db-amp, freq-midinote, etc.
-  ;; The point here is mainly to guard against regressions, not to ensure that all functions have mathematically correct results.
-  ;; Because as far as I know, it's not possible--at least in SBCL--to get more accurate results than what we have currently.
   "Test unit conversion functions"
   (is (equal
        (list 0.1 0.5 0.7 0.8 0.9 1.0)

@@ -92,7 +92,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                `((:documentation ,documentation))))
          (defclass ,name-pstream (,name ,super-pstream)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
-           (:documentation ,(format nil "pstream class for ~a." name)))
+           (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
          ,(let* ((gen-func-p (or (null creation-function)
                                  (and (listp creation-function)
                                       (position (car creation-function) (list 'assert)))))
@@ -140,7 +140,7 @@ See also: `peek', `peek-upto-n'"
   "Peek at up to the next N results of a pstream, without advancing it forward in the process.
 
 See also: `peek', `peek-n'"
-  (loop :repeat n ;; FIX: just this function from next-upto-n (so :inf will work too)
+  (loop :repeat n ;; FIX: just copy this function from next-upto-n (so :inf will work too)
      :for val = (peek pstream)
      :until (null val)
      :collect val))
@@ -161,7 +161,7 @@ See also: `peek', `next-n', `next-upto-n'")
   (funcall pattern))
 
 (defun next-n (pattern n)
-  "Returns the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
+  "Get the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
 
 See also: `next', `next-upto-n'"
   (assert (numberp n) (n) "next-n's N argument must be a number (getting infinity results from a pstream is not supported).")
@@ -170,7 +170,7 @@ See also: `next', `next-upto-n'"
        :collect (next pstream))))
 
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
-  "Return a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
+  "Get a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
 
 See also: `next', `next-upto-n'"
   (let ((pstream (as-pstream pattern)))
@@ -192,7 +192,7 @@ See also: `next', `next-upto-n'"
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
 (defun value-remaining-p (value)
-  "Return t if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
+  "Returns true if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
   (typecase value
     (null nil)
     (symbol (eq value :inf))
@@ -200,7 +200,7 @@ See also: `next', `next-upto-n'"
     (otherwise nil)))
 
 (defun remainingp (pattern &optional (repeats-key 'repeats) (remaining-key 'current-repeats-remaining))
-  "Return true if PATTERN's REMAINING-KEY slot value represents outputs \"remaining\" (see `value-remaining-p'). If PATTERN's REMAINING-KEY slot is unbound or 0, and REPEATS-KEY is not nil, then it is automatically set to the `next' of PATTERN's REPEATS-KEY slot. Then if that new value is 0 or nil, remainingp returns nil. Otherwise, :reset is returned as a generalized true value and to indicate that `next' was called on PATTERN's REPEATS-KEY slot."
+  "Returns true if PATTERN's REMAINING-KEY slot value represents outputs \"remaining\" (see `value-remaining-p'). If PATTERN's REMAINING-KEY slot is unbound or 0, and REPEATS-KEY is not nil, then it is automatically set to the `next' of PATTERN's REPEATS-KEY slot. Then if that new value is 0 or nil, remainingp returns nil. Otherwise, :reset is returned as a generalized true value and to indicate that `next' was called on PATTERN's REPEATS-KEY slot."
   (labels ((set-next ()
              (setf (slot-value pattern remaining-key) (next (slot-value pattern repeats-key)))
              (when (value-remaining-p (slot-value pattern remaining-key))
@@ -317,9 +317,13 @@ See also: `pattern-as-pstream'"))
 (defun pstream-nth (n pstream)
   "Return the Nth element from PSTREAM's history. Does not automatically advance PSTREAM if N is out of range.
 
-Example: (let ((pstream (as-pstream (pseq '(1 2 3)))))
-(next-upto-n pstream)
-(pstream-nth 2 pstream)) ;=> 3
+Example:
+
+;; (let ((pstream (as-pstream (pseq '(1 2 3)))))
+;;   (next-upto-n pstream)
+;;   (pstream-nth 2 pstream))
+;;
+;; => 3
 
 See also: `pstream-nth-future', `phistory'"
   (assert (integerp n) (n))
@@ -337,7 +341,11 @@ When N is negative, NILs at the end of PSTREAM's history are not included in ind
 
 Note that if the Nth element has not yet occurred, this function will advance the pstream, thus affecting what will be returned when `next' is called on the pstream. However, this behavior may change in the future.
 
-Example: (pstream-nth-future -1 (as-pstream (pbind :foo (pseq '(1 2 3) 1)))) ;=> (EVENT :FOO 3)
+Example:
+
+;; (pstream-nth-future -1 (as-pstream (pbind :foo (pseq '(1 2 3) 1))))
+;;
+;; => (EVENT :FOO 3)
 
 See also: `pstream-nth', `pfuture'"
   (assert (integerp n) (n))
@@ -414,6 +422,7 @@ See also: `define-pbind-special-process-key'")
 Example:
 
 ;; (next-n (pbind :foo (pseq '(1 2 3)) :bar :hello) 4)
+;;
 ;; => ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) NIL)
 
 See also: `pmono', `pb'"
@@ -596,9 +605,11 @@ See also: `pbind'"
 Example:
 
 ;; (next-n (pseq '(5 6 7) 2) 7)
+;;
 ;; => (5 6 7 5 6 7 NIL)
 ;;
 ;; (next-upto-n (pseq '(5 6 7) 2 1))
+;;
 ;; => (6 7 5 6 7 5)
 
 See also: `pser'")
@@ -633,6 +644,7 @@ See also: `pser'")
 Example:
 
 ;; (next-n (pser '(5 6 7) 2) 3)
+;;
 ;; => (5 6 NIL)
 
 See also: `pseq'")
@@ -664,6 +676,7 @@ See also: `pseq'")
 Example:
 
 ;; (next-n (pbind :foo (pseq '(1 2 3)) :bar (pk :foo)) 3)
+;;
 ;; => ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))
 
 See also: `event-value', `*event*'")
@@ -689,7 +702,11 @@ See also: `event-value', `*event*'")
    (current-repeats-remaining :state t))
   "prand returns a random value from LIST, returning a total of LENGTH values.
 
-Example: (next-n (prand '(1 2 3) 5) 6) ;=> (3 2 2 1 1 NIL)
+Example:
+
+;; (next-n (prand '(1 2 3) 5) 6)
+;;
+;; => (3 2 2 1 1 NIL)
 
 See also: `pxrand', `pwrand', `pwxrand'")
 
@@ -1008,6 +1025,7 @@ See also: `pstutter', `pdurstutter', `parp'")
 Example:
 
 ;; (next-upto-n (pshuf '(1 2 3) 2))
+;;
 ;; => (3 1 2 3 1 2)
 
 See also: `prand'")
@@ -1289,7 +1307,11 @@ See also: `prand'")
    (current-value :state t :initform nil))
   "pslide slides across sections LIST. REPEATS is the total number of sections to output, LEN the length of the section. STEP the number to increment the start index by after each section, and START is the initial index that the first section starts from. WRAP-AT-END, when true, means that an index outside of the list will wrap around. When false, indexes outside of the list will return nils.
 
-Example: (next-upto-n (pslide (list 0 1 2 3 4 5 6) 3 3 2 1 t)) ;=> (1 2 3 3 4 5 5 6 0)
+Example:
+
+;; (next-upto-n (pslide (list 0 1 2 3 4 5 6) 3 3 2 1 t))
+;;
+;; => (1 2 3 3 4 5 5 6 0)
 
 See also: `pscratch'")
 
@@ -1338,7 +1360,11 @@ See also: `pscratch'")
    step-pattern)
   "phistory refers back to PATTERN's history, yielding the value at the index provided by STEP-PATTERN. Note that PATTERN is still advanced once per event, and if STEP-PATTERN yields a number pointing to an event in PATTERN that hasn't been yielded yet (i.e. if PATTERN has only advanced once but STEP-PATTERN yields 3 for its output), it will return nil.
 
-Example: (next-n (phistory (pseries) (pseq '(0 2 1))) 3) ;=> (0 NIL 1)
+Example:
+
+;; (next-n (phistory (pseries) (pseq '(0 2 1))) 3)
+;;
+;; => (0 NIL 1)
 
 See also: `pfuture', `pscratch'")
 
@@ -1400,7 +1426,11 @@ See also: `phistory', `pscratch'")
    (current-index :state t :initform 0))
   "pscratch \"scratches\" across the values yielded by a pstream. PATTERN is the source pattern, and STEP-PATTERN determines the increment of the index into the pstream history.
 
-Example: (next-upto-n (pscratch (pseries) (pseq '(0 1 1 -1 2)))) ;=> (0 1 2 1 3)
+Example:
+
+;; (next-upto-n (pscratch (pseries) (pseq '(0 1 1 -1 2))))
+;;
+;; => (0 1 2 1 3)
 
 See also: `phistory', `pfuture'")
 
@@ -1424,7 +1454,11 @@ See also: `phistory', `pfuture'")
    false)
   "pif acts as an if statement for patterns. CONDITION is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step. Also note that pif will continue to advance even if CONDITION yields nil; pif only yields nil if TRUE or FALSE do.
 
-Example: (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4))) 5) ;=> (1 2 3 NIL 4)")
+Example:
+
+;; (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4))) 5)
+;;
+;; => (1 2 3 NIL 4)")
 
 (defmethod as-pstream ((pif pif))
   (with-slots (condition true false) pif
@@ -1448,10 +1482,15 @@ Example: (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4)))
    (current-arpeggiator-stream :state t :initform nil))
   "parp is an \"arpeggiator\"; each event yielded by PATTERN is bound to *event* and then the entirety of the ARPEGGIATOR pattern is yielded.
 
-Example: (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6)))) 9) ;=>
-((EVENT :FOO 1 :BAR 4) (EVENT :FOO 1 :BAR 5) (EVENT :FOO 1 :BAR 6)
- (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
- (EVENT :FOO 3 :BAR 4) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 3 :BAR 6))")
+Example:
+
+;; (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6)))) 9)
+;;
+;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 1 :BAR 5) (EVENT :FOO 1 :BAR 6)
+;;     (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
+;;     (EVENT :FOO 3 :BAR 4) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 3 :BAR 6))
+
+See also: `psym'")
 
 (defmethod as-pstream ((parp parp))
   (with-slots (pattern arpeggiator) parp
@@ -1481,7 +1520,11 @@ Example: (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6)))
    count)
   "pfin yields up to COUNT outputs from PATTERN.
 
-Example: (next-n (pfin (pseq '(1 2 3) :inf) 3) 5) ;=> (1 2 3 NIL NIL)
+Example:
+
+;; (next-n (pfin (pseq '(1 2 3) :inf) 3) 5)
+;;
+;; => (1 2 3 NIL NIL)
 
 See also: `pfindur'")
 
@@ -1505,7 +1548,11 @@ See also: `pfindur'")
    (current-elapsed :state t :initform 0))
   "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR.
 
-Example: (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
+Example:
+
+;; (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3)
+;;
+;; => ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
 
 See also: `pfin', `psync'")
 
@@ -1545,9 +1592,11 @@ See also: `pfin', `psync'")
 Example:
 
 ;; (next-upto-n (psync (pbind :dur (pseq '(5) 1)) 4 16))
+;;
 ;; => ((EVENT :DUR 5) (EVENT :TYPE :REST :DUR 3))
 ;;
 ;; (next-upto-n (psync (pbind :dur (pseq '(5) 5)) 4 16))
+;;
 ;; => ((EVENT :DUR 5) (EVENT :DUR 5) (EVENT :DUR 5) (EVENT :DUR 5 :DELTA 1))
 
 See also: `pfindur'")
@@ -1587,6 +1636,7 @@ See also: `pfindur'")
 Example:
 
 ;; (next-n (pstutter (pseries) (pseq '(3 2 1 0 2) 1)) 9)
+;;
 ;; => (0 0 0 1 1 2 4 4 NIL)
 
 See also: `pr', `pdurstutter'")
@@ -1620,9 +1670,11 @@ See also: `pr', `pdurstutter'")
 Example:
 
 ;; (next-n (pdurstutter (pseq '(1 2 3 4 5)) (pseq '(3 2 1 0 2))) 9)
+;;
 ;; => (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
 ;;
 ;; (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5))) (pseq '(3 2 1 0 2))) 9)
+;;
 ;; => ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
 
 See also: `pr', `pstutter'")
@@ -1656,7 +1708,11 @@ See also: `pr', `pstutter'")
   ()
   "pbeats yields the number of beats elapsed since its embedding in the pstream.
 
-Example: (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeats)) 3) ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 2 :FOO 1) (EVENT :DUR 3 :FOO 3))
+Example:
+
+;; (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeats)) 3)
+;;
+;; => ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 2 :FOO 1) (EVENT :DUR 3 :FOO 3))
 
 See also: `beats-elapsed', `prun'")
 
@@ -1677,6 +1733,7 @@ Example:
 
 ;; (setf (tempo *clock*) 1) ;; 60 BPM
 ;; (next-n (pbind :dur 1 :time (ptime)) 2)
+;;
 ;; => ((EVENT :DUR 1 :TIME 0) (EVENT :DUR 1 :TIME 1.0))
 
 See also: `pbeats', `beats-elapsed', `prun'")
@@ -1737,9 +1794,11 @@ See also: `pbeats', `beats-elapsed', `prun'")
 Example:
 
 ;; (next-n (pindex (list 99 98 97) (pseq (list 0 1 2 3))) 4)
+;;
 ;; => (99 98 97 NIL)
 ;;
 ;; (next-upto-n (pindex (list 99 98 97) (pseries 0 1 6) t))
+;;
 ;; => (99 98 97 99 98 97)
 
 See also: `pswitch'")
@@ -1766,7 +1825,11 @@ See also: `pswitch'")
    (dur-history :state t))
   "prun runs a value pattern at a constant rate in the background, independent of when `next' is called on its pstream. PATTERN is the source value pattern, and DUR is the duration in beats of the values yielded by PATTERN.
 
-Example: (next-upto-n (pbind :foo (pseq '(1 2 3 4 5)) :bar (prun (pseq '(4 5 6 7 8)) (pseq '(1 2 0.5 0.5 1))))) ;=> ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 4 :BAR 6) (EVENT :FOO 5 :BAR 8))
+Example:
+
+;; (next-upto-n (pbind :foo (pseq '(1 2 3 4 5)) :bar (prun (pseq '(4 5 6 7 8)) (pseq '(1 2 0.5 0.5 1)))))
+;;
+;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 4 :BAR 6) (EVENT :FOO 5 :BAR 8))
 
 See also: `beats-elapsed', `pbeats'")
 
@@ -1841,7 +1904,7 @@ Example:
 
 ;; (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4)
 ;;
-;; ;=> ((EVENT :FOO 1 :BAR 7) (EVENT :FOO 2 :BAR 8) (EVENT :FOO 3 :BAR 9) NIL)
+;; => ((EVENT :FOO 1 :BAR 7) (EVENT :FOO 2 :BAR 8) (EVENT :FOO 3 :BAR 9) NIL)
 
 See also: `pbind''s :inject key"
   (defun pchain (&rest patterns)
@@ -1873,7 +1936,7 @@ Example:
 
 ;; (next-n (pdiff (pseq '(3 1 4 3) 1)) 4)
 ;;
-;; ;=> (-2 3 -1 NIL)")
+;; => (-2 3 -1 NIL)")
 
 (defmethod next ((pdiff pdiff-pstream))
   (with-slots (pattern) pdiff
@@ -1894,7 +1957,9 @@ Example:
 
 ;; (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4)
 ;;
-;; ;=> (3 4 NIL NIL)")
+;; => (3 4 NIL NIL)
+
+See also: `pshift'")
 
 (defmethod as-pstream ((pdrop pdrop))
   (with-slots (pattern n) pdrop
@@ -1925,6 +1990,7 @@ Example:
 
 ;; (next-upto-n (ppar (list (pbind :dur (pn 1/2 4))
 ;;                          (pbind :dur (pn 2/3 4)))))
+;;
 ;; => ((EVENT :DUR 1/2 :DELTA 0) (EVENT :DUR 2/3 :DELTA 1/2)
 ;;     (EVENT :DUR 1/2 :DELTA 1/6) (EVENT :DUR 2/3 :DELTA 1/3)
 ;;     (EVENT :DUR 1/2 :DELTA 1/3) (EVENT :DUR 2/3 :DELTA 1/6)
