@@ -692,7 +692,18 @@
 
 (test pdelta
   "Test pdelta"
-  )
+  (is (equal (list 1 1 1 1 1 1 1 1)
+             (next-n (pdelta (pseq (list 0 1 2 3)) 4) 8))
+      "pdelta gives correct outputs for a basic pattern")
+  (is (equal (list 1 1 3 3 1 1 3 3)
+             (next-n (pdelta (pseq (list 0 1 2 5)) 4) 8))
+      "pdelta gives correct outputs for a pattern \"longer\" than the CYCLE")
+  (is (equal (list 1 1 2 0 1 1 2 0)
+             (next-n (pdelta (pseq (list 0 1 2 0)) 4) 8))
+      "pdelta gives correct outputs for a pattern with successive outputs that decrease")
+  (is (equal (list 1 1 2 nil nil)
+             (next-n (pdelta (pseq (list 0 1 2 0) 1) 4) 5))
+      "pdelta outputs nil when its source pattern ends"))
 
 (test pdrop
   "Test pdrop"

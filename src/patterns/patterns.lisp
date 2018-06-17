@@ -1939,7 +1939,9 @@ Example:
 
 ;; (next-n (pdiff (pseq '(3 1 4 3) 1)) 4)
 ;;
-;; => (-2 3 -1 NIL)")
+;; => (-2 3 -1 NIL)
+
+See also: `pdelta'")
 
 (defmethod next ((pdiff pdiff-pstream))
   (with-slots (pattern) pdiff
@@ -1948,6 +1950,42 @@ Example:
     (alexandria:when-let ((last (pstream-nth -1 pattern))
                           (next (next pattern)))
       (- next last))))
+
+;;; pdelta
+
+(defpattern pdelta (pattern)
+  (pattern
+   (cycle :default 4))
+  "Output the difference between successive outputs of PATTERN, assuming PATTERN restarts every CYCLE outputs.
+
+Unlike `pdiff', pdelta is written with its use as input for `pbind''s :delta key in mind. If PATTERN's successive values would result in a negative difference, pdelta instead wraps the delta around to the next multiple of CYCLE. This would allow you to, for example, supply the number of the beat that each event occurs on, rather than specifying the delta between each event. This is of course achievable using pbind's :beat key as well, however that method requires the pbind to peek at future values, which is not always desirable.
+
+Example:
+
+;; (next-n (pdelta (pseq '(0 1 2 3)) 4) 8)
+;;
+;; => (1 1 1 1 1 1 1 1)
+;;
+;; (next-n (pdelta (pseq '(0 1 2 5)) 4) 8)
+;;
+;; => (1 1 3 3 1 1 3 3)
+
+See also: `pdiff', `pbind''s :beat key")
+
+(defmethod as-pstream ((pdelta pdelta))
+  (with-slots (pattern cycle) pdelta
+    (make-instance 'pdelta-pstream
+                   :pattern (as-pstream pattern)
+                   :cycle (next cycle))))
+
+(defmethod next ((pdelta pdelta-pstream))
+  (with-slots (pattern cycle history) pdelta
+    (when (null history)
+      (next pattern))
+    (alexandria:when-let ((lv (or (pstream-nth -1 pattern) 0))
+                          (cv (next pattern)))
+      (- cv
+         (- lv (round-up (- lv cv) cycle))))))
 
 ;;; pdrop
 

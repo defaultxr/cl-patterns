@@ -30,7 +30,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pclutch~
 - ~Pconst~
 - ~Pdelay~
-- ~Pdelta~
+- ~Pdelta~ - done as ~pdelta~
 - ~Pdiff~ - done as ~pdiff~
 - ~Pdrop~ - done as ~pdrop~
 - ~PfadeIn~
