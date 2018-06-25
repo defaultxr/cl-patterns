@@ -74,6 +74,9 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 (defgeneric keys (item)
   (:documentation "Get the keys of ITEM, whether it be a plist, event, etc."))
 
+(defmethod keys ((item null))
+  nil)
+
 (defmethod keys ((item cons))
   (labels ((accum (list)
              (cons (car list)
@@ -81,8 +84,8 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
                      (accum (cddr list))))))
     (accum item)))
 
-(defmethod keys ((item null))
-  nil)
+(defmethod keys ((item hash-table))
+  (alexandria:hash-table-keys item))
 
 ;;; math stuff
 
