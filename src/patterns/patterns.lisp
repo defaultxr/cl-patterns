@@ -639,7 +639,7 @@ See also: `pser'")
 (defpattern pser (pattern)
   (list
    (length :default :inf)
-   ;; FIX: add offset and tests for it
+   (offset :default 0)
    (current-repeats-remaining :state t)
    (current-index :state t))
   "pser yields values from LIST in the same order they were provided, returning a total of LENGTH values.
@@ -652,21 +652,22 @@ Example:
 
 See also: `pseq'")
 
-(defmethod as-pstream ((pattern pser))
-  (with-slots (list length) pattern
+(defmethod as-pstream ((pser pser))
+  (with-slots (list length offset) pser
     (make-instance 'pser-pstream
                    :list (next list)
-                   :length (as-pstream length))))
+                   :length (as-pstream length)
+                   :offset (pattern-as-pstream offset))))
 
-(defmethod next ((pattern pser-pstream))
-  (with-slots (list current-index) pattern
-    (alexandria:when-let ((remaining (remainingp pattern 'length)))
-      (decf-remaining pattern 'current-repeats-remaining)
+(defmethod next ((pser pser-pstream))
+  (with-slots (list offset current-index) pser
+    (alexandria:when-let ((remaining (remainingp pser 'length))
+                          (off (next offset)))
+      (decf-remaining pser 'current-repeats-remaining)
       (when (eq :reset remaining)
         (setf current-index 0))
       (prog1
-          (nth (mod current-index (length list))
-               list)
+          (nth-wrap (+ off current-index) list)
         (incf current-index)))))
 
 ;;; pk

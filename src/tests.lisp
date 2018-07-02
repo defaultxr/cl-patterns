@@ -300,8 +300,16 @@
       "pser correctly returns three results when its LENGTH is specified")
   (is (equal
        (list 1 2 3 1 2 1 1 2 3 1 2 1)
-       (next-upto-n (pser '(1 2 3) (pseq '(3 2 1 3 2 1 0) :inf))))
-      "pser returns the correct results when its LENGTH is a pattern"))
+       (next-upto-n (pser (list 1 2 3) (pseq (list 3 2 1 3 2 1 0) :inf))))
+      "pser returns the correct results when its LENGTH is a pattern")
+  (is (equal
+       (list 1 1 0 0 2 2)
+       (next-upto-n (pser (list 0 1 2) :inf (pseq (list 1 0))) 6))
+      "pser's OFFSET argument works correctly with a pattern")
+  (is (equal
+       (list 1 1 0 0 2 2)
+       (next-upto-n (pser '(0 1 2) :inf (pseq '(1 0) 3))))
+      "pser's OFFSET argument works correctly with a finite pattern"))
 
 (test pk
   "Test pk"
