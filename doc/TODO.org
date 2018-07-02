@@ -3,10 +3,14 @@
 This is just a list of various ideas, or tasks that need to be done for this library. For a list of overall project goals, see [[file:roadmap.org][roadmap.org]].
 
 * write more documentation
-** docstrings for all patterns
-** "how to write pattern classes" document
-** event/pbind special keys
-** readtable/syntax shortcuts
+** DONE docstrings for all patterns
+CLOSED: [2018-07-01 Sun 18:01]
+** DONE "how to write pattern classes" document
+CLOSED: [2018-07-01 Sun 18:01]
+** DONE event/pbind special keys
+CLOSED: [2018-07-01 Sun 18:01]
+** DONE readtable/syntax shortcuts
+CLOSED: [2018-07-01 Sun 18:01]
 
 * ~tsubseq~ function for getting a subsequence based on start times of events.
 ** ~tsubseq*~ function. same as ~tsubseq~ but it also includes synths that would've already been playing at the start time specified.
@@ -90,14 +94,17 @@ this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide in
 * special key for patterns that lets you specify the beat that an event starts on directly, rather than it being determined by inter-onset times with ~:dur~ or the like.
 - would probably be relative to the start of the pattern.
 - probably couldn't be an event special key since context is needed to derive the duration/start time, etc.
-* improve clock.lisp and various backends support by abstracting away time and converting it to each backend's representation when necessary, etc.
-** abstract away envelopes, buffers, buses so they work consistently regardless of the backend
-* make sure multiple backends can be used simultaneously
+* DONE improve clock.lisp and various backends support by abstracting away time and converting it to each backend's representation when necessary, etc.
+CLOSED: [2018-07-01 Sun 18:02]
+** TODO abstract away envelopes, buffers, buses so they work consistently regardless of the backend
+* DONE make sure multiple backends can be used simultaneously
+CLOSED: [2018-07-01 Sun 18:02]
 * generalize the library
 make other libraries that expand upon cl-patterns' feature sets (i.e. libraries for live coding conveience macros, etc.)
 * music theory
 ** make sure the functionality in [[file:~/misc/lisp/cl-patterns/src/scales.lisp][scales.lisp]], etc, is correct.
-* "performance mode" 
+* DONE "performance mode"
+CLOSED: [2018-07-01 Sun 18:02]
 ...where any pattern that signals a condition/error is automatically removed from the clock, so the music doesn't come to a screeching halt.
 still trying to think of ideas for how to make a good "performance mode" without just dumbly removing any patterns with errors... (is it possible to continue the rest of the clock's tasks while the user/coder is responding to the error condition?)
 * pattern plotting

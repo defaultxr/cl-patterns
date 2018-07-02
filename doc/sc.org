@@ -14,7 +14,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pwxrand~ - done as ~pwxrand~.
 - ~Pfsm~
 - ~Pdfsm~
-- ~Ppar~
+- ~Ppar~ - done as ~ppar~.
 - ~Pfpar~
 - ~Pslide~ - done as ~pslide~.
 - ~Ptuple~
@@ -54,7 +54,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pstretch~
 - ~Pstutter~ - done as ~pstutter~. see also: ~pr~
 - ~PdurStutter~ - done as ~pdurstutter~. see also: ~pbind~'s ~:pdurstutter~ key.
-- ~Psym~
+- ~Psym~ - done as ~psym~.
 - ~Psync~ - done as ~psync~. see also: ~pbind~'s ~:psync~ key.
 - ~Ptrace~ - done as ~ptrace~.
 - ~Pwrap~ - see also: ~(pnary #'wrap)~.
