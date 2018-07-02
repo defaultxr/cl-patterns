@@ -12,6 +12,63 @@
 
 ;;; utility
 
+(test gete
+  (is (equal (alexandria:iota *max-pattern-yield-length*)
+             (gete (next-upto-n (pbind :foo (pseries))) :foo))
+      "gete returns correct results"))
+
+(test string-keyword
+  (is (eq :foo
+          (cl-patterns::string-keyword "foo"))
+      "string-keyword correctly converts strings to keywords"))
+
+(test nth-wrap
+  (is (= 3
+         (cl-patterns::nth-wrap 7 (list 0 1 2 3)))
+      "nth-wrap returns correct results"))
+
+(test normalized-sum
+  (is (= 1
+         (reduce #'+ (cl-patterns::normalized-sum (list 0 1 2 3 4 5))))
+      "normalized-sum returns a list whose elements add up to 1"))
+
+(test index-of-greater-than
+  (is (= 4
+         (cl-patterns::index-of-greater-than 3 (list 1 2 3 3 4 4)))
+      "index-of-greater-than returns correct results"))
+
+(test keys
+  (is (null (keys nil))
+      "keys returns NIL when its input is nil")
+  (is (equal (list :foo :baz)
+             (keys (list :foo :bar :baz :qux)))
+      "keys works correctly for plists")
+  (is (let ((hash (make-hash-table)))
+        (setf (gethash :foo hash) 1
+              (gethash :bar hash) 2
+              (gethash :baz hash) 3
+              (gethash :qux hash) 4)
+        (let ((k (keys hash)))
+          (mapcar (lambda (x) (member x k)) (list :foo :bar :baz :qux))))
+      "keys works correctly for hashes")
+  (is (equal (list :foo :bar)
+             (keys (event :foo 1 :bar 2)))
+      "keys works correctly for events"))
+
+(test wrap
+  (is (= 3
+         (cl-patterns::wrap 3 0 4))
+      "wrap doesn't affect numbers within the given range")
+  (is (= 3
+         (cl-patterns::wrap 7 0 4))
+      "wrap correctly wraps numbers outside the given range")
+  (is (= 3
+         (cl-patterns::wrap 3 1 4))
+      "wrap correctly wraps numbers within the given range (when the bottom is non-zero)")
+  (is (= -1
+         (cl-patterns::wrap 4 -1 4))
+      "wrap correctly wraps numbers within the given range (when the bottom is non-zero)"))
+
 (test round-up
   "Test the `round-up' function"
   (is (= 2.04
@@ -23,6 +80,28 @@
   (is (= 8
          (cl-patterns::round-up 5 4))
       "round-up gives correct results for arguments 5, 4"))
+
+(test random-range
+  (is (every (lambda (x) (eq t x))
+             (mapcar (lambda (x) (and (>= x 0)
+                                      (<= x 10)))
+                     (loop :repeat 200
+                        :collect (random-range 10))))
+      "when only LOW is provided, random-range only returns items between 0 and LOW, inclusive")
+  (is (every (lambda (x) (eq t x))
+             (mapcar (lambda (x) (and (>= x 0)
+                                      (<= x 10)))
+                     (loop :repeat 200
+                        :collect (random-range 0 10))))
+      "random-range only returns items between its LOW and HIGH values, inclusive")
+  (is (every (lambda (x) (typep x 'float))
+             (loop :repeat 200
+                :collect (random-range 200.0)))
+      "random-range returns floats when its argument is a float")
+  (is (every (lambda (x) (typep x 'float))
+             (loop :repeat 200
+                :collect (random-range 0 1.0)))
+      "random-range returns floats when two arguments are provided but only one is a float"))
 
 ;;; conversions (FIX: add more)
 ;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
