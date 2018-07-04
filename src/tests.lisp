@@ -632,8 +632,6 @@
              (next-n (phistory (pseries) (pseq '(0 2 1))) 3))
       "phistory returns correct results, including when outputs that haven't occurred yet are accessed"))
 
-;; pfuture (FIX)
-
 (test pscratch
   "Test pscratch"
   (is (equal (list 1 2 3 0 1 2 3 0 1 2 3 0)

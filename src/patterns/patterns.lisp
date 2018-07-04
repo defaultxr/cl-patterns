@@ -347,7 +347,7 @@ Example:
 ;;
 ;; => (EVENT :FOO 3)
 
-See also: `pstream-nth', `pfuture'"
+See also: `pstream-nth'"
   (assert (integerp n) (n))
   (unless (typep pstream 'pstream)
     (return-from pstream-nth-future (pstream-nth-future n (as-pstream pstream))))
@@ -1386,7 +1386,7 @@ See also: `pfuture', `pscratch'")
         (pstream-out-of-range ()
           nil)))))
 
-;;; pfuture (FIX)
+;;; pfuture (FIX - remove)
 ;; like phistory, but immediately slurps the whole pstream and then allows you to index from its history instead of advancing the source pattern one at a time as normal
 ;; phistory is kept around because some (time-based) patterns may need to be advanced normally rather than all at once (though it might be kind of a bad idea to try to use phistory, pfuture, or pscratch on those kinds of patterns)
 ;; FIX: maybe deprecate this and just integrate its functionality into phistory somehow?
@@ -1395,7 +1395,9 @@ See also: `pfuture', `pscratch'")
 (defpattern pfuture (phistory)
   (pattern
    step-pattern)
-  "pfuture gets the first *max-pattern-yield-length* outputs from PATTERN, and then uses STEP-PATTERN to index that history.
+  "DEPRECATED - just use `phistory' instead.
+
+pfuture gets the first *max-pattern-yield-length* outputs from PATTERN, and then uses STEP-PATTERN to index that history.
 
 See also: `phistory', `pscratch'")
 
@@ -1436,7 +1438,7 @@ Example:
 ;;
 ;; => (0 1 2 1 3)
 
-See also: `phistory', `pfuture'")
+See also: `phistory'")
 
 (defmethod as-pstream ((pscratch pscratch))
   (with-slots (pattern step-pattern) pscratch
