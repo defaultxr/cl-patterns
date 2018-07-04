@@ -89,6 +89,12 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 
 ;;; math stuff
 
+(defun sign (number)
+  "Get an integer representing the sign of a number."
+  (cond ((plusp number) 1)
+        ((minusp number) -1)
+        ((zerop number) 0)))
+
 (defun wrap (number bottom top)
   "Wraps a number between BOTTOM and TOP, similar to `cl:mod'."
   (+ (mod (- number bottom) (- top bottom)) bottom))
@@ -153,8 +159,10 @@ See also: `seq-range'"
          (loop :for i :from start :upto end :by step
             :collect i))
         ((and (null step) (null limit))
-         (loop :for i :from start :upto end
-            :collect i))))
+         (loop :repeat (1+ (abs (- end start)))
+            :with i = start
+            :collect i
+            :do (incf i (sign (- end start)))))))
 
 (defun seq-range (num &optional stop step)
   "Conveniently generate a sequence of numbers as a list. This function is based off Python's range() function, and thus has three ways of being called:

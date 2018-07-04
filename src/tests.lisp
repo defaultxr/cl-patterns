@@ -55,6 +55,15 @@
              (keys (event :foo 1 :bar 2)))
       "keys works correctly for events"))
 
+(test sign
+  "Test the `sign' function"
+  (is (= 1 (cl-patterns::sign 3))
+      "sign works correctly for positive integers")
+  (is (= -1 (cl-patterns::sign -4.2))
+      "sign works correctly for negative numbers")
+  (is (= 0 (cl-patterns::sign 0.0))
+      "sign works correctly for zero"))
+
 (test wrap
   (is (= 3
          (cl-patterns::wrap 3 0 4))
@@ -102,6 +111,18 @@
              (loop :repeat 200
                 :collect (random-range 0 1.0)))
       "random-range returns floats when two arguments are provided but only one is a float"))
+
+(test seq
+  "Test the 'seq' function"
+  (is (equal (list 0 1 2 3)
+             (seq :start 0 :end 3))
+      "seq works correctly when START is lower than END")
+  (is (equal (list 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3)
+             (seq :start 20 :end 3))
+      "seq works correctly when START is higher than END")
+  (is (equal (list 0 2 4 6)
+             (seq :start 0 :step 2 :end 6))
+      "seq works correctly with START, STEP, and END"))
 
 ;;; conversions (FIX: add more)
 ;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
