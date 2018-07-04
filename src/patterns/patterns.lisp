@@ -2024,8 +2024,7 @@ See also: `pshift'")
 
 (defpattern ppar (pattern)
   (list
-   (pstreams :state t :initform nil)
-   (next-beats :state t))
+   (pstreams :state t :initform nil))
   "Combine multiple event patterns into one pstream with all events in temporal order. LIST is the list of patterns, or a pattern yielding lists of patterns. The ppar ends when all of the patterns in LIST end.
 
 Example:
@@ -2041,7 +2040,7 @@ Example:
 See also: `psym'")
 
 (defmethod next ((ppar ppar-pstream))
-  (with-slots (list pstreams next-beats) ppar
+  (with-slots (list pstreams history) ppar
     (labels ((next-in-pstreams ()
                (alexandria:when-let ((res (remove-if (lambda (pstream)
                                                        (and (not (null (slot-value pstream 'history)))
@@ -2053,10 +2052,16 @@ See also: `psym'")
                  (let ((next-list (next list)))
                    (when (null next-list)
                      (return-from maybe-reset-pstreams nil))
-                   (setf pstreams (mapcar #'as-pstream next-list))
-                   (setf next-beats (make-list (length pstreams) :initial-element 0))))))
+                   (setf pstreams (mapcar #'as-pstream next-list))))))
+      (when (null history)
+        (maybe-reset-pstreams))
       (let ((nxt (next (next-in-pstreams))))
-        (if (and (null nxt)
-                 (maybe-reset-pstreams))
-            (next ppar)
+        (if (null nxt)
+            (let ((nip (next-in-pstreams)))
+              (when nip
+                (let ((beppar (beats-elapsed ppar))
+                      (benip (beats-elapsed nip)))
+                  (if (< beppar benip)
+                      (event :type :rest :delta (- benip beppar))
+                      (next ppar)))))
             (combine-events nxt (event :delta (- (beats-elapsed (next-in-pstreams)) (beats-elapsed ppar)))))))))

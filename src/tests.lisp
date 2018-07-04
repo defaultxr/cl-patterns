@@ -803,28 +803,31 @@
 
 (test ppar
   "Test ppar"
-  (is-true (every-event-equal
-            (list (event :dur 1/2 :delta 0)
-                  (event :dur 2/3 :delta 1/2)
-                  (event :dur 1/2 :delta 1/6)
-                  (event :dur 2/3 :delta 1/3)
-                  (event :dur 1/2 :delta 1/3)
-                  (event :dur 2/3 :delta 1/6)
-                  (event :dur 1/2 :delta 1/2)
-                  (event :dur 1/2 :delta 0)
-                  (event :dur 2/3 :delta 1/2)
-                  (event :dur 1/2 :delta 1/6)
-                  (event :dur 2/3 :delta 1/3)
-                  (event :dur 1/2 :delta 1/3)
-                  (event :dur 2/3 :delta 1/6)
-                  (event :dur 1/2 :delta 1/2))
-            (next-upto-n (ppar (list (pbind :dur (pn 1/2 8))
-                                     (pbind :dur (pn 2/3 8))))))
-           "ppar returns correct results")
+  (is-true (let ((pat (pbind :dur (pn 4/3 8))))
+             (every-event-equal
+              (mapcar (lambda (ev) (combine-events ev (event :delta 4/3)))
+                      (next-upto-n pat))
+              (next-upto-n (ppar (list pat)))))
+           "ppar returns correct results when its LIST has only one pattern")
   (is-true (not (typep (cl-patterns::quant (as-pstream (ppar (list (pseq '(1 2 3) 1)))))
                        'pstream))
            "Ensure that patterns that use the default as-pstream method don't have their quant converted to a t-pstream" ;; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
-           ))
+           )
+  (is (< 10 (length (next-upto-n (ppar (list (pbind :x (pn 1 4)) (pbind :y (pseries)))) 20)))
+      "ppar correctly continues with the rest of the patterns after one ends")
+  (is (equal (list 0 1 0 1 0 1 0 1 0 1 1 1)
+             (gete (next-upto-n (ppar (list (pbind :dur 1)
+                                            (pbind :dur (pn 1 4))))
+                                12)
+                   :delta))
+      "ppar correctly pads its output with rests when one pattern ends early")
+  (is (= 8
+         (let ((pstr (as-pstream (ppar (list (pbind :dur (pn 1/8 4))
+                                             (pbind :dur (pn 1 8))
+                                             (pbind :dur (pn 1/16 16)))))))
+           (next-upto-n pstr)
+           (beats-elapsed pstr)))
+      "ppar has the same duration as its longest subpattern"))
 
 ;;; bjorklund (FIX)
 
