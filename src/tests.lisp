@@ -38,6 +38,7 @@
       "index-of-greater-than returns correct results"))
 
 (test keys
+  "Test `keys' and its various methods"
   (is (null (keys nil))
       "keys returns NIL when its input is nil")
   (is (equal (list :foo :baz)
@@ -65,6 +66,7 @@
       "sign works correctly for zero"))
 
 (test wrap
+  "Test the `wrap' function"
   (is (= 3
          (cl-patterns::wrap 3 0 4))
       "wrap doesn't affect numbers within the given range")
@@ -91,6 +93,7 @@
       "round-up gives correct results for arguments 5, 4"))
 
 (test random-range
+  "Test the `random-range' function"
   (is (every (lambda (x) (eq t x))
              (mapcar (lambda (x) (and (>= x 0)
                                       (<= x 10)))

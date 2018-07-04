@@ -1795,7 +1795,7 @@ See also: `pbeats', `beats-elapsed', `prun'")
   (list-pat
    index-pat
    (wrap-p :default nil))
-  "pindex uses INDEX-PAT to index into the list returned by LIST-PAT. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil (default).
+  "Use INDEX-PAT to index into the list returned by LIST-PAT. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil.
 
 Example:
 
@@ -1829,7 +1829,7 @@ See also: `pswitch'")
   (pattern
    (dur :default 1)
    (dur-history :state t))
-  "prun runs a value pattern at a constant rate in the background, independent of when `next' is called on its pstream. PATTERN is the source value pattern, and DUR is the duration in beats of the values yielded by PATTERN.
+  "Run PATTERN in the background, independent of when `next' is called on its pstream. DUR is the duration in beats of the values yielded by PATTERN. If PATTERN is an event pattern, its durations are multiplied by DUR.
 
 Example:
 

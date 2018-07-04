@@ -11,7 +11,7 @@
 ;;; glue
 
 (defun gete (list key)
-  "Get a list of the value of KEY for each element in LIST."
+  "Get a list of the value of KEY for each event in LIST."
   (mapcar (lambda (event)
             (unless (null event)
               (event-value event key)))
@@ -169,15 +169,15 @@ See also: `seq-range'"
 
 With one argument NUM, generate a range from 0 to (1- NUM):
 
-;; (rng 4) ;=> (0 1 2 3)
+;; (seq-range 4) ;=> (0 1 2 3)
 
 With two arguments NUM and STOP, generate a range from NUM to (1- STOP):
 
-;; (rng 2 4) ;=> (2 3)
+;; (seq-range 2 4) ;=> (2 3)
 
 With three arguments NUM, STOP, and STEP, generate a range from NUM to (1- STOP), each step increasing by STEP:
 
-;; (rng 2 8 2) ;=> (2 4 6)
+;; (seq-range 2 8 2) ;=> (2 4 6)
 
 See also: `seq'"
   (cond ((null stop)
