@@ -103,7 +103,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                 (add-doc-to-defun creation-function)))
          (export '(,name ,name-pstream))))))
 
-(defparameter *max-pattern-yield-length* 64
+(defparameter *max-pattern-yield-length* 256
   "The default maximum number of events or values that will be used by functions like `next-n' or patterns like `pshift', in order to prevent hangs caused by infinite-length patterns.")
 
 ;;; pattern
