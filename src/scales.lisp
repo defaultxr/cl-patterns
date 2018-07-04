@@ -45,7 +45,7 @@ Note that this function is not aware of context and thus always returns the firs
   "Get a list of all defined scales."
   (loop :for i :in (keys *scales*)
      :unless (symbolp (getf *scales* i))
-     :collect (scale i)))
+     :collect i))
 
 (defgeneric scale (item)
   (:documentation "Get a scale struct by name."))
@@ -97,7 +97,7 @@ Note that this function is not aware of context and thus always returns the firs
   "Get a list of all defined tunings."
   (loop :for i :in (keys *tunings*)
      :unless (symbolp (getf *tunings* i))
-     :collect (tuning i)))
+     :collect i))
 
 (defgeneric tuning (item)
   (:documentation "Get a tuning struct by name."))
@@ -171,12 +171,11 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
            (setf *chords* (plist-set *chords* x key)))
          aliases)))
 
-(defun all-chords () ;; FIX
+(defun all-chords ()
   "Get a list of all defined chords."
-  ;; (loop :for i :in (keys *tunings*)
-  ;;    :unless (symbolp (getf *tunings* i))
-  ;;    :collect (tuning i))
-  )
+  (loop :for i :in (keys *chords*)
+     :unless (symbolp (getf *chords* i))
+     :collect i))
 
 (defgeneric chord (item))
 
