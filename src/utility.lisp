@@ -8,6 +8,15 @@
 (defvar *clock* nil
   "The default clock to run tasks on.")
 
+;;; scale/tuning/chord structs
+;; (they're here instead of in scales.lisp to avoid compiler warnings)
+
+(defstruct scale name notes tuning)
+
+(defstruct tuning name tuning octave-ratio)
+
+(defstruct chord name scale indexes)
+
 ;;; glue
 
 (defun gete (list key)

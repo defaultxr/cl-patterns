@@ -1,6 +1,7 @@
 (in-package :cl-patterns)
 
 ;;; NOTES:
+;; * the structs for scales, tunings, and chords are in utility.lisp to avoid compiler warnings
 ;; FIX: make describe-object methods for scales, tunings, and chords.
 
 ;;; notes
@@ -21,8 +22,6 @@ Note that this function is not aware of context and thus always returns the firs
   (car (nth-wrap note-number *note-names*)))
 
 ;;; scales
-
-(defstruct scale name notes tuning)
 
 (defparameter *scales* (list)
   "Plist of all defined scales.")
@@ -71,8 +70,6 @@ Note that this function is not aware of context and thus always returns the firs
     (mapcar (lambda (note) (note-midinote note root octave)) (scale-notes scale))))
 
 ;;; tunings
-
-(defstruct tuning name tuning octave-ratio)
 
 (defparameter *tunings* (list)
   "Plist of all defined tunings.")
@@ -159,8 +156,6 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
 
 ;;; chords
 
-(defstruct chord name scale indexes)
-
 (defparameter *chords* (list))
 
 (defun define-chord (name scale indexes &optional aliases)
@@ -198,9 +193,9 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
 (defmethod chord ((item chord))
   item)
 
-(defun chord-aliases (name) ;; FIX: automatically shorten words like major, augmented, etc.
-  (error "Not done yet.")
-  nil)
+;; (defun chord-aliases (name) ;; FIX: automatically shorten words like major, augmented, etc.
+;;   (error "Not done yet.")
+;;   nil)
 
 (defmethod describe-object ((x chord) stream)
   (with-slots (name scale) x
