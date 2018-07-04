@@ -62,6 +62,15 @@
 
    #:load-scala-scale
 
+   #:define-chord
+   #:all-chords
+   #:chord
+   #:chord-name
+   #:chord-scale
+   #:chord-indexes
+   #:chord-note-numbers
+   #:chord-midinotes
+
    ;;; event.lisp
 
    #:event

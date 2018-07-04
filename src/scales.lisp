@@ -157,6 +157,97 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
         (define-tuning name pitches octave-ratio aliases)
         (define-scale name (alexandria:iota (length pitches)) name aliases)))))
 
+;;; chords
+
+(defstruct chord name scale indexes)
+
+(defparameter *chords* (list))
+
+(defun define-chord (name scale indexes &optional aliases)
+  "Define a chord and add it to the *chords* list."
+  (let ((key (string-keyword name)))
+    (setf *chords* (plist-set *chords*
+                              key
+                              (make-chord :name name
+                                          :scale scale
+                                          :indexes indexes)))
+    (map nil
+         (lambda (x)
+           (setf *chords* (plist-set *chords* x key)))
+         aliases)))
+
+(defun all-chords () ;; FIX
+  "Get a list of all defined chords."
+  ;; (loop :for i :in (keys *tunings*)
+  ;;    :unless (symbolp (getf *tunings* i))
+  ;;    :collect (tuning i))
+  )
+
+(defgeneric chord (item))
+
+(defmethod chord ((item symbol))
+  (let ((chord (getf *chords* item)))
+    (when (not (null chord))
+      (if (typep chord 'symbol)
+          (chord chord)
+          chord))))
+
+(defmethod chord ((item string))
+  (chord (alexandria:make-keyword (string-upcase item))))
+
+(defmethod chord ((item chord))
+  item)
+
+(defun chord-aliases (name) ;; FIX: automatically shorten words like major, augmented, etc.
+  (error "Not done yet.")
+  nil)
+
+(defmethod describe-object ((x chord) stream)
+  (with-slots (name scale) x
+    (format stream "~&~s is a chord named ~a,~%with possible abbreviations ~a.~%It takes notes from the ~a scale, which has notes ~s.~%Therefore, this chord contains the notes ~s,~%which are also known as ~a.~%"
+            x
+            name
+            (loop :for i :in (keys *chords*)
+               :if (eq (getf *chords* i) (string-keyword (chord-name x)))
+               :collect i)
+            scale
+            (scale-notes (scale scale))
+            (chord-note-numbers x)
+            (mapcar #'note-name (chord-note-numbers x))
+            )))
+
+(defun sharp-or-flat (string)
+  "Given STRING, return a number representing how many semitones above or below its number it represents, by counting sharps (#) and flats (b)."
+  (+ (* -1 (count #\b string :test #'string-equal))
+     (count #\# string :test #'string-equal)))
+
+(defun index-and-offset (num)
+  "Return a cons cell consisting of the input number and the offset its sharps/flats represent."
+  (etypecase num
+    (number (cons num 0))
+    (symbol (index-and-offset (string num)))
+    (string (cons (parse-integer num :junk-allowed t)
+                  (sharp-or-flat num)))))
+
+(defun chord-note-numbers (chord)
+  "Return a list consisting of the note numbers for CHORD."
+  (mapcar (lambda (idx)
+            (let ((io (index-and-offset idx)))
+              (+ (nth (car io) (scale-notes (scale (chord-scale chord))))
+                 (cdr io))))
+          (chord-indexes chord)))
+
+(defun chord-midinotes (root &optional type (octave 5))
+  (flet ((mchord (root type)
+           (mapcar #'+
+                   (alexandria:circular-list (+ (* 12 octave) (note-number root)))
+                   (chord-note-numbers (chord type)))))
+    (if (null type)
+        (progn
+          (error "Not done yet.")
+          nil)
+        (mchord root type))))
+
 ;;; base set of tunings and scales (copied from SuperCollider)
 
 (map nil ;; tunings
@@ -378,3 +469,27 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
        ("Nawa Athar" (0 4 6 12 14 16 22) :et24)
        ("Nikriz" (0 4 6 12 14 18 20) :et24)
        ("Athar Kurd" (0 2 6 12 14 16 22) :et24)))
+
+(map nil ;; chords
+     (lambda (sd)
+       (apply #'define-chord sd))
+     `(("Augmented Triad" :major (0 2 4#) (:augtri))
+       ("Diminished Triad" :major (0 2b 4b) (:dimtri))
+       ("Major Triad" :major (0 2 4) (:major :majtri))
+       ("Minor Triad" :major (0 2b 4) (:minor :mintri))
+       ("Suspended 2nd Triad" :major (0 1 4) (:sus2tri))
+       ("Suspended 4th Triad" :major (0 3 4) (:sus4tri))
+       ("Major 6th" :major (0 2 4 5) (:maj6))
+       ("Minor 6th" :major (0 2b 4 5) (:min6))
+       ("Augmented 7th" :major (0 2 4# 6b) (:aug7))
+       ("Augmented Major 7th" :major (0 2 4# 6) (:augmaj7))
+       ("Half Diminished 7th" :major (0 2b 4b 6b) (:halfdim7))
+       ("Diminished 7th" :major (0 2b 4b 6bb) (:dim7))
+       ("Dominant 7th" :major (0 2 4 6b) (:dom7))
+       ("Dominant 7th Suspended 4th" :major (0 3 4 6b) (:dom7sus4))
+       ("Major 7th" :major (0 2 4 6) (:maj7))
+       ("Major 7th Suspended 2nd" :major (0 1 4 6) (:maj7sus2))
+       ("Major 7th Suspended 4th" :major (0 3 4 6) (:maj7sus4))
+       ("Minor 7th" :major (0 2b 4 6b) (:min7))
+       ("Minor Major 7th" :major (0 2b 4 6) (:minmaj7))
+       ))
