@@ -13,29 +13,58 @@
 ;;; utility
 
 (test gete
+  "Test the `gete' function"
   (is (equal (alexandria:iota *max-pattern-yield-length*)
              (gete (next-upto-n (pbind :foo (pseries))) :foo))
       "gete returns correct results"))
 
 (test string-keyword
+  "Test the `string-keyword' function"
   (is (eq :foo
           (cl-patterns::string-keyword "foo"))
       "string-keyword correctly converts strings to keywords"))
 
 (test nth-wrap
+  "Test the `nth-wrap' function"
   (is (= 3
          (cl-patterns::nth-wrap 7 (list 0 1 2 3)))
       "nth-wrap returns correct results"))
 
 (test normalized-sum
+  "Test the `normalized-sum' function"
   (is (= 1
          (reduce #'+ (cl-patterns::normalized-sum (list 0 1 2 3 4 5))))
       "normalized-sum returns a list whose elements add up to 1"))
 
+(test cumulative-list
+  "Test the `cumulative-list' function"
+  (is (equal (list 0 0 2 4 7)
+             (cl-patterns::cumulative-list (list 0 0 2 2 3)))
+      "cumulative-list returns correct results"))
+
 (test index-of-greater-than
+  "Test the `index-of-greater-than' function"
   (is (= 4
          (cl-patterns::index-of-greater-than 3 (list 1 2 3 3 4 4)))
       "index-of-greater-than returns correct results"))
+
+(test flatten-1
+  "Test the `flatten-1' function"
+  ;; FIX
+  )
+
+(test most-x
+  "Test the `most-x' function"
+  ;; FIX
+  )
+
+(test plist-set
+  "Test the `plist-set' function"
+  (is (equal (list :foo :bar :baz :qux)
+             (cl-patterns::plist-set (list :foo :bar) :baz :qux))
+      "plist-set returns correct results")
+  (is (null (cl-patterns::plist-set (list :foo :bar) :foo nil))
+      "plist-set removes items from the plist when VALUE is nil"))
 
 (test keys
   "Test `keys' and its various methods"
@@ -115,8 +144,13 @@
                 :collect (random-range 0 1.0)))
       "random-range returns floats when two arguments are provided but only one is a float"))
 
+(test exponential-random-range
+  "Test the `exponential-random-range' function"
+  ;; FIX
+  )
+
 (test seq
-  "Test the 'seq' function"
+  "Test the `seq' function"
   (is (equal (list 0 1 2 3)
              (seq :start 0 :end 3))
       "seq works correctly when START is lower than END")
@@ -126,6 +160,11 @@
   (is (equal (list 0 2 4 6)
              (seq :start 0 :step 2 :end 6))
       "seq works correctly with START, STEP, and END"))
+
+(test seq-range
+  "Test the `seq-range' function"
+  ;; FIX
+  )
 
 ;;; conversions (FIX: add more)
 ;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
