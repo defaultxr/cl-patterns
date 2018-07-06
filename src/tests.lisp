@@ -351,8 +351,12 @@
            "pbind subpatterns have correct parents for pfunc"))
 
 (test beats-elapsed
-  ;; FIX
-  )
+  "Test the `beats-elapsed' function"
+  (is (= 8
+         (let ((pstr (as-pstream (pbind :dur (pn 1 8)))))
+           (next-upto-n pstr)
+           (beats-elapsed pstr)))
+      "beats-elapsed returns correct results"))
 
 (test special-keys
   "Test pbind special keys"

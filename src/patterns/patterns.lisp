@@ -188,6 +188,7 @@ See also: `next', `next-upto-n'"
   ((number :initform 0 :documentation "The number of outputs yielded from the pstream.") ;; FIX: maybe remove this and just use (length (slot-value pstream 'history)) instead?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
    (history :initform (list) :documentation "The history of outputs yielded by the pstream.")
+   (beats-elapsed :initform 0 :reader beats-elapsed :documentation "The number of beats elapsed in the pstream.")
    (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
@@ -225,9 +226,12 @@ See also: `next', `next-upto-n'"
   (with-slots (pstream-offset) pstream
     (let ((c-offset pstream-offset))
       (setf pstream-offset 0)
-      (prog1
-          (next pstream)
-        (setf pstream-offset (1- c-offset))))))
+      (let ((nxt (next pstream)))
+        (prog1
+            nxt
+          (when (typep nxt 'event)
+            (decf (slot-value pstream 'beats-elapsed) (event-value nxt :delta)))
+          (setf pstream-offset (1- c-offset)))))))
 
 (defmethod next :around ((pattern pstream))
   (labels ((pattern-embed (pattern embed)
@@ -262,6 +266,8 @@ See also: `next', `next-upto-n'"
                                   (value-remaining-p (slot-value pattern 'remaining)))
                           (get-value-from-stack pattern))))
             (alexandria:appendf (slot-value pattern 'history) (list result))
+            (when (typep result 'event)
+              (incf (slot-value pattern 'beats-elapsed) (event-value result :delta)))
             result)))))
 
 (defgeneric as-pstream (thing)
@@ -381,19 +387,6 @@ See also: `parent-pattern'"))
     (loop :until (or (null par) (typep par 'pbind))
        :do (setf par (slot-value par 'parent)))
     par))
-
-(defgeneric beats-elapsed (pstream)
-  (:documentation "Get the number of beats elapsed in PSTREAM's execution."))
-
-(defmethod beats-elapsed ((pstream pstream))
-  (loop :for i :in (slot-value pstream 'history)
-     :repeat (+ (slot-value pstream 'pstream-offset) (length (slot-value pstream 'history)))
-     :if (typep i 'event)
-     :sum (event-value i :delta)
-     :if (null i)
-     :do (loop-finish)
-     :if (and (not (typep i 'event)) (not (null i)))
-     :do (error "beats-elapsed only works on pstreams that have duration information, such as those from a pbind.")))
 
 ;;; pbind
 
