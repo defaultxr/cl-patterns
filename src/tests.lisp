@@ -350,6 +350,13 @@
                  pb))
            "pbind subpatterns have correct parents for pfunc"))
 
+(test parent-pbind
+  "Test the `parent-pbind' function"
+  (is-true (let* ((child (pn 1 4))
+                  (parent (pbind :foo child)))
+             (eq parent (parent-pbind child)))
+           "parent-pbind gives correct results"))
+
 (test beats-elapsed
   "Test the `beats-elapsed' function"
   (is (= 8

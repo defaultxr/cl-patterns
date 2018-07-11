@@ -17,6 +17,9 @@
 (defparameter *performance-errors-lock* (bt:make-lock)
   "The lock on `*performance-errors*' to make it thread-safe.")
 
+(defgeneric tempo (object)
+  (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number."))
+
 (defclass clock ()
   ((beats :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
    (tempo :initarg :tempo :initform 1 :reader tempo :documentation "The tempo of the clock, in beats per second.")

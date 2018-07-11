@@ -13,7 +13,8 @@
   "Given a note name or note number, return the note number."
   (etypecase note
     (number note)
-    (symbol (position note *note-names* :test #'position))))
+    (keyword (position note *note-names* :test #'position))
+    (symbol (note-number (alexandria:make-keyword note)))))
 
 (defun note-name (note-number)
   "Given a note number, return its note name.
