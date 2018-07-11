@@ -28,7 +28,8 @@ CLOSED: [2017-07-06 Thu 03:07]
 
 ** properly handle lists in events (i.e. multi-channel expansion)
 
-** get on quicklisp
+** DONE get on quicklisp
+CLOSED: [2018-07-11 Wed 12:26]
 
 * 1.5
 

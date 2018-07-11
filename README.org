@@ -14,7 +14,7 @@ In addition to emulating most of SuperCollider's patterns system, another goal i
 
 * Intro
 
-Download cl-patterns and put it in your quicklisp ~local-projects~ directory, then load it:
+Make sure you have [[https://www.quicklisp.org/beta/][Quicklisp]] installed and working with your Lisp implementation, then load cl-patterns:
 
 #+BEGIN_SRC lisp
   (ql:quickload :cl-patterns)
