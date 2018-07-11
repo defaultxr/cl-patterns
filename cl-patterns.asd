@@ -3,7 +3,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp."
   :license "GNU General Public License v3.0"
-  :version "0.3"
+  :version "0.4"
   :depends-on (#:alexandria
                #:bordeaux-threads
                #:closer-mop
@@ -31,7 +31,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with SuperCollider backend."
   :license "GNU General Public License v3.0"
-  :version "0.3"
+  :version "0.4"
   :depends-on (#:cl-patterns
                #:sc)
   :serial t
@@ -42,7 +42,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with Incudine backend."
   :license "GNU General Public License v3.0"
-  :version "0.3"
+  :version "0.4"
   :depends-on (#:cl-patterns
                #:swank ;; FIX: remove this.
                #:incudine)
@@ -54,7 +54,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
   :license "GNU General Public License v3.0"
-  :version "0.3"
+  :version "0.4"
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t
