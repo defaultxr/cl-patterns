@@ -44,7 +44,7 @@
   :license "GNU General Public License v3.0"
   :version "0.4"
   :depends-on (#:cl-patterns
-               #:swank ;; FIX: remove this.
+               #:swank
                #:incudine)
   :serial t
   :components ((:file "src/backends/incudine")))

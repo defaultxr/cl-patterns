@@ -8,7 +8,7 @@
           (remove-if (lambda (symbol)
                        (or
                         (position symbol (list '&key 'incudine.vug::id 'incudine.vug::head 'incudine.vug::tail 'incudine.vug::before 'incudine.vug::after 'incudine.vug::action 'incudine.vug::stop-hook 'incudine.vug::free-hook 'incudine.vug::fade-time 'incudine.vug::fade-curve 'incudine.scratch::replace))))
-                     (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))) ;; this is the only thing we require swank for, so remove the swank dependency from the .asd file once this is removed.
+                     (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))) ;; FIX: this is the only thing we require swank for, so remove the swank dependency from the .asd file once this is removed.
                      )))
 
 ;; backend functions
