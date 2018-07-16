@@ -64,11 +64,18 @@ Note that this function is not aware of context and thus always returns the firs
 (defmethod scale ((item scale))
   item)
 
-(defun scale-midinotes (scale &key (start-note :c) (octave 5)) ;; FIX: auto-parse arguments instead of requiring them to be specified manually?
-  "Given a scale, return its midi note numbers."
-  (let ((scale (scale scale))
-        (root (note-number start-note)))
-    (mapcar (lambda (note) (note-midinote note root octave)) (scale-notes scale))))
+(defun scale-midinotes (scale &key (start-note :c) (octave 5))
+  "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
+  (typecase octave
+    (symbol (if (eq :all octave)
+                (scale-midinotes scale :start-note start-note :octave (list 0 9))
+                (error "Invalid OCTAVE argument for scale-midinotes; try :all, a number, or a 2-element list denoting a range instead.")))
+    (number (scale-midinotes scale :start-note start-note :octave (list octave octave)))
+    (cons
+     (let ((scale (scale scale))
+           (root (note-number start-note)))
+       (loop :for i :from (car octave) :upto (cadr octave)
+          :append (mapcar (lambda (note) (note-midinote note :root root :octave i)) (scale-notes scale)))))))
 
 ;;; tunings
 
