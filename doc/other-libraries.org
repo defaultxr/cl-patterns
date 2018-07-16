@@ -2,13 +2,32 @@
 
 This document is a list of other libraries that you may find useful in conjunction with cl-patterns, and libraries with similar goals.
 
-* Common Lisp
+* Common Lisp audio
 
 ** [[https://github.com/byulparan/cl-collider][cl-collider]]
 The primary backend that cl-patterns was developed against, a Lisp interface to the SuperCollider sound server.
 
 ** [[http://incudine.sourceforge.net/][Incudine]]
 Another supported backend for cl-patterns. Written from the ground up and designed to be used with Lisp.
+
+** [[https://github.com/ormf/cm][Common Music]]
+The original Lisp music library. This repository is a fork of the last version before the project switched over to using Scheme exclusively.
+
+* Common Lisp graphics
+
+** [[https://common-lisp.net/project/mcclim/][McCLIM]]
+A native Lisp graphical user interface library. Uses Lisp idioms and ideas for the development of user interaction modes. May be useful for visualization of pattern or other musical data, and interaction with the Lisp process.
+
+** [[https://github.com/cbaggers/cepl][CEPL]]
+"Code Evaluate Play Loop". A project that attempts to make programming graphics on the GPU feel native to Lisp.
+
+** [[https://github.com/borodust/cl-bodge][cl-bodge]]
+"Experimental bodacious game engine written in Common Lisp". A modular and extensible framework for developing games and game-like applications in Lisp.
+
+** [[https://github.com/vydd/sketch][Sketch]]
+Common Lisp environment for the creation of visual art, game prototyping, etc. Similar in operation to the [[https://processing.org/][Processing]] (Java) library.
+
+* Common Lisp extensions
 
 ** [[http://cl21.org/][cl21]]
 "Common Lisp for the 21st century". Extends and enhances Common Lisp with improvements to the syntax and functionality. May be useful for livecoders since many of its changes make Lisp more consistent and succinct.
@@ -18,15 +37,6 @@ Another supported backend for cl-patterns. Written from the ground up and design
 
 ** [[https://github.com/rongarret/ergolib][ergolib]]
 "A library designed to make programming in Common Lisp easier"
-
-** [[https://common-lisp.net/project/mcclim/][McCLIM]]
-A native Lisp graphical user interface library. Uses Lisp idioms and ideas for the development of user interaction modes. May be useful for visualization of pattern or other musical data, and interaction with the Lisp process.
-
-** [[https://github.com/cbaggers/cepl][CEPL]]
-"Code Evaluate Play Loop". A project that attempts to make programming graphics on the GPU feel native to Lisp. Perhaps the "video" to cl-collider/cl-patterns' "audio"?
-
-** [[https://github.com/vydd/sketch][Sketch]]
-Common Lisp environment for the creation of visual art, game prototyping, etc. Similar in operation to the [[https://processing.org/][Processing]] (Java) library.
 
 * Non-CL
 
