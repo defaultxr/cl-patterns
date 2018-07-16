@@ -1570,16 +1570,18 @@ See also: `pfin', `psync'")
 (defmethod next ((pfindur pfindur-pstream)) ;; FIX: make this affect the dur AND delta properly.
   (with-slots (pattern dur tolerance current-elapsed) pfindur
     (alexandria:when-let ((n-event (next pattern)))
-      (when (< (if (= 0 tolerance)
-                   current-elapsed
-                   (round-up current-elapsed tolerance))
-               dur)
+      (when (or (eq :inf dur)
+                (< (if (= 0 tolerance)
+                       current-elapsed
+                       (round-up current-elapsed tolerance))
+                   dur))
         (let ((new-elapsed (+ (event-value n-event :delta) current-elapsed)))
           (prog1
-              (if (> (if (= 0 tolerance)
-                         new-elapsed
-                         (round-up new-elapsed tolerance))
-                     dur)
+              (if (and (not (eq :inf dur))
+                       (> (if (= 0 tolerance)
+                              new-elapsed
+                              (round-up new-elapsed tolerance))
+                          dur))
                   (combine-events n-event (event :dur (- dur current-elapsed)))
                   n-event)
             (incf current-elapsed (event-value n-event :delta))))))))

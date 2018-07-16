@@ -766,7 +766,10 @@
   "Test pfindur"
   (is (= 5
          (reduce #'+ (gete (next-upto-n (pfindur (pbind :dur (pwhite 0.0 1.0)) 5)) :dur)))
-      "pfindur patterns have a correct total duration"))
+      "pfindur patterns have a correct total duration")
+  (is (= 99
+         (length (next-upto-n (pfindur (pbind :dur 5) :inf) 99)))
+      "pfindur allows and correctly handles :inf as its DUR"))
 
 (test psync
   "Test psync"
