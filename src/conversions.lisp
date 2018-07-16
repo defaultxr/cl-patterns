@@ -95,9 +95,11 @@
   (midinote-freq (degree-midinote degree :root root :octave octave :scale scale)))
 
 (defun ratio-midi (ratio)
+  "Convert a frequency ratio to a difference in MIDI note numbers."
   (* 12 (log ratio 2)))
 
 (defun midi-ratio (midi)
+  "Convert a MIDI note number difference to a frequency ratio."
   (expt 2 (/ midi 12)))
 
 (defun freq-rate (freq &optional (base-freq 440))

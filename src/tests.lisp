@@ -385,8 +385,6 @@
                                 :qux (pseq '(69 420 666))
                                 :pdurstutter (pseq '(3 2 1)))))))
 
-;; parent-pbind (FIX)
-
 (test t-pstream
   "Test functionality of non-patterns as pstreams"
   (is (= 1

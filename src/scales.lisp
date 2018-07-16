@@ -76,7 +76,7 @@ Note that this function is not aware of context and thus always returns the firs
   "Plist of all defined tunings.")
 
 (defun define-tuning (name tuning octave-ratio &optional aliases)
-  "Define a tuning and add it to the *tunings* list."
+  "Define a tuning and add it to the `*tunings*' list."
   (let ((key (string-keyword name)))
     (setf *tunings* (plist-set *tunings*
                                key
