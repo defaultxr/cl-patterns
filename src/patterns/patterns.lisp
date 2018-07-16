@@ -547,6 +547,11 @@ See also: `pbind', `pdef'"
           (ptrace pattern value))
       pattern))
 
+(define-pbind-special-wrap-key pmeta
+  (if (eq t value)
+      (pmeta pattern)
+      pattern))
+
 (defmacro define-pbind-special-process-key (key &body body)
   "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should inject values into the event stream, or NIL if it should not."
   (let ((keyname (alexandria:make-keyword key)))
@@ -1489,7 +1494,7 @@ Example:
 ;;     (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
 ;;     (EVENT :FOO 3 :BAR 4) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 3 :BAR 6))
 
-See also: `psym'")
+See also: `psym', `pmeta'")
 
 (defmethod as-pstream ((parp parp))
   (with-slots (pattern arpeggiator) parp
@@ -1874,7 +1879,7 @@ Example:
 ;;
 ;; => (1 2 3 4 5 6)
 
-See also: `pdef', `ppar'")
+See also: `pdef', `ppar', `pmeta'")
 
 (defmethod as-pstream ((psym psym))
   (with-slots (pattern) psym
@@ -2060,3 +2065,60 @@ See also: `psym'")
                       (event :type :rest :delta (- benip beppar))
                       (next ppar)))))
             (combine-events nxt (event :delta (- (beats-elapsed (next-in-pstreams)) (beats-elapsed ppar)))))))))
+
+;;; pmeta
+
+(defpattern pmeta (pattern) ;; FIX: add example
+  (pattern
+   (current-pstream :state t))
+  "Meta-control patterns using the events output by PATTERN. In other words, instead of triggering synths directly, the events output by PATTERN are used to embed patterns into the pmeta's pstream.
+
+The following keys are supported:
+
+- :pattern or :instrument - name of the source pattern for this \"step\".
+- :sustain - limit the duration of the embedded pattern (defaults to :inf, which causes the pattern to play to its end).
+
+The following keys are planned for future implementation:
+
+- :stretch - multiply the duration of each of the source pattern's events.
+- :fit or :ts - fit a pattern to a number of beats, by getting up to `*max-pattern-yield-length*' events from the source pattern, then scaling their total duration.
+- :start or :end - adjust the start or end points of the source pattern (i.e. to skip the first half, set :start to 0.5)
+- :start-beat or :end-beat - adjust the start or end points of the source pattern in number of beats (i.e. to end the pattern 2 beats early, set :end-beat to -2)
+- :start-nth or :end-nth - adjust the start or end points of the source pattern by skipping the first or last N events.
+- :filter or :remove-if - skip all events from the source pattern that return nil when applied to the specified function or pattern.
+- :mapcar or :nary - process each event from the source pattern with a function or another pattern.
+
+See doc/special-keys.org for more information on these keys.
+
+Example:
+
+See also: `psym', `parp'")
+
+(defmethod next ((pmeta pmeta-pstream))
+  (with-slots (pattern current-pstream) pmeta
+    (labels ((make-pstream (event)
+               (let ((pattern (or (event-value event :pattern)
+                                  (event-value event :instrument)))
+                     (dur (multiple-value-bind (num from) (event-value event :dur)
+                            (unless (eq t from)
+                              num))))
+                 (when pattern
+                   (let* ((pattern (typecase pattern
+                                     (pattern pattern)
+                                     (symbol (pdef pattern))
+                                     (list (ppar (mapcar 'pdef pattern)))))
+                          (pattern (if dur
+                                       (psync pattern dur dur)
+                                       pattern)))
+                     (as-pstream pattern))))))
+      (when (or (not (slot-boundp pmeta 'current-pstream))
+                (null current-pstream))
+        (setf current-pstream (make-pstream (next pattern))))
+      (when current-pstream
+        (let ((nxt (next current-pstream)))
+          (if (null nxt)
+              (progn
+                (setf current-pstream nil)
+                (next pmeta))
+              nxt))))))
+

@@ -912,6 +912,11 @@
            (beats-elapsed pstr)))
       "ppar has the same duration as its longest subpattern"))
 
+(test pmeta
+  "Test pmeta"
+  ;; FIX
+  )
+
 ;;; bjorklund (FIX)
 
 ;;; cycles (FIX)

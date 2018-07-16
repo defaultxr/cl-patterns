@@ -94,6 +94,8 @@ Results in ~(pr (pbind ...) value)~
 ** ~pdef~
 Results in ~(pdef value (pbind ...))~
 Unlike other wrap keys or init keys, this key is always processed last regardless of where it appears in the pbind.
+** ~pmeta~
+Results in ~(pmeta (pbind ...))~
 
 * pbind special process keys
 
@@ -124,3 +126,30 @@ NOTE: Not implemented yet.
 The number of beats elapsed in the pattern. This can be set as an alternative to ~dur~ or ~delta~ if you want to give an event's start beat instead of its inter-onset time.
 
 If you are setting this from a pattern, you need to make sure its values do not decrease with successive events otherwise event scheduling will fail.
+
+* pmeta keys
+
+~pmeta~ is a "meta" pattern; instead of events triggering sounds directly, the events read by pmeta trigger other patterns.
+
+** ~pattern~ / ~instrument~
+name of the source pattern for this "step".
+** ~sustain~
+limit the duration of the embedded pattern (defaults to :inf, which causes the pattern to play to its end).
+
+The following keys are planned for future implementation:
+
+** ~stretch~
+multiply the duration of each of the source pattern's events.
+** ~fit~ / ~ts~
+fit a pattern to a number of beats, by getting up to ~*max-pattern-yield-length*~ events from the source pattern, then scaling their total duration.
+** ~start~ / ~end~
+adjust the start or end points of the source pattern (i.e. to skip the first half, set ~:start~ to 0.5)
+** ~start-beat~ / ~end-beat~
+adjust the start or end points of the source pattern in number of beats (i.e. to end the pattern 2 beats early, set ~:end-beat~ to -2)
+** ~start-nth~ / ~end-nth~
+adjust the start or end points of the source pattern by skipping the first or last N events.
+** ~filter~ / ~remove-if~
+skip all events from the source pattern that return nil when applied to the specified function or pattern.
+** ~mapcar~ / ~nary~
+process each event from the source pattern with a function or another pattern.
+
