@@ -33,7 +33,7 @@
   :license "GNU General Public License v3.0"
   :version "0.4"
   :depends-on (#:cl-patterns
-               #:sc)
+               #:cl-collider)
   :serial t
   :components ((:file "src/backends/supercollider")))
 
