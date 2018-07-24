@@ -4,9 +4,9 @@ This is a list of special keys for events/pbind. These keys have additional func
 
 * Event builtins and conversions
 
-Some event keys are used to set standard parameters for the synth (i.e. ~instrument~, ~out~, etc). Additionally, cl-collider will automatically convert between different units of measurement for data that represents the same property. For example, you can write a pattern that generates pitches based on midi note numbers with ~midinote~. Then, in another key after that, you can use ~(pk :freq)~ to get the frequency of the note (which is automagically converted from the ~midinote~ value, as if you had used ~midinote-freq~ on it).
+Some event keys are used to set standard parameters for the synth (i.e. ~instrument~, ~out~, etc). Additionally, cl-patterns will automatically convert between different units of measurement for data that represents the same property. For example, you can write a pattern that generates pitches based on midi note numbers with ~midinote~. Then, in another key after that, you can use ~(pk :freq)~ to get the frequency of the note (which is automagically converted from the ~midinote~ value, as if you had used ~midinote-freq~ on it).
 
-** ~instrument~ / ~inst~
+** ~instrument~
 Name of the synth you want to trigger.
 ** ~group~
 NOTE: Not implemented yet.
@@ -21,13 +21,13 @@ Stereo panning of the synth's output.
 ** ~tempo~
 Set the clock's tempo.
 ** ~dur~ / ~delta~
-How long before the next note starts.
+How long before the next note starts. ~dur~ also affects the sustain time of the note (see ~sustain~ / ~legato~, below)
 ** ~beat~
 NOTE: Not implemented yet.
 
 When the event should play (relative to when the pbind started playing).
 ** ~sustain~ / ~legato~
-How long the synth is held before being released.
+How long the synth is held before being released. ~sustain~ is an absolute time in beats for the note to be held, while ~legato~ is multiplied by ~dur~ to get the sustain time.
 ** ~timing-offset~
 NOTE: Not implemented yet.
 
@@ -39,23 +39,31 @@ Various ways to specify the pitch of the synth.
 
 * pbind special init keys
 
-pbind supports a set of special keys that, during the initialization of the pbind, run a function which may inject key/value pairs into the pbind's pattern-pairs, or alter it in another way. For example, a pbind like this:
+pbind supports a set of special keys that, during the initialization of the pbind, run a function which may inject key/value pairs into the pbind's pattern-pairs, or alter it in another way. For example, a pbind that looks like this:
 
 #+BEGIN_SRC lisp
-  (pbind :foo (pseq '(1 2 3))
-         :remaining 4)
+  (defparameter *pat* (pbind :foo (pseq '(1 2 3))
+                             :quant 4))
 #+END_SRC
 
-...will only return four results, because the ~:remaining~ key injects its value into the pbind's ~remaining~ slot.
+...is effectively shorthand for this:
+
+#+BEGIN_SRC lisp
+  (defparameter *pat* (pbind :foo (pseq '(1 2 3))))
+
+  (setf (slot-value *pat* 'cl-patterns::quant) 4)
+#+END_SRC
 
 Here is a listing of all of the pbind special init keys:
 
 ** ~remaining~
-Sets the pattern's ~remaining~ slot, which limits the number of results it will yield.
-** ~inst~
-Effectively an alias for the ~instrument~ key. This may be removed in the future.
+Sets the pattern's ~remaining~ slot, which limits the number of results it will yield. This is now officially deprecated in favor of using ~pfin~; see its section under "special wrap keys" below.
 ** ~quant~
 Set the ~quant~ of the pattern, which determines when the pattern is allowed to start playing.
+** ~cleanup~
+NOTE: Not implemented yet.
+
+A function or list of functions to be run when the pattern ends or is stopped.
 
 * pbind special wrap keys
 
@@ -83,23 +91,26 @@ Results in ~(pfin (pbind ...) value)~
 Results in ~(pfindur (pbind ...) value)~
 ** ~psync~
 Results in ~(psync (pbind ...) value value)~
+
 or ~(psync (pbind ...) (first value) (second value))~
 ** ~pdurstutter~
 Results in ~(pdurstutter (pbind ...) value)~
 ** ~ptrace~
 Results in ~(ptrace (pbind ...))~ when value is ~t~
+
 or traces the specified key when value is the name of a key.
 ** ~pr~
 Results in ~(pr (pbind ...) value)~
 ** ~pdef~
 Results in ~(pdef value (pbind ...))~
+
 Unlike other wrap keys or init keys, this key is always processed last regardless of where it appears in the pbind.
 ** ~pmeta~
 Results in ~(pmeta (pbind ...))~
 
 * pbind special process keys
 
-pbind's last type of special keys are the process keys. Unlike the init and wrap keys, the functions associated with these keys are run for each output yielded by the pbind instead of only once during its initialization. Typically these are used to alter the outputs yielded. For example, this pbind:
+pbind's last type of special keys are the process keys. Unlike the init and wrap keys, the values associated with these keys are processed for each output yielded by the pbind instead of only once during its initialization. Typically these are used to alter the outputs yielded. For example, this pbind:
 
 #+BEGIN_SRC lisp
   (pbind :foo (pseq '(1 2 3))
