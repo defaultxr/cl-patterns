@@ -121,6 +121,15 @@
          (cl-patterns::round-up 5 4))
       "round-up gives correct results for arguments 5, 4"))
 
+(test random-coin
+  "Test the `random-coin' function"
+  (is (every (lambda (x) (eq t x))
+             (loop :repeat 200 :collect (random-coin 1)))
+      "random-coin always returns t for PROBABILITY of 1")
+  (is (every 'null
+             (loop :repeat 200 :collect (random-coin 0)))
+      "random-coin always returns nil for PROBABILITY of 0"))
+
 (test random-range
   "Test the `random-range' function"
   (is (every (lambda (x) (eq t x))

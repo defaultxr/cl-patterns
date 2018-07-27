@@ -8,6 +8,7 @@
    #:gete
    #:keys
 
+   #:random-coin
    #:random-range
    #:exponential-random-range
    #:seq
