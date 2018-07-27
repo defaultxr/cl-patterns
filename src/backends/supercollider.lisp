@@ -21,19 +21,19 @@
 
 (defun generate-plist-for-synth (instrument event)
   "Generate a plist of parameters for a synth based off of the synth's arguments. Unlike `event-plist', this function doesn't include event keys that aren't also one of the synth's arguments."
+  (when (not (sc::get-synthdef-metadata instrument)) ;; if we don't have data for the synth, simply return a plist for the event and hope for the best.
+    (return-from generate-plist-for-synth (copy-list (event-plist event))))
   (let ((synth-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the synth's defaults, NOT the event's...
                                    (unless (string= (symbol-name arg) "SUSTAIN") ;; ...with the exception of sustain, which the synth should always get.
                                      (multiple-value-bind (value key) (event-value event arg)
                                        (declare (ignore value))
                                        (eq key t))))
                                  (get-synthdef-control-names instrument))))
-    (if synth-params
-        (loop :for sparam :in synth-params
-           :for val = (event-value event sparam)
-           :if (or (eq :gate sparam)
-                   (not (null val)))
-           :append (list (alexandria:make-keyword sparam) (if (eq :gate sparam) 1 val)))
-        (copy-list (event-plist event)))))
+    (loop :for sparam :in synth-params
+       :for val = (event-value event sparam)
+       :if (or (eq :gate sparam)
+               (not (null val)))
+       :append (list (alexandria:make-keyword sparam) (if (eq :gate sparam) 1 val)))))
 
 (defmethod convert-object ((object sc::buffer))
   (sc:bufnum object))
@@ -45,7 +45,8 @@
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
   (if (typep name 'sc::node)
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'sc::name))))
-      (gethash name (sc::node-proxy-table sc::*s*))))
+      (slot-value (gethash name (sc::node-proxy-table sc::*s*))
+                  'sc::id)))
 
 ;;; backend functions
 
