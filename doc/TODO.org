@@ -115,3 +115,4 @@ still trying to think of ideas for how to make a good "performance mode" without
 * l-systems
 * tempo change curves
 * ~pblend~ to blend between two patterns
+* export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime

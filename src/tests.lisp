@@ -805,8 +805,11 @@
   (is (equal (list 2 3/2 3/2)
              (next-upto-n (pdurstutter (pseq '(1 2 3) 1) (pseq '(0 1 2) 1))))
       "pdurstutter returns correct results for value patterns")
-  (is (equal (list 1 1/2 1/2) ;; FIX: correct this when events can be compared
-             (gete (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq '(0 1 2) 1))) :dur))
+  (is (every-event-equal
+       (list (event :foo 1 :dur 1)
+             (event :foo 2 :dur 1/2)
+             (event :foo 2 :dur 1/2))
+       (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq '(0 1 2) 1))))
       "pdurstutter returns correct results for event patterns when its N is a pattern, and when N is 0"))
 
 (test pbeats

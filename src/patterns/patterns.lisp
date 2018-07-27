@@ -21,8 +21,8 @@
                     (setf (slot-value list 'parent) parent)))))
     (loop :for slot :in (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))
        :do
-       (when (slot-boundp pattern slot)
-         (set-parent (slot-value pattern slot) pattern)))
+         (when (slot-boundp pattern slot)
+           (set-parent (slot-value pattern slot) pattern)))
     pattern))
 
 (defmacro defpattern (name superclasses slots &optional documentation creation-function) ;; FIX: should warn if `set-parents' is not called in the creation-function.
@@ -110,7 +110,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 
 (defclass pattern ()
   ((remaining :initarg :remaining :initform :inf :documentation "The number of outputs remaining to be yielded by pstreams of this pattern. This is primarily used to limit the amount of outputs a pattern will yield. This is deprecated and is likely going to be removed in the future--use `pfin' instead.")
-   (quant :initarg :quant :initform (list 1) :reader quant :documentation "A number or list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT PHASE TIMING-OFFSET). For example, a quant of 4 means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
+   (quant :initarg :quant :initform (list 1) :reader quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :initform nil :accessor loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped."))
@@ -892,7 +892,7 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defpattern pdef (pattern) ;; FIX: should this call set-parents on its PATTERN?
   ((key :reader pdef-key)
    (current-pstream :state t)
-   (loop-p :initform t :accessor loop-p))
+   (loop-p :initform t))
   "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored in a global dictionary by name and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. Additionally, if a pdef is currently being played, and is redefined, the changes won't be audible until PATTERN ends (pdefs loop by default)."
   (defun pdef (key &optional (pattern nil pattern-supplied-p))
     (when (or (not (null pattern))
@@ -1816,7 +1816,7 @@ See also: `pswitch'")
                    :index-pat (pattern-as-pstream index-pat)
                    :wrap-p wrap-p)))
 
-(defmethod next ((pindex pindex-pstream))
+(defmethod next ((pindex pindex-pstream)) ;; FIX: make this work for envelopes as well (the index should not be normalized)
   (with-slots (list-pat index-pat wrap-p) pindex
     (let ((list (next list-pat))
           (idx (next index-pat)))
@@ -1825,7 +1825,7 @@ See also: `pswitch'")
 
 ;;; prun
 
-(defpattern prun (pattern)
+(defpattern prun (pattern) ;; FIX: make this work on event patterns too (make DUR a duration multiplier)
   (pattern
    (dur :default 1)
    (dur-history :state t))

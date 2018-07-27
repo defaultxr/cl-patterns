@@ -3,7 +3,7 @@
 
 (in-package :cl-patterns)
 
-;; helper functions
+;;; helper functions
 
 (defun get-synthdef-control-names (name)
   (mapcar #'car (sc::get-synthdef-metadata name :controls)))
@@ -47,7 +47,7 @@
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'sc::name))))
       (gethash name (sc::node-proxy-table sc::*s*))))
 
-;; backend functions
+;;; backend functions
 
 (defun is-sc-event-p (event)
   (let ((inst (event-value event :instrument)))

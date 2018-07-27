@@ -1,6 +1,6 @@
 (in-package :cl-patterns)
 
-;; helper functions
+;;; helper functions
 
 (defun get-dsp-args-list (dsp)
   "Return the argument list for an Incudine DSP."
@@ -11,7 +11,7 @@
                      (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))) ;; FIX: this is the only thing we require swank for, so remove the swank dependency from the .asd file once this is removed.
                      )))
 
-;; backend functions
+;;; backend functions
 
 (defun is-incudine-event-p (event)
   ;; FIX

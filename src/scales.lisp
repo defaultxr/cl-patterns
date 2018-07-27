@@ -314,7 +314,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
      '(;; twelve tones per octave
 
        ;; 5 note scales
-       ("Minor Pentatonic" (0 3 5 7 10) :et12)
+       ("Minor Pentatonic" (0 3 5 7 10) :et12 (:pentatonic))
        ("Major Pentatonic" (0 2 4 7 9) :et12)
 
        ;; other modes of major pentatonic
