@@ -2,7 +2,7 @@
   :name "cl-patterns"
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp."
-  :license "GNU General Public License v3.0"
+  :license "MIT"
   :version "0.4"
   :depends-on (#:alexandria
                #:bordeaux-threads
@@ -30,7 +30,7 @@
   :name "cl-patterns/supercollider"
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with SuperCollider backend."
-  :license "GNU General Public License v3.0"
+  :license "MIT"
   :version "0.4"
   :depends-on (#:cl-patterns
                #:cl-collider)
@@ -41,7 +41,7 @@
   :name "cl-patterns/incudine"
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with Incudine backend."
-  :license "GNU General Public License v3.0"
+  :license "MIT"
   :version "0.4"
   :depends-on (#:cl-patterns
                #:swank
@@ -53,7 +53,7 @@
   :name "cl-patterns/midi"
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
-  :license "GNU General Public License v3.0"
+  :license "MIT"
   :version "0.4"
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
@@ -64,7 +64,7 @@
   :name "cl-patterns/tests"
   :author "modula t. <defaultxr@gmail.com>"
   :description "FiveAM-based tests suite for cl-patterns."
-  :license "GNU General Public License v3.0"
+  :license "MIT"
   :depends-on (#:cl-patterns
                #:fiveam)
   :components ((:file "src/tests"))
