@@ -910,8 +910,11 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defmethod pdef-pattern ((object pdef))
   (pdef-ref-get (pdef-key object) :pattern))
 
-(defmethod quant ((object pdef))
-  (quant (pdef-pattern object)))
+(defmethod quant ((pdef pdef))
+  (quant (pdef-pattern pdef)))
+
+(defmethod quant ((pdef pdef-pstream))
+  (slot-value pdef 'quant))
 
 ;; (defmethod quant ((object null))
 ;;   (list 1))
