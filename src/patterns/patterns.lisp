@@ -1553,7 +1553,7 @@ See also: `pfindur'")
    dur
    (tolerance :default 0)
    (current-elapsed :state t :initform 0))
-  "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR.
+  "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR. Any events that would end beyond DUR are cut short.
 
 Example:
 
@@ -1630,7 +1630,7 @@ See also: `pfindur'")
                     (not (>= elapsed-dur maxdur)))
             (if (and (not (null maxdur))
                      (> (+ elapsed-dur (event-value n-event :dur)) maxdur))
-                (combine-events n-event (event :delta (- maxdur elapsed-dur)))
+                (combine-events n-event (event :dur (- maxdur elapsed-dur)))
                 n-event))))))
 
 ;;; pstutter
