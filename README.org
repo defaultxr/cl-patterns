@@ -92,7 +92,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 - [[file:README.org][README.org]] - this file. self-expanatory, i'd hope.
 - [[file:package.lisp][package.lisp]] - the package definition file.
-- [[file:LICENSE][LICENSE]] - the GPLv3 license.
+- [[file:LICENSE][LICENSE]] - the MIT license.
 - [[file:cl-patterns.asd][cl-patterns.asd]] - cl-patterns systems definition file.
 
 ** doc
