@@ -108,7 +108,9 @@ See also: `event-value'"
   (event-value event slot))
 
 (defun combine-events (&rest events)
-  "Returns an event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events."
+  "Returns an event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
+
+See also: `split-event-by-lists'"
   (let ((result (loop :for ev :in events
                    :if (null ev)
                    :return nil
@@ -117,6 +119,31 @@ See also: `event-value'"
     (when (and result
                (null (position-if #'null result)))
       (apply #'event result))))
+
+(defun split-event-by-lists (event)
+  "Split an event up by any lists in its values. Also known as multichannel expansion.
+
+Example:
+
+;; (split-event-with-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5)))
+;;
+;; ;=> ((EVENT :FOO 1 :BAR 1 :BAZ 3)
+;;      (EVENT :FOO 1 :BAR 2 :BAZ 4)
+;;      (EVENT :FOO 1 :BAR 1 :BAZ 5))
+
+See also: `combine-events'"
+  (let ((length (reduce 'max
+                        (mapcar
+                         (lambda (x) (length (alexandria:ensure-list x)))
+                         (loop :for key :in (keys event)
+                            :collect (event-value event key))))))
+    (if (= 1 length)
+        (list event)
+        (loop :for i :from 0 :below length
+           :collect
+             (apply 'event
+                    (loop :for key :in (keys event)
+                       :append (list key (nth-wrap i (alexandria:ensure-list (event-value event key))))))))))
 
 (defun play-test (item &optional pstream)
   "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."

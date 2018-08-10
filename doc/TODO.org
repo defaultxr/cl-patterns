@@ -67,7 +67,10 @@ CLOSED: [2018-07-01 Sun 18:01]
 
 * ~pclockdm~ - clock divider/multiplier pattern. could be used, for example, for a pattern that's set to ~:pfollow~ another pattern, to make it trigger twice as often, half as often, etc. for half as often, patterns would have to have their own ~gensym~ s or IDs so that it could be kept track of whether or not to trigger the sub-pattern for each event. this ID would probably have to be associated with the pattern itself, not the pstream. could maybe be like the ~number~ slot but for the number of times the pattern is played, not the number of events in the pstream.
 
-* events with arrays/lists as values should be automatically multichannel-expanded as the last step before being played, and those lists/events should be handled properly by the pattern system prior to that.
+* events with lists as values should be automatically multichannel-expanded as the last step before being played, and those lists/events should be handled properly by the pattern system prior to that.
+** DONE basic pre-backend multichannel expansion
+CLOSED: [2018-08-09 Thu 19:39]
+** TODO patterns automatically and correctly handle/coerce lists as values
 
 * ~pmetropolis~ - intellijel metropolis-inspired pattern class (maybe a mini-language for compactly representing durstutters, etc).
 ** i.e., could be something like this:

@@ -114,10 +114,12 @@
                  nil)
                 (otherwise
                  (let* ((event (combine-events nv (event :timestamp-at-start (absolute-beats-to-timestamp (slot-value task 'next-time) clock))))
-                        (backend (which-backend-for-event event)))
-                   (if backend
-                       (funcall (getf (getf *backends* backend) :play) event task)
-                       (warn "No backend claims to handle ~s; skipping." nv)))))
+                        (events (split-event-by-lists event)))
+                   (loop :for event :in events
+                      :for backend = (getf (getf *backends* (which-backend-for-event event)) :play)
+                      :do (if backend
+                              (funcall backend event task)
+                              (warn "No backend claims to handle ~s; skipping." nv))))))
               ;; play the next event from this task if it occurs before the clock's next "wakeup time"
               (unless (position type '(:tempo-change))
                 (incf (slot-value task 'next-time) (event-value nv :delta))

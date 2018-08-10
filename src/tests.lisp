@@ -291,6 +291,27 @@
              (list))
             "every-event-equal returns false for two lists of different length"))
 
+(test combine-events
+  "Test combine-events"
+  (is-true (event-equal
+            (event :foo 1 :bar 2 :baz 3)
+            (combine-events (event :foo 1) (event :bar 2 :baz 3)))
+           "event-equal works correctly on two events")
+  (is-true (event-equal
+            (event :freq 450 :qux 69 :baz 3)
+            (combine-events (event :freq 450) (event :qux 69) (event :baz 3)))
+           "event-equal works correctly on three events"))
+
+(test split-event-by-lists
+  "Test split-event-by-lists"
+  (is-true
+   (every-event-equal
+    (list (event :foo 1 :bar 1 :baz 3)
+          (event :foo 1 :bar 2 :baz 4)
+          (event :foo 1 :bar 1 :baz 5))
+    (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
+   "split-event-by-lists correctly splits an event into a list of three events"))
+
 ;;; patterns
 
 (test embedding

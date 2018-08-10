@@ -77,6 +77,7 @@
    #:event
    #:*event*
    #:combine-events
+   #:split-event-by-lists
    #:event-plist
    #:event-equal
    #:every-event-equal
