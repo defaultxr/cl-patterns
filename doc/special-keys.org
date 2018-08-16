@@ -39,7 +39,7 @@ Various ways to specify the pitch of the synth.
 
 * pbind special init keys
 
-pbind supports a set of special keys that, during the initialization of the pbind, run a function which may inject key/value pairs into the pbind's pattern-pairs, or alter it in another way. For example, a pbind that looks like this:
+pbind supports a set of special keys that, during the initialization of the pbind, run a function which may alter the pbind's pattern-pairs, or alter the pattern in another way. For example, a pbind that looks like this:
 
 #+BEGIN_SRC lisp
   (defparameter *pat* (pbind :foo (pseq '(1 2 3))

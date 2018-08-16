@@ -16,10 +16,11 @@ CLOSED: [2018-07-01 Sun 18:01]
 ** ~tsubseq*~ function. same as ~tsubseq~ but it also includes synths that would've already been playing at the start time specified.
   * i.e. ~(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)~ returns ~(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))~
 
-* do "static" things to "dynamic" patterns - i.e. ~(pshift (pseq '(1 2 3)) 1)~ results in ~'(3 1 2 3 1 2 3 ...)~ or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
+* do "static" things to "dynamic" patterns - i.e. ~(pshift (pseq '(1 2 3)) 1)~ results in ~(3 1 2 3 1 2 3 ...)~ or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
 
 * more metadata in patterns and streams so that it's easier to write functions that process streams/patterns/etc
-** automatically record output from pstreams so it can be referenced later - store ~*max-pattern-yield-length*~ values from each pattern.
+** DONE automatically record output from pstreams so it can be referenced later - store ~*max-pattern-yield-length*~ values from each pattern.
+CLOSED: [2018-08-02 Thu 23:03]
 *** make a ~current~ function that will get the last value that was output from a pstream.
 
 * make it possible to easily create lfos for the synth's parameters
@@ -111,6 +112,8 @@ CLOSED: [2018-07-01 Sun 18:02]
 ...where any pattern that signals a condition/error is automatically removed from the clock, so the music doesn't come to a screeching halt.
 still trying to think of ideas for how to make a good "performance mode" without just dumbly removing any patterns with errors... (is it possible to continue the rest of the clock's tasks while the user/coder is responding to the error condition?)
 * pattern plotting
+** via vgplot
+** interactively, via (Mc)CLIM
 * pgeom/pseries fromEndPoints
 * "triggered mode" that causes patterns that proceed to the next event only when they receive an external trigger
 ** keys like ~dur~ and ~delta~ would no longer have effect. perhaps enable triggered mode by setting a pattern's ~dur~ to ~:trigger~ instead of a number?
