@@ -114,7 +114,7 @@ pbind's last type of special keys are the process keys. Unlike the init and wrap
 
 #+BEGIN_SRC lisp
   (pbind :foo (pseq '(1 2 3))
-         :inject (pbind :bar (pseq '(9 8 7) 1)))
+         :embed (pbind :bar (pseq '(9 8 7) 1)))
 #+END_SRC
 
 ...yields these events as its output:
@@ -125,12 +125,12 @@ pbind's last type of special keys are the process keys. Unlike the init and wrap
    (EVENT :FOO 3 :BAR 7))
 #+END_SRC
 
-This is because the ~inject~ key injects whatever its value's outputs are into the pbind's output events.
+This is because the ~embed~ key embeds whatever its value's outputs are into the pbind's output events.
 
 Here is a listing of all special process keys:
 
-** ~inject~
-Injects its value's outputs into the pbind's output events.
+** ~embed~
+Embeds its value's outputs into the pbind's output events.
 ** ~pbeat~
 NOTE: Not implemented yet.
 

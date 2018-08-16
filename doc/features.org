@@ -17,10 +17,10 @@ See [[file:special-keys.org][special-keys.org]] for a full listing of such keys.
 - pbind has "special" keys which alter the functionality of the pattern or pstream.
 For consistency, they're typically named after other patterns, i.e. ~pfin~ / ~remaining~, ~pfindur~, ~psync~, etc.
 See [[file:special-keys.org][special-keys.org]] for a full listing.
-- it's possible to "inject" an event's values into another from inside a pattern. For example:
+- it's possible to embed an event's values into another from inside a pattern. For example:
 #+BEGIN_SRC lisp
   (next-n (pbind :foo (pseq '(1 2 3 4))
-                 :inject (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
+                 :embed (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
           3)
   ((EVENT :FOO 1)
    (EVENT :FOO 2 :BAR 1 :BAZ 2)

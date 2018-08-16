@@ -445,7 +445,7 @@ See also: `pmono', `pb'"
                   (unless (typep pattern 'pbind)
                     (alexandria:appendf pattern-chain (list pattern))
                     (setf pattern (make-instance 'pbind)))
-                  (alexandria:appendf res-pairs (list key (if (and (eq key :inject)
+                  (alexandria:appendf res-pairs (list key (if (and (eq key :embed)
                                                                    (typep value 'symbol))
                                                               (pdef value)
                                                               value)))))))
@@ -497,7 +497,7 @@ See also: `pbind', `pdef'"
               :collect (slot-value pattern slot)))))
 
 (defmacro define-pbind-special-init-key (key &body body)
-  "Define a special key for pbind that alters the pbind during its initialization, either by injecting a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should inject values into the pbind pairs, or NIL if it should not."
+  "Define a special key for pbind that alters the pbind during its initialization, either by embedding a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should embed values into the pbind pairs, or NIL if it should not."
   (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-init-keys* ,keyname)
            (lambda (value pattern)
@@ -553,13 +553,13 @@ See also: `pbind', `pdef'"
       pattern))
 
 (defmacro define-pbind-special-process-key (key &body body)
-  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should inject values into the event stream, or NIL if it should not."
+  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should embed values into the event stream, or NIL if it should not."
   (let ((keyname (alexandria:make-keyword key)))
     `(setf (getf *pbind-special-process-keys* ,keyname)
            (lambda (value)
              ,@body))))
 
-(define-pbind-special-process-key inject
+(define-pbind-special-process-key embed
   value)
 
 (defmethod next ((pattern pbind-pstream))
@@ -1915,7 +1915,7 @@ Example:
 ;;
 ;; => ((EVENT :FOO 1 :BAR 7) (EVENT :FOO 2 :BAR 8) (EVENT :FOO 3 :BAR 9) NIL)
 
-See also: `pbind''s :inject key"
+See also: `pbind''s :embed key"
   (defun pchain (&rest patterns)
     (set-parents
      (make-instance 'pchain

@@ -94,7 +94,7 @@ this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide in
 ** accepts statements like these:
 - ~for last 2 notes in (pbind :midinote (pseq '(60 58 56 55) 1)) set :dur 2~
 - ~for only (= (mod (slot-value e 'number) 2) 0) in (pbind :midinote (pseq '(60 58 56 55) 1)) set :midinote (p+ 12 (pk :midinote))~
-* pattern that automatically calculates sample ~:start~ and ~:end~ from onsets data (in the form of an event stream, which can then be ~:inject~-ed) for synths that play sections of a sound.
+* pattern that automatically calculates sample ~:start~ and ~:end~ from onsets data (in the form of an event stream, which can then be ~:embed~-ed) for synths that play sections of a sound.
 * special key for patterns that lets you specify the beat that an event starts on directly, rather than it being determined by inter-onset times with ~:dur~ or the like.
 - would probably be relative to the start of the pattern.
 - probably couldn't be an event special key since context is needed to derive the duration/start time, etc.

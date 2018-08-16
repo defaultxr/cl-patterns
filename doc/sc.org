@@ -92,7 +92,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pmono~ - done as ~pmono~.
 - ~PmonoArtic~ - ~pmono~ covers this functionality.
 - ~Pdef~ - done as ~pdef~. see also: ~pbind~'s ~:name~ / ~:pdef~ keys.
-- ~Pchain~ - done as ~pchain~. see also: ~pbind~'s ~:inject~ key.
+- ~Pchain~ - done as ~pchain~. see also: ~pbind~'s ~:embed~ key.
 - ~Pdict~
 - ~Penvir~
 - ~Peventmod~

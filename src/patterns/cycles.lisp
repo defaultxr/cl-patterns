@@ -76,7 +76,7 @@
     (recurse list 1)))
 
 (defmacro cycles (spec map &rest list)
-  "Convenience macro to specify a rhythm or melody using symbols. Outputs a list of events with :type, :dur, and another parameter which is specifiable. Usually used to :inject into a pattern.
+  "Convenience macro to specify a rhythm or melody using symbols. Outputs a list of events with :type, :dur, and another parameter which is specifiable. Usually used to :embed into a pattern.
 
 SPEC is a symbol representing the type of output you're going to send. It can be midinote, freq, note, instrument, or bufnum. It can also be a list, which provides the spec as the first element, and keywords (such as :dur for the total dur) for the rest.
 
