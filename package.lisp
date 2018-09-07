@@ -165,7 +165,9 @@
    #:make-clock
    #:play
    #:stop
+   #:end
    #:play-or-stop
+   #:play-or-end
    #:pdefs-playing
 
    ;;; sugar.lisp

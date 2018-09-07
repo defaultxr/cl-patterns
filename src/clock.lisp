@@ -5,6 +5,8 @@
 ;; FIX: don't play "expired" events... i.e. if the event should have already ended by the time we get around to playing it, just don't play it. this way, if the user takes too long to select a restart when an error occurs on the clock, the events won't be played all at once.
 ;; FIX: print a warning after the clock has finished "catching up"... or perhaps print a warning each time the sleep amount is 0?
 ;; FIX: make the clock's "beats" slot always completely accurate, so it can be referenced from within patterns or the like.
+;; FIX: creating a new clock should not automatically start the clock. instead, it should be started manually by default, but include convenience methods for the current behavior.
+;; ... should also be standard/supported to advance the clock manually (i.e. within a game loop)
 
 (in-package :cl-patterns)
 
@@ -28,7 +30,8 @@
    (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
    (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")
-   (thread :documentation "The bordeaux-threads thread that is running the clock.")))
+   (thread :documentation "The bordeaux-threads thread that is running the clock."))
+  (:documentation "A musical time-based clock defining a tempo and pulse that its tasks synchronize to."))
 
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
@@ -37,9 +40,17 @@
   ((gensym :initform (gensym))
    (clock :initarg :clock :initform *clock*)
    (item :initarg :item :initform nil)
+   (loop-p :initarg :loop-p)
    (start-time :initarg :start-time :initform nil)
    (next-time :initarg :next-time :initform nil)
-   (nodes :initarg :nodes :initform (list))))
+   (nodes :initarg :nodes :initform (list)))
+  (:documentation "An item scheduled to be run on the clock."))
+
+(defun task-loop-p (task)
+  "Whether the task should loop. If the task's LOOP-P slot is unbound, it refers to the task's pattern's LOOP-P slot."
+  (if (slot-boundp task 'loop-p)
+      (slot-value task 'loop-p)
+      (slot-value (slot-value task 'item) 'loop-p)))
 
 (defun absolute-beats-to-timestamp (beats clock)
   "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's beat-at-tempo slot."
@@ -58,6 +69,7 @@
     (format stream "#<~s :tempo ~f :beats ~f>" 'clock tempo beats)))
 
 (defun clock-add (item &optional (clock *clock*))
+  "Add ITEM to CLOCK's tasks."
   (with-slots (tasks tasks-lock) clock
     (bt:with-lock-held (tasks-lock)
       (let ((task (make-instance 'task :clock clock :item item)))
@@ -65,6 +77,7 @@
         task))))
 
 (defun clock-remove (item &optional (clock *clock*))
+  "Remove ITEM from CLOCK's tasks."
   (with-slots (tasks tasks-lock) clock
     (bt:with-lock-held (tasks-lock)
       (setf tasks
@@ -76,7 +89,9 @@
                    (let ((backend (car (last (remove-if #'null (mapcar #'which-backend-for-event (slot-value (slot-value task 'item) 'history)))))))
                      (if backend
                          (map nil (getf (getf *backends* backend) :release) nodes)
-                         (error "No backends found for the events from task ~a; unable to release ~d nodes!" task (length nodes)))))
+                         (progn
+                           (warn "No backends found for the events from task ~a; falling back to generic release method." task)
+                           (map nil 'release nodes)))))
                  eq))
              tasks)))))
 
@@ -95,7 +110,7 @@
     (restart-case
         (let* ((item (slot-value task 'item))
                (nv (next item)))
-          (when (and (null nv) (loop-p item)) ;; auto-reschedule patterns that should loop.
+          (when (and (null nv) (task-loop-p task)) ;; auto-reschedule patterns that should loop.
             (setf (slot-value task 'item) (as-pstream (pdef (slot-value item 'key))))
             (setf nv (next (slot-value task 'item)))
             (setf item (slot-value task 'item)))
@@ -164,9 +179,9 @@
         t)))
 
 (defun clock-loop (clock)
-  (loop (tick clock)))
+  (loop (clock-tick clock)))
 
-(defun tick (clock)
+(defun clock-tick (clock)
   (with-slots (tasks tasks-lock granularity tempo beats) clock
     (let ((results (bt:with-lock-held (tasks-lock) ;; FIX: if a tempo-change occurs at the same time as a regular event, make sure the tempo-change is processed first
                      (mapcar (lambda (task)
@@ -189,17 +204,14 @@
 (defgeneric play (item)
   (:documentation "Play an item (typically an event or pattern) according to the current *event-output-function*."))
 
-(defgeneric stop (item)
-  (:documentation "Stop an item (typically a playing task or pdef) according to the current *event-output-function*."))
+(defmethod play ((event event))
+  (clock-add event))
 
-(defgeneric play-or-stop (item)
-  (:documentation "Play an item or stop it if it is already playing. Returns T if the item will start playing, returns NIL if it will stop playing."))
+(defmethod play ((pattern pattern))
+  (clock-add (as-pstream pattern) *clock*))
 
-(defmethod play ((item event))
-  (clock-add item))
-
-(defmethod play ((pattern pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)
-  (with-slots (key) pattern
+(defmethod play ((pdef pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)
+  (with-slots (key) pdef
     (unless (position (pdef-ref-get key :task)
                       (slot-value *clock* 'tasks))
       (let ((task (call-next-method)))
@@ -207,29 +219,47 @@
           (pdef-ref-set key :task task)
           task)))))
 
-(defmethod stop ((pattern pdef))
-  (with-slots (key) pattern
+(defmethod play ((symbol symbol)) ;; FIX: possibly make this work for proxies & other stuff as well
+  (play (pdef symbol)))
+
+(defgeneric stop (item)
+  (:documentation "Immediately stop a playing item (typically a playing task or pdef).
+
+See also: `end'"))
+
+(defmethod stop ((pdef pdef))
+  (with-slots (key) pdef
     (when (pdef-ref-get key :task)
       (stop (pdef-ref-get key :task)))
     (pdef-ref-set key :pstream (as-pstream (pdef-ref-get key :pattern)))
     (pdef-ref-set key :task nil)))
 
-;; FIX: in the future, make these two methods work for proxies & other stuff as well...
-(defmethod play ((pattern symbol)) ;; we assume they meant the pdef with that symbol as name.
-  (play (pdef pattern)))
+(defmethod stop ((symbol symbol)) ;; we assume they meant the pdef with that symbol as name.
+  (stop (pdef symbol)))
 
-(defmethod stop ((pattern symbol)) ;; we assume they meant the pdef with that symbol as name.
-  (stop (pdef pattern)))
+(defmethod stop ((task task))
+  (clock-remove task))
 
-(defmethod play ((item pattern))
-  (clock-add (as-pstream item) *clock*))
+(defgeneric end (item)
+  (:documentation "End a task; it will stop when its current loop completes."))
 
-(defmethod stop ((item task))
-  (clock-remove item))
+(defmethod end ((item pdef))
+  (with-slots (key) item
+    (if (pdef-ref-get key :task)
+        (end (pdef-ref-get key :task))
+        (warn "pdef ~a has no connected task; try the `stop' method instead." key))))
+
+(defmethod end ((item symbol))
+  (end (pdef item)))
+
+(defmethod end ((item task))
+  (setf (slot-value item 'loop-p) nil))
+
+(defgeneric play-or-stop (item)
+  (:documentation "`play' an item, or `stop' it if it is already playing. Returns the task if the item will start playing, or NIL if it will stop."))
 
 (defmethod play-or-stop ((item pattern)) ;; if it's a regular pattern, we can't tell if it should stop because it has no 'key'... so we always play it.
-  (play item)
-  t)
+  (play item))
 
 (defmethod play-or-stop ((item pdef))
   (play-or-stop (slot-value item 'key)))
@@ -238,7 +268,22 @@
   (let ((playing (position item (clock-tasks-names))))
     (if playing
         (progn (stop item) nil)
-        (progn (play item) t))))
+        (play item))))
+
+(defgeneric play-or-end (item)
+  (:documentation "`play' an item, or `end' it if it's already playing. Returns the task if the item will start playing, or NIL if it will end."))
+
+(defmethod play-or-end ((item pattern))
+  (play item))
+
+(defmethod play-or-end ((item pdef))
+  (play-or-end (slot-value item 'key)))
+
+(defmethod play-or-end ((item symbol))
+  (let ((playing (position item (clock-tasks-names))))
+    (if playing
+        (progn (end item) nil)
+        (play item))))
 
 (defun pdefs-playing (&optional (clock *clock*))
   "Get a list of the names of all pdefs playing on CLOCK."
