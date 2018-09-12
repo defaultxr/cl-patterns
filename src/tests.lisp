@@ -327,7 +327,7 @@
          (length (next-upto-n (pbind :remaining 5 :foo 1))))
       ":remaining key functions properly when specified in pbind")
   (is (= 5
-         (length (next-upto-n (let ((pat (pseq '(1 2 3) :inf)))
+         (length (next-upto-n (let ((pat (pseq (list 1 2 3) :inf)))
                                 (setf (slot-value pat 'cl-patterns::remaining) 5)
                                 pat))))
       "remaining slot functions properly when setf"))
@@ -351,7 +351,7 @@
                             (loop :for i :upto 200 :collect (= (peek pstr) (next pstr)))))
             "peek and next return the same values")
   (is (= 0
-         (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq '(1 2 3) 1)))))
+         (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq (list 1 2 3) 1)))))
            (peek pstr)
            (beats-elapsed pstr)))
       "beats-elapsed should not count peeked outputs"))
@@ -359,10 +359,10 @@
 (test pbind
   "Test pbind functionality"
   (is (equal (list :foo :bar :baz)
-             (cl-patterns::keys (next (pbind :foo 1 :bar 2 :baz (pseq '(1 2 3) 1)))))
+             (cl-patterns::keys (next (pbind :foo 1 :bar 2 :baz (pseq (list 1 2 3) 1)))))
       "pbind returns events that only have the keys specified")
   (is (= 3
-         (length (next-upto-n (pbind :foo 1 :bar 2 :baz (pseq '(1 2 3) 1)))))
+         (length (next-upto-n (pbind :foo 1 :bar 2 :baz (pseq (list 1 2 3) 1)))))
       "pbind returns the correct number of events")
   (is (= 77
          (let ((*max-pattern-yield-length* 77))
@@ -371,7 +371,7 @@
 
 (test parent ;; FIX: make sure all patterns are given parents
   "Test whether patterns have the correct parent information"
-  (is-true (let ((pb (pbind :foo (pseq '(1 2 3)))))
+  (is-true (let ((pb (pbind :foo (pseq (list 1 2 3)))))
              (eq (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
                  pb))
            "pbind subpatterns have correct parents for pseq")
@@ -410,10 +410,10 @@
                   (event :bar 3 :qux 420 :dur 1/2)
                   (event :bar 3 :qux 420 :dur 1/2)
                   (event :bar 3 :qux 666 :dur 1))
-            (next-upto-n (pbind :bar (pseq '(1 2 3) 1)
-                                :pr (pseq '(1 2 3))
-                                :qux (pseq '(69 420 666))
-                                :pdurstutter (pseq '(3 2 1)))))))
+            (next-upto-n (pbind :bar (pseq (list 1 2 3) 1)
+                                :pr (pseq (list 1 2 3))
+                                :qux (pseq (list 69 420 666))
+                                :pdurstutter (pseq (list 3 2 1)))))))
 
 (test t-pstream
   "Test functionality of non-patterns as pstreams"
@@ -424,7 +424,7 @@
          (length (next-upto-n (lambda () (random 420)))))
       "Functions coerced to pstreams only return one value")
   (is (= 3
-         (length (next-upto-n (pseq '(1 2 3) 1))))
+         (length (next-upto-n (pseq (list 1 2 3) 1))))
       "Patterns return the correct number of values when their parameters are values coerced to pstreams")
   (is (= 5
          (let ((*max-pattern-yield-length* 5))
@@ -434,25 +434,25 @@
 (test remainingp ;; FIX: test this for all patterns that use it.
   "Test the behavior of the `remainingp' function"
   (is (equal (list 1 2 3)
-             (next-upto-n (pseq '(1 2 3) 1)))
+             (next-upto-n (pseq (list 1 2 3) 1)))
       "pseq returns the correct number of results")
   (is (= 64
          (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq '(1 2 3) :inf)))))
+           (length (next-upto-n (pseq (list 1 2 3) :inf)))))
       "pseq returns the correct number of results when `next-upto-n' is called with its REPEATS as :inf")
   (is (= 64
          (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq '(1 2 3) (pseq '(1) :inf))))))
+           (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1) :inf))))))
       "pseq returns the correct number of results when its REPEATS is a pattern")
   (is (= 3
          (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq '(1 2 3) (pseq '(1 0) :inf))))))
+           (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) :inf))))))
       "pseq returns the correct number of results when its REPEATS is a pattern"))
 
 (test pseq
   "Test pseq"
   (is (null
-       (next-upto-n (pseq '(1 2 3) 0)))
+       (next-upto-n (pseq (list 1 2 3) 0)))
       "pseq returns 0 results when REPEATS is 0")
   (is (equal
        (list 1 2 3 1 2 3 nil nil)
@@ -465,12 +465,12 @@
   (is (string= "" ;; FIX: this should be done for other patterns as well.
                (let* ((s (make-string-output-stream))
                       (*standard-output* s))
-                 (as-pstream (pseq '(1 2 3) (lambda () (print 3))))
+                 (as-pstream (pseq (list 1 2 3) (lambda () (print 3))))
                  (get-output-stream-string s)))
       "pseq's REPEATS argument is not evaluated until `next' is called")
   (is (equal (list 1 2 3 1 2 3 1 2 3 1 2 3 NIL) ;; FIX: do this for other patterns as well.
              (let* ((foo 1)
-                    (bar (as-pstream (pseq '(1 2 3) (pfunc (lambda () foo))))))
+                    (bar (as-pstream (pseq (list 1 2 3) (pfunc (lambda () foo))))))
                (next-n bar 10) ;=> (1 2 3 1 2 3 1 2 3 1)
                (setf foo 0)
                (next-n bar 3) ;=> (2 3 NIL)
@@ -479,11 +479,11 @@
       "pseq returns correct results when its REPEATS is used as a gate")
   (is (equal
        (list 6 7 5 6 7 5)
-       (next-upto-n (pseq '(5 6 7) 2 1)))
+       (next-upto-n (pseq (list 5 6 7) 2 1)))
       "pseq's OFFSET argument works with an integer")
   (is (equal
        (list 6 5 6)
-       (next-upto-n (pseq '(5 6 7) 2 (pseq '(1 2 -1) 1))))
+       (next-upto-n (pseq (list 5 6 7) 2 (pseq (list 1 2 -1) 1))))
       "pseq's OFFSET argument works with a pattern"))
 
 (test pser
@@ -502,22 +502,22 @@
       "pser's OFFSET argument works correctly with a pattern")
   (is (equal
        (list 1 1 0 0 2 2)
-       (next-upto-n (pser '(0 1 2) :inf (pseq '(1 0) 3))))
+       (next-upto-n (pser (list 0 1 2) :inf (pseq (list 1 0) 3))))
       "pser's OFFSET argument works correctly with a finite pattern"))
 
 (test pk
   "Test pk"
   (is (equal
        (list 3)
-       (gete (next-n (pbind :foo (pseq '(3) 1) :bar (pk :foo)) 1) :bar))
+       (gete (next-n (pbind :foo (pseq (list 3) 1) :bar (pk :foo)) 1) :bar))
       "pk returns correct results")
   (is (equal
        (list 1 2 3 nil)
-       (gete (next-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :foo)) 4) :bar))
+       (gete (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :foo)) 4) :bar))
       "pk returns correct results")
   (is (equal
        (list 2 2 2 nil)
-       (gete (next-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :baz 2)) 4) :bar))
+       (gete (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :baz 2)) 4) :bar))
       "pk returns correct results when a default is provided and its KEY is not in the source")
   (is (=
        3
@@ -527,10 +527,10 @@
 
 (test prand
   "Test prand"
-  (is (not (member nil (mapcar (lambda (x) (member x '(1 2 3))) (next-upto-n (prand '(1 2 3) :inf)))))
+  (is (not (member nil (mapcar (lambda (x) (member x (list 1 2 3))) (next-upto-n (prand (list 1 2 3) :inf)))))
       "prand does not produce any values other than the ones provided")
   (is (= 3
-         (length (next-upto-n (prand '(1 2 3) 3))))
+         (length (next-upto-n (prand (list 1 2 3) 3))))
       "prand returns the correct number of results"))
 
 (test pxrand
@@ -575,19 +575,19 @@
 (test pr
   "Test pr"
   (is (equal (list 1 1 2 2 3 3 nil)
-             (next-n (pr (pseq '(1 2 3) 1) 2) 7))
+             (next-n (pr (pseq (list 1 2 3) 1) 2) 7))
       "pr returns correct results when its REPEATS is a number")
   (is (equal (list 1 1 2 2 2 3 3 nil)
-             (next-n (pr (pseq '(1 2 3) 1) (lambda (e) (if (= e 2) 3 2))) 8))
+             (next-n (pr (pseq (list 1 2 3) 1) (lambda (e) (if (= e 2) 3 2))) 8))
       "pr returns correct results when its REPEATS is a function")
   (is (equal (list 1 1 2 2 3 3 nil nil)
-             (next-n (pr (pseq '(1 2 3) 1) (lambda () 2)) 8))
+             (next-n (pr (pseq (list 1 2 3) 1) (lambda () 2)) 8))
       "pr returns correct results when its REPEATS is a function that doesn't accept arguments")
   (is (equal (list 3 3 3 3 3 3 3 3 3 3)
              (next-n (pr 3) 10))
       "pr returns correct results when its REPEATS is :inf")
   (is (equal (list 1 1 2 nil)
-             (next-n (pr (pseq '(1 2 3) 1) (pseq '(2 1 0) 1)) 4))
+             (next-n (pr (pseq (list 1 2 3) 1) (pseq (list 2 1 0) 1)) 4))
       "pr skips elements when REPEATS is 0"))
 
 (test pdef
@@ -597,17 +597,17 @@
 (test plazy
   "Test plazy"
   (is (equal (list 1 2 3 1 2 3 1)
-             (next-n (plazy (lambda () (pseq '(1 2 3)))) 7))
+             (next-n (plazy (lambda () (pseq (list 1 2 3)))) 7))
       "plazy returns correct results")
   (is (null (next-upto-n (plazy (lambda () nil))))
       "plazy returns correct results when its function returns nil"))
 
 (test plazyn
   "Test plazyn"
-  (is (null (next-upto-n (plazyn (lambda () (pseq '(1 2 3))) 0)))
+  (is (null (next-upto-n (plazyn (lambda () (pseq (list 1 2 3))) 0)))
       "plazyn returns 0 results if REPEATS is 0")
-  (is (equal '(1 2 3 1 2 3)
-             (next-upto-n (plazyn (lambda () (pseq '(1 2 3) 1)) 2)))
+  (is (equal (list 1 2 3 1 2 3)
+             (next-upto-n (plazyn (lambda () (pseq (list 1 2 3) 1)) 2)))
       "plazyn returns correct results"))
 
 ;; pcycles (FIX)
@@ -626,22 +626,22 @@
       "pn returns correct results when its source pattern is a value")
   (is (equal
        (list 1 2 3 1 2 3 1 2 3 nil nil nil)
-       (next-n (pn (pseq '(1 2 3) 1) 3) 12))
+       (next-n (pn (pseq (list 1 2 3) 1) 3) 12))
       "pn returns correct results when its source pattern is a pattern")
-  (is (null (next (pn (pseq '(1 2 3) 0) 1)))
+  (is (null (next (pn (pseq (list 1 2 3) 0) 1)))
       "pn does not hang when its source pattern returns no values"))
 
 (test pshuf
   "Test pshuf"
   (is (= 5
-         (length (next-upto-n (pshuf '(1 2 3 4 5) 1) 32)))
+         (length (next-upto-n (pshuf (list 1 2 3 4 5) 1) 32)))
       "pshuf returns the correct number of results when REPEATS is specified")
   (is (= 10
-         (length (next-upto-n (pshuf '(1 2 3 4 5) 2) 32)))
+         (length (next-upto-n (pshuf (list 1 2 3 4 5) 2) 32)))
       "pshuf returns the correct number of results when REPEATS is specified")
   (is (equal
        (list 1 2 3 4 5)
-       (next-upto-n (pseq '(1 2 3 4 5) 1))) ;; this list must be quoted and must be the same as one of the ones used in the pshuf test above.
+       (next-upto-n (pseq (list 1 2 3 4 5) 1))) ;; this list must be quoted and must be the same as one of the ones used in the pshuf test above.
       "pshuf does not destructively modify its input list"))
 
 (test pwhite
@@ -689,7 +689,7 @@
              (next-n (pseries 0 1 :inf) 64))
       "pseries returns correct results")
   (is (equal (list 0 1 1 0 -1 -2)
-             (next-upto-n (pseries 0 (pseq '(1 0 -1 -1 -1) 1) :inf)))
+             (next-upto-n (pseries 0 (pseq (list 1 0 -1 -1 -1) 1) :inf)))
       "pseries returns correct results when its STEP is a pattern"))
 
 (test pgeom
@@ -698,7 +698,7 @@
              (next-n (pgeom 1 2 :inf) 8))
       "pgeom returns correct results")
   (is (equal (list 1 1 2 6 3.0 2.1)
-             (next-upto-n (pgeom 1 (pseq '(1 2 3 0.5 0.7) 1) :inf)))
+             (next-upto-n (pgeom 1 (pseq (list 1 2 3 0.5 0.7) 1) :inf)))
       "pgeom returns correct results when its GROW is a pattern"))
 
 (test ptrace
@@ -717,13 +717,13 @@
 (test pnary
   "Test pnary"
   (is (equal (list 3 4 5)
-             (next-upto-n (pnary #'+ (pseq '(1 2 3) 1) 2)))
+             (next-upto-n (pnary #'+ (pseq (list 1 2 3) 1) 2)))
       "pnary returns correct results with pattern and number as arguments")
   (is (equal (list 4 5 6)
-             (next-upto-n (pnary #'+ (pseq '(1 2 3) 1) 2 1)))
+             (next-upto-n (pnary #'+ (pseq (list 1 2 3) 1) 2 1)))
       "pnary returns correct results with pattern and two numbers as arguments")
   (is (equal (list 3 0)
-             (next-upto-n (pnary (pseq (list #'+ #'-)) 2 (pseq '(1 2) 1))))
+             (next-upto-n (pnary (pseq (list #'+ #'-)) 2 (pseq (list 1 2) 1))))
       "pnary returns correct results when its operator is a pattern"))
 
 (test pslide
@@ -744,7 +744,7 @@
 (test phistory
   "Test phistory"
   (is (equal (list 0 nil 1)
-             (next-n (phistory (pseries) (pseq '(0 2 1))) 3))
+             (next-n (phistory (pseries) (pseq (list 0 2 1))) 3))
       "phistory returns correct results, including when outputs that haven't occurred yet are accessed"))
 
 (test pscratch
@@ -762,9 +762,9 @@
                      7))
       "pif returns correct results")
   (is (equal (list 1 2 3 nil 4)
-             (next-n (pif (pseq '(t t nil nil nil))
-                          (pseq '(1 2))
-                          (pseq '(3 nil 4)))
+             (next-n (pif (pseq (list t t nil nil nil))
+                          (pseq (list 1 2))
+                          (pseq (list 3 nil 4)))
                      5))
       "pif returns correct results"))
 
@@ -815,22 +815,22 @@
 (test pstutter
   "Test pstutter"
   (is (equal (list 1 1 1 2 2 2 3 3 3)
-             (next-upto-n (pstutter (pseq '(1 2 3) 1) 3)))
+             (next-upto-n (pstutter (pseq (list 1 2 3) 1) 3)))
       "pstutter returns correct results")
   (is (equal (list 2 3 3)
-             (next-upto-n (pstutter (pseq '(1 2 3) 1) (pseq '(0 1 2) 1))))
+             (next-upto-n (pstutter (pseq (list 1 2 3) 1) (pseq (list 0 1 2) 1))))
       "pstutter returns correct results when its N is a pattern, and when N is 0"))
 
 (test pdurstutter
   "Test pdurstutter"
   (is (equal (list 2 3/2 3/2)
-             (next-upto-n (pdurstutter (pseq '(1 2 3) 1) (pseq '(0 1 2) 1))))
+             (next-upto-n (pdurstutter (pseq (list 1 2 3) 1) (pseq (list 0 1 2) 1))))
       "pdurstutter returns correct results for value patterns")
   (is (every-event-equal
        (list (event :foo 1 :dur 1)
              (event :foo 2 :dur 1/2)
              (event :foo 2 :dur 1/2))
-       (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq '(0 1 2) 1))))
+       (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq (list 0 1 2) 1))))
       "pdurstutter returns correct results for event patterns when its N is a pattern, and when N is 0"))
 
 (test pbeats
@@ -865,7 +865,7 @@
   "Test prun"
   (is-true (every-event-equal
             (list (event :foo 1 :bar 4) (event :foo 2 :bar 5) (event :foo 3 :bar 5) (event :foo 4 :bar 6) (event :foo 5 :bar 8))
-            (next-upto-n (pbind :foo (pseq '(1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
+            (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1) :bar (prun (pseq (list 4 5 6 7 8) 1) (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
            "prun returns correct results"))
 
 (test psym ;; FIX: add more
@@ -884,11 +884,11 @@
   "Test pchain"
   (is-true (every-event-equal
             (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
-            (next-n (pchain (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(7 8 9) 1))) 4))
+            (next-n (pchain (pbind :foo (pseq (list 1 2 3))) (pbind :bar (pseq (list 7 8 9) 1))) 4))
            "pchain correctly combines the outputs from each of its input patterns")
   (is-true (every-event-equal
             (list (event :foo 1 :bar 1) (event :foo 2 :bar 2) (event :foo 3 :bar 3) nil)
-            (next-n (pchain (pbind :foo (pseq '(1 2 3) 1)) (pbind :bar (pk :foo))) 4))
+            (next-n (pchain (pbind :foo (pseq (list 1 2 3) 1)) (pbind :bar (pk :foo))) 4))
            "values from previous patterns are accessible in subsequent patterns when pchain'd"))
 
 (test pdiff
@@ -914,10 +914,10 @@
 (test pdrop
   "Test pdrop"
   (is (equal (list 3 4 nil nil)
-             (next-n (pdrop (pseq '(1 2 3 4) 1) 2) 4))
+             (next-n (pdrop (pseq (list 1 2 3 4) 1) 2) 4))
       "pdrop correctly drops first N outputs")
   (is (equal (list 1 2 3 nil)
-             (next-n (pdrop (pseq '(1 2 3 4 5) 1) -2) 4))
+             (next-n (pdrop (pseq (list 1 2 3 4 5) 1) -2) 4))
       "pdrop correctly drops last N outputs"))
 
 (test ppar
@@ -928,7 +928,7 @@
                       (next-upto-n pat))
               (next-upto-n (ppar (list pat)))))
            "ppar returns correct results when its LIST has only one pattern")
-  (is-true (not (typep (cl-patterns::quant (as-pstream (ppar (list (pseq '(1 2 3) 1)))))
+  (is-true (not (typep (cl-patterns::quant (as-pstream (ppar (list (pseq (list 1 2 3) 1)))))
                        'pstream))
            "Ensure that patterns that use the default as-pstream method don't have their quant converted to a t-pstream" ;; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
            )
