@@ -610,9 +610,13 @@
              (next-upto-n (plazyn (lambda () (pseq (list 1 2 3) 1)) 2)))
       "plazyn returns correct results"))
 
-;; pcycles (FIX)
+(test pcycles
+  ;; FIX
+  )
 
-;; pshift (FIX)
+(test pshift
+  ;; FIX
+  )
 
 (test pn
   "Test pn"
@@ -847,9 +851,9 @@
   ;; FIX
   )
 
-;; (test psinosc
-;;   ;; FIX
-;;   )
+(test psinosc
+  ;; FIX
+  )
 
 (test pindex
   "Test pindex"
