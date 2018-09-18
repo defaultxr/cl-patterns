@@ -957,6 +957,15 @@
   ;; FIX
   )
 
+(test pwalk
+  "Test pwalk"
+  (is (equal (list 0 1 3 3 3 0 2 2 2)
+             (next-n (pwalk (list 0 1 2 3) (pseq (list 1 2 0 0)) 1) 9))
+      "pwalk yields correct outputs for basic inputs")
+  (is (equal (list 60 64 67 72 76 79 84 79 76 72 67 64)
+             (next-n (pwalk (list 60 64 67 72 76 79 84) (pseq (list 1)) (pseq (list 1 -1)) 0) 12))
+      "pwalk's DIRECTION-PATTERN input operates correctly"))
+
 ;;; bjorklund (FIX)
 
 ;;; cycles (FIX)

@@ -1814,7 +1814,7 @@ Example:
 ;;
 ;; => (99 98 97 99 98 97)
 
-See also: `pswitch'")
+See also: `pwalk', `pswitch'")
 
 (defmethod as-pstream ((pindex pindex))
   (with-slots (list-pat index-pat wrap-p) pindex
@@ -2130,4 +2130,50 @@ See also: `psym', `parp'")
                 (setf current-pstream nil)
                 (next pmeta))
               nxt))))))
+
+;;; pwalk
+
+(defpattern pwalk (pattern)
+  (list
+   step-pattern
+   (direction-pattern :default 1)
+   (start-pos :default 0)
+   (current-index :state t)
+   (current-direction :default 1 :state t))
+  "\"Walk\" over the values in LIST by using the accumulated value of the outputs of STEP-PATTERN as the index. At the beginning of the pwalk and each time the start or end of the list is passed, the output of DIRECTION-PATTERN is taken and used as the multiplier for values from STEP-PATTERN. START-POS is the index in LIST for pwalk to take its first output from.
+
+Example:
+
+;; ; using (pseq (list 1 -1)) as the DIRECTION-PATTERN causes the pwalk's output to \"ping-pong\":
+;; (next-n (pwalk (list 0 1 2 3) (pseq (list 1)) (pseq (list 1 -1))) 10)
+;;
+;; => (0 1 2 3 2 1 0 1 2 3)
+
+See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
+
+(defmethod as-pstream ((pwalk pwalk))
+  (with-slots (list step-pattern direction-pattern start-pos) pwalk
+    (make-instance 'pwalk-pstream
+                   :list (next list)
+                   :step-pattern (pattern-as-pstream step-pattern)
+                   :direction-pattern (pattern-as-pstream direction-pattern)
+                   :start-pos (pattern-as-pstream start-pos))))
+
+(defmethod next ((pwalk pwalk-pstream))
+  (with-slots (list step-pattern direction-pattern start-pos current-index current-direction) pwalk
+    (unless (slot-boundp pwalk 'current-direction)
+      (setf current-direction (next direction-pattern)))
+    (if (slot-boundp pwalk 'current-index)
+        (let ((nsp (next step-pattern)))
+          (when (and nsp current-direction)
+            (let ((next-index (+ current-index (* nsp current-direction))))
+              (if (or (minusp next-index) ;; if we're out of the list bounds, check the direction pattern...
+                      (>= next-index (length list)))
+                  (setf current-direction (next direction-pattern)))
+              (setf current-index (mod (+ current-index (* nsp current-direction)) (length list))))))
+        (progn
+          (next list) ;; FIX?
+          (setf current-index (next start-pos))))
+    (when (and current-index list)
+      (nth-wrap current-index list))))
 
