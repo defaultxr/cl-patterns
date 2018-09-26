@@ -13,6 +13,12 @@ Another supported backend for cl-patterns. Written from the ground up and design
 ** [[https://github.com/ormf/cm][Common Music]]
 The original Lisp music library. This repository is a fork of the last version before the project switched over to using Scheme exclusively.
 
+** [[https://github.com/MegaLoler/Music][Music]]
+A framework for musical expression in Lisp with a focus on music theory. (Unrelated to Common Music)
+
+** [[https://github.com/zkat/cl-openal][cl-openal]]
+Lisp bindings to the [[https://www.openal.org/][OpenAL]] audio API, a cross-platform 3D audio API appropriate for use with gaming applications and many other types of audio applications.
+
 * Common Lisp graphics
 
 ** [[https://common-lisp.net/project/mcclim/][McCLIM]]
@@ -27,6 +33,9 @@ A native Lisp graphical user interface library. Uses Lisp idioms and ideas for t
 ** [[https://github.com/vydd/sketch][Sketch]]
 Common Lisp environment for the creation of visual art, game prototyping, etc. Similar in operation to the [[https://processing.org/][Processing]] (Java) library.
 
+** [[https://github.com/volkers/vgplot][vgplot]]
+A Common Lisp interface to gnuplot, a command line-driven cross-platform graphing utility.
+
 * Common Lisp extensions
 
 ** [[http://cl21.org/][cl21]]
@@ -36,12 +45,12 @@ Common Lisp environment for the creation of visual art, game prototyping, etc. S
 "Radical Utilities for Common Lisp". Extends Common Lisp with many additional functions and syntactic sugar, but unlike CL21 it remains backwards compatible with standard Common Lisp.
 
 ** [[https://github.com/rongarret/ergolib][ergolib]]
-"A library designed to make programming in Common Lisp easier"
+"A library designed to make programming in Common Lisp easier".
 
 * Non-CL
 
 ** [[https://supercollider.github.io/][SuperCollider]]
-Audio engine, programming language and IDE. Includes the original patterns system that cl-patterns was based on, as well as scsynth, the primary backend cl-patterns was written for.
+Audio engine, programming language and IDE. Includes the original patterns system that cl-patterns was based on, as well as scsynth, the primary backend cl-patterns is written for.
 
 ** [[https://tidalcycles.org/][TidalCycles]]
 Pattern sequencing library written in Haskell. Also uses SuperCollider as a backend. It's the inspiration for the ~pcycles~ pattern included in cl-patterns.
