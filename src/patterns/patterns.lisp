@@ -2131,6 +2131,36 @@ See also: `psym', `parp'")
                 (next pmeta))
               nxt))))))
 
+;;; pts
+
+(defpattern pts (pattern)
+  (pattern
+   (dur :default 4))
+  "Timestretch PATTERN so its total duration is DUR. Note that only the first `*max-pattern-yield-length*' events from PATTERN are considered, and that they are calculated immediately at pstream creation time rather than lazily as the pstream yields.
+
+Example:
+
+;; (next-upto-n (pts (pbind :dur (pn 1 4)) 5))
+;;
+;; => ((EVENT :DUR 5/4) (EVENT :DUR 5/4) (EVENT :DUR 5/4) (EVENT :DUR 5/4))
+
+See also: `pfindur', `psync'")
+
+(defmethod as-pstream ((pts pts))
+  (with-slots (pattern dur) pts
+    (let ((pstr (as-pstream pattern)))
+      (next-upto-n pstr)
+      (make-instance 'pts-pstream
+                     :pattern pstr
+                     :dur (next dur)))))
+
+(defmethod next ((pts pts-pstream))
+  (with-slots (pattern dur number) pts
+    (let ((mul (/ dur (beats-elapsed pattern)))
+          (ev (pstream-nth number pattern)))
+      (when ev
+        (combine-events ev (event :dur (* mul (event-value ev :dur))))))))
+
 ;;; pwalk
 
 (defpattern pwalk (pattern)

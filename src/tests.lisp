@@ -957,6 +957,13 @@
   ;; FIX
   )
 
+(test pts
+  "Test pts"
+  (is (every-event-equal
+       (list (event :dur 5/4) (event :dur 5/4) (event :dur 5/4) (event :dur 5/4))
+       (next-upto-n (pts (pbind :dur (pn 1 4)) 5)))
+      "pts correctly stretches a 4-beat pattern to 5 beats."))
+
 (test pwalk
   "Test pwalk"
   (is (equal (list 0 1 3 3 3 0 2 2 2)
