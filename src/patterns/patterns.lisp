@@ -164,7 +164,7 @@ See also: `peek', `next-n', `next-upto-n'")
   "Get the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
 
 See also: `next', `next-upto-n'"
-  (assert (numberp n) (n) "next-n's N argument must be a number (getting infinity results from a pstream is not supported).")
+  (assert (integerp n) (n) "next-n's N argument must be an integer (getting infinity results from a pstream is not supported).")
   (let ((pstream (as-pstream pattern)))
     (loop :repeat n
        :collect (next pstream))))
@@ -173,6 +173,7 @@ See also: `next', `next-upto-n'"
   "Get a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
 
 See also: `next', `next-upto-n'"
+  (assert (numberp n) (n) "next-upto-n's N argument must be a number.")
   (let ((pstream (as-pstream pattern)))
     (loop
        :for number :from 0 :upto n
