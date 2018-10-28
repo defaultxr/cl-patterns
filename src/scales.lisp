@@ -3,6 +3,7 @@
 ;;; NOTES:
 ;; * the structs for scales, tunings, and chords are in utility.lisp to avoid compiler warnings
 ;; FIX: make describe-object methods for scales, tunings, and chords.
+;; NOTE: 'key' is a scale including the root note. i.e. "g major" or the like.
 
 ;;; notes
 

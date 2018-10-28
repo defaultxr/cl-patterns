@@ -202,7 +202,7 @@
     (incf beats granularity)))
 
 (defgeneric play (item)
-  (:documentation "Play an item (typically an event or pattern) according to the current *event-output-function*."))
+  (:documentation "Play an item (typically an event or pattern) according to the current `*event-output-function*'."))
 
 (defmethod play ((event event))
   (clock-add event))

@@ -433,7 +433,7 @@ See also: `pmono', `pb'"
              (setf (slot-value value 'parent) pattern))
            (cond ((position key *pbind-special-init-keys*)
                   (alexandria:when-let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
-                    (setf res-pairs (append res-pairs result))))
+                    (alexandria:appendf res-pairs result)))
                  ((position key *pbind-special-wrap-keys*)
                   (unless (null res-pairs)
                     (setf (slot-value pattern 'pairs) res-pairs)
@@ -472,7 +472,7 @@ See also: `pmono', `pb'"
   (format stream "#<~s~{ ~s ~s~}>" 'pbind (slot-value pbind 'pairs)))
 
 (defmacro pb (name &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
-  "pb is a small convenience wrapper around `pbind'. NAME is a keyword for the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind.
+  "pb is a convenience macro, wrapping the functionality of `pbind'. NAME is a keyword for the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind.
 
 See also: `pbind', `pdef'"
   `(pbind :pdef ,name ,@pairs))
@@ -483,7 +483,7 @@ See also: `pbind', `pdef'"
 (defun as-pstream-pairs (pairs)
   (let ((results (list)))
     (loop :for (key val) :on pairs :by #'cddr
-       :do (setf results (append results (list key (pattern-as-pstream val)))))
+       :do (alexandria:appendf results (list key (pattern-as-pstream val))))
     results))
 
 (defmethod as-pstream ((pattern pbind))
@@ -894,7 +894,7 @@ See also: `pstutter', `pdurstutter', `parp'")
   "Set PDEF-KEY's KEY in its plist to PATTERN."
   (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) pattern)))
 
-(defpattern pdef (pattern) ;; FIX: should this call set-parents on its PATTERN?
+(defpattern pdef (pattern)
   ((key :reader pdef-key)
    (current-pstream :state t)
    (loop-p :initform t))
@@ -1798,6 +1798,7 @@ See also: `pbeats', `beats-elapsed', `prun'")
 ;;         (setf last-beat-tracked (slot-value *clock* 'beats))))))
 
 ;;; pindex
+;; TODO: alternate version that only calls #'next on index-pat each time the pattern-as-pstream of list-pat has ended.
 
 (defpattern pindex (pattern)
   (list-pat
@@ -1837,7 +1838,7 @@ See also: `pwalk', `pswitch'")
   (pattern
    (dur :default 1)
    (dur-history :state t))
-  "Run PATTERN in the background, independent of when `next' is called on its pstream. DUR is the duration in beats of the values yielded by PATTERN. If PATTERN is an event pattern, its durations are multiplied by DUR.
+  "Run PATTERN independently of when `next' is called on its pstream. Each output of PATTERN is treated as if it lasted DUR beats, during which time it will be continuously yielded by prun. If PATTERN is an event pattern, DUR acts as a duration multiplier instead.
 
 Example:
 
@@ -2091,12 +2092,13 @@ The following keys are supported:
 The following keys are planned for future implementation:
 
 - :stretch - multiply the duration of each of the source pattern's events.
-- :fit or :ts - fit a pattern to a number of beats, by getting up to `*max-pattern-yield-length*' events from the source pattern, then scaling their total duration.
-- :start or :end - adjust the start or end points of the source pattern (i.e. to skip the first half, set :start to 0.5)
-- :start-beat or :end-beat - adjust the start or end points of the source pattern in number of beats (i.e. to end the pattern 2 beats early, set :end-beat to -2)
+- :ts or :fit - timestretch a pattern so its total duration is the number specified, a la `pts'.
+- :start or :end - adjust the start or end points of the source pattern (i.e. to skip the first half, set :start to 0.5).
+- :start-beat or :end-beat - adjust the start or end points of the source pattern in number of beats (i.e. to end the pattern 2 beats early, set :end-beat to -2).
 - :start-nth or :end-nth - adjust the start or end points of the source pattern by skipping the first or last N events.
 - :filter or :remove-if - skip all events from the source pattern that return nil when applied to the specified function or pattern.
 - :mapcar or :nary - process each event from the source pattern with a function or another pattern.
+- :inject - inject key/value pairs from the output of this value into the source pattern.
 
 See doc/special-keys.org for more information on these keys.
 
@@ -2175,7 +2177,7 @@ See also: `pfindur', `psync'")
 
 Example:
 
-;; ; using (pseq (list 1 -1)) as the DIRECTION-PATTERN causes the pwalk's output to \"ping-pong\":
+;; ;; using (pseq (list 1 -1)) as the DIRECTION-PATTERN causes the pwalk's output to \"ping-pong\":
 ;; (next-n (pwalk (list 0 1 2 3) (pseq (list 1)) (pseq (list 1 -1))) 10)
 ;;
 ;; => (0 1 2 3 2 1 0 1 2 3)

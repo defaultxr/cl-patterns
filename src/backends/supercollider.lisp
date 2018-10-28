@@ -107,6 +107,9 @@
   "Convert a local-time timestamp to the format used by cl-collider."
   (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
 
+(defmethod release ((object sc::node))
+  (sc::release object))
+
 (register-backend :cl-collider
                   :respond-p 'is-sc-event-p
                   :play 'play-sc

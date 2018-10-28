@@ -43,3 +43,6 @@
 
 (defmethod convert-object ((object t))
   object)
+
+(defgeneric release (object)
+  (:documentation "Release a node."))
