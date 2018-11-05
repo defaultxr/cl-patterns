@@ -208,13 +208,6 @@ Additionally, because :define-methods is true, we can also do the following:
 (define-event-special-slot instrument (t :default)
   :define-methods t)
 
-;; (defgeneric instrument (item))
-
-;; (defmethod instrument ((item null)) nil)
-
-;; (defmethod instrument ((item event))
-;;   (event-value item :instrument))
-
 (define-event-special-slot group (t 0))
 
 (define-event-special-slot out (t 0))

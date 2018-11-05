@@ -874,17 +874,11 @@ See also: `pstutter', `pdurstutter', `parp'")
       current-value)))
 
 ;;; pdef
-;; NOTE: the pattern in a pdef will loop when played on a clock.
-;; this can be prevented by doing (setf (slot-value YOUR-PDEF 'loop-p) nil)
-;; if the pattern in a pdef is redefined, it switches between the current and next loops by default.
-;; not fully implemented yet (FIX): if you want the pdef to switch at a time other than between loops, set the 'quant or 'condition slots.
-;; if you want the pdef to stop after its current loop, set it to nil like so: (pdef KEY nil)
+;; FIX: need to implement 'reset' method, and 'condition slot (for switching source patterns based on a condition rather than a quant time).
 
 ;; (pdef-ref KEY) returns the pdef's plist which holds the pattern, pstream, task, etc.
 ;; (pdef-ref-get KEY :task) returns the task associated with (pdef KEY).
 ;; (pdef-ref-set KEY :pattern PAT) sets the pattern for (pdef KEY) to PAT.
-
-;; FIX: need 'reset' method
 
 (defun pdef-ref-get (pdef-key key)
   "Get PDEF-KEY's KEY value from its plist."
@@ -898,7 +892,7 @@ See also: `pstutter', `pdurstutter', `parp'")
   ((key :reader pdef-key)
    (current-pstream :state t)
    (loop-p :initform t))
-  "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored in a global dictionary by name and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. Additionally, if a pdef is currently being played, and is redefined, the changes won't be audible until PATTERN ends (pdefs loop by default)."
+  "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p')."
   (defun pdef (key &optional (pattern nil pattern-supplied-p))
     (when (or (not (null pattern))
               pattern-supplied-p)
@@ -920,9 +914,6 @@ See also: `pstutter', `pdurstutter', `parp'")
 
 (defmethod quant ((pdef pdef-pstream))
   (slot-value pdef 'quant))
-
-;; (defmethod quant ((object null))
-;;   (list 1))
 
 (defmethod as-pstream ((pattern pdef))
   (with-slots (key) pattern
@@ -1762,40 +1753,6 @@ See also: `pbeats', `beats-elapsed', `prun'")
                                    (dur-time (- beats-elapsed last-beat-checked) tempo)))
           (setf last-beat-checked beats-elapsed
                 tempo-at-beat tempo))))))
-
-;;; psinosc (FIX)
-
-;; (defpattern psinosc (pattern)
-;;   ((freq :default 1)
-;;    (phase :default 0)
-;;    (mul :default 1)
-;;    (add :default 0)
-;;    (last-beat-tracked :state t :initform nil)
-;;    (current-phase :state t :initform 0)))
-
-;; (defun psinosc (&optional (freq 1) (phase 0) (mul 1) (add 0))
-;;   (make-instance 'psinosc
-;;                  :freq freq
-;;                  :phase phase
-;;                  :mul mul
-;;                  :add add))
-
-;; (defmethod as-pstream ((psinosc psinosc))
-;;   (with-slots (freq phase mul add) psinosc
-;;     (make-instance 'psinosc-pstream
-;;                    :freq freq
-;;                    :phase phase
-;;                    :mul mul
-;;                    :add add)))
-
-;; (defmethod next ((pattern psinosc-pstream))
-;;   (with-slots (freq phase mul add last-beat-tracked current-phase) pattern
-;;     (progn
-;;       (when last-beat-tracked
-;;         (incf current-phase (- (slot-value *clock* 'beats) last-beat-tracked)))
-;;       (prog1
-;;           (+ (next add) (* (next mul) (sin (+ current-phase phase))))
-;;         (setf last-beat-tracked (slot-value *clock* 'beats))))))
 
 ;;; pindex
 ;; TODO: alternate version that only calls #'next on index-pat each time the pattern-as-pstream of list-pat has ended.
