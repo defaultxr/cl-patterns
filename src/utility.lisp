@@ -200,6 +200,27 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
+;;; MIDI stuff
+
+(defun midi-truncate-clamp (number &optional (max 127))
+  "Truncate NUMBER and clamp it to the range 0..MAX (default 127)."
+  (declare (number number))
+  (alexandria:clamp (truncate number) 0 max))
+
+(defun bipolar-1-to-midi (number)
+  "Convert the range -1..1 to 0..127."
+  (alexandria:clamp (ceiling (* 63.5 (1+ number))) 0 127))
+
+(defun unipolar-1-to-midi (number)
+  "Convert the range 0..1 to 0..127."
+  (alexandria:clamp (round (* 127 number)) 0 127))
+
+(defun frequency-to-midi (frequency)
+  "Convert FREQUENCY to a MIDI note number (rounding to ensure it's an integer).
+
+Note that this function is meant for use with the MIDI backend; for frequency-to-midinote conversion without rounding, see `freq-midinote' instead."
+  (round (freq-midinote frequency)))
+
 ;;; macros / MOP stuff
 
 (defmacro create-global-dictionary (name) ;; FIX: remove/refactor this?

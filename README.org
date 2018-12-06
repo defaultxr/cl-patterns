@@ -82,7 +82,7 @@ Much documentation is still being written, but there is already a good amount of
 
 The SuperCollider backend is the primary backend that cl-patterns is tested against so it should generally work the best and should be usable for most purposes.
 
-The MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
+The ALSA MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
 
 The Incudine backend is a stub and has very limited (if any) functionality.
 
@@ -131,7 +131,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 - [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
 - [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
-- [[file:src/backends/midi.lisp][midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
+- [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
 
 * Community
 

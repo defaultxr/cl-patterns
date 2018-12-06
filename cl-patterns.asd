@@ -49,7 +49,7 @@
   :serial t
   :components ((:file "src/backends/incudine")))
 
-(asdf:defsystem #:cl-patterns/midi
+(asdf:defsystem #:cl-patterns/alsa-midi
   :name "cl-patterns/midi"
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
@@ -58,7 +58,7 @@
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t
-  :components ((:file "src/backends/midi")))
+  :components ((:file "src/backends/alsa-midi")))
 
 (asdf:defsystem #:cl-patterns/tests
   :name "cl-patterns/tests"
