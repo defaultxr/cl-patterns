@@ -989,4 +989,4 @@
 
 ;;; incudine backend (FIX)
 
-;;; midi backend (FIX)
+;;; alsa-midi backend (FIX)

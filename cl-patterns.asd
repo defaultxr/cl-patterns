@@ -50,7 +50,7 @@
   :components ((:file "src/backends/incudine")))
 
 (asdf:defsystem #:cl-patterns/alsa-midi
-  :name "cl-patterns/midi"
+  :name "cl-patterns/alsa-midi"
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
   :license "MIT"
