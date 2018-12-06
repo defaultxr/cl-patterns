@@ -110,10 +110,10 @@
 (defmethod release ((object sc::node))
   (sc::release object))
 
-(register-backend :cl-collider
+(register-backend :supercollider
                   :respond-p 'is-sc-event-p
                   :play 'play-sc
                   :release 'release-sc
                   :release-at 'release-sc-at)
 
-(enable-backend :cl-collider)
+(enable-backend :supercollider)

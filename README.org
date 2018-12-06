@@ -129,7 +129,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 *** backends
 
-- [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
+- [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with [[https://supercollider.github.io/][SuperCollider]] via the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
 - [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
 - [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
 

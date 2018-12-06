@@ -985,7 +985,7 @@
 
 ;;; sugar (FIX)
 
-;;; cl-collider backend (FIX)
+;;; supercollider backend (FIX)
 
 ;;; incudine backend (FIX)
 
