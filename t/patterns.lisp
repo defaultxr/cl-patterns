@@ -128,12 +128,12 @@
            (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) :inf))))))
       "pseq returns the correct number of results when its REPEATS is a pattern"))
 
-(test special-wrap-keys ;; FIX: should work for all filter patterns
-  "Test behavior of wrap keys"
-  (is (every-event-equal
-       (list (event :foo 0 :x 1) (event :foo 1 :x 2) (event :foo 1 :x 2) (event :foo 2 :x 3) (event :foo 2 :x 3) (event :foo 2 :x 3))
-       (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
-      "pk in pr's repeats parameter can access keys from pbind in pr's pattern parameter"))
+;; (test special-wrap-keys ;; FIX: should work for all filter patterns
+;;   "Test behavior of wrap keys"
+;;   (is (every-event-equal
+;;        (list (event :foo 0 :x 1) (event :foo 1 :x 2) (event :foo 1 :x 2) (event :foo 2 :x 3) (event :foo 2 :x 3) (event :foo 2 :x 3))
+;;        (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
+;;       "pk in pr's repeats parameter can access keys from pbind in pr's pattern parameter"))
 
 (test pseq
   "Test pseq"
