@@ -67,7 +67,18 @@
   :license "MIT"
   :depends-on (#:cl-patterns
                #:fiveam)
-  :components ((:file "src/tests"))
+  :components ((:file "t/test")
+               (:file "t/utility")
+               (:file "t/conversions")
+               (:file "t/event")
+               (:file "t/patterns")
+               ;; (:file "t/bjorklund")
+               ;; (:file "t/cycles")
+               ;; (:file "t/tracker")
+               ;; (:file "t/backend")
+               ;; (:file "t/clock")
+               ;; (:file "t/sugar")
+               )
   :perform (test-op (op c)
                     (uiop:symbol-call :fiveam :run!
                                       (uiop:find-symbol* '#:cl-patterns-tests
