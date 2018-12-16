@@ -550,10 +550,6 @@ See also: `pbind', `pdef'"
            (lambda (value)
              ,@body))))
 
-(define-pbind-special-process-key inject
-  (warn "pbind's :inject key is deprecated; use :embed instead!")
-  value)
-
 (define-pbind-special-process-key embed
   value)
 
