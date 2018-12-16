@@ -569,8 +569,7 @@ See also: `pbind', `pdef'"
                      (pbind-accumulator (cddr pairs))
                      *event*)))))
     (let ((*event* (make-default-event)))
-      (combine-events (event :beat (beats-elapsed pattern))
-                      (pbind-accumulator (slot-value pattern 'pairs))))))
+      (pbind-accumulator (slot-value pattern 'pairs)))))
 
 (defmethod as-pstream ((item pbind-pstream))
   item)
