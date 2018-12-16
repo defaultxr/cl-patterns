@@ -41,7 +41,10 @@
   "Test event-equal"
   (is-true
    (event-equal (event :dur 1) (event :dur 1))
-   "event-equal returns true for equivalent events"))
+   "event-equal returns true for equivalent events")
+  (is-false
+   (event-equal (event :dur 1) (event :dur 1 :foo 2))
+   "event-equal returns false for events that don't have the same keys"))
 
 (test every-event-equal
   "Test every-event-equal"
@@ -53,6 +56,21 @@
              (list (event :dur 1))
              (list))
             "every-event-equal returns false for two lists of different length"))
+
+(test events-differing-keys
+  "Test `events-differing-keys'"
+  (is-true (equal (list :bar)
+                  (events-differing-keys (event :foo 1 :bar 2) (event :foo 1 :bar 4) (event :foo 1 :bar 5)))
+           "events-differing-keys returns keys whose values differ")
+  (is-true (equal (list :foo)
+                  (events-differing-keys (event :foo 1 :bar 5) (event :foo 1 :bar 5) (event :bar 5)))
+           "events-differing-keys returns keys that are not present in all events"))
+
+(test events-lists-differing-keys
+  (is (equal (list nil nil (list :bar))
+             (events-lists-differing-keys (list (event :foo 1 :bar 2) (event :foo 3 :bar 4) (event :foo 3 :bar 5))
+                                          (list (event :foo 1 :bar 2) (event :foo 3 :bar 4) (event :foo 3 :bar 6))))
+      "events-lists-differing-keys lists NIL for events that don't differ, and a list of differing keys for events that do"))
 
 (test combine-events
   "Test combine-events"

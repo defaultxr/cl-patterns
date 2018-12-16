@@ -47,18 +47,45 @@ Returns 2 values: the value of the key, and the name of the key the value was de
             key)))
 
 (defun event-equal (event1 event2)
-  "Test if EVENT1 and EVENT2 are equivalent."
+  "Test if EVENT1 and EVENT2 are equivalent.
+
+See also: `every-event-equal'"
   (and (equal (keys event1)
               (keys event2))
        (loop :for key :in (keys event1)
-          :if (not (equal (event-value event1 key) (event-value event2 key)))
-          :return nil
-          :finally (return t))))
+             :if (not (equal (event-value event1 key) (event-value event2 key)))
+               :return nil
+             :finally (return t))))
 
 (defun every-event-equal (&rest lists)
-  "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length."
+  "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length.
+
+See also: `events-differing-keys'"
   (and (apply #'= (mapcar #'length lists))
        (apply #'every #'event-equal lists)))
+
+(defun events-differing-keys (&rest events)
+  "Get a list of keys that differ between EVENTS.
+
+See also: `every-event-equal', `events-lists-differing-keys'"
+  (loop :for key :in (remove-duplicates (alexandria:flatten (mapcar (lambda (event) (keys event)) events)))
+        :unless (every (lambda (event) (equal (event-value (nth 0 events) key)
+                                              (event-value event key)))
+                       events)
+          :collect key))
+
+(defun events-lists-differing-keys (&rest lists)
+  "Get a list of the keys that differ between respective event in LISTS.
+
+Example:
+
+;; (events-lists-differing-keys (list (event :foo 1 :bar 2) (event :bar 3)        (event :foo 1 :bar 3))
+;;                              (list (event :foo 1 :bar 2) (event :foo 1 :bar 3) (event :foo 2 :bar 3)))
+;; => (NIL (:FOO) (:FOO))
+
+See also: `every-event-equal'"
+  (loop :for idx :from 0 :below (reduce 'max (mapcar 'length lists))
+        :collect (apply 'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists))))
 
 (defun (setf event-value) (value event key)
   "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."

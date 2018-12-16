@@ -86,6 +86,8 @@
    #:event-plist
    #:event-equal
    #:every-event-equal
+   #:events-differing-keys
+   #:events-lists-differing-keys
 
    #:event-value
    #:get-event-value
