@@ -1,6 +1,6 @@
-#+TITLE: Event Special Keys
+#+TITLE: Special Keys
 
-This is a list of special keys for events/pbind. These keys have additional functionality to do things like alter how the pattern is played, automate conversions between types, etc. Some of these only work in pbinds, and have no effect in events.
+This is a list of special keys for events/pbind. These keys have additional functionality to do things like alter how the pattern is played, automate conversions between types, etc. Some of these only work in pbinds, and have no effect in events, and vice versa.
 
 * Event builtins and conversions
 
