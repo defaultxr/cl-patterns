@@ -1,14 +1,14 @@
 #+TITLE: Writing your own patterns
 
-WIP
+A guide on how to define your own pattern classes. For a tutorial on how to make music with this library, see [[file:tutorial.org][tutorial.org]].
+
+This guide is a work-in-progress and still needs to be written...
 
 * Style
 
 Just a basic overview of things you should do when defining a pattern, for consistency.
 
-** Don't setf the ~remaining~ slot of patterns.
-
-*** pattern slots should be called ~length~ when they determine the total length of the pattern, and ~repeats~ when they determine the number of times the pattern (or the list the pattern refers to) repeats.
+** pattern slots should be called ~length~ when they determine the total length of the pattern, and ~repeats~ when they determine the number of times the pattern (or the list the pattern refers to) repeats.
 For example, ~pser~ uses ~length~ because it only yields LENGTH outputs, while ~pseq~ uses ~repeats~ because it yields the full list REPEATS times.
 
 ** Use ~defpattern~ to create patterns. ~defpattern~ generates and exports the function that creates a pattern. Only override the function generated if absolutely necessary.

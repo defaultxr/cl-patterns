@@ -159,8 +159,8 @@ adjust the start or end points of the source pattern (i.e. to skip the first hal
 adjust the start or end points of the source pattern in number of beats (i.e. to end the pattern 2 beats early, set ~:end-beat~ to -2)
 ** ~start-nth~ / ~end-nth~
 adjust the start or end points of the source pattern by skipping the first or last N events.
-** ~filter~ / ~remove-if~
-skip all events from the source pattern that return nil when applied to the specified function or pattern.
+** ~filter~ / ~remove-if-not~
+skip all of the source pattern's events that return nil when applied to the specified function or pattern.
 ** ~mapcar~ / ~nary~
 process each event from the source pattern with a function or another pattern.
 

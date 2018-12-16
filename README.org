@@ -62,7 +62,7 @@ From here, you can take a look at the code in the [[file:doc/supercollider-examp
 
 For more information on how to use cl-patterns, refer to [[file:doc/tutorial.org][tutorial.org]] for an introduction.
 
-You can get a list of all currently-defined patterns using ~(all-patterns)~. All patterns should have usage information and examples in their docstrings, which of course can be accessed using the standand ~describe~ or ~documentation~ functions.
+You can get a list of all defined patterns using ~(all-patterns)~. All patterns should have usage information and examples in their docstrings, which of course can be accessed using the standand ~describe~ or ~documentation~ functions.
 
 * Features
 
