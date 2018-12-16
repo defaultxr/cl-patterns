@@ -308,7 +308,3 @@ Additionally, because :define-methods is true, we can also do the following:
 
 (define-event-special-slot scale (t :major)
   :remove-keys (:freq :midinote))
-
-;;; remaining
-
-(define-event-special-slot remaining (t :inf))

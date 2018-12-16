@@ -56,8 +56,6 @@ pbind supports a set of special keys that, during the initialization of the pbin
 
 Here is a listing of all of the pbind special init keys:
 
-** ~remaining~
-Sets the pattern's ~remaining~ slot, which limits the number of results it will yield. This is now officially deprecated in favor of using ~pfin~; see its section under "special wrap keys" below.
 ** ~quant~
 Set the ~quant~ of the pattern, which determines when the pattern is allowed to start playing.
 ** ~cleanup~

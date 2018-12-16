@@ -2,7 +2,6 @@
 
 ;; NOTES:
 ;; FIX: make fork method, which copies the pstream and continues it from the same position in the copy and the original.
-;; FIX: remove :remaining key and just use :pfin instead?
 ;; FIX: take each pattern's name out of its docstring, and make sure the first sentence in each docstring is a good concise description of the functionality.
 ;; FIX: use &key instead of &optional for defpattern
 
@@ -109,8 +108,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 ;;; pattern
 
 (defclass pattern ()
-  ((remaining :initarg :remaining :initform :inf :documentation "The number of outputs remaining to be yielded by pstreams of this pattern. This is primarily used to limit the amount of outputs a pattern will yield. This is deprecated and is likely going to be removed in the future--use `pfin' instead.")
-   (quant :initarg :quant :initform (list 1) :reader quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
+  ((quant :initarg :quant :initform (list 1) :reader quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :initform nil :accessor loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped."))
@@ -218,7 +216,7 @@ See also: `next', `next-upto-n'"
                         (set-next))) ;; if it's already set to 0, it was decf'd to 0 in the pattern, so we get the next one. if the next is 0, THEN we return nil.
             (otherwise nil))))))
 
-(defun decf-remaining (pattern &optional (key 'remaining))
+(defun decf-remaining (pattern &optional (key 'current-repeats-remaining))
   "Decrease PATTERN's KEY value."
   (when (numberp (slot-value pattern key))
     (decf (slot-value pattern key))))
@@ -242,8 +240,7 @@ See also: `next', `next-upto-n'"
              (if (null (slot-value pattern 'pattern-stack))
                  (prog1
                      (get-value pattern)
-                   (incf (slot-value pattern 'number))
-                   (decf-remaining pattern))
+                   (incf (slot-value pattern 'number)))
                  (let* ((popped (pop (slot-value pattern 'pattern-stack)))
                         (nv (next popped)))
                    (if (null nv)
@@ -263,9 +260,7 @@ See also: `next', `next-upto-n'"
           (prog1
               (pstream-nth pstream-offset pattern)
             (incf pstream-offset))
-          (let ((result (when (or (not (slot-boundp pattern 'remaining))
-                                  (value-remaining-p (slot-value pattern 'remaining)))
-                          (get-value-from-stack pattern))))
+          (let ((result (get-value-from-stack pattern)))
             (alexandria:appendf (slot-value pattern 'history) (list result))
             (when (typep result 'event)
               (incf (slot-value pattern 'beats-elapsed) (event-value result :delta)))
@@ -310,7 +305,6 @@ See also: `pattern-as-pstream'"))
 
 (defmethod as-pstream :around ((pattern pattern))
   (let ((pstream (call-next-method)))
-    (setf (slot-value pstream 'remaining) (slot-value pattern 'remaining))
     (set-parents pstream)
     pstream))
 
@@ -505,10 +499,6 @@ See also: `pbind', `pdef'"
              (declare (ignorable value pattern))
              ,@body))))
 
-(define-pbind-special-init-key remaining ;; DEPRECATED; use the :pfin key instead!
-  (setf (slot-value pattern 'remaining) (next value))
-  nil)
-
 ;; (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well. maybe just rename to 'synth'?
 ;;   (list :instrument value))
 
@@ -579,10 +569,8 @@ See also: `pbind', `pdef'"
                      (pbind-accumulator (cddr pairs))
                      *event*)))))
     (let ((*event* (make-default-event)))
-      (unless (or (null (slot-value pattern 'remaining))
-                  (eq :inf (slot-value pattern 'remaining)))
-        (setf (event-value *event* :remaining) (slot-value pattern 'remaining)))
-      (pbind-accumulator (slot-value pattern 'pairs)))))
+      (combine-events (event :beat (beats-elapsed pattern))
+                      (pbind-accumulator (slot-value pattern 'pairs))))))
 
 (defmethod as-pstream ((item pbind-pstream))
   item)
