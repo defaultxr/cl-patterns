@@ -66,7 +66,8 @@
   :description "FiveAM-based tests suite for cl-patterns."
   :license "MIT"
   :depends-on (#:cl-patterns
-               #:fiveam)
+               #:fiveam
+               #:cl-org-mode)
   :components ((:file "t/test")
                (:file "t/utility")
                (:file "t/conversions")
@@ -78,6 +79,7 @@
                ;; (:file "t/backend")
                ;; (:file "t/clock")
                ;; (:file "t/sugar")
+               (:file "t/doc")
                )
   :perform (test-op (op c)
                     (uiop:symbol-call :fiveam :run!
