@@ -2,10 +2,12 @@
 
 A library for conveniently(?) writing patterns to generate or process (a)musical sequences of mathematically (un)related (non-)compound values in Lisp.
 
-Heavily inspired by [[https://supercollider.github.io/][SuperCollider]]'s [[http://doc.sccode.org/Tutorials/A-Practical-Guide/PG_01_Introduction.html][patterns system]], with aims to implement much of it, but in a more robust, expressive, consistent, reflective, and lispy way:
+Put more simply, cl-patterns is a system for composing music via Lisp code.
+
+It is heavily inspired by [[https://supercollider.github.io/][SuperCollider]]'s [[http://doc.sccode.org/Tutorials/A-Practical-Guide/PG_01_Introduction.html][patterns system]], with aims to implement much of it, but in a more robust, expressive, consistent, reflective, and lispy way:
 
 - robust: strongly prefer coercing values into something "correct" rather than failing or giving an error.
-- expressive: make writing music as easy and "natural" as possible, so that patterns can be built in real-time, in performance settings, without having to think so hard about how to bend the library to your will. i feel this is a weakness of SuperCollider.
+- expressive: make writing music as easy and "natural" as possible, so that patterns can be built in real-time, in performance settings, without having to think so hard about how to bend the library to your will. I feel this is a weakness of SuperCollider.
 - consistent: edge cases minimized, arguments for the various functions in an intuitive order. pretty self-explanatory.
 - reflective: store more data about the stream state and more metadata about the patterns. make it easier for a pattern to access the values of another pattern, for patterns to affect other patterns, etc.
 - lispy: prefer lisp idioms rather than direct translations of the SuperCollider way of doing things (while still keeping things relatively similar so it's not a huge adjustment for SC users to make).
@@ -76,7 +78,7 @@ Right now, the library may be described as being in a "alpha" state, as major ch
 
 Despite that, lots of functionality is already written and the library should be stable enough for normal usage in most cases.
 
-Many [[file:src/tests.lisp][tests]] have already been written to help guard against regressions.
+Many [[file:t/][tests]] have already been written to help guard against regressions.
 
 Much documentation is still being written, but there is already a good amount of information in the [[file:doc/][doc]] directory, and in the docstrings for the patterns, functions, etc.
 
@@ -90,7 +92,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 
 * Tour
 
-- [[file:README.org][README.org]] - this file. self-expanatory, i'd hope.
+- [[file:README.org][README.org]] - this file. self-expanatory, I'd hope.
 - [[file:package.lisp][package.lisp]] - the package definition file.
 - [[file:LICENSE][LICENSE]] - the MIT license.
 - [[file:cl-patterns.asd][cl-patterns.asd]] - cl-patterns systems definition file.
@@ -117,7 +119,6 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/sugar.lisp][sugar.lisp]] - defines optional syntax sugar including a named-readtable. may be moved to a separate system in the future.
-- [[file:src/tests.lisp][tests.lisp]] - test suite using [[https://github.com/sionescu/fiveam][FiveAM]].
 
 *** patterns
 
@@ -132,6 +133,10 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with [[https://supercollider.github.io/][SuperCollider]] via the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
 - [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
 - [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
+
+** t
+
+contains the files for the [[https://github.com/sionescu/fiveam][FiveAM]]-based test suite for the library.
 
 * Community
 
