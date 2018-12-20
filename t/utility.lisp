@@ -165,3 +165,14 @@
   ;; FIX
   )
 
+(test next-beat-for-quant
+  "Test the `next-beat-for-quant' function"
+  (is-true (= 0 (next-beat-for-quant 4 0))
+           "next-beat-for-quant returns the current beat when applicable")
+  (is-true (= 4 (next-beat-for-quant 4 2))
+           "next-beat-for-quant returns the next beat and correctly coerces a number to a quant")
+  (is-true (= 5 (next-beat-for-quant (list 4 1) 3))
+           "next-beat-for-quant correctly takes phase into account")
+  (is-true (= 5 (next-beat-for-quant (list 4 -1) 3))
+           "next-beat-for-quant correctly takes negative phase into account"))
+

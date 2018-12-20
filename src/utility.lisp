@@ -200,6 +200,24 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
+;;; clock stuff
+
+(defgeneric tempo (object)
+  (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number."))
+
+(defun next-beat-for-quant (quant current-beat)
+  "Get the next valid beat for QUANT after CURRENT-BEAT."
+  (destructuring-bind (quant &optional (phase 0) (offset 0)) (alexandria:ensure-list quant)
+    (declare (ignore offset))
+    (labels ((find-next (quant phase cb try)
+               (let ((res (+ phase (* quant (+ try (round-up (/ current-beat quant)))))))
+                 (if (>= res cb)
+                     res
+                     (find-next quant phase cb (1+ try))))))
+      (if (= 0 quant)
+          current-beat
+          (find-next quant phase current-beat 0)))))
+
 ;;; MIDI stuff
 
 (defun midi-truncate-clamp (number &optional (max 127))

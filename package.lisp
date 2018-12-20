@@ -14,6 +14,9 @@
    #:seq
    #:seq-range
 
+   #:tempo
+   #:next-beat-for-quant
+
    #:midi-truncate-clamp
    #:bipolar-1-to-midi
    #:unipolar-1-to-midi
@@ -103,7 +106,6 @@
 
    #:pan
 
-   #:tempo
    #:dur
    #:legato
    #:sustain
