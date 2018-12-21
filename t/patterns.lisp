@@ -645,10 +645,11 @@
 
 (test pts
   "Test pts"
-  (is (every-event-equal
-       (list (event :dur 5/4) (event :dur 5/4) (event :dur 5/4) (event :dur 5/4))
-       (next-upto-n (pts (pbind :dur (pn 1 4)) 5)))
-      "pts correctly stretches a 4-beat pattern to 5 beats"))
+  (is (= 5
+         (reduce '+ (gete (next-upto-n (pts (pbind :dur (pwhite 1 64 12))
+                                            5))
+                          :dur)))
+      "pts correctly stretches or squashes a pattern to 5 beats"))
 
 (test pwalk
   "Test pwalk"
