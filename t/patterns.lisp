@@ -497,9 +497,9 @@
             (list (event :dur 5) (event :type :rest :dur 3))
             (next-upto-n (psync (pbind :dur (pseq (list 5) 1)) 4)))
            "psync quantizes up to the next multiple of QUANT")
-  (is-true (every-event-equal
-            (list (event :dur 5) (event :dur 5) (event :dur 5) (event :dur 1))
-            (next-upto-n (psync (pbind :dur (pseq (list 5) 5)) 4 16)))
+  (is-true (equal
+            (list 5 5 5 1)
+            (gete (next-upto-n (psync (pbind :dur (pseq (list 5) 5)) 4 16)) :dur))
            "psync limits its source pattern when MAXDUR is provided"))
 
 (test pstutter
