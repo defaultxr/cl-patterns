@@ -20,8 +20,8 @@
       (accumulator params)
       ev)))
 
-(defvar *latency* 0.1
-  "Default latency for events.")
+(defvar *latency* 1/10
+  "Default latency for events, in seconds.")
 
 (defparameter *event-special-keys* (list)
   "Plist mapping event special keys to their case lists.")
