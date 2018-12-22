@@ -50,12 +50,12 @@ Returns 2 values: the value of the key, and the name of the key the value was de
   "Test if EVENT1 and EVENT2 are equivalent.
 
 See also: `every-event-equal'"
-  (and (equal (keys event1)
-              (keys event2))
+  (and (alexandria:set-equal (keys event1)
+                             (keys event2))
        (loop :for key :in (keys event1)
-             :if (not (equal (event-value event1 key) (event-value event2 key)))
-               :return nil
-             :finally (return t))))
+          :if (not (equal (event-value event1 key) (event-value event2 key)))
+          :return nil
+          :finally (return t))))
 
 (defun every-event-equal (&rest lists)
   "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length.
