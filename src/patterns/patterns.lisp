@@ -46,8 +46,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                "Convert a slot into something appropriate for defclass to handle."
                (let ((name (car slot))
                      (rest (cdr slot)))
-                 (setf rest (alexandria:remove-from-plist rest :default))
-                 (setf rest (alexandria:remove-from-plist rest :state))
+                 (setf rest (alexandria:remove-from-plist rest :default :state))
                  (when (not (position :initarg (keys rest)))
                    (alexandria:appendf rest (list :initarg (alexandria:make-keyword name))))
                  (append (list name) rest)))
