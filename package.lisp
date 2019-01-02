@@ -1,5 +1,5 @@
 (defpackage #:cl-patterns
-  (:nicknames :clp)
+  (:nicknames :clp) ;; DEPRECATED; use local-nicknames in your package instead
   (:use #:cl)
   (:export
 
