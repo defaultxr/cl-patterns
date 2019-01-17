@@ -85,6 +85,7 @@
 
    #:event
    #:combine-events
+   #:copy-event
    #:split-event-by-lists
    #:event-plist
    #:event-equal

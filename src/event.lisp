@@ -135,9 +135,9 @@ See also: `event-value'"
   (event-value event key))
 
 (defun combine-events (&rest events)
-  "Returns an event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
+  "Returns a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
 
-See also: `split-event-by-lists'"
+See also: `copy-event', `split-event-by-lists'"
   (let ((result (loop :for ev :in events
                    :if (null ev)
                    :return nil
@@ -146,6 +146,12 @@ See also: `split-event-by-lists'"
     (when (and result
                (null (position-if #'null result)))
       (apply #'event result))))
+
+(defun copy-event (event)
+  "Return a new event that is a copy of EVENT.
+
+See also: `combine-events'"
+  (combine-events event))
 
 (defun split-event-by-lists (event)
   "Split an event up by any lists in its values. Also known as multichannel expansion.
