@@ -132,6 +132,7 @@
    #:parent-pattern
    #:parent-pbind
    #:beats-elapsed
+   #:pstream-count
 
    #:defpattern
    #:*max-pattern-yield-length*

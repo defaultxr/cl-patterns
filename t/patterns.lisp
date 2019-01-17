@@ -74,6 +74,16 @@
            (beats-elapsed pstr)))
       "beats-elapsed returns correct results"))
 
+(test pstream-count
+  "Test `pstream-count' functionality"
+  (is-true (= 0 (pstream-count (pbind :foo 1))))
+  (is-true (= 1 (let ((pb (pbind :foo 1)))
+                  (as-pstream pb)
+                  (pstream-count pb))))
+  (is-true (= 1 (let ((pb (pbind :foo 1)))
+                  (as-pstream pb)
+                  (pstream-count (as-pstream pb))))))
+
 (test special-keys
   "Test pbind special keys"
   (is-true (every-event-equal

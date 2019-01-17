@@ -110,7 +110,8 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   ((quant :initarg :quant :initform (list 1) :reader quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :initform nil :accessor loop-p :documentation "Whether or not the pattern should loop when played.")
-   (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped."))
+   (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
+   (pstream-count :initform 0 :reader pstream-count :documentation "The number of pstreams that have been made of this pattern."))
   (:documentation "Abstract pattern superclass."))
 
 (defun all-patterns ()
@@ -187,7 +188,8 @@ See also: `next', `next-upto-n'"
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
    (history :initform (list) :documentation "The history of outputs yielded by the pstream.")
    (beats-elapsed :initform 0 :reader beats-elapsed :documentation "The number of beats elapsed in the pstream.")
-   (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1."))
+   (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1.")
+   (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times previously a pstream was made of this pstream's parent. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
 (defun value-remaining-p (value)
@@ -304,6 +306,8 @@ See also: `pattern-as-pstream'"))
 
 (defmethod as-pstream :around ((pattern pattern))
   (let ((pstream (call-next-method)))
+    (setf (slot-value pstream 'pstream-count) (slot-value pattern 'pstream-count))
+    (incf (slot-value pattern 'pstream-count))
     (set-parents pstream)
     pstream))
 
