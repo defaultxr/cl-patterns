@@ -1,10 +1,11 @@
 (defpackage #:cl-patterns
-  (:nicknames :clp) ;; DEPRECATED; use local-nicknames in your package instead
   (:use #:cl)
   (:export
 
    ;;; utility.lisp
 
+   #:*event*
+   #:*clock*
    #:gete
    #:keys
 
@@ -83,7 +84,6 @@
    ;;; event.lisp
 
    #:event
-   #:*event*
    #:combine-events
    #:split-event-by-lists
    #:event-plist
@@ -168,7 +168,6 @@
 
    ;;; clock.lisp
 
-   #:*clock*
    #:*performance-mode*
    #:*performance-errors*
 
