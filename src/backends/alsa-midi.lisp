@@ -2,7 +2,8 @@
 
 ;; FIX: add bend?
 
-(midihelper:start-midihelper)
+(unless (elt (midihelper:inspect-midihelper) 5)
+  (midihelper:start-midihelper))
 
 ;;; utility functions
 
