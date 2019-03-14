@@ -1693,22 +1693,22 @@ See also: `pr', `pstutter'")
       (decf-remaining pattern 'current-repeats-remaining)
       current-value)))
 
-;;; pbeats
+;;; pbeat
 
-(defpattern pbeats (pattern)
+(defpattern pbeat (pattern)
   ()
-  "pbeats yields the number of beats elapsed since its embedding in the pstream.
+  "pbeat yields the number of beats elapsed since its embedding in the pstream.
 
 Example:
 
-;; (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeats)) 3)
+;; (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeat)) 3)
 ;;
 ;; => ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 2 :FOO 1) (EVENT :DUR 3 :FOO 3))
 
 See also: `beats-elapsed', `prun'")
 
-(defmethod next ((pbeats pbeats-pstream))
-  (beats-elapsed (parent-pbind pbeats)))
+(defmethod next ((pbeat pbeat-pstream))
+  (beats-elapsed (parent-pbind pbeat)))
 
 ;;; ptime
 
@@ -1727,7 +1727,7 @@ Example:
 ;;
 ;; => ((EVENT :DUR 1 :TIME 0) (EVENT :DUR 1 :TIME 1.0))
 
-See also: `pbeats', `beats-elapsed', `prun'")
+See also: `pbeat', `beats-elapsed', `prun'")
 
 (defmethod next ((ptime ptime-pstream)) ;; FIX: take into account the previous tempo if it has been changed since the last-beat-checked.
   (with-slots (last-beat-checked tempo-at-beat elapsed-time) ptime
@@ -1789,7 +1789,7 @@ Example:
 ;;
 ;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 4 :BAR 6) (EVENT :FOO 5 :BAR 8))
 
-See also: `beats-elapsed', `pbeats'")
+See also: `beats-elapsed', `pbeat'")
 
 (defmethod as-pstream ((prun prun))
   (with-slots (pattern dur) prun

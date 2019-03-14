@@ -36,7 +36,7 @@ Pseq([1,2,3]).next;
 (next-n *foo* 3) ;=> (1 NIL NIL)
 #+END_SRC
 
-- ~pbeats~ is the pattern that returns the number of beats elapsed in the pstream (in SuperCollider it's known as ~Ptime~).
+- ~pbeat~ is the pattern that returns the number of beats elapsed in the pstream (in SuperCollider it's known as ~Ptime~).
 
 - pdefs loop by default when played.
 

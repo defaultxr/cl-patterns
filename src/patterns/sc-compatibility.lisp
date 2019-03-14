@@ -21,4 +21,4 @@
 ;;; ptime
 
 (defun ptime ()
-  (cl-patterns::pbeats))
+  (pbeat))

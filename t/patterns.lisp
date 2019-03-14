@@ -533,13 +533,13 @@
        (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq (list 0 1 2) 1))))
       "pdurstutter returns correct results for event patterns when its N is a pattern, and when N is 0"))
 
-(test pbeats
-  "Test pbeats"
+(test pbeat
+  "Test pbeat"
   (is (equalp (list 0.0 0.25 0.5 0.75 1.0 1.25)
-              (let ((pstr (as-pstream (pbind :foo (pbeats) :dur 0.25))))
+              (let ((pstr (as-pstream (pbind :foo (pbeat) :dur 0.25))))
                 (loop :for i :upto 5
                    :collect (event-value (next pstr) :foo))))
-      "pbeats returns correct results")
+      "pbeat returns correct results")
   ;; FIX: test for peek
   )
 
