@@ -33,6 +33,10 @@
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
 
+(defmethod tempo ((number number))
+  ;; convenience method to quickly set the tempo of the default clock in bpm
+  (setf (tempo *clock*) number))
+
 (defclass task ()
   ((gensym :initform (gensym))
    (clock :initarg :clock :initform *clock*)

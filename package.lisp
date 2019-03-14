@@ -180,6 +180,4 @@
    #:play-or-end
    #:pdefs-playing
 
-   ;;; sugar.lisp
-
    ))

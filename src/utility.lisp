@@ -202,9 +202,6 @@ See also: `seq'"
 
 ;;; clock stuff
 
-(defgeneric tempo (object)
-  (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number."))
-
 (defun next-beat-for-quant (quant current-beat)
   "Get the next valid beat for QUANT after CURRENT-BEAT."
   (destructuring-bind (quant &optional (phase 0) (offset 0)) (alexandria:ensure-list quant)
@@ -217,6 +214,11 @@ See also: `seq'"
       (if (= 0 quant)
           current-beat
           (find-next quant phase current-beat 0)))))
+
+;;; generics
+
+(defgeneric tempo (object)
+  (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number."))
 
 ;;; MIDI stuff
 

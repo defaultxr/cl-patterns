@@ -118,7 +118,6 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
-- [[file:src/sugar.lisp][sugar.lisp]] - defines optional syntax sugar including a named-readtable. may be moved to a separate system in the future.
 
 *** patterns
 

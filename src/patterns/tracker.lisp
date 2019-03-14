@@ -3,6 +3,7 @@
 ;;; ptracker (FIX)
 ;; FIX: allow each row to have keyword arguments
 ;; FIX: make as-pstream method so any functions in the rows will be executed each time.
+;; FIX: use https://github.com/Shinmera/trivial-indent to ensure all forms are correctly indented?
 
 (defpattern ptracker (pattern)
   (header
@@ -54,5 +55,7 @@
                                          row)))
                        rows)))))
 
-(set-dispatch-macro-character #\# #\T #'tracker-shorthand)
 
+(named-readtables:defreadtable :cl-patterns
+  (:merge :standard)
+  (:dispatch-macro-char #\# #\T #'cl-patterns::tracker-shorthand))

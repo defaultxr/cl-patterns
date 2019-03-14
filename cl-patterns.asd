@@ -24,8 +24,7 @@
                (:file "src/patterns/cycles")
                (:file "src/patterns/tracker")
                (:file "src/backend")
-               (:file "src/clock")
-               (:file "src/sugar"))
+               (:file "src/clock"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
 (asdf:defsystem #:cl-patterns/supercollider
@@ -80,7 +79,6 @@
                ;; (:file "t/tracker")
                ;; (:file "t/backend")
                ;; (:file "t/clock")
-               ;; (:file "t/sugar")
                (:file "t/doc")
                )
   :perform (test-op (op c)

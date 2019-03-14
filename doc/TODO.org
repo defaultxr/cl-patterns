@@ -125,3 +125,7 @@ still trying to think of ideas for how to make a good "performance mode" without
 * make pstreams compatible with sequence functions (at least in sbcl; not sure if it would work for other implementations); http://www.sbcl.org/manual/#Extensible-Sequences
 * Renoise import/export
 * pure data OSC (make sure it works)
+* make sure our clock works with the cl-collider TempoClock so they can be used together/synced etc.
+* make a quickproject-like feature (perhaps by using quickproject) to quickly generate a cl-patterns project
+* test on ccl and other implementations
+* cl-patterns "patterns-as-audio" backend
