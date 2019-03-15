@@ -60,7 +60,12 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
   (apply #'append (mapcar #'alexandria:ensure-list list)))
 
 (defun most-x (list predicate key) ;; from https://stackoverflow.com/questions/30273802/how-would-i-get-the-min-max-of-a-list-using-a-key
-  "Get the most PREDICATE item in LIST by comparing the value returned by KEY."
+  "Get the most PREDICATE item in LIST by comparing whether PREDICATE is true for the values returned by KEY applied to each element of LIST.
+
+Example:
+
+;; get the smallest item in the list:
+;; (most-x (list 1 2 3) '< 'identity)"
   (when list
     (let* ((m0 (first list))
            (m1 (funcall key m0)))
@@ -200,8 +205,6 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
-;;; clock stuff
-
 (defun next-beat-for-quant (quant current-beat)
   "Get the next valid beat for QUANT after CURRENT-BEAT."
   (destructuring-bind (quant &optional (phase 0) (offset 0)) (alexandria:ensure-list quant)
@@ -247,7 +250,7 @@ Note that this function is meant for use with the MIDI backend; for frequency-to
   (let* ((name-name (symbol-name name))
          (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
     `(progn
-       (defparameter ,dict-symbol (list)
+       (defvar ,dict-symbol (list)
          ,(concatenate 'string "The global " name-name " dictionary."))
        (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
          ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
