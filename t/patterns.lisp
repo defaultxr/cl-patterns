@@ -266,7 +266,9 @@
       "pfunc returns the correct number of results")
   (is (= 4
          (next (pfunc (lambda () (+ 2 2)))))
-      "pfunc returns correct results"))
+      "pfunc returns correct results")
+  (is (alexandria:length= 4 (next-upto-n (pfunc (lambda () (random 10)))))
+      "pfunc returns the correct number of results when LENGTH is provided."))
 
 (test pr
   "Test pr"

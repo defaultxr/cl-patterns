@@ -804,17 +804,34 @@ See also: `prand', `pxrand', `pwxrand'")
 ;; Instead, access the event using the special variable *event*.
 
 (defpattern pfunc (pattern)
-  (func)
-  "pfunc returns the result of the provided function FUNC."
+  (func
+   (length :default :inf)
+   (current-repeats-remaining :state t))
+  "pfunc evaluates the function FUNC each time its next output is requested, and yields the result of that function. It does this a maximum of LENGTH times. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
+
+Example:
+
+;; (next-upto-n (pfunc (lambda () (random 10)) 4))
+;; => ((5 2 8 9))
+
+See also: `pf', `pnary'"
   (assert (typep func 'function) (func)))
 
 (defmethod as-pstream ((pattern pfunc))
-  (with-slots (func) pattern
+  (with-slots (func length) pattern
     (make-instance 'pfunc-pstream
-                   :func func)))
+                   :func func
+                   :length (as-pstream length))))
 
 (defmethod next ((pattern pfunc-pstream))
-  (funcall (slot-value pattern 'func)))
+  (when (remainingp pattern 'length)
+    (decf-remaining pattern 'current-repeats-remaining)
+    (funcall (slot-value pattern 'func))))
+
+;;; pf
+
+(defmacro pf (&body body)
+  `(pfunc (lambda () ,@body)))
 
 ;;; pr
 

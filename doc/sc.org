@@ -106,6 +106,6 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pproto~ - maybe just use a ~pbind~ key like ~:init~ instead?
 - ~Pvoss~
 - ~Pfunc~ - done as ~pfunc~.
-- ~Pfuncn~
+- ~Pfuncn~ - functionality is covered by ~pfunc~.
 - ~Prout~
 - ~Pbjorklund~ - done as ~pbjorklund~.
