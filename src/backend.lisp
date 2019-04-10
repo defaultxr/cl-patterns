@@ -6,11 +6,9 @@
 (defvar *backends* nil
   "Plist of registered backends for cl-patterns. This holds all the information about each backend and should not be modified by the user; change the `*enabled-backends*' variable to set which backends are enabled.")
 
-(defun register-backend (name &key respond-p play release release-at)
+(defun register-backend (name)
   "Register a cl-patterns backend."
-  (let ((name (alexandria:make-keyword name)))
-    (setf *backends*
-          (plist-set *backends* name (list :name name :respond-p respond-p :play play :release release :release-at release-at)))))
+  (pushnew (alexandria:make-keyword name) *backends*))
 
 (defun all-backends ()
   "Get a list of all registered backends."
@@ -20,29 +18,38 @@
   "Get a list of all enabled backends."
   *enabled-backends*)
 
-(defun enable-backend (name)
-  "Enable a registered backend."
-  (assert (position (alexandria:make-keyword name)
-                    (keys *backends*))
-          (name) "No backend named ~s registered." name)
-  (pushnew (alexandria:make-keyword name) *enabled-backends*))
+(defun enable-backend (name &optional (start t))
+  "Enable a registered backend. With START, start the backend server."
+  (let ((name (alexandria:make-keyword name)))
+    (assert (position name *backends*) (name) "No backend named ~s registered." name)
+    (if (member name *enabled-backends*)
+        (warn "Backend ~a already enabled; doing nothing." name)
+        (progn
+          (when start
+            (start-backend name))
+          (pushnew name *enabled-backends*)))))
 
-(defun disable-backend (name)
+(defun disable-backend (name &optional (stop t))
   "Disable a registered backend."
-  (setf *enabled-backends*
-        (delete (alexandria:make-keyword name) *enabled-backends*)))
+  (let ((name (alexandria:make-keyword name)))
+    (when stop
+      (stop-backend name))
+    (setf *enabled-backends*
+          (delete name *enabled-backends*))))
 
-(defun which-backend-for-event (event)
-  "Return the name of the first backend in `*enabled-backends*' that will handle EVENT."
-  (loop :for i :in *enabled-backends*
-     :if (funcall (getf (getf *backends* i) :respond-p) event)
-     :return i))
+;;; generics
 
-(defgeneric convert-object (object)
-  (:documentation "Convert objects in events to a format that the backend will accept."))
+(defgeneric start-backend (backend) ;; FIX
+  (:documentation "Start a backend. By default, this is automatically called when `enable-backend' is run."))
 
-(defmethod convert-object ((object t))
-  object)
+(defgeneric stop-backend (backend) ;; FIX
+  (:documentation "Stop a backend. This is automatically called when `disable-backend' is run."))
 
-(defgeneric release (object)
-  (:documentation "Release a node."))
+(defgeneric backend-plays-event-p (event backend)
+  (:documentation "Method returning true when BACKEND should play EVENT."))
+
+(defgeneric backend-play-event (event task backend)
+  (:documentation "Play EVENT using BACKEND."))
+
+(defgeneric backend-task-removed (task backend)
+  (:documentation "Called when TASK is removed from the clock so BACKEND can free any associated nodes."))

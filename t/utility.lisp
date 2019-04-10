@@ -176,3 +176,13 @@
   (is-true (= 3 (next-beat-for-quant (list 4 -1) 3))
            "next-beat-for-quant correctly takes negative phase into account"))
 
+(test beat
+  "Test the `beat' function"
+  (is (= 8
+         (let ((pstr (as-pstream (pbind :dur (pn 1 8)))))
+           (next-upto-n pstr)
+           (beat pstr)))
+      "beat returns correct results")
+  (is-true (equal (list 0 1 2 3)
+                  (gete (next-n (pbind :dur 1 :x (pfunc (lambda () (beat *event*)))) 4) :x))
+           "beat is accessible and correct in patterns"))

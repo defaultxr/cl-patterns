@@ -2,15 +2,15 @@
 
 ;; FIX: add bend?
 
-(unless (elt (midihelper:inspect-midihelper) 5)
-  (midihelper:start-midihelper))
-
 ;;; utility functions
 
-(defun alsa-midi-panic (&optional channel)
+(defun alsa-midi-panic (&key channel manually-free)
   "Stop all notes on CHANNEL, or all channels if CHANNEL is nil."
   (loop :for c :in (or (alexandria:ensure-list channel) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-     :do (midihelper:send-event (midihelper:ev-cc c 123 0))))
+     :do (if manually-free
+             (loop :for note :from 0 :upto 127
+                :do (midihelper:send-event (midihelper:ev-noteoff c note 0)))
+             (midihelper:send-event (midihelper:ev-cc c 123 0)))))
 
 ;;; cc mapping
 ;; http://nickfever.com/music/midi-cc-list
@@ -28,9 +28,20 @@
     (setf (gethash event-key *alsa-midi-cc-table*)
           cc-number)))
 
+(defun get-alsa-midi-auto-cc-mapping (key)
+  "Return auto-generated CC mapping parameters for a KEY of the format \"C-N\", where N is a valid CC number."
+  (let ((sym-name (symbol-name key)))
+    (when (and (>= (length sym-name) 2)
+               (string= "C-" (subseq sym-name 0 2)))
+      (let ((num (parse-integer (subseq sym-name 2) :junk-allowed t)))
+        (when (and (integerp num)
+                   (<= 0 num 127))
+          (list num (format nil "CC ~s" num) key 'identity))))))
+
 (defun get-alsa-midi-cc-mapping (key)
   "Return the CC mapping parameters for a CC number or an event key."
-  (let ((key-map (gethash key *alsa-midi-cc-table*)))
+  (let ((key-map (or (gethash key *alsa-midi-cc-table*)
+                     (get-alsa-midi-auto-cc-mapping key))))
     (if (numberp key-map)
         (gethash key-map *alsa-midi-cc-table*)
         key-map)))
@@ -52,13 +63,25 @@
 
 ;;; backend functions
 
-(defun is-alsa-midi-event-p (event)
+(defmethod start-backend ((backend (eql :alsa-midi)))
+  (unless (elt (midihelper:inspect-midihelper) 5)
+    (midihelper:start-midihelper)))
+
+(defmethod stop-backend ((backend (eql :alsa-midi)))
+  (midihelper:stop-midihelper))
+
+(defmethod backend-plays-event-p (event (backend (eql :alsa-midi)))
   (or (eq (event-value event :type) :midi)
       (typep (event-value event :instrument) 'number)))
 
-(defun play-alsa-midi (event &optional task)
+(defmethod backend-play-event (event task (backend (eql :alsa-midi)))
   (let* ((channel (midi-truncate-clamp (or (event-value event :channel) 0) 15))
-         (pgm (midi-truncate-clamp (event-value event :instrument)))
+         (pgm (midi-truncate-clamp (multiple-value-bind (value from) (event-value event :instrument)
+                                     (if (or (eq t from))
+                                         0
+                                         (if (not (integerp value))
+                                             0 ;; FIX: provide an instrument translation table (to automatically translate instrument names to program numbers)
+                                             value)))))
          (note (midi-truncate-clamp (event-value event :midinote)))
          (velocity (unipolar-1-to-midi (event-value event :amp))) ;; FIX: maybe this shouldn't be linear?
          (time (local-time:timestamp+ (or (raw-event-value event :timestamp-at-start) (local-time:now))
@@ -76,34 +99,16 @@
                       (loop :for i :in extra-params
                          :do (midihelper:send-event (midihelper:ev-cc channel (car i) (cadr i))))
                       (midihelper:send-event (midihelper:ev-noteon channel note velocity))
-                      (sleep (dur-time (sustain event) (tempo (slot-value task 'clock))))
+                      (sleep (dur-time (sustain event) (tempo (slot-value task 'clock)))) ;; FIX: ignore/handle events with negative sleep values?
                       (midihelper:send-event (midihelper:ev-noteoff channel note velocity)))
                     :name "cl-patterns temporary alsa midi note thread")))
 
-(defun release-alsa-midi (&rest foo)
-  (declare (ignore foo))
+(defmethod backend-task-removed (task (backend (eql :alsa-midi)))
   ;; FIX
-  nil
   )
 
-(defun release-alsa-midi-at (&rest foo)
-  (declare (ignore foo))
-  ;; FIX
-  nil
-  )
+(register-backend :alsa-midi)
 
-(defun timestamp-to-alsa-midi (timestamp) ;; FIX: remove?
-  (declare (ignore timestamp))
-  ;; FIX
-  nil
-  )
-
-(register-backend :alsa-midi
-                  :respond-p 'is-alsa-midi-event-p
-                  :play 'play-alsa-midi
-                  :release 'release-alsa-midi
-                  :release-at 'release-alsa-midi-at)
-
-(enable-backend :alsa-midi)
+;; (enable-backend :alsa-midi)
 
 (export '(alsa-midi-panic set-alsa-midi-cc-mapping get-alsa-midi-cc-mapping))

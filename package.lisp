@@ -14,9 +14,17 @@
    #:exponential-random-range
    #:seq
    #:seq-range
+   #:next-beat-for-quant
 
    #:tempo
-   #:next-beat-for-quant
+   #:beat
+   #:play
+   #:stop
+   #:end
+   #:playing-p
+   #:loop-p
+   #:play-or-stop
+   #:play-or-end
 
    #:midi-truncate-clamp
    #:bipolar-1-to-midi
@@ -132,7 +140,6 @@
    #:pstream-nth-future
    #:parent-pattern
    #:parent-pbind
-   #:beats-elapsed
    #:pstream-count
 
    #:defpattern
@@ -176,11 +183,7 @@
    #:*performance-errors*
 
    #:make-clock
-   #:play
-   #:stop
-   #:end
-   #:play-or-stop
-   #:play-or-end
+   #:clock-loop
    #:pdefs-playing
 
    ))

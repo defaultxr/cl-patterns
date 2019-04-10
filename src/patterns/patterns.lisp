@@ -181,16 +181,101 @@ See also: `next', `next-upto-n'"
                        (< number n)))
        :append (list val))))
 
+(defgeneric events-in-range (pstream min max)
+  (:documentation "Get all the events from PSTREAM whose start beat are MIN or greater, and less than MAX.
+
+See also: `events-after-p'"))
+
+(defmethod events-in-range ((pattern pattern) min max)
+  (events-in-range (as-pstream pattern) min max))
+
 ;;; pstream
 
 (defclass pstream (pattern)
   ((number :initform 0 :documentation "The number of outputs yielded from the pstream.") ;; FIX: maybe remove this and just use (length (slot-value pstream 'history)) instead?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
-   (history :initform (list) :documentation "The history of outputs yielded by the pstream.")
-   (beats-elapsed :initform 0 :reader beats-elapsed :documentation "The number of beats elapsed in the pstream.")
+   (history :initform (list) :documentation "The history of outputs yielded by the pstream.") ;; FIX: should this be turned into an array instead?
+   (beat :initform 0 :reader beat :documentation "The number of beats that have elapsed since the start of the pstream.")
+   (start-beat :initarg :start-beat :initform nil :documentation "The beat number of the parent pstream when this pstream started.") ;; FIX: remove?
    (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1.")
    (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times previously a pstream was made of this pstream's parent. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
+
+(defmethod events-in-range ((pstream pstream) min max)
+  (loop :while (and (<= (beat pstream) max)
+                    (not (ended-p pstream)))
+     :do (let ((next (next pstream)))
+           (unless (typep next '(or null event))
+             (error "events-in-range can only be used on event streams."))))
+  (unless (typep (pstream-nth-future 0 pstream) '(or null event))
+    (error "events-in-range can only be used on event streams."))
+  (loop :for i :in (slot-value pstream 'history)
+     :if (and (not (null i))
+              (>= (beat i) min)
+              (< (beat i) max))
+     :collect i
+     :if (or (null i)
+             (>= (beat i) max))
+     :do (loop-finish)))
+
+(defgeneric events-after-p (pstream beat)
+  (:documentation "Whether or not there are events in PSTREAM after BEAT.
+
+See also: `events-in-range'"))
+
+(defmethod events-after-p ((pstream pstream) beat)
+  (let ((last-beat 0))
+    (loop
+       :for idx :from 0
+       :for event = (pstream-nth-future idx pstream)
+       :for ebeat = (beat event)
+       :if (null event)
+       :do (return-from events-after-p nil)
+       :if (< ebeat last-beat) ;; if :beat goes backwards, the pstream is considered to be ended.
+       :do (progn
+             (warn ":beat key decreased - pstream returning NIL.")
+             (return-from events-after-p nil))
+       :if (>= ebeat beat)
+       :return t
+       :else
+       :do (setf last-beat ebeat))))
+
+(defgeneric last-output (pstream)
+  (:documentation "Returns the last output yielded by PSTREAM.
+
+Example:
+
+;; (defparameter *pstr* (as-pstream (pseq '(1 2 3) 1)))
+;; (next *pstr*) ;; => 1
+;; (last-output *pstr*) ;; => 1
+
+See also: `ended-p'"))
+
+(defmethod last-output ((pstream pstream))
+  (with-slots (number pstream-offset) pstream
+    (let ((idx (+ number pstream-offset)))
+      (when (plusp idx)
+        (pstream-nth (- idx (if (ended-p pstream) 2 1)) pstream)))))
+
+(defgeneric ended-p (pstream)
+  (:documentation "Returns t if PSTREAM has no more outputs, or nil if outputs remain to be yielded.
+
+Example:
+
+;; (defparameter *pstr* (as-pstream (pseq '(1 2) 1)))
+;; (next *pstr*) ;; => 1
+;; (ended-p *pstr*) ;; => NIL
+;; (next *pstr*) ;; => 2
+;; (ended-p *pstr*) ;; => NIL
+;; (next *pstr*) ;; => NIL
+;; (ended-p *pstr*) ;; => T
+
+See also: `last-output'"))
+
+(defmethod ended-p ((pstream pstream))
+  (with-slots (number pstream-offset) pstream
+    (and (not (= 0 (+ number pstream-offset)))
+         (null (pstream-nth -1 pstream)))))
 
 (defun value-remaining-p (value)
   "Returns true if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
@@ -200,8 +285,8 @@ See also: `next', `next-upto-n'"
     (number (plusp value))
     (otherwise nil)))
 
-(defun remainingp (pattern &optional (repeats-key 'repeats) (remaining-key 'current-repeats-remaining))
-  "Returns true if PATTERN's REMAINING-KEY slot value represents outputs \"remaining\" (see `value-remaining-p'). If PATTERN's REMAINING-KEY slot is unbound or 0, and REPEATS-KEY is not nil, then it is automatically set to the `next' of PATTERN's REPEATS-KEY slot. Then if that new value is 0 or nil, remainingp returns nil. Otherwise, :reset is returned as a generalized true value and to indicate that `next' was called on PATTERN's REPEATS-KEY slot."
+(defun remaining-p (pattern &optional (repeats-key 'repeats) (remaining-key 'current-repeats-remaining))
+  "Returns true if PATTERN's REMAINING-KEY slot value represents outputs \"remaining\" (see `value-remaining-p'). If PATTERN's REMAINING-KEY slot is unbound or 0, and REPEATS-KEY is not nil, then it is automatically set to the `next' of PATTERN's REPEATS-KEY slot. Then if that new value is 0 or nil, remaining-p returns nil. Otherwise, :reset is returned as a generalized true value and to indicate that `next' was called on PATTERN's REPEATS-KEY slot."
   (labels ((set-next ()
              (setf (slot-value pattern remaining-key) (next (slot-value pattern repeats-key)))
              (when (value-remaining-p (slot-value pattern remaining-key))
@@ -230,7 +315,7 @@ See also: `next', `next-upto-n'"
         (prog1
             nxt
           (when (typep nxt 'event)
-            (decf (slot-value pstream 'beats-elapsed) (event-value nxt :delta)))
+            (decf (slot-value pstream 'beat) (event-value nxt :delta)))
           (setf pstream-offset (1- c-offset)))))))
 
 (defmethod next :around ((pattern pstream))
@@ -262,9 +347,13 @@ See also: `next', `next-upto-n'"
               (pstream-nth pstream-offset pattern)
             (incf pstream-offset))
           (let ((result (get-value-from-stack pattern)))
+            (when (and (typep result 'event)
+                       (null (beat result))
+                       (null (slot-value pattern 'parent)))
+              (setf (beat result) (beat pattern)))
             (alexandria:appendf (slot-value pattern 'history) (list result))
             (when (typep result 'event)
-              (incf (slot-value pattern 'beats-elapsed) (event-value result :delta)))
+              (incf (slot-value pattern 'beat) (event-value result :delta)))
             result)))))
 
 (defgeneric as-pstream (thing)
@@ -282,9 +371,24 @@ See also: `pattern-as-pstream'"))
   ((value :initarg :value :initform nil :documentation "The value that is yielded by the t-pstream."))
   (:documentation "Pattern stream object that yields its value only once."))
 
-(defmethod as-pstream ((pattern t))
+(defun make-t-pstream (value)
   (make-instance 't-pstream
-                 :value pattern))
+                 :value value))
+
+(defmethod print-object ((pstream t-pstream) stream)
+  (format stream "#<~s ~s>" 't-pstream (slot-value pstream 'value)))
+
+(defmethod as-pstream ((value t))
+  (make-t-pstream value))
+
+(defmethod as-pstream ((symbol symbol))
+  (if (keywordp symbol)
+      (or (when (pdef-ref symbol)
+            (as-pstream (pdef symbol)))
+          (alexandria:when-let ((event-value (event-value *event* symbol)))
+            event-value)
+          (make-t-pstream symbol))
+      (make-t-pstream symbol)))
 
 (defmethod next ((pattern t-pstream))
   (when (= 0 (slot-value pattern 'number))
@@ -292,9 +396,6 @@ See also: `pattern-as-pstream'"))
       (if (functionp value)
           (funcall value)
           value))))
-
-(defmethod as-pstream ((pstream pstream))
-  pstream)
 
 (defmethod as-pstream ((pattern pattern))
   (let ((slots (remove-if (lambda (x) (eq x 'parent)) (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
@@ -311,7 +412,7 @@ See also: `pattern-as-pstream'"))
     (set-parents pstream)
     pstream))
 
-(defmethod as-pstream :around ((pstream pstream))
+(defmethod as-pstream :around ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
   pstream)
 
 (define-condition pstream-out-of-range () ((index :initarg :index :reader pstream-nth-index))
@@ -558,16 +659,21 @@ See also: `pbind', `pdef'"
 
 (defmethod next ((pattern pbind-pstream))
   (labels ((pbind-accumulator (pairs)
-             (let ((next-cadr (next (cadr pairs))))
-               (unless (null next-cadr)
-                 (if (position (car pairs) (keys *pbind-special-process-keys*))
-                     (let ((result (funcall (getf *pbind-special-process-keys* (car pairs)) next-cadr)))
-                       (setf *event* (combine-events *event* result)))
-                     (setf (event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
-                 (if (not (null (cddr pairs)))
-                     (pbind-accumulator (cddr pairs))
-                     *event*)))))
+             (let ((cadr (cadr pairs)))
+               (when (and (typep cadr 'pstream)
+                          (null (slot-value cadr 'start-beat)))
+                 (setf (slot-value cadr 'start-beat) (beat pattern)))
+               (let ((next-cadr (next cadr)))
+                 (unless (null next-cadr)
+                   (if (position (car pairs) (keys *pbind-special-process-keys*))
+                       (setf *event* (combine-events *event*
+                                                     (funcall (getf *pbind-special-process-keys* (car pairs)) next-cadr)))
+                       (setf (event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
+                   (if (not (null (cddr pairs)))
+                       (pbind-accumulator (cddr pairs))
+                       *event*))))))
     (let ((*event* (make-default-event)))
+      (setf (slot-value *event* '%beat) (beat pattern))
       (pbind-accumulator (slot-value pattern 'pairs)))))
 
 (defmethod as-pstream ((item pbind-pstream))
@@ -619,7 +725,7 @@ See also: `pser'")
                (= 0 (mod number (length list))))
       (decf-remaining pseq 'current-repeats-remaining))
     (alexandria:when-let ((off (next offset)))
-      (when (and (remainingp pseq)
+      (when (and (remaining-p pseq)
                  list)
         (nth-wrap (+ off number) list)))))
 
@@ -650,7 +756,7 @@ See also: `pseq'")
 
 (defmethod next ((pser pser-pstream))
   (with-slots (list offset current-index) pser
-    (alexandria:when-let ((remaining (remainingp pser 'length))
+    (alexandria:when-let ((remaining (remaining-p pser 'length))
                           (off (next offset)))
       (decf-remaining pser 'current-repeats-remaining)
       (when (eq :reset remaining)
@@ -710,7 +816,7 @@ See also: `pxrand', `pwrand', `pwxrand'")
                    :length (as-pstream length))))
 
 (defmethod next ((pattern prand-pstream))
-  (when (remainingp pattern 'length)
+  (when (remaining-p pattern 'length)
     (decf-remaining pattern 'current-repeats-remaining)
     (alexandria:random-elt (slot-value pattern 'list))))
 
@@ -734,7 +840,7 @@ See also: `prand', `pwrand', `pwxrand'"
 
 (defmethod next ((pattern pxrand-pstream))
   (with-slots (list last-result) pattern
-    (when (remainingp pattern 'length)
+    (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (let ((res (alexandria:random-elt list)))
         (loop :while (eql res last-result)
@@ -762,7 +868,7 @@ See also: `prand', `pxrand', `pwxrand'")
 
 (defmethod next ((pattern pwrand-pstream))
   (with-slots (list weights) pattern
-    (when (remainingp pattern 'length)
+    (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (let* ((cweights (cumulative-list (normalized-sum weights)))
              (num (random 1.0)))
@@ -787,7 +893,7 @@ See also: `prand', `pxrand', `pwxrand'")
 
 (defmethod next ((pattern pwxrand-pstream))
   (with-slots (list weights) pattern
-    (when (remainingp pattern 'length)
+    (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (labels ((get-next ()
                  (let* ((cweights (cumulative-list (normalized-sum weights)))
@@ -824,7 +930,7 @@ See also: `pf', `pnary'"
                    :length (as-pstream length))))
 
 (defmethod next ((pattern pfunc-pstream))
-  (when (remainingp pattern 'length)
+  (when (remaining-p pattern 'length)
     (decf-remaining pattern 'current-repeats-remaining)
     (funcall (slot-value pattern 'func))))
 
@@ -968,7 +1074,7 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defmethod next ((pattern plazyn-pstream))
   (with-slots (func repeats current-pstream current-repeats-remaining) pattern
     (labels ((maybe-funcall ()
-               (when (remainingp pattern)
+               (when (remaining-p pattern)
                  (setf current-pstream (as-pstream (funcall func)))
                  (decf-remaining pattern 'current-repeats-remaining))))
       (when (null current-repeats-remaining)
@@ -1005,13 +1111,13 @@ See also: `pstutter', `pdurstutter', `parp'")
 
 (defmethod next ((pn pn-pstream))
   (with-slots (pattern current-pstream) pn
-    (alexandria:when-let ((rem (remainingp pn)))
       (when (eq :reset rem)
+    (alexandria:when-let ((rem (remaining-p pn)))
         (setf current-pstream (as-pstream pattern)))
       (let ((nv (next current-pstream)))
         (loop :while (and (null nv) rem) :do
              (decf-remaining pn 'current-repeats-remaining)
-             (setf rem (remainingp pn))
+             (setf rem (remaining-p pn))
              (setf current-pstream (as-pstream pattern))
              (setf nv (next current-pstream)))
         (when rem
@@ -1049,8 +1155,8 @@ See also: `prand'")
     (when (and (= 0 (mod number (length list)))
                (plusp number))
       (decf-remaining pattern 'current-repeats-remaining))
-    (alexandria:when-let ((rem (remainingp pattern)))
       (when (eq :reset rem)
+    (alexandria:when-let ((rem (remaining-p pattern)))
         (setf shuffled-list (alexandria:shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
       (nth (mod number (length shuffled-list))
            shuffled-list))))
@@ -1073,7 +1179,7 @@ See also: `prand'")
 
 (defmethod next ((pattern pwhite-pstream))
   (with-slots (lo hi) pattern
-    (when (remainingp pattern 'length)
+    (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (alexandria:when-let ((nlo (next lo))
                             (nhi (next hi)))
@@ -1099,7 +1205,7 @@ See also: `prand'")
                    :length (as-pstream length))))
 
 (defmethod next ((pattern pbrown-pstream))
-  (when (remainingp pattern 'length)
+  (when (remaining-p pattern 'length)
     (decf-remaining pattern 'current-repeats-remaining)
     (with-slots (lo hi step current-value) pattern
       (alexandria:when-let ((nlo (next lo))
@@ -1128,7 +1234,7 @@ See also: `prand'")
 
 (defmethod next ((pattern pexprand-pstream))
   (with-slots (lo hi) pattern
-    (when (remainingp pattern 'length)
+    (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (alexandria:when-let ((nlo (next lo))
                             (nhi (next hi)))
@@ -1155,7 +1261,7 @@ See also: `prand'")
 
 (defmethod next ((pattern pseries-pstream))
   (with-slots (step current-value) pattern
-    (when (and (remainingp pattern 'length)
+    (when (and (remaining-p pattern 'length)
                current-value)
       (decf-remaining pattern 'current-repeats-remaining)
       (let ((nxt (next step)))
@@ -1186,7 +1292,7 @@ See also: `prand'")
 
 (defmethod next ((pattern pgeom-pstream))
   (with-slots (grow current-value) pattern
-    (when (remainingp pattern 'length)
+    (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (if (= 0 (slot-value pattern 'number))
           current-value
@@ -1241,8 +1347,8 @@ See also: `prand'")
       (decf-remaining pattern 'current-repeats-remaining))
     (when (if (plusp number)
               (and (not (null (pstream-nth -1 pattern)))
-                   (remainingp pattern))
-              (remainingp pattern))
+                   (remaining-p pattern))
+              (remaining-p pattern))
       (let* ((mod (mod number (length list)))
              (result (next (nth mod list))))
         (if (not (null result))
@@ -1722,10 +1828,10 @@ Example:
 ;;
 ;; => ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 2 :FOO 1) (EVENT :DUR 3 :FOO 3))
 
-See also: `beats-elapsed', `prun'")
+See also: `beat', `prun'")
 
 (defmethod next ((pbeat pbeat-pstream))
-  (beats-elapsed (parent-pbind pbeat)))
+  (beat (parent-pbind pbeat)))
 
 ;;; ptime
 
@@ -1744,17 +1850,17 @@ Example:
 ;;
 ;; => ((EVENT :DUR 1 :TIME 0) (EVENT :DUR 1 :TIME 1.0))
 
-See also: `pbeat', `beats-elapsed', `prun'")
+See also: `pbeat', `prun', `beat'")
 
 (defmethod next ((ptime ptime-pstream)) ;; FIX: take into account the previous tempo if it has been changed since the last-beat-checked.
   (with-slots (last-beat-checked tempo-at-beat elapsed-time) ptime
     (with-slots (tempo) *clock*
-      (let ((beats-elapsed (beats-elapsed (parent-pbind ptime))))
+      (let ((beat (beat (parent-pbind ptime))))
         (prog1
             (incf elapsed-time (if (null last-beat-checked)
                                    0
-                                   (dur-time (- beats-elapsed last-beat-checked) tempo)))
-          (setf last-beat-checked beats-elapsed
+                                   (dur-time (- beat last-beat-checked) tempo)))
+          (setf last-beat-checked beat
                 tempo-at-beat tempo))))))
 
 ;;; pindex
@@ -1806,7 +1912,7 @@ Example:
 ;;
 ;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 4 :BAR 6) (EVENT :FOO 5 :BAR 8))
 
-See also: `beats-elapsed', `pbeat'")
+See also: `beat', `pbeat'")
 
 (defmethod as-pstream ((prun prun))
   (with-slots (pattern dur) prun
@@ -1819,7 +1925,7 @@ See also: `beats-elapsed', `pbeat'")
   (with-slots (pattern dur dur-history) prun
     (flet ((ok ()
              (not (position nil dur-history))))
-      (let ((beats (beats-elapsed (parent-pbind prun)))
+      (let ((beats (beat (parent-pbind prun)))
             (cdur (reduce #'+ dur-history)))
         (loop :while (and (ok) (<= cdur beats))
            :do
@@ -2017,7 +2123,7 @@ See also: `psym'")
                                                        (and (not (null (slot-value pstream 'history)))
                                                             (null (pstream-nth -1 pstream))))
                                                      pstreams)))
-                 (most-x res #'< #'beats-elapsed)))
+                 (most-x res #'< #'beat)))
              (maybe-reset-pstreams ()
                (when (null (remove-if #'null pstreams))
                  (let ((next-list (next list)))
@@ -2030,12 +2136,12 @@ See also: `psym'")
         (if (null nxt)
             (let ((nip (next-in-pstreams)))
               (when nip
-                (let ((beppar (beats-elapsed ppar))
-                      (benip (beats-elapsed nip)))
-                  (if (< beppar benip)
+                (let ((beppar (beat ppar))
+                      (benip (beat nip)))
+                  (if (<= beppar benip)
                       (event :type :rest :delta (- benip beppar))
                       (next ppar)))))
-            (combine-events nxt (event :delta (- (beats-elapsed (next-in-pstreams)) (beats-elapsed ppar)))))))))
+            (combine-events nxt (event :delta (- (beat (next-in-pstreams)) (beat ppar)))))))))
 
 ;;; pmeta
 
@@ -2119,7 +2225,7 @@ See also: `pfindur', `psync'")
 
 (defmethod next ((pts pts-pstream))
   (with-slots (pattern dur number) pts
-    (let ((mul (/ dur (beats-elapsed pattern)))
+    (let ((mul (/ dur (beat pattern)))
           (ev (pstream-nth number pattern)))
       (when ev
         (combine-events ev (event :dur (* mul (event-value ev :dur))))))))

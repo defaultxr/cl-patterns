@@ -223,6 +223,47 @@ See also: `seq'"
 (defgeneric tempo (object)
   (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number."))
 
+(defgeneric beat (object)
+  (:documentation "Get the beat that OBJECT occurs on, relative to its context's start. i.e. for an event, the beat is relative to the start of its source pattern, while for a pstream or clock object, the beat is the number of beats that have passed since its start."))
+
+(defmethod beat ((null null))
+  nil)
+
+(defgeneric play (item)
+  (:documentation "Play an item (typically an event or pattern) according to the current `*event-output-function*'."))
+
+(defgeneric stop (item)
+  (:documentation "Immediately stop a playing item (typically a playing task or pdef).
+
+See also: `end'"))
+
+(defgeneric end (item)
+  (:documentation "End a task; it will stop when its current loop completes."))
+
+(defgeneric playing-p (item &optional clock)
+  (:documentation "Whether ITEM is playing.
+
+See also: `play-or-stop', `play-or-end', `pdefs-playing'"))
+
+(defgeneric loop-p (item)
+  (:documentation "Whether or not ITEM should play again after it ends."))
+
+(defun play-or-stop (item)
+  "`play' an item, or `stop' it if it is already playing. Returns the task if the item will start playing, or NIL if it will stop."
+  (if (playing-p item)
+      (progn
+        (stop item)
+        nil)
+      (play item)))
+
+(defun play-or-end (item)
+  "`play' an item, or `end' it if it's already playing. Returns the task if the item will start playing, or NIL if it will end."
+  (if (playing-p item)
+      (progn
+        (end item)
+        nil)
+      (play item)))
+
 ;;; MIDI stuff
 
 (defun midi-truncate-clamp (number &optional (max 127))

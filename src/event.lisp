@@ -6,7 +6,8 @@
 ;;; event glue
 
 (defclass event ()
-  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type 'list :documentation "The plist containing all of the event's keys and values."))
+  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type 'list :documentation "The plist containing all of the event's keys and values.")
+   (%beat :initform nil :type 'number :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
@@ -178,13 +179,21 @@ See also: `combine-events'"
                     (loop :for key :in (keys event)
                        :append (list key (nth-wrap i (alexandria:ensure-list (event-value event key))))))))))
 
-(defun play-test (item &optional pstream)
+(defun play-test (item &optional pstream) ;; FIX: move this to debug.lisp
   "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."
   (declare (ignore pstream))
   (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
 
 (defmethod keys ((item event))
   (keys (slot-value item 'event-plist)))
+
+(defmethod beat ((item event))
+  (event-value item :beat))
+
+(defmethod (setf beat) (value (event event))
+  (setf (slot-value event '%beat) value)
+  (when (member :beat (keys event))
+    (setf (event-value event :beat) value)))
 
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
@@ -194,7 +203,7 @@ See also: `combine-events'"
 
 CASES is a plist of cases mapping event key names to forms. When `event-value' is called on an event for the NAME key, then the event is tested for the keys of CASES in the order they're listed. The associated form of the first key of CASES that exists in the event is evaluated to get the value of that call to `event-value'.
 
-If no case is provided with a KEY that's the same as NAME, one is automatically added at the start with a form that just returns the value of the event's NAME key. If a case is provided with t as its KEY, that case is always run when found. This allows you to set a default value for the key if none of the other keys from CASES exist in the event.
+If no case is provided with a key that's the same as NAME, one is automatically added at the start with a form that just returns the value of the event's NAME key. If a case is provided with t as its key, that case is always run when found. This allows you to set a default value for the key if none of the other keys from CASES exist in the event.
 
 REMOVE-KEYS is a list of keys to remove from the event when the NAME key is being set with `(setf event-value)'. If t (the default), all keys in CASES will be removed from the event.
 
@@ -219,15 +228,15 @@ Additionally, because :define-methods is true, we can also do the following:
     `(progn
        (setf *event-special-keys*
              (plist-set *event-special-keys* ,kwname (list
-                                                       (list ,@(loop :for (key value) :on cases :by #'cddr
-                                                                  :append (list
-                                                                           (if (eq key t)
-                                                                               key
-                                                                               (alexandria:make-keyword key))
-                                                                           `(lambda (event)
-                                                                              (declare (ignorable event))
-                                                                              ,value))))
-                                                       (list ,@(alexandria:ensure-list remove-keys)))))
+                                                      (list ,@(loop :for (key value) :on cases :by #'cddr
+                                                                 :append (list
+                                                                          (if (eq key t)
+                                                                              key
+                                                                              (alexandria:make-keyword key))
+                                                                          `(lambda (event)
+                                                                             (declare (ignorable event))
+                                                                             ,value))))
+                                                      (list ,@(alexandria:ensure-list remove-keys)))))
        ,(when define-methods
           `(progn
              (defmethod ,name ((event null)) nil)
@@ -261,11 +270,14 @@ Additionally, because :define-methods is true, we can also do the following:
 ;;; dur/delta
 
 (define-event-special-key tempo (t (if (and (boundp '*clock*) (not (null *clock*)))
-                                         (tempo *clock*)
-                                         1)))
+                                       (tempo *clock*)
+                                       1)))
+
+(define-event-special-key beat (t (or (raw-event-value event :beat)
+                                      (slot-value event '%beat))))
 
 (define-event-special-key delta (:dur (event-value event :dur)
-                                       t (event-value event :dur))
+                                      t (event-value event :dur))
   :remove-keys nil
   :define-methods t)
 

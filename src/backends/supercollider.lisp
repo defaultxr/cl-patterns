@@ -5,6 +5,10 @@
 
 ;;; helper functions
 
+(defun timestamp-to-cl-collider (timestamp)
+  "Convert a local-time timestamp to the format used by cl-collider."
+  (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
+
 (defun get-synthdef-control-names (name)
   (mapcar #'car (sc::get-synthdef-metadata name :controls)))
 
@@ -35,27 +39,62 @@
                (not (null val)))
        :append (list (alexandria:make-keyword sparam) (if (eq :gate sparam) 1 val)))))
 
-(defmethod convert-object ((object sc::buffer))
-  (sc:bufnum object))
-
-(defmethod convert-object ((object sc::bus))
-  (sc:busnum object))
-
 (defun get-proxys-node-id (name)
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
   (if (typep name 'sc::node)
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'sc::name))))
-      (slot-value (gethash name (sc::node-proxy-table sc::*s*))
-                  'sc::id)))
+      (sc::id (gethash name (sc::node-proxy-table sc::*s*)))))
+
+(defgeneric convert-sc-object (object key)
+  (:documentation "Method used to convert objects in events to values the SuperCollider server can understand. For example, any `cl-collider::buffer' objects are converted to their bufnum."))
+
+(defmethod convert-sc-object ((object t) key)
+  (declare (ignore key))
+  object)
+
+(defmethod convert-sc-object ((object sc::buffer) key)
+  (declare (ignore key))
+  (sc:bufnum object))
+
+(defmethod convert-sc-object ((object sc::bus) key)
+  (declare (ignore key))
+  (sc:busnum object))
+
+(defmethod convert-sc-object ((object sc::node) key)
+  (let ((bus (if (eql key :out)
+                 (sc:get-synthdef-metadata object :input-bus)
+                 (or (sc:get-synthdef-metadata object :output-bus)
+                     (sc:get-synthdef-metadata object :input-bus)))))
+    (if bus
+        (sc:busnum bus)
+        object)))
+
+;;; node map
+
+(defparameter *supercollider-node-map* (make-hash-table :test 'eq)
+  "Hash mapping cl-patterns tasks to SuperCollider nodes.")
+
+(defun task-sc-nodes (task)
+  (gethash task *supercollider-node-map*))
+
+(defun (setf task-sc-nodes) (value task)
+  (setf (gethash task *supercollider-node-map*) value))
 
 ;;; backend functions
 
-(defun is-sc-event-p (event)
+(defmethod start-backend ((backend (eql :supercollider)))
+  (setf sc:*s* (sc:make-external-server "localhost" :port 4444))
+  (sc:server-boot *s*))
+
+(defmethod stop-backend ((backend (eql :supercollider)))
+  (sc:server-quit sc:*s*))
+
+(defmethod backend-plays-event-p (event (backend (eql :supercollider)))
   (let ((inst (event-value event :instrument)))
     (or (gethash inst sc::*synthdef-metadata*)
         (typep inst 'sc::node))))
 
-(defun play-sc (item &optional task)
+(defmethod backend-play-event (item task (backend (eql :supercollider)))
   "Play ITEM on the SuperCollider sound server. TASK is an internal parameter used when this function is called from the clock."
   (unless (eq (event-value item :type) :rest)
     (let* ((inst (instrument item))
@@ -67,53 +106,66 @@
                     (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (sc:now))
                     offset))
            (params (loop :for (key value) :on (generate-plist-for-synth inst item) :by #'cddr
-                      :append (list key (convert-object value)))))
-      (if (or (and (eq (event-value item :type) :mono)
-                   (not (null task))) ;; if the user calls #'play manually, then we always start a note instead of checking if a node already exists.
+                      :append (list key (convert-sc-object value key))))
+           (group (event-value item :group)) ;; FIX: should be possible to auto-assign synths to groups with :group. https://github.com/ntrocado/cl-collider-examples/blob/df79d8d820581b720b8e409e819fd715a570bb0b/chapter6.lisp
+           )
+      (if (or (eq (event-value item :type) :mono)
               (typep inst 'sc::node))
           (let ((node (sc:at time
-                        (cond ((not (null (slot-value task 'nodes)))
-                               (apply #'sc:ctrl (car (slot-value task 'nodes)) params))
-                              ((typep inst 'sc::node)
-                               ;; redefining a proxy changes its Node's ID.
-                               ;; thus if the user redefines a proxy, the Node object previously provided to the pbind will become inaccurate.
-                               ;; thus we look up the proxy in the node-proxy-table to ensure we always have the correct ID.
-                               (let ((node (or (get-proxys-node-id inst)
-                                               inst)))
-                                 (apply #'sc:ctrl node params)))
-                              (t
-                               (apply #'sc:synth inst params))))))
+                        (let ((nodes (task-sc-nodes task)))
+                          (cond ((not (null nodes))
+                                 (apply #'sc:ctrl (car nodes) params))
+                                ((typep inst 'sc::node)
+                                 ;; redefining a proxy changes its Node's ID.
+                                 ;; thus if the user redefines a proxy, the Node object previously provided to the pbind will become inaccurate.
+                                 ;; thus we look up the proxy in the node-proxy-table to ensure we always have the correct ID.
+                                 (let ((node (or (get-proxys-node-id inst)
+                                                 inst)))
+                                   (apply #'sc:ctrl node params)))
+                                (t
+                                 (apply #'sc:synth inst params)))))))
             (unless (or (typep inst 'sc::node)
                         (not (has-gate-p inst)))
               (if (< (legato item) 1)
                   (sc:at (+ time (dur-time (sustain item)))
-                    (setf (slot-value task 'nodes) (list))
-                    (release-sc node))
-                  (setf (slot-value task 'nodes) (list node)))))
+                    (setf (task-sc-nodes task) (list))
+                    (sc:release node))
+                  (setf (task-sc-nodes task) (list node)))))
           (let ((node (sc:at time
                         (apply #'sc:synth inst params))))
             (when (has-gate-p node)
               (sc:at (+ time (dur-time (sustain item)))
-                (release-sc node))))))))
+                (sc:release node))))))))
 
-(defun release-sc (node)
-  (sc:release node))
+(defmethod backend-task-removed (task (backend (eql :supercollider)))
+  (let ((item (slot-value task 'item)))
+    (unless (typep item 'event)
+      (let ((last-output (last-output item)))
+        (dolist (node (task-sc-nodes task))
+          (sc:at (timestamp-to-cl-collider
+                  (absolute-beats-to-timestamp (+ (slot-value task 'start-beat) (beat last-output) (sustain last-output))
+                                               (slot-value task 'clock)))
+            (sc:release node))))))
+  (setf (task-sc-nodes task) (list)))
 
-(defun release-sc-at (time node)
-  (sc:at time
-    (release-sc node)))
+;;; convenience methods
 
-(defun timestamp-to-cl-collider (timestamp)
-  "Convert a local-time timestamp to the format used by cl-collider."
-  (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
+(defmethod play ((object sc::node))
+  t)
 
-(defmethod release ((object sc::node))
-  (sc::release object))
+(defmethod stop ((object sc::node))
+  (sc:stop object))
 
-(register-backend :supercollider
-                  :respond-p 'is-sc-event-p
-                  :play 'play-sc
-                  :release 'release-sc
-                  :release-at 'release-sc-at)
+(defmethod end ((object sc::node))
+  (sc:release object))
 
-(enable-backend :supercollider)
+(defmethod playing-p ((node sc::node) &optional (server sc:*s*))
+  (when (position (sc::node-watcher server) (sc::id node))
+    t))
+
+(register-backend :supercollider)
+
+;; (enable-backend :supercollider)
+
+(in-package :cl-patterns-user)
+
