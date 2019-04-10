@@ -171,6 +171,8 @@
 
    ;;; tracker.lisp
 
+   #:pt
+
    ;;; backend.lisp
 
    #:register-backend
