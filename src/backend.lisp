@@ -18,22 +18,17 @@
   "Get a list of all enabled backends."
   *enabled-backends*)
 
-(defun enable-backend (name &optional (start t))
-  "Enable a registered backend. With START, start the backend server."
+(defun enable-backend (name)
+  "Enable a registered backend."
   (let ((name (alexandria:make-keyword name)))
     (assert (position name *backends*) (name) "No backend named ~s registered." name)
     (if (member name *enabled-backends*)
         (warn "Backend ~a already enabled; doing nothing." name)
-        (progn
-          (when start
-            (start-backend name))
-          (pushnew name *enabled-backends*)))))
+        (pushnew name *enabled-backends*))))
 
-(defun disable-backend (name &optional (stop t))
+(defun disable-backend (name)
   "Disable a registered backend."
   (let ((name (alexandria:make-keyword name)))
-    (when stop
-      (stop-backend name))
     (setf *enabled-backends*
           (delete name *enabled-backends*))))
 

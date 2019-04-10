@@ -84,7 +84,7 @@
 
 (defmethod start-backend ((backend (eql :supercollider)))
   (setf sc:*s* (sc:make-external-server "localhost" :port 4444))
-  (sc:server-boot *s*))
+  (sc:server-boot sc:*s*))
 
 (defmethod stop-backend ((backend (eql :supercollider)))
   (sc:server-quit sc:*s*))
