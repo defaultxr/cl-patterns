@@ -14,11 +14,12 @@
   "Loop through PATTERN's slots and set the \"parent\" slot of any patterns to this pattern."
   (labels ((set-parent (list parent)
              "Recurse through LIST, setting the parent of any pattern found to PARENT."
-             (cond ((typep list 'list)
+             (cond ((listp list)
                     (mapc (lambda (x) (set-parent x parent)) list))
                    ((typep list 'pattern)
                     (setf (slot-value list 'parent) parent)))))
     (loop :for slot :in (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))
+       :unless (eql slot 'parent) ;; FIX: add tests for this!
        :do
          (when (slot-boundp pattern slot)
            (set-parent (slot-value pattern slot) pattern)))
@@ -39,7 +40,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   (let* ((superclasses (or superclasses (list 'pattern)))
          (slots (mapcar #'alexandria:ensure-list slots))
          (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
-         (super-pstream (if (eq 'pattern (car superclasses))
+         (super-pstream (if (eql 'pattern (car superclasses))
                             'pstream
                             (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM") 'cl-patterns))))
     (labels ((desugar-slot (slot)
@@ -47,7 +48,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                (let ((name (car slot))
                      (rest (cdr slot)))
                  (setf rest (alexandria:remove-from-plist rest :default :state))
-                 (when (not (position :initarg (keys rest)))
+                 (unless (position :initarg (keys rest))
                    (alexandria:appendf rest (list :initarg (alexandria:make-keyword name))))
                  (append (list name) rest)))
              (optional-slot-p (slot)
@@ -60,7 +61,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                "Generate the lambda list for the pattern's creation function."
                (let ((optional-used nil))
                  (loop :for slot :in slots
-                    :append (when (not (state-slot-p slot))
+                    :append (unless (state-slot-p slot)
                               (if (optional-slot-p slot)
                                   (prog1
                                       (append (if (not optional-used)
@@ -80,7 +81,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
              (add-doc-to-defun (sexp)
                (if (and (listp sexp)
                         (position (car sexp) (list 'defun 'defmacro))
-                        (not (typep (nth 3 sexp) 'string)))
+                        (not (stringp (nth 3 sexp))))
                    (append (subseq sexp 0 3) (list documentation) (subseq sexp 3))
                    sexp)))
       `(progn
@@ -116,7 +117,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 
 (defun all-patterns ()
   "Get a list of all defined patterns."
-  (remove-if (lambda (s) (eq s 'pstream))
+  (remove-if (lambda (s) (eql s 'pstream))
              (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern)))))
 
 (defmethod (setf quant) (value (pattern pattern))
@@ -177,7 +178,7 @@ See also: `next', `next-upto-n'"
        :for number :from 0 :upto n
        :for val = (next pstream)
        :while (and (not (null val))
-                   (or (eq :inf n)
+                   (or (eql :inf n)
                        (< number n)))
        :append (list val))))
 
@@ -281,7 +282,7 @@ See also: `last-output'"))
   "Returns true if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
   (typecase value
     (null nil)
-    (symbol (eq value :inf))
+    (symbol (eql value :inf))
     (number (plusp value))
     (otherwise nil)))
 
@@ -296,7 +297,7 @@ See also: `last-output'"))
         (let ((rem-key (slot-value pattern remaining-key)))
           (typecase rem-key
             (null nil)
-            (symbol (eq rem-key :inf))
+            (symbol (eql rem-key :inf))
             (number (if (plusp rem-key)
                         t
                         (set-next))) ;; if it's already set to 0, it was decf'd to 0 in the pattern, so we get the next one. if the next is 0, THEN we return nil.
@@ -398,7 +399,7 @@ See also: `pattern-as-pstream'"))
           value))))
 
 (defmethod as-pstream ((pattern pattern))
-  (let ((slots (remove-if (lambda (x) (eq x 'parent)) (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
+  (let ((slots (remove-if (lambda (x) (eql x 'parent)) (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
@@ -544,14 +545,14 @@ See also: `pmono', `pb'"
                   (unless (typep pattern 'pbind)
                     (alexandria:appendf pattern-chain (list pattern))
                     (setf pattern (make-instance 'pbind)))
-                  (alexandria:appendf res-pairs (list key (if (and (eq key :embed)
+                  (alexandria:appendf res-pairs (list key (if (and (eql key :embed)
                                                                    (typep value 'symbol))
                                                               (pdef value)
                                                               value)))))))
     (unless (null res-pairs)
       (setf (slot-value pattern 'pairs) res-pairs))
     (alexandria:appendf pattern-chain (list pattern))
-    (unless (= 1 (length pattern-chain))
+    (unless (alexandria:length= 1 pattern-chain)
       (setf pattern (apply #'pchain pattern-chain)))
     ;; process :quant key. ;; FIX: should this be applied to the pdef, or the pattern itself?
     (alexandria:when-let ((quant (getf pairs :quant)))
@@ -569,14 +570,19 @@ See also: `pmono', `pb'"
 (defmethod print-object ((pbind pbind) stream)
   (format stream "#<~s~{ ~s ~s~}>" 'pbind (slot-value pbind 'pairs)))
 
-(defmacro pb (name &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
-  "pb is a convenience macro, wrapping the functionality of `pbind'. NAME is a keyword for the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind.
+(defmacro pb (key &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
+  "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. KEY is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
 
 See also: `pbind', `pdef'"
-  `(pbind :pdef ,name ,@pairs))
+  (if (alexandria:length= 1 pairs)
+      `(pdef ,key ,@pairs)
+      `(pbind :pdef ,key ,@pairs)))
 
 (defclass pbind-pstream (pbind pstream)
   ())
+
+(defmethod print-object ((pbind pbind-pstream) stream) ;; FIX: use print-unreadable-object (here and anywhere else print-object is implemented like this)
+  (format stream "#<~s~{ ~s ~s~}>" 'pbind-pstream (slot-value pbind 'pairs)))
 
 (defun as-pstream-pairs (pairs)
   (let ((results (list)))
@@ -590,7 +596,7 @@ See also: `pbind', `pdef'"
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
               :collect (alexandria:make-keyword slot)
-              :if (equal :pairs (alexandria:make-keyword slot))
+              :if (eql :pairs (alexandria:make-keyword slot))
               :collect (as-pstream-pairs (slot-value pattern 'pairs))
               :else
               :collect (slot-value pattern slot)))))
@@ -637,13 +643,13 @@ See also: `pbind', `pdef'"
 
 (define-pbind-special-wrap-key ptrace
   (if value
-      (if (eq t value)
+      (if (eql t value)
           (ptrace pattern)
           (ptrace pattern value))
       pattern))
 
 (define-pbind-special-wrap-key pmeta
-  (if (eq t value)
+  (if (eql t value)
       (pmeta pattern)
       pattern))
 
@@ -759,7 +765,7 @@ See also: `pseq'")
     (alexandria:when-let ((remaining (remaining-p pser 'length))
                           (off (next offset)))
       (decf-remaining pser 'current-repeats-remaining)
-      (when (eq :reset remaining)
+      (when (eql :reset remaining)
         (setf current-index 0))
       (prog1
           (nth-wrap (+ off current-index) list)
@@ -899,7 +905,7 @@ See also: `prand', `pxrand', `pwxrand'")
                  (let* ((cweights (cumulative-list (normalized-sum weights)))
                         (num (random 1.0))
                         (res (nth (index-of-greater-than num cweights) list)))
-                   (when (not (null (slot-value pattern 'history)))
+                   (unless (null (slot-value pattern 'history))
                      (loop :while (eql res (pstream-nth -1 pattern))
                         :do (setf res (get-next))))
                    res)))
@@ -1111,8 +1117,8 @@ See also: `pstutter', `pdurstutter', `parp'")
 
 (defmethod next ((pn pn-pstream))
   (with-slots (pattern current-pstream) pn
-      (when (eq :reset rem)
     (alexandria:when-let ((rem (remaining-p pn)))
+      (when (eql :reset rem)
         (setf current-pstream (as-pstream pattern)))
       (let ((nv (next current-pstream)))
         (loop :while (and (null nv) rem) :do
@@ -1155,8 +1161,8 @@ See also: `prand'")
     (when (and (= 0 (mod number (length list)))
                (plusp number))
       (decf-remaining pattern 'current-repeats-remaining))
-      (when (eq :reset rem)
     (alexandria:when-let ((rem (remaining-p pattern)))
+      (when (eql :reset rem)
         (setf shuffled-list (alexandria:shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
       (nth (mod number (length shuffled-list))
            shuffled-list))))
@@ -1363,7 +1369,9 @@ See also: `prand'")
 (defpattern pnary (pattern)
   (operator
    (patterns :initarg :patterns))
-  "pnary yields the result of applying OPERATOR to each value yielded by each pattern in PATTERNS."
+  "pnary yields the result of applying OPERATOR to each value yielded by each pattern in PATTERNS.
+
+See also: `pfunc'"
   (defun pnary (operator &rest patterns)
     (set-parents
      (make-instance 'pnary
@@ -1445,7 +1453,7 @@ See also: `pscratch'")
                         (minusp current-value))
                    nil
                    (funcall (if wrap-at-end #'nth-wrap #'nth) current-value list))))
-      (when (not (slot-boundp pattern 'current-repeats-remaining))
+      (unless (slot-boundp pattern 'current-repeats-remaining)
         (setf current-repeats-remaining (next repeats)))
       (when (value-remaining-p current-repeats-remaining)
         (if (value-remaining-p remaining-current-segment)
@@ -1678,14 +1686,14 @@ See also: `pfin', `psync'")
 (defmethod next ((pfindur pfindur-pstream)) ;; FIX: make this affect the dur AND delta properly.
   (with-slots (pattern dur tolerance current-elapsed) pfindur
     (alexandria:when-let ((n-event (next pattern)))
-      (when (or (eq :inf dur)
+      (when (or (eql :inf dur)
                 (< (if (= 0 tolerance)
                        current-elapsed
                        (round-up current-elapsed tolerance))
                    dur))
         (let ((new-elapsed (+ (event-value n-event :delta) current-elapsed)))
           (prog1
-              (if (and (not (eq :inf dur))
+              (if (and (not (eql :inf dur))
                        (> (if (= 0 tolerance)
                               new-elapsed
                               (round-up new-elapsed tolerance))
@@ -1807,12 +1815,12 @@ See also: `pr', `pstutter'")
          (setf current-repeats-remaining (next n))
          (let ((e (next (slot-value pattern 'pattern))))
            (when (and (not (null current-repeats-remaining))
-                      (not (eq 0 current-repeats-remaining)))
+                      (not (= 0 current-repeats-remaining)))
              (setf current-value (ctypecase e
                                    (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
                                    (number (/ e current-repeats-remaining))
                                    (null nil))))))
-    (when (not (null current-repeats-remaining))
+    (unless (null current-repeats-remaining)
       (decf-remaining pattern 'current-repeats-remaining)
       current-value)))
 
@@ -1929,10 +1937,10 @@ See also: `beat', `pbeat'")
             (cdur (reduce #'+ dur-history)))
         (loop :while (and (ok) (<= cdur beats))
            :do
-           (let ((nxt (next dur)))
-             (alexandria:appendf dur-history (list nxt))
-             (when nxt
-               (incf cdur nxt))))
+             (let ((nxt (next dur)))
+               (alexandria:appendf dur-history (list nxt))
+               (when nxt
+                 (incf cdur nxt))))
         (when (ok)
           (let* ((clist (cumulative-list dur-history))
                  (idx (or (index-of-greater-than beats clist) 0)))
@@ -2177,8 +2185,8 @@ See also: `psym', `parp'")
     (labels ((make-pstream (event)
                (let ((pattern (or (event-value event :pattern)
                                   (event-value event :instrument)))
-                     (dur (multiple-value-bind (num from) (event-value event :dur)
-                            (unless (eq t from)
+                     (dur (multiple-value-bind (num from) (event-value event :dur) ;; FIX: should this account for :inf ?
+                            (unless (eql t from)
                               num))))
                  (when pattern
                    (let* ((pattern (typecase pattern
