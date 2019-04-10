@@ -68,7 +68,7 @@ Note that this function is not aware of context and thus always returns the firs
 (defun scale-midinotes (scale &key (start-note :c) (octave 5))
   "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
   (typecase octave
-    (symbol (if (eq :all octave)
+    (symbol (if (eql :all octave)
                 (scale-midinotes scale :start-note start-note :octave (list 0 9))
                 (error "Invalid OCTAVE argument for scale-midinotes; try :all, a number, or a 2-element list denoting a range instead.")))
     (number (scale-midinotes scale :start-note start-note :octave (list octave octave)))
@@ -134,7 +134,7 @@ Note that this function is not aware of context and thus always returns the firs
 Note that Scala refers to these as \"scales\" but in cl-patterns we call them tunings."
   (with-open-file (stream file :direction :input :if-does-not-exist :error)
     (let* ((lines (loop :for line = (read-line stream nil 'eof)
-                     :if (eq line 'eof)
+                     :if (eql line 'eof)
                      :do (loop-finish)
                      :unless (char= #\! (elt line 0))
                      :collect (string-left-trim '(#\space) line)))
@@ -211,7 +211,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
             x
             name
             (loop :for i :in (keys *chords*)
-               :if (eq (getf *chords* i) (string-keyword (chord-name x)))
+               :if (eql (getf *chords* i) (string-keyword (chord-name x)))
                :collect i)
             scale
             (scale-notes (scale scale))
@@ -258,7 +258,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
        (let ((t-tuning (cadr sd)))
          (apply #'define-tuning
                 (car sd)
-                (if (eq t (car t-tuning)) ;; tunings lists that start with t need to be ratio-midi'd.
+                (if (eql t (car t-tuning)) ;; tunings lists that start with t need to be ratio-midi'd.
                     (mapcar #'ratio-midi (cdr t-tuning))
                     t-tuning)
                 (cddr sd))))

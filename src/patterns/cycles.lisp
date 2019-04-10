@@ -89,7 +89,7 @@ LIST is the actual pattern to generate."
                  (or (getf map symbol)
                      symbol)))
         `(pseq (list ,@(loop :for i :in (cycles-parse list)
-                          :collect `(event :dur ,(* dur (car i)) ,@(if (eq '- (cadr i))
+                          :collect `(event :dur ,(* dur (car i)) ,@(if (eql '- (cadr i))
                                                                        (list :type :rest)
                                                                        (list key (translate-symbol (cadr i)))))))
                1)))))

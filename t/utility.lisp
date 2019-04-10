@@ -10,8 +10,8 @@
 
 (test string-keyword
   "Test the `string-keyword' function"
-  (is (eq :foo
-          (cl-patterns::string-keyword "foo"))
+  (is (eql :foo
+           (cl-patterns::string-keyword "foo"))
       "string-keyword correctly converts strings to keywords"))
 
 (test nth-wrap
@@ -113,7 +113,7 @@
 
 (test random-coin
   "Test the `random-coin' function"
-  (is (every (lambda (x) (eq t x))
+  (is (every (lambda (x) (eql t x))
              (loop :repeat 200 :collect (random-coin 1)))
       "random-coin always returns t for PROBABILITY of 1")
   (is (every 'null
@@ -122,13 +122,13 @@
 
 (test random-range
   "Test the `random-range' function"
-  (is (every (lambda (x) (eq t x))
+  (is (every (lambda (x) (eql t x))
              (mapcar (lambda (x) (and (>= x 0)
                                       (<= x 10)))
                      (loop :repeat 200
                         :collect (random-range 10))))
       "when only LOW is provided, random-range only returns items between 0 and LOW, inclusive")
-  (is (every (lambda (x) (eq t x))
+  (is (every (lambda (x) (eql t x))
              (mapcar (lambda (x) (and (>= x 0)
                                       (<= x 10)))
                      (loop :repeat 200

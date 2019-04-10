@@ -26,7 +26,7 @@
        1
        (event-value (event) :dur))
       "event returns the correct default value for dur")
-  (is (eq
+  (is (eql
        :default
        (event-value (event) :instrument))
       "event returns the correct default value for instrument")

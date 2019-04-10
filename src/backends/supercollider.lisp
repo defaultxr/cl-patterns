@@ -31,13 +31,13 @@
                                    (unless (string= (symbol-name arg) "SUSTAIN") ;; ...with the exception of sustain, which the synth should always get.
                                      (multiple-value-bind (value key) (event-value event arg)
                                        (declare (ignore value))
-                                       (eq key t))))
+                                       (eql key t))))
                                  (get-synthdef-control-names instrument))))
     (loop :for sparam :in synth-params
        :for val = (event-value event sparam)
-       :if (or (eq :gate sparam)
+       :if (or (eql :gate sparam)
                (not (null val)))
-       :append (list (alexandria:make-keyword sparam) (if (eq :gate sparam) 1 val)))))
+       :append (list (alexandria:make-keyword sparam) (if (eql :gate sparam) 1 val)))))
 
 (defun get-proxys-node-id (name)
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
@@ -96,7 +96,7 @@
 
 (defmethod backend-play-event (item task (backend (eql :supercollider)))
   "Play ITEM on the SuperCollider sound server. TASK is an internal parameter used when this function is called from the clock."
-  (unless (eq (event-value item :type) :rest)
+  (unless (eql (event-value item :type) :rest)
     (let* ((inst (instrument item))
            (quant (alexandria:ensure-list (quant item)))
            (offset (if (> (length quant) 2)
@@ -109,7 +109,7 @@
                       :append (list key (convert-sc-object value key))))
            (group (event-value item :group)) ;; FIX: should be possible to auto-assign synths to groups with :group. https://github.com/ntrocado/cl-collider-examples/blob/df79d8d820581b720b8e409e819fd715a570bb0b/chapter6.lisp
            )
-      (if (or (eq (event-value item :type) :mono)
+      (if (or (eql (event-value item :type) :mono)
               (typep inst 'sc::node))
           (let ((node (sc:at time
                         (let ((nodes (task-sc-nodes task)))

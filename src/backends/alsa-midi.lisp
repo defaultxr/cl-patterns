@@ -71,13 +71,13 @@
   (midihelper:stop-midihelper))
 
 (defmethod backend-plays-event-p (event (backend (eql :alsa-midi)))
-  (or (eq (event-value event :type) :midi)
+  (or (eql (event-value event :type) :midi)
       (typep (event-value event :instrument) 'number)))
 
 (defmethod backend-play-event (event task (backend (eql :alsa-midi)))
   (let* ((channel (midi-truncate-clamp (or (event-value event :channel) 0) 15))
          (pgm (midi-truncate-clamp (multiple-value-bind (value from) (event-value event :instrument)
-                                     (if (or (eq t from))
+                                     (if (or (eql t from))
                                          0
                                          (if (not (integerp value))
                                              0 ;; FIX: provide an instrument translation table (to automatically translate instrument names to program numbers)

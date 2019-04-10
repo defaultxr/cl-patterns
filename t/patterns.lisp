@@ -51,19 +51,19 @@
 (test parent ;; FIX: make sure all patterns are given parents
   "Test whether patterns have the correct parent information"
   (is-true (let ((pb (pbind :foo (pseq (list 1 2 3)))))
-             (eq (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
-                 pb))
+             (eql (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
+                  pb))
            "pbind subpatterns have correct parents for pseq")
   (is-true (let ((pb (pbind :foo (pfunc (lambda () (random 5))))))
-             (eq (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
-                 pb))
+             (eql (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
+                  pb))
            "pbind subpatterns have correct parents for pfunc"))
 
 (test parent-pbind
   "Test the `parent-pbind' function"
   (is-true (let* ((child (pn 1 4))
                   (parent (pbind :foo child)))
-             (eq parent (parent-pbind child)))
+             (eql parent (parent-pbind child)))
            "parent-pbind gives correct results"))
 
 (test beat-key
@@ -243,7 +243,7 @@
    (block pxrand-test-1
      (let ((prev))
        (dolist (cur (next-n (pxrand (list 1 2)) 10000))
-         (when (eq cur prev)
+         (when (eql cur prev)
            (return-from pxrand-test-1 nil))
          (setf prev cur))
        t))
@@ -261,7 +261,7 @@
    (block pwxrand-test-1
      (let ((prev))
        (dolist (cur (next-n (pwxrand (list 1 2)) 10000))
-         (when (eq cur prev)
+         (when (eql cur prev)
            (return-from pwxrand-test-1 nil))
          (setf prev cur))
        t))

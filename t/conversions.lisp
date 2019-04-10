@@ -24,7 +24,7 @@
                                           input
                                           (mapcar #'freq-midinote (mapcar #'midinote-freq input)))))
             "freq-midinote conversion is equivalent to midinote-freq conversion")
-  (is (every (lambda (x) (eq x t))
+  (is (every (lambda (x) (eql x t))
              (mapcar #'=
                      (list 13.75 27.5 55 110 220 440 880 3520)
                      (mapcar 'midinote-freq (list 9 21 33 45 57 69 81 105))))
@@ -34,7 +34,7 @@
           :append (make-list 12 :initial-element i))
        (mapcar #'midinote-octave (alexandria:iota 132)))
       "midinote-octave conversion is correct")
-  (is (every (lambda (x) (eq x t))
+  (is (every (lambda (x) (eql x t))
              (mapcar #'=
                      (list 55 110 220 440 880 1760)
                      (mapcar #'rate-freq (list 1/8 0.25 0.5 1 2 4))))
@@ -42,7 +42,7 @@
   (is (= 300
          (rate-freq 1 300))
       "rate-freq conversion is correct when base-freq is provided")
-  (is (every (lambda (x) (eq x t))
+  (is (every (lambda (x) (eql x t))
              (mapcar #'=
                      (list 1/8 0.25 0.5 1 2 4)
                      (mapcar #'freq-rate (list 55 110 220 440 880 1760))))

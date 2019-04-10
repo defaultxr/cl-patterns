@@ -93,9 +93,9 @@ See also: `every-event-equal'"
   (let* ((key (alexandria:make-keyword key))
          (cases (getf *event-special-keys* key)))
     (when (cadr cases) ;; remove-keys
-      (let ((keys (remove-if (lambda (c) (eq c t)) (keys (car cases)))))
+      (let ((keys (remove-if (lambda (c) (eql c t)) (keys (car cases)))))
         (loop :for i :in keys
-              :do (remove-event-value event i))))
+           :do (remove-event-value event i))))
     (raw-set-event-value event key value)
     value))
 
@@ -230,7 +230,7 @@ Additionally, because :define-methods is true, we can also do the following:
              (plist-set *event-special-keys* ,kwname (list
                                                       (list ,@(loop :for (key value) :on cases :by #'cddr
                                                                  :append (list
-                                                                          (if (eq key t)
+                                                                          (if (eql key t)
                                                                               key
                                                                               (alexandria:make-keyword key))
                                                                           `(lambda (event)
