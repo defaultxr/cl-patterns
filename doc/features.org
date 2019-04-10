@@ -26,7 +26,7 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
    (EVENT :FOO 2 :BAR 1 :BAZ 2)
    (EVENT :FOO 3 :QUX 3))
 #+END_SRC
-- all pstreams keep a history of previous values that can be referred back to at any time using ~pstream-nth~.
+- all pstreams keep a history of previous values that can be referred back to at any time using ~pstream-elt~.
 - patterns that have ~repeat~ or ~length~ arguments accept any pattern as "gate" patterns:
 #+BEGIN_SRC lisp
   (let* ((foo 1)

@@ -138,6 +138,8 @@
    #:pstream
    #:pstream-nth
    #:pstream-nth-future
+   #:pstream-elt
+   #:pstream-elt-future
    #:parent-pattern
    #:parent-pbind
    #:pstream-count

@@ -208,7 +208,7 @@ See also: `events-after-p'"))
      :do (let ((next (next pstream)))
            (unless (typep next '(or null event))
              (error "events-in-range can only be used on event streams."))))
-  (unless (typep (pstream-nth-future 0 pstream) '(or null event))
+  (unless (typep (pstream-elt-future pstream 0) '(or null event))
     (error "events-in-range can only be used on event streams."))
   (loop :for i :in (slot-value pstream 'history)
      :if (and (not (null i))
@@ -228,7 +228,7 @@ See also: `events-in-range'"))
   (let ((last-beat 0))
     (loop
        :for idx :from 0
-       :for event = (pstream-nth-future idx pstream)
+       :for event = (pstream-elt-future pstream idx)
        :for ebeat = (beat event)
        :if (null event)
        :do (return-from events-after-p nil)
@@ -256,7 +256,7 @@ See also: `ended-p'"))
   (with-slots (number pstream-offset) pstream
     (let ((idx (+ number pstream-offset)))
       (when (plusp idx)
-        (pstream-nth (- idx (if (ended-p pstream) 2 1)) pstream)))))
+        (pstream-elt pstream (- idx (if (ended-p pstream) 2 1)))))))
 
 (defgeneric ended-p (pstream)
   (:documentation "Returns t if PSTREAM has no more outputs, or nil if outputs remain to be yielded.
@@ -276,7 +276,7 @@ See also: `last-output'"))
 (defmethod ended-p ((pstream pstream))
   (with-slots (number pstream-offset) pstream
     (and (not (= 0 (+ number pstream-offset)))
-         (null (pstream-nth -1 pstream)))))
+         (null (pstream-elt pstream -1)))))
 
 (defun value-remaining-p (value)
   "Returns true if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
@@ -345,7 +345,7 @@ See also: `last-output'"))
     (with-slots (pstream-offset) pattern
       (if (minusp pstream-offset)
           (prog1
-              (pstream-nth pstream-offset pattern)
+              (pstream-elt pattern pstream-offset)
             (incf pstream-offset))
           (let ((result (get-value-from-stack pattern)))
             (when (and (typep result 'event)
@@ -416,31 +416,41 @@ See also: `pattern-as-pstream'"))
 (defmethod as-pstream :around ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
   pstream)
 
-(define-condition pstream-out-of-range () ((index :initarg :index :reader pstream-nth-index))
+(define-condition pstream-out-of-range () ((index :initarg :index :reader pstream-elt-index))
   (:report (lambda (condition stream)
-             (format stream "The pstream has insufficient history to index to element ~d." (pstream-nth-index condition)))))
+             (format stream "The pstream has insufficient history to index to element ~d." (pstream-elt-index condition)))))
 
 (defun pstream-nth (n pstream)
+  "Obsolete alias for `pstream-elt'."
+  (warn "~s is deprecated; use ~s instead." 'pstream-nth 'pstream-elt)
+  (pstream-elt pstream n))
+
+(defun pstream-elt (pstream n)
   "Return the Nth element from PSTREAM's history. Does not automatically advance PSTREAM if N is out of range.
 
 Example:
 
 ;; (let ((pstream (as-pstream (pseq '(1 2 3)))))
 ;;   (next-upto-n pstream)
-;;   (pstream-nth 2 pstream))
+;;   (pstream-elt pstream 2))
 ;;
 ;; => 3
 
-See also: `pstream-nth-future', `phistory'"
+See also: `pstream-elt-future', `phistory'"
   (assert (integerp n) (n))
   (unless (typep pstream 'pstream)
-    (return-from pstream-nth (pstream-nth n (as-pstream pstream))))
+    (return-from pstream-elt (pstream-elt (as-pstream pstream) n)))
   (with-slots (history) pstream
     (if (>= n (length history))
         (error 'pstream-out-of-range :index n)
         (nth-wrap n history))))
 
 (defun pstream-nth-future (n pstream)
+  "Obsolete alias for `pstream-elt-future'."
+  (warn "~s is deprecated; use ~s instead." 'pstream-nth-future 'pstream-elt-future)
+  (pstream-elt-future pstream n))
+
+(defun pstream-elt-future (pstream n)
   "Return the Nth element from PSTREAM's history, automatically advancing PSTREAM as necessary if the Nth element has not yet occurred.
 
 When N is negative, NILs at the end of PSTREAM's history are not included in indexing, but NIL may be returned if the negative index points to a position prior to the first element in history. Be careful when using negative numbers for N, since infinite-length patterns will cause this function to never return.
@@ -449,14 +459,14 @@ Note that if the Nth element has not yet occurred, this function will advance th
 
 Example:
 
-;; (pstream-nth-future -1 (as-pstream (pbind :foo (pseq '(1 2 3) 1))))
+;; (pstream-elt-future (as-pstream (pbind :foo (pseq '(1 2 3) 1))) -1)
 ;;
 ;; => (EVENT :FOO 3)
 
-See also: `pstream-nth'"
+See also: `pstream-elt'"
   (assert (integerp n) (n))
   (unless (typep pstream 'pstream)
-    (return-from pstream-nth-future (pstream-nth-future n (as-pstream pstream))))
+    (return-from pstream-elt-future (pstream-elt-future (as-pstream pstream) n)))
   (with-slots (history) pstream
     (flet ((should-advance ()
              (if (>= n 0)
@@ -906,7 +916,7 @@ See also: `prand', `pxrand', `pwxrand'")
                         (num (random 1.0))
                         (res (nth (index-of-greater-than num cweights) list)))
                    (unless (null (slot-value pattern 'history))
-                     (loop :while (eql res (pstream-nth -1 pattern))
+                     (loop :while (eql res (pstream-elt pattern -1))
                         :do (setf res (get-next))))
                    res)))
         (get-next)))))
@@ -1357,7 +1367,7 @@ See also: `prand'")
                (= 0 (mod number (length list))))
       (decf-remaining pattern 'current-repeats-remaining))
     (when (if (plusp number)
-              (and (not (null (pstream-nth -1 pattern)))
+              (and (not (null (pstream-elt pattern -1)))
                    (remaining-p pattern))
               (remaining-p pattern))
       (let* ((mod (mod number (length list)))
@@ -1474,9 +1484,6 @@ See also: `pscratch'")
               (next pattern)))))))
 
 ;;; phistory
-;; basically uses pstream-nth to refer to history
-
-;; (pscratch (pseries 0 1) (pseq (list 0 (pseq (list 1 1 1 -3) :inf))))
 
 (defpattern phistory (pattern)
   (pattern
@@ -1501,7 +1508,7 @@ See also: `pfuture', `pscratch'")
   (with-slots (pattern step-pattern) pstream
     (alexandria:when-let ((next-step (next step-pattern)))
       (next pattern)
-      (handler-case (pstream-nth next-step pattern)
+      (handler-case (pstream-elt pattern next-step)
         (pstream-out-of-range ()
           nil)))))
 
@@ -1509,7 +1516,7 @@ See also: `pfuture', `pscratch'")
 ;; like phistory, but immediately slurps the whole pstream and then allows you to index from its history instead of advancing the source pattern one at a time as normal
 ;; phistory is kept around because some (time-based) patterns may need to be advanced normally rather than all at once (though it might be kind of a bad idea to try to use phistory, pfuture, or pscratch on those kinds of patterns)
 ;; FIX: maybe deprecate this and just integrate its functionality into phistory somehow?
-;; FIX: use `pstream-nth-future' to get the values for this instead of slurping the whole pstream right away.
+;; FIX: use `pstream-elt-future' to get the values for this instead of slurping the whole pstream right away.
 
 (defpattern pfuture (phistory)
   (pattern
@@ -1569,7 +1576,7 @@ See also: `phistory'")
   (with-slots (pattern step-pattern current-index) pscratch
     (alexandria:when-let ((nxt (next step-pattern)))
       (incf current-index nxt) ;; FIX: should we clamp this so negative indexes don't happen?
-      (pstream-nth-future current-index pattern))))
+      (pstream-elt-future pattern current-index))))
 
 ;;; pif
 
@@ -1949,7 +1956,7 @@ See also: `beat', `pbeat'")
         (when (ok)
           (let* ((clist (cumulative-list dur-history))
                  (idx (or (index-of-greater-than beats clist) 0)))
-            (pstream-nth-future idx pattern)))))))
+            (pstream-elt-future pattern idx)))))))
 
 ;;; psym
 
@@ -2073,7 +2080,7 @@ See also: `pdiff', `pbind''s :beat key")
   (with-slots (pattern cycle history) pdelta
     (when (null history)
       (next pattern))
-    (alexandria:when-let ((lv (or (pstream-nth -1 pattern) 0))
+    (alexandria:when-let ((lv (or (pstream-elt pattern -1) 0))
                           (cv (next pattern)))
       (- cv
          (- lv (round-up (- lv cv) cycle))))))
@@ -2134,7 +2141,7 @@ See also: `psym'")
     (labels ((next-in-pstreams ()
                (alexandria:when-let ((res (remove-if (lambda (pstream)
                                                        (and (not (null (slot-value pstream 'history)))
-                                                            (null (pstream-nth -1 pstream))))
+                                                            (null (pstream-elt pstream -1))))
                                                      pstreams)))
                  (most-x res #'< #'beat)))
              (maybe-reset-pstreams ()
@@ -2239,7 +2246,7 @@ See also: `pfindur', `psync'")
 (defmethod next ((pts pts-pstream))
   (with-slots (pattern dur number) pts
     (let ((mul (/ dur (beat pattern)))
-          (ev (pstream-nth number pattern)))
+          (ev (pstream-elt pattern number)))
       (when ev
         (combine-events ev (event :dur (* mul (event-value ev :dur))))))))
 
