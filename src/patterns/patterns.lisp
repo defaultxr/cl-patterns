@@ -972,18 +972,23 @@ See also: `pstutter', `pdurstutter', `parp'")
          (setf current-value (next pattern))
          (when current-value
            (setf current-repeats-remaining
-                 (if (typep repeats 'function)
-                     (let ((fle (function-lambda-expression repeats)))
-                       (if fle
-                           (if (= (length (cadr fle)) 0)
-                               (funcall repeats)
-                               (funcall repeats current-value))
-                           (handler-case
-                               (funcall repeats current-value)
-                             #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
-                                      (declare (ignore e))
-                                      (funcall repeats)))))
-                     (next repeats)))))
+                 (let ((*event* (if (typep current-value 'event)
+                                    (if (null *event*)
+                                        current-value
+                                        (combine-events *event* current-value))
+                                    *event*)))
+                   (if (typep repeats 'function)
+                       (let ((fle (function-lambda-expression repeats)))
+                         (if fle
+                             (if (alexandria:length= 0 (cadr fle))
+                                 (funcall repeats)
+                                 (funcall repeats current-value))
+                             (handler-case
+                                 (funcall repeats current-value)
+                               #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
+                                        (declare (ignore e))
+                                        (funcall repeats)))))
+                       (next repeats))))))
     (when (value-remaining-p current-repeats-remaining)
       (decf-remaining pr 'current-repeats-remaining)
       current-value)))
