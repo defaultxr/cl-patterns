@@ -1,0 +1,94 @@
+#+TITLE: Patterns
+#+DESCRIPTION: Index of cl-patterns pattern classes
+#+OPTIONS: num:nil
+
+* list patterns
+Patterns that generate output based on an input list.
+- ~pseq~ - Simply yields each element of its input list in order.
+- ~pser~ - Like ~pseq~, but instead of yielding the whole list N times, yields a total of N outputs.
+- ~prand~ - Yields a randomly-selected element from its input list.
+- ~pxrand~ - Yields a randomly-selected element from its input list, never yielding the same output twice in a row.
+- ~pwrand~ - Yields a random-selected element from its input list, based on a list of weights for each element.
+- ~pwxrand~ - Like ~pxrand~ and ~pwrand~ combined.
+- ~pshuf~ - Shuffles the input list, then yields the elements of the shuffled list in order a specified number of times.
+- ~pslide~ - "Slide" across successive sections of a list, advancing the start point of the sublists by a specified amount between each.
+- ~pindex~ - Get a specified element from the source list by its index.
+- ~place~
+- ~ppatlace~
+- ~pwalk~
+
+* Curve patterns
+Patterns that generate numbers according to curve formulae.
+- ~pseries~ - Each element is the previous element plus a number.
+- ~pgeom~ - Each element is the previous element multiplied by a number.
+# - ~penv~ - FIX
+
+* Randomness patterns
+Patterns that generate random numbers.
+- ~pwhite~ - White noise pattern; random numbers evenly distributed within a range.
+- ~pbrown~ - Brownian motion pattern; random numbers within a range, where each number is a maximum amount away from the previous output.
+- ~pexprand~ - Exponentially-distributed random numbers.
+
+* Math patterns
+Patterns whose outputs are the results of math operations on other patterns.
+- ~p+~, ~p-~, ~p*~, ~p/~ - Basic math patterns.
+- ~pdiff~
+- ~pdelta~
+
+* Repetition patterns
+Patterns that repeat or skip outputs from a source pattern.
+- ~pr~ - Repetition pattern. Repeats each output from its source pattern a specified number of times (or skips them if the repeats is ~0~).
+- ~pn~ - Loops its source pattern a specified number of times.
+- ~pdurstutter~ - Repeats each element from its source pattern a specified number of times, dividing that element (or the duration of it if the element is an event) by that number.
+- ~pdrop~ - Drop the first or last N outputs from a source pattern.
+
+* Constraint patterns
+Patterns that limit the number of, or values of, outputs from a source pattern.
+- ~pfin~ - Limits the number of outputs yielded by its source pattern.
+- ~pfindur~ - Limits the total duration of the outputs from its source pattern.
+- ~psync~
+- ~pconst~
+
+* Timing patterns
+Patterns that yield information about timing, or alter the timing of a source pattern.
+- ~pbeat~
+- ~ptime~
+- ~prun~
+- ~pts~
+
+* Combining patterns
+Patterns that are used to combine multiple patterns together into one.
+- ~pchain~
+- ~parp~
+- ~ppar~
+- ~psym~
+- ~pmeta~
+
+* Function patterns
+Patterns that generate output based on an input function.
+- ~pfunc~ - Yield the result returned by its input function. Unlike ~pnary~, ~pfunc~ does not supply arguments to its function.
+- ~pf~ - Syntax sugar for ~pfunc~ so you don't have to write ~(lambda () ...)~.
+- ~pnary~ - N-ary function pattern. Lets you supply a function to be applied to each output of its arguments. ~p+~, ~p-~, etc are implemented using this pattern and are basically syntax sugar for it.
+- ~plazy~
+- ~plazyn~
+- ~pif~ - "If" expression. If the source pattern returns a true value, yield the next output from the "then" pattern; otherwise, yield the next output from the "else" pattern.
+
+* Music patterns
+Patterns whose outputs are based on music-related formulae or data.
+- ~pbjorklund~
+- ~psplits~
+
+# * UGen patterns
+# - ~psinosc~
+
+* Meta patterns
+Patterns that are used to define or debug others.
+- ~pbind~ - Basic event pattern.
+- ~pb~ - Syntax sugar effectively combining the functionality of ~pdef~ and ~pbind~ together.
+- ~pmono~ - Like ~pbind~, but for monophony instead of polyphony.
+- ~pdef~ - Pattern definition. Give a global name to a pattern, which allows it to be changed while it's playing.
+- ~ptrace~ - Prints the outputs of its source pattern; useful for debugging.
+- ~pk~ - Gets the value of a previously-defined key from a pbind.
+- ~phistory~ - Gets previous outputs of its source pattern.
+- ~pscratch~ - 
+- ~ptracker~

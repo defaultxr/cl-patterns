@@ -129,3 +129,4 @@ still trying to think of ideas for how to make a good "performance mode" without
 * make a quickproject-like feature (perhaps by using quickproject) to quickly generate a cl-patterns project
 * test on ccl and other implementations
 * cl-patterns "patterns-as-audio" backend
+* allow the clock to be stopped and resumed (i.e. for it to be slave to an external clock)

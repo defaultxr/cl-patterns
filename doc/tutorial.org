@@ -58,10 +58,10 @@ When we run this line of code, we get a pstream object instead of a pattern. Now
 
 This is because patterns are basically "templates" that define behavior; they don't keep track of execution state. Only pstreams keep track of execution state.
 
-* More Patterns
-
-There are, of course, many other types of patterns aside from pseq.
-
 * Events
 
 cl-patterns also has patterns that output events, as described above. ~pbind~ is the primary of these, as it's used to define most note, rest, and parameter change events. Most of the time, when you're using cl-patterns with an audio server, playing a pbind will trigger sounds to occur. 
+
+* More Patterns
+
+There are, of course, many other types of patterns aside from pseq and pbind. You can use the ~(all-patterns)~ function to get a list of all of the pattern classes defined by the library. All patterns have documentation strings which describe what they do as well as provide examples and lists of related patterns or functions. For an overview of the patterns included with cl-patterns, refer to [[file:patterns.org][patterns.org]].
