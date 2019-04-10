@@ -145,11 +145,14 @@
    ;; NOTE: pattern classes defined with `defpattern' are automatically exported.
 
    #:all-pdefs
+   #:pdef-pattern
 
    #:p+
    #:p-
    #:p*
    #:p/
+
+   #:pf
 
    ;;; bjorklund.lisp
 
