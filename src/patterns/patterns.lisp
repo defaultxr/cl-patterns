@@ -1042,9 +1042,6 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defmethod quant ((pdef pdef))
   (quant (pdef-pattern pdef)))
 
-(defmethod quant ((pdef pdef-pstream))
-  (slot-value pdef 'quant))
-
 (defmethod as-pstream ((pattern pdef))
   (with-slots (key) pattern
     (make-instance 'pdef-pstream
@@ -2045,7 +2042,7 @@ See also: `pdelta'")
   (with-slots (pattern) pdiff
     (when (null (slot-value pattern 'history))
       (next pattern))
-    (alexandria:when-let ((last (pstream-nth -1 pattern))
+    (alexandria:when-let ((last (pstream-elt pattern -1))
                           (next (next pattern)))
       (- next last))))
 
