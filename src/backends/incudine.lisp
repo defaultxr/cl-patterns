@@ -12,12 +12,7 @@
 
 (defun get-dsp-args-list (dsp)
   "Return the argument list for an Incudine DSP."
-  (mapcar #'alexandria:make-keyword
-          (remove-if (lambda (symbol)
-                       (or
-                        (position symbol (list '&key 'incudine.vug::id 'incudine.vug::head 'incudine.vug::tail 'incudine.vug::before 'incudine.vug::after 'incudine.vug::action 'incudine.vug::stop-hook 'incudine.vug::free-hook 'incudine.vug::fade-time 'incudine.vug::fade-curve 'incudine.scratch::replace))))
-                     (swank-backend:arglist (fdefinition (alexandria:ensure-symbol dsp 'incudine.scratch))) ;; FIX: this is the only thing we require swank for, so remove the swank dependency from the .asd file once this is removed.
-                     )))
+  (incudine.vug::dsp-properties-arguments (incudine.vug::get-dsp-properties (alexandria:ensure-symbol 'env-test 'incudine.scratch))))
 
 ;;; backend functions
 
@@ -26,8 +21,7 @@
   )
 
 (defmethod stop-backend ((backend (eql :incudine)))
-  ;; FIX
-  )
+  (incudine:rt-stop))
 
 (defmethod backend-plays-event-p (event (backend (eql :incudine)))
   t ;; FIX
@@ -70,10 +64,6 @@
 (defmethod stop ((node incudine:node)) ;; FIX
   (incudine:set-control node :gate 0))
 
-(register-backend :incudine
-                  :respond-p 'is-incudine-event-p
-                  :play 'play-incudine
-                  :release 'release-incudine
-                  :release-at 'release-incudine-at)
+(register-backend :incudine)
 
-(enable-backend :incudine)
+;; (enable-backend :incudine)

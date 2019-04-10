@@ -45,7 +45,6 @@
   :license "MIT"
   :version "0.5"
   :depends-on (#:cl-patterns
-               #:swank
                #:incudine)
   :serial t
   :components ((:file "src/backends/incudine")))
