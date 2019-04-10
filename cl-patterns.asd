@@ -78,9 +78,8 @@
                ;; (:file "t/cycles")
                ;; (:file "t/tracker")
                ;; (:file "t/backend")
-               ;; (:file "t/clock")
-               (:file "t/doc")
-               )
+               (:file "t/clock")
+               (:file "t/doc"))
   :perform (test-op (op c)
                     (uiop:symbol-call :fiveam :run!
                                       (uiop:find-symbol* '#:cl-patterns-tests
