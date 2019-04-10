@@ -180,6 +180,8 @@
    #:enabled-backends
    #:enable-backend
    #:disable-backend
+   #:start-backend
+   #:stop-backend
 
    ;;; clock.lisp
 
