@@ -1711,10 +1711,10 @@ See also: `pfin', `psync'")
 
 (defpattern psync (pattern)
   (pattern
-   quant
+   sync-quant
    (maxdur :default nil)
    (tolerance :default 0.001))
-  "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of QUANT.
+  "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of SYNC-QUANT.
 
 Example:
 
@@ -1729,18 +1729,18 @@ Example:
 See also: `pfindur'")
 
 (defmethod as-pstream ((psync psync))
-  (with-slots (pattern quant maxdur tolerance) psync
+  (with-slots (pattern sync-quant maxdur tolerance) psync
     (make-instance 'psync-pstream
                    :pattern (as-pstream pattern)
-                   :quant (next quant)
+                   :sync-quant (next sync-quant)
                    :maxdur (next maxdur)
                    :tolerance (next tolerance))))
 
 (defmethod next ((psync psync-pstream)) ;; FIX: implement tolerance
-  (with-slots (pattern quant maxdur tolerance history) psync
+  (with-slots (pattern sync-quant maxdur tolerance history) psync
     (let* ((n-event (next pattern))
            (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (alexandria:circular-list :delta))))
-           (delta (- (round-up elapsed-dur quant) elapsed-dur)))
+           (delta (- (round-up elapsed-dur sync-quant) elapsed-dur)))
       (if (null n-event)
           (when (plusp delta)
             (event :type :rest :dur delta))
