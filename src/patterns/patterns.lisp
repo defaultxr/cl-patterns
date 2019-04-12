@@ -1024,8 +1024,7 @@ See also: `pstutter', `pdurstutter', `parp'")
    (loop-p :initform t))
   "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p')."
   (defun pdef (key &optional (pattern nil pattern-supplied-p))
-    (when (or (not (null pattern))
-              pattern-supplied-p)
+    (when pattern-supplied-p
       (pdef-ref-set key :pattern pattern))
     (make-instance 'pdef
                    :key key)))
@@ -1042,11 +1041,13 @@ See also: `pstutter', `pdurstutter', `parp'")
 (defmethod quant ((pdef pdef))
   (quant (pdef-pattern pdef)))
 
-(defmethod as-pstream ((pattern pdef))
-  (with-slots (key) pattern
-    (make-instance 'pdef-pstream
-                   :key key
-                   :current-pstream (as-pstream (pdef-pattern pattern)))))
+(defmethod as-pstream ((pdef pdef))
+  (with-slots (key) pdef
+    (if (null (pdef-ref key))
+        (error "No pdef with the key ~s defined." key)
+        (make-instance 'pdef-pstream
+                       :key key
+                       :current-pstream (as-pstream (pdef-pattern pdef))))))
 
 (defmethod next ((pattern pdef-pstream))
   (next (slot-value pattern 'current-pstream)))
