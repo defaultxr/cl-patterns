@@ -89,6 +89,7 @@ This list basically is a quick overview of the implementation status of various 
 * other / unsorted patterns
 - ~Pbind~ - done as ~pbind~.
 - ~Pbindf~
+- ~Pbindef~ - ~pb~ covers this functionality.
 - ~Pmono~ - done as ~pmono~.
 - ~PmonoArtic~ - ~pmono~ covers this functionality.
 - ~Pdef~ - done as ~pdef~. see also: ~pbind~'s ~:name~ / ~:pdef~ keys.
