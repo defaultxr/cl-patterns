@@ -103,23 +103,24 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
                                        (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
                          (let* ((beat (+ start-beat (or (event-value ev :beat) 0)))
                                 (ts (absolute-beats-to-timestamp beat clock))
-                                (event (combine-events ev (event :timestamp-at-start ts))))
-                           (case (event-value event :type)
-                             (:tempo-change
-                              (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
-                                (if (and (numberp (event-value event :tempo))
-                                         (plusp (event-value event :tempo)))
-                                    (setf timestamp-at-tempo ts
-                                          tempo (event-value event :tempo)
-                                          beat-at-tempo beat)
-                                    (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event)))
-                              nil)
-                             (:rest
-                              nil)
-                             (otherwise
-                              (dolist (backend (enabled-backends))
-                                (when (backend-plays-event-p event backend)
-                                  (backend-play-event event task backend)))))))
+                                (event (combine-events ev (event :timestamp-at-start ts :beat-at-start beat))))
+                           (dolist (event (split-event-by-lists event))
+                             (case (event-value event :type)
+                               (:tempo-change
+                                (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
+                                  (if (and (numberp (event-value event :tempo))
+                                           (plusp (event-value event :tempo)))
+                                      (setf timestamp-at-tempo ts
+                                            tempo (event-value event :tempo)
+                                            beat-at-tempo beat)
+                                      (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event)))
+                                nil)
+                               (:rest
+                                nil)
+                               (otherwise
+                                (dolist (backend (enabled-backends))
+                                  (when (backend-plays-event-p event backend)
+                                    (backend-play-event event task backend))))))))
                        (if (typep item 'event)
                            nil
                            task))
