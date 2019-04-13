@@ -1,5 +1,30 @@
 (in-package #:cl-patterns)
 
+;;; helpers
+
+(defgeneric synth-controls (synth backend)
+  (:documentation "Get the list of names of controls for SYNTH in BACKEND."))
+
+(defun has-gate-p (synth backend)
+  "Whether or not SYNTH in BACKEND has a gate control."
+  (position :gate (synth-controls synth backend) :test 'string-equal))
+
+(defun make-node-map ()
+  "Make a hash-table to hold task->node mappings for a backend."
+  (make-hash-table :test 'eq))
+
+(defun task-nodes (task map)
+  "Get the list of nodes for TASK from MAP."
+  (gethash task map))
+
+(defun (setf task-nodes) (value task map)
+  "Set the list of nodes for TASK in MAP. If VALUE is nil, delete the reference to TASK in MAP."
+  (if (null value)
+      (remhash task map)
+      (setf (gethash task map) value)))
+
+;;; backend management
+
 (defvar *enabled-backends* nil
   "List of registered and enabled backends for cl-patterns. Any event that is played is tested against each of these backends' respond-p functions in order. The event is then played on the first backend to return true.")
 

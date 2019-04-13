@@ -76,9 +76,9 @@ Much documentation is still being written, but there is already a good amount of
 
 The SuperCollider backend is the primary backend that cl-patterns is tested against so it should generally work the best and should be usable for most purposes.
 
-The ALSA MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
+The Incudine backend should work for most purposes, though currently multichannel expansion does not work.
 
-The Incudine backend is a stub and has very limited (if any) functionality.
+The ALSA MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
 
 See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] for a listing of tasks that need to be completed and ideas for future features. The code itself is also littered with comments marked "FIX" noting various known issues and possible changes and optimizations that could be made.
 
