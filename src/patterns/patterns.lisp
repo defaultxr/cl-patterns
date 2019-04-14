@@ -1266,20 +1266,20 @@ See also: `prand'")
    (step :default 1)
    (length :default :inf)
    (current-repeats-remaining :state t)
-   (current-value :state t :initform nil))
+   (current-value :state t))
   "pseries yields START, and then each subsequent value is the previous value plus STEP, for a total of LENGTH values yielded.")
 
 (defmethod as-pstream ((pattern pseries))
   (with-slots (start step length) pattern
-    (let ((s (next start)))
-      (make-instance 'pseries-pstream
-                     :start s
-                     :step (pattern-as-pstream step)
-                     :length (as-pstream length)
-                     :current-value s))))
+    (make-instance 'pseries-pstream
+                   :start (pattern-as-pstream start)
+                   :step (pattern-as-pstream step)
+                   :length (as-pstream length))))
 
 (defmethod next ((pattern pseries-pstream))
-  (with-slots (step current-value) pattern
+  (with-slots (start step current-value) pattern
+    (unless (slot-boundp pattern 'current-value)
+      (setf current-value (next start)))
     (when (and (remaining-p pattern 'length)
                current-value)
       (decf-remaining pattern 'current-repeats-remaining)
@@ -1297,20 +1297,20 @@ See also: `prand'")
    (grow :default 2)
    (length :default :inf)
    (current-repeats-remaining :state t)
-   (current-value :state t :initform nil))
+   (current-value :state t))
   "pgeom yields START, and then each subsequent value is the previous value times GROW, for a total of LENGTH values yielded.")
 
 (defmethod as-pstream ((pattern pgeom))
   (with-slots (start grow length) pattern
-    (let ((s (next start)))
-      (make-instance 'pgeom-pstream
-                     :start s
-                     :grow (pattern-as-pstream grow)
-                     :length (as-pstream length)
-                     :current-value s))))
+    (make-instance 'pgeom-pstream
+                   :start (pattern-as-pstream start)
+                   :grow (pattern-as-pstream grow)
+                   :length (as-pstream length))))
 
 (defmethod next ((pattern pgeom-pstream))
-  (with-slots (grow current-value) pattern
+  (with-slots (start grow current-value) pattern
+    (unless (slot-boundp pattern 'current-value)
+      (setf current-value (next start)))
     (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (if (= 0 (slot-value pattern 'number))
