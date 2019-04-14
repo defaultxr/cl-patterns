@@ -409,7 +409,11 @@
       "pseries returns correct results")
   (is (equal (list 0 1 1 0 -1 -2)
              (next-upto-n (pseries 0 (pseq (list 1 0 -1 -1 -1) 1) :inf)))
-      "pseries returns correct results when its STEP is a pattern"))
+      "pseries returns correct results when its STEP is a pattern")
+  (is (equal (list 4)
+             (gete (next-upto-n (pbind :f 4 :y (pseries (pk :f) 0 1)))
+                   :y))
+      "pseries START can access *EVENT*"))
 
 (test pgeom
   "Test pgeom"
@@ -418,7 +422,11 @@
       "pgeom returns correct results")
   (is (equal (list 1 1 2 6 3.0 2.1)
              (next-upto-n (pgeom 1 (pseq (list 1 2 3 0.5 0.7) 1) :inf)))
-      "pgeom returns correct results when its GROW is a pattern"))
+      "pgeom returns correct results when its GROW is a pattern")
+  (is (equal (list 4)
+             (gete (next-upto-n (pbind :f 4 :y (pgeom (pk :f) 1 1)))
+                   :y))
+      "pgeom START can access *EVENT*"))
 
 (test ptrace
   ;; FIX
