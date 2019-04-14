@@ -23,8 +23,6 @@ Set the clock's tempo.
 ** ~dur~ / ~delta~
 How long before the next note starts. ~dur~ also affects the sustain time of the note (see ~sustain~ / ~legato~, below)
 ** ~beat~
-NOTE: Not implemented yet.
-
 When the event should play (relative to when the pbind started playing).
 ** ~sustain~ / ~legato~
 How long the synth is held before being released. ~sustain~ is an absolute time in beats for the note to be held, while ~legato~ is multiplied by ~dur~ to get the sustain time.
@@ -129,10 +127,8 @@ Here is a listing of all special process keys:
 
 ** ~embed~
 Embeds its value's outputs into the pbind's output events.
-** ~pbeat~
-NOTE: Not implemented yet.
-
-The number of beats elapsed in the pattern. This can be set as an alternative to ~dur~ or ~delta~ if you want to give an event's start beat instead of its inter-onset time.
+** ~beat~
+The beat number that this event occurs on in the pattern. This can be set as an alternative to ~dur~ or ~delta~ if you want to give an event's start beat directly instead of its inter-onset time.
 
 If you are setting this from a pattern, you need to make sure its values do not decrease with successive events otherwise event scheduling will fail.
 
