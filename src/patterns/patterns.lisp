@@ -953,6 +953,7 @@ See also: `pf', `pnary'"
 ;;; pf
 
 (defmacro pf (&body body)
+  "Convenience macro for `pfunc' that automatically wraps BODY in a lambda."
   `(pfunc (lambda () ,@body)))
 
 ;;; pr
@@ -1406,6 +1407,11 @@ See also: `pfunc'"
       (unless (or (position nil nexts)
                   (null op))
         (apply op nexts)))))
+
+;; show the arguments of the function being called in pnary
+#+swank
+(defmethod swank::compute-enriched-decoded-arglist ((operator-form (eql 'pnary)) argument-forms)
+  (swank::compute-enriched-decoded-arglist 'apply argument-forms))
 
 (defun p+ (&rest numbers)
   "p+ adds NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."

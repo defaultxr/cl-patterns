@@ -308,7 +308,7 @@ Additionally, because :define-methods is true, we can also do the following:
 (define-event-special-key quant (t 1)
   :define-methods t)
 
-;;; freq/midinote/degree/octave/root/scale
+;;; pitch
 
 (define-event-special-key freq (:midinote (midinote-freq (event-value event :midinote))
                                 :degree (degree-freq (event-value event :degree)

@@ -46,7 +46,7 @@
       (slot-value (slot-value task 'item) 'loop-p)))
 
 (defun make-clock (&optional (tempo 1) tasks)
-  "Create a clock.
+  "Create a clock with a tempo of TEMPO in beats per second (Hz).
 
 To start the clock, run `clock-loop' on a new thread, like so:
 
@@ -64,6 +64,8 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
 
 (defun clock-add (item &optional (clock *clock*))
   "Add ITEM to CLOCK's tasks."
+  (when (null clock)
+    (error "cl-patterns clock is NIL; perhaps try (defparameter *clock* (make-clock))"))
   (with-slots (tasks tasks-lock) clock
     (bt:with-lock-held (tasks-lock)
       (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (quant item) (slot-value clock 'beat)))))

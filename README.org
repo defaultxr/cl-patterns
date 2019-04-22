@@ -39,8 +39,7 @@ Since patterns are basically "templates", you need to turn them into ~pstream~ o
 Then, you can get results from the pstream one at a time with ~next~, or many at a time with ~next-n~ or ~next-upto-n~:
 
 #+BEGIN_SRC lisp
-  (defparameter *results* (next-n *pstream* 3))
-  results
+  (next-n *pstream* 3)
   ;; => ((EVENT :FOO 1 :BAR 8) (EVENT :FOO 2 :BAR 9) (EVENT :FOO 3 :BAR 8))
 #+END_SRC
 
@@ -96,7 +95,7 @@ See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] fo
 - [[file:doc/patterns.org][patterns.org]] - organized index of the pattern classes included in cl-patterns.
 - [[file:doc/roadmap.org][roadmap.org]] - general overview of major goals for the future development of cl-patterns.
 - [[file:doc/sc.org][sc.org]] - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
-- [[file:doc/sc-differences.org][sc-differences.org]] - comprehensive description of things that differ between cl-patterns and SuperCollider.
+- [[file:doc/sc-differences.org][sc-differences.org]] - listing of things that differ between cl-patterns and SuperCollider.
 - [[file:doc/special-keys.org][special-keys.org]] - description of keys that have special effects when used in an event or pbind.
 - [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] - short example of how to use cl-patterns with cl-collider.
 - [[file:doc/TODO.org][TODO.org]] - a list of things and ideas that have not yet been implemented into cl-patterns, but may be in the future.

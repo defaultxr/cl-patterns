@@ -123,6 +123,7 @@
 
    #:freq
    #:midinote
+   #:rate
 
    ;;; patterns.lisp
 

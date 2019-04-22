@@ -61,3 +61,23 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
   ;;    :ERROR #<DIVISION-BY-ZERO {10043ABA93}>
   ;;    :STACK (#<DISSECT::SBCL-CALL [1] ...> ...))
 #+END_SRC
+- SuperCollider backend: if a node is supplied as a value for a ~pbind~, the synth metadata for that node is used to set its ~input-bus~ or ~output-bus~ as the value instead:
+#+BEGIN_SRC lisp
+    (sc::set-synthdef-metadata :fx :input-bus (bus-audio :chanls 2))
+
+    (defparameter *fx* (proxy :fx
+                              (let* ((sig (in.ar (sc::get-synthdef-metadata :fx :input-bus) 2))
+                                     (sig (comb-c.ar sig 0.2 (range (lf-noise1.kr 1) 0.04 0.2))))
+                                sig)))
+
+    (pb :fx-test
+      :instrument :kik
+      :dur (p/ 1 (pwhite 1 16))
+      :midinote (pwhite 0 127)
+      :pan (pwhite -1.0 1.0)
+      :out *fx*
+      :pfindur 4)
+
+  (play :fx-test)
+#+END_SRC
+...in the future, this will be even simpler. :)

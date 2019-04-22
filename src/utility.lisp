@@ -41,7 +41,7 @@
 
 (defun normalized-sum (list)
   "Return a copy of LIST normalized so all of its numbers summed together equal 1."
-  (mapcar (lambda (x) (/ x (reduce #'+ list))) list))
+  (mapcar (lambda (x) (/ x (apply #'+ list))) list))
 
 (defun cumulative-list (list)
   "Return a copy of LIST where the elements previous are added to the current one.
