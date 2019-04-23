@@ -27,6 +27,16 @@
                (:file "src/clock"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
+(asdf:defsystem #:cl-patterns/debug
+  :name "cl-patterns/debug"
+  :author "modula t. <defaultxr@gmail.com>"
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp with debug backend."
+  :license "MIT"
+  :version "0.5"
+  :depends-on (#:cl-patterns)
+  :serial t
+  :components ((:file "src/backends/debug")))
+
 (asdf:defsystem #:cl-patterns/supercollider
   :name "cl-patterns/supercollider"
   :author "modula t. <defaultxr@gmail.com>"
