@@ -177,7 +177,7 @@ See also: `combine-events'"
            :collect
              (apply 'event
                     (loop :for key :in (keys event)
-                       :append (list key (nth-wrap i (alexandria:ensure-list (event-value event key))))))))))
+                       :append (list key (elt-wrap (alexandria:ensure-list (event-value event key)) i))))))))
 
 (defun play-test (item &optional pstream) ;; FIX: move this to debug.lisp
   "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."

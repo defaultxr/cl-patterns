@@ -21,7 +21,7 @@
   "Given a note number, return its note name.
 
 Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\"."
-  (car (nth-wrap note-number *note-names*)))
+  (car (elt-wrap *note-names* note-number)))
 
 ;;; scales
 

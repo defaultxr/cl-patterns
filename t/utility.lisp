@@ -14,11 +14,11 @@
            (cl-patterns::string-keyword "foo"))
       "string-keyword correctly converts strings to keywords"))
 
-(test nth-wrap
-  "Test the `nth-wrap' function"
+(test elt-wrap
+  "Test the `elt-wrap' function"
   (is (= 3
-         (cl-patterns::nth-wrap 7 (list 0 1 2 3)))
-      "nth-wrap returns correct results"))
+         (cl-patterns::elt-wrap (list 0 1 2 3) 7))
+      "elt-wrap returns correct results"))
 
 (test normalized-sum
   "Test the `normalized-sum' function"

@@ -35,9 +35,9 @@
 
 ;;; list stuff
 
-(defun nth-wrap (n list)
+(defun elt-wrap (list n)
   "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length."
-  (nth (mod n (length list)) list))
+  (elt list (mod n (length list))))
 
 (defun normalized-sum (list)
   "Return a copy of LIST normalized so all of its numbers summed together equal 1."

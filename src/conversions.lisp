@@ -65,7 +65,7 @@
   "Get the relative note number in the tuning of SCALE based on the DEGREE provided."
   (let* ((scale (scale (or scale :major)))
          (notes (scale-notes scale)))
-    (+ (nth-wrap degree notes)
+    (+ (elt-wrap notes degree)
        (* (length (tuning-tuning (tuning (scale-tuning scale))))
           (floor (/ degree (length notes)))))))
 

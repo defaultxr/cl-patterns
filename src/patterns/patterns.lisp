@@ -443,7 +443,7 @@ See also: `pstream-elt-future', `phistory'"
   (with-slots (history) pstream
     (if (>= n (length history))
         (error 'pstream-out-of-range :index n)
-        (nth-wrap n history))))
+        (elt-wrap history n))))
 
 (defun pstream-nth-future (n pstream)
   "Obsolete alias for `pstream-elt-future'."
@@ -743,7 +743,7 @@ See also: `pser'")
     (alexandria:when-let ((off (next offset)))
       (when (and (remaining-p pseq)
                  list)
-        (nth-wrap (+ off number) list)))))
+        (elt-wrap list (+ off number))))))
 
 ;;; pser
 
@@ -778,7 +778,7 @@ See also: `pseq'")
       (when (eql :reset remaining)
         (setf current-index 0))
       (prog1
-          (nth-wrap (+ off current-index) list)
+          (elt-wrap list (+ off current-index))
         (incf current-index)))))
 
 ;;; pk
@@ -1471,7 +1471,7 @@ See also: `pscratch'")
                (if (and (not wrap-at-end)
                         (minusp current-value))
                    nil
-                   (funcall (if wrap-at-end #'nth-wrap #'nth) current-value list))))
+                   (funcall (if wrap-at-end #'elt-wrap #'nth) list current-value))))
       (unless (slot-boundp pattern 'current-repeats-remaining)
         (setf current-repeats-remaining (next repeats)))
       (when (value-remaining-p current-repeats-remaining)
@@ -1920,7 +1920,7 @@ See also: `pwalk', `pswitch'")
     (let ((list (next list-pat))
           (idx (next index-pat)))
       (when idx
-        (funcall (if wrap-p 'nth-wrap 'nth) idx list)))))
+        (funcall (if wrap-p 'elt-wrap 'elt) list idx)))))
 
 ;;; prun
 
@@ -2300,5 +2300,5 @@ See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
           (next list) ;; FIX?
           (setf current-index (next start-pos))))
     (when (and current-index list)
-      (nth-wrap current-index list))))
+      (elt-wrap list current-index))))
 
