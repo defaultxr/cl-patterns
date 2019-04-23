@@ -90,6 +90,15 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
            ,(mapcar #'desugar-slot (remove-if #'state-slot-p slots))
            ,@(when documentation
                `((:documentation ,documentation))))
+         ,(unless creation-function ;; FIX: does this work properly for all patterns?
+            `(defmethod print-object ((,name ,name) stream)
+               (format stream "#<~s~{ ~s~}>" ',name
+                       (mapcar (lambda (slot) (slot-value ,name slot))
+                               ',(mapcar #'car (remove-if (lambda (slot)
+                                                            (or (state-slot-p slot)
+                                                                ;; FIX: don't show arguments that are set to the defaults?
+                                                                ))
+                                                          slots))))))
          (defclass ,name-pstream (,name ,super-pstream)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
            (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
@@ -579,7 +588,7 @@ See also: `pmono', `pb'"
 (setf (documentation 'pbind 'type) (documentation 'pbind 'function))
 
 (defmethod print-object ((pbind pbind) stream)
-  (format stream "#<~s~{ ~s ~s~}>" 'pbind (slot-value pbind 'pairs)))
+  (format stream "(~s~{ ~s ~s~})" 'pbind (slot-value pbind 'pairs)))
 
 (defmacro pb (key &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
   "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. KEY is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
@@ -592,8 +601,9 @@ See also: `pbind', `pdef'"
 (defclass pbind-pstream (pbind pstream)
   ())
 
-(defmethod print-object ((pbind pbind-pstream) stream) ;; FIX: use print-unreadable-object (here and anywhere else print-object is implemented like this)
-  (format stream "#<~s~{ ~s ~s~}>" 'pbind-pstream (slot-value pbind 'pairs)))
+(defmethod print-object ((pbind pbind-pstream) stream)
+  (print-unreadable-object (pbind stream :type t)
+    (format stream "~{~s ~s~^ ~}" (slot-value pbind 'pairs))))
 
 (defun as-pstream-pairs (pairs)
   (let ((results (list)))
