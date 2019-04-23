@@ -373,15 +373,15 @@ See also: `pattern-as-pstream'"))
   ((value :initarg :value :initform nil :documentation "The value that is yielded by the t-pstream."))
   (:documentation "Pattern stream object that yields its value only once."))
 
-(defun make-t-pstream (value)
-  (make-instance 't-pstream
-                 :value value))
+(defun t-pstream (value)
+  "Make a t-pstream object with the value VALUE."
+  (make-instance 't-pstream :value value))
 
 (defmethod print-object ((pstream t-pstream) stream)
-  (format stream "#<~s ~s>" 't-pstream (slot-value pstream 'value)))
+  (print-unreadable-object (pstream stream :type t) (prin1 (slot-value pstream 'value) stream)))
 
 (defmethod as-pstream ((value t))
-  (make-t-pstream value))
+  (t-pstream value))
 
 (defmethod as-pstream ((symbol symbol))
   (if (keywordp symbol)
@@ -389,8 +389,8 @@ See also: `pattern-as-pstream'"))
             (as-pstream (pdef symbol)))
           (alexandria:when-let ((event-value (event-value *event* symbol)))
             event-value)
-          (make-t-pstream symbol))
-      (make-t-pstream symbol)))
+          (t-pstream symbol))
+      (t-pstream symbol)))
 
 (defmethod next ((pattern t-pstream))
   (when (= 0 (slot-value pattern 'number))
