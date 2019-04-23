@@ -166,29 +166,36 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
 (defun clock-loop (clock &key (granularity *latency*)) ;; FIX: make an option to automatically skip "expired" events (i.e. if the clock has to pause due to a condition, then upon resuming, it will skip events that were missed instead of playing them all at once)
   "Convenience method for processing a clock's tasks in a loop.
 
-To run the clock in a new thread, you can do something like this:
+To run the clock in a new thread, you can call `start-clock-loop'.
 
-;; (bt:make-thread (lambda () (clock-loop *clock*)) :name \"cl-patterns clock-loop\")
+See also: `start-clock-loop', `clock-process'"
+  (unwind-protect
+       (loop
+          (if *performance-mode*
+              (handler-bind
+                  ((error (lambda (e)
+                            (bt:with-lock-held (*performance-errors-lock*)
+                              (let ((restart (if (member *performance-mode* (list 'remove-task 'skip-event))
+                                                 *performance-mode*
+                                                 'remove-task)))
+                                (warn "Task had error ~s; invoked ~s restart, with state recorded as index ~s in ~s." e restart (length *performance-errors*) '*performance-errors*)
+                                (alexandria:appendf *performance-errors* (list (list :error e :stack (dissect:stack))))
+                                (invoke-restart restart))))))
+                (clock-process clock granularity))
+              (clock-process clock granularity))
+          (sleep (max 0
+                      (- (local-time:timestamp-difference
+                          (absolute-beats-to-timestamp (slot-value clock 'beat) clock)
+                          (local-time:now))
+                         (/ *latency* 2)))))
+    (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))
 
-See also: `clock-process'"
-  (loop
-     (if *performance-mode*
-         (handler-bind
-             ((error (lambda (e)
-                       (bt:with-lock-held (*performance-errors-lock*)
-                         (let ((restart (if (member *performance-mode* (list 'remove-task 'skip-event))
-                                            *performance-mode*
-                                            'remove-task)))
-                           (warn "Task had error ~s; invoked ~s restart, with state recorded as index ~s in ~s." e restart (length *performance-errors*) '*performance-errors*)
-                           (alexandria:appendf *performance-errors* (list (list :error e :stack (dissect:stack))))
-                           (invoke-restart restart))))))
-           (clock-process clock granularity))
-         (clock-process clock granularity))
-     (sleep (max 0
-                 (- (local-time:timestamp-difference
-                     (absolute-beats-to-timestamp (slot-value clock 'beat) clock)
-                     (local-time:now))
-                    (/ *latency* 2))))))
+(defun start-clock-loop (tempo) ;; FIX: detect if clock is already running?
+  "Convenience method to make a clock and start its loop in a new thread.
+
+See also: `clock-loop'"
+  (setf *clock* (make-clock tempo))
+  (bt:make-thread (lambda () (clock-loop *clock*)) :name \"cl-patterns clock-loop\"))
 
 ;;; play/stop/end methods
 

@@ -191,6 +191,7 @@
 
    #:make-clock
    #:clock-loop
+   #:start-clock-loop
    #:pdefs-playing
 
    ))
