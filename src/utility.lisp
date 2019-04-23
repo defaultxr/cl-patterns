@@ -27,7 +27,7 @@
           list))
 
 (defun string-keyword (string)
-  "Converts a string to a decent-looking keyword."
+  "Return STRING as a keyword, with all non-alphanumeric characters removed."
   (alexandria:make-keyword (string-upcase (remove-if-not (lambda (letter)
                                                            (or (digit-char-p letter)
                                                                (alpha-char-p letter)))

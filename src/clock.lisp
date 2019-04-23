@@ -65,7 +65,7 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
 (defun clock-add (item &optional (clock *clock*))
   "Add ITEM to CLOCK's tasks."
   (when (null clock)
-    (error "cl-patterns clock is NIL; perhaps try (defparameter *clock* (make-clock))"))
+    (error "cl-patterns clock is NIL; perhaps try (defparameter *clock* (make-clock)) or (start-clock-loop)"))
   (with-slots (tasks tasks-lock) clock
     (bt:with-lock-held (tasks-lock)
       (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (quant item) (slot-value clock 'beat)))))
@@ -190,7 +190,7 @@ See also: `start-clock-loop', `clock-process'"
                          (/ *latency* 2)))))
     (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))
 
-(defun start-clock-loop (tempo) ;; FIX: detect if clock is already running?
+(defun start-clock-loop (&optional tempo) ;; FIX: detect if clock is already running?
   "Convenience method to make a clock and start its loop in a new thread.
 
 See also: `clock-loop'"
