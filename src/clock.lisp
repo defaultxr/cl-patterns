@@ -195,7 +195,7 @@ See also: `start-clock-loop', `clock-process'"
 
 See also: `clock-loop'"
   (setf *clock* (make-clock tempo))
-  (bt:make-thread (lambda () (clock-loop *clock*)) :name \"cl-patterns clock-loop\"))
+  (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
 
 ;;; play/stop/end methods
 
