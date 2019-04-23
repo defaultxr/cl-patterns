@@ -1471,7 +1471,9 @@ See also: `pscratch'")
                (if (and (not wrap-at-end)
                         (minusp current-value))
                    nil
-                   (funcall (if wrap-at-end #'elt-wrap #'elt) list current-value))))
+                   (if wrap-at-end
+                       (elt-wrap list current-value)
+                       (nth current-value list)))))
       (unless (slot-boundp pattern 'current-repeats-remaining)
         (setf current-repeats-remaining (next repeats)))
       (when (value-remaining-p current-repeats-remaining)
