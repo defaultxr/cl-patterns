@@ -291,14 +291,16 @@ Note that this function is meant for use with the MIDI backend; for frequency-to
   (let* ((name-name (symbol-name name))
          (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
     `(progn
-       (defvar ,dict-symbol (list)
+       (defvar ,dict-symbol (make-hash-table)
          ,(concatenate 'string "The global " name-name " dictionary."))
-       (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional value)
+       (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional (value nil value-provided-p))
          ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
          (let ((key (alexandria:make-keyword key)))
-           (if (null value)
-               (getf ,dict-symbol key)
-               (setf (getf ,dict-symbol key) value)))))))
+           (if value-provided-p
+               (if (null value)
+                   (remhash key ,dict-symbol)
+                   (setf (gethash key ,dict-symbol) value))
+               (gethash key ,dict-symbol)))))))
 
 (define-method-combination pattern () ;; same as standard, but :around methods are called in reverse order, from least to most specific.
   ((around (:around))
