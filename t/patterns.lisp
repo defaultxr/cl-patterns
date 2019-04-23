@@ -603,7 +603,7 @@
 
 (test psym ;; FIX: add more
   "Test psym"
-  (is-true (let ((cl-patterns::*pdef-dictionary*))
+  (is-true (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
              (pdef :foo1 (pbind :dur (pn 1/2 8)))
              (pdef :foo2 (pbind :dur (pn 2/3 8)))
              (every-event-equal
