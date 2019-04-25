@@ -73,13 +73,24 @@ Many [[file:t/][tests]] have already been written to help guard against regressi
 
 Much documentation is still being written, but there is already a good amount of information in the [[file:doc/][doc]] directory, and in the docstrings for the patterns, functions, etc.
 
+See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] for a listing of tasks that need to be completed and ideas for future features. The code itself is also littered with comments marked "FIX" noting various known issues and possible changes and optimizations that could be made.
+
+** Backends
+
 The SuperCollider backend is the primary backend that cl-patterns is tested against so it should generally work the best and should be usable for most purposes.
 
 The Incudine backend should work for most purposes, though currently multichannel expansion does not work.
 
 The ALSA MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
 
-See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] for a listing of tasks that need to be completed and ideas for future features. The code itself is also littered with comments marked "FIX" noting various known issues and possible changes and optimizations that could be made.
+** Rough Edges
+
+Don't cut yourself on these. These are the weaker parts of the library; they're still very much WIPs and are even less likely to be correct :^)
+
+- scales/tunings - calculations may be wrong sometimes; sometimes throw errors
+- ~ptracker~ and ~pcycles~ - still need work, APIs may change
+- sc-compatibility patterns - hardly anything written for these!
+- multichannel expansion - still somewhat new, might not work with all backends
 
 * Tour
 

@@ -2,6 +2,7 @@
 
 ;; FIX: make versions of these generic functions that will work with supercollider ugens and put them in supercollider.lisp.
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
+;; FIX: implement more keys and event types (see TODO.org)
 
 ;;; event glue
 

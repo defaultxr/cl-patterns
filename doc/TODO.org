@@ -122,6 +122,7 @@ still trying to think of ideas for how to make a good "performance mode" without
 * tempo change curves
 * ~pblend~ to blend between two patterns
 * export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime
+** then make ~render~ or ~record~ functions
 * make pstreams compatible with sequence functions (at least in sbcl; not sure if it would work for other implementations); http://www.sbcl.org/manual/#Extensible-Sequences
 * Renoise import/export
 * pure data OSC (make sure it works)
@@ -130,3 +131,31 @@ still trying to think of ideas for how to make a good "performance mode" without
 * test on ccl and other implementations
 * cl-patterns "patterns-as-audio" backend
 * allow the clock to be stopped and resumed (i.e. for it to be slave to an external clock)
+** would need to get rid of ~local-time~ stuff for this to work
+* functions to get output range of patterns, so something like ~range~ could be used on them to easily set numeric output ranges.
+* additional event types:
+| type  | description                                                      |
+|-------+------------------------------------------------------------------|
+| on    | create a synth without release                                   |
+| set   | set values of controls                                           |
+| off   | release a node (or free it if it has no ~gate~)                  |
+| group | create a group                                                   |
+| kill  | free a node                                                      |
+| bus   | send array to consecutive control buses, starting at ~id~        |
+| alloc | allocate a buffer                                                |
+| free  | free a buffer                                                    |
+| gen   | generate values in buffer                                        |
+| load  | allocate and load a file to a buffer (integrate with ~bdef~ too) |
+| read  | read a file into an already-allocated buffer (+ ~bdef~)          |
+* additional event keys:
+| key              | description                                                                  |
+|------------------+------------------------------------------------------------------------------|
+| detune           | frequency detuning in Hz                                                     |
+| steps-per-octave | number of steps per octave (i.e. override ~scale~ or ~tuning~ value)         |
+| harmonic         | harmonic ratio                                                               |
+| octave-ratio     | size of the octave (i.e. default ~2~ means 1 octave up = 2x the frequency)   |
+| midinote-to-freq | function to convert MIDI note number to a freq (defaults to ~midinote-freq~) |
+| mtranspose       | modal transposition of degree within a scale                                 |
+| gtranspose       | gamut transposition of note within a ~steps-per-octave~ e.t. scale           |
+| ctranspose       | chromatic transposition of midinote within 12 tone e.t. scale                |
+* equivalent for SuperCollider's ~strum~ event key (maybe make it a pattern instead? ~pstrum~ ? something like ~parp~ ?)
