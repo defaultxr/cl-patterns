@@ -9,9 +9,9 @@ Some event keys are used to set standard parameters for the synth (i.e. ~instrum
 ** ~instrument~
 Name of the synth you want to trigger.
 ** ~group~
-NOTE: Not implemented yet.
-
 Group to put the synth in on the server.
+
+Currently only implemented for the SuperCollider backend. This is effectively an alias for ~to~.
 ** ~out~
 Bus that the synth should write its output to.
 ** ~amp~ / ~db~

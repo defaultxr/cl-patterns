@@ -22,12 +22,18 @@
                                      (multiple-value-bind (value key) (event-value event arg)
                                        (declare (ignore value))
                                        (eql key t))))
-                                 (synth-controls instrument :supercollider))))
-    (loop :for sparam :in synth-params
+                                 (append (synth-controls instrument :supercollider)
+                                         (list :group :to :id)))))
+    ;; get the value of each of the synth's arguments from the event...
+    (loop :for param :in synth-params
+       :for sparam = (alexandria:make-keyword param)
        :for val = (event-value event sparam)
        :if (or (eql :gate sparam)
                (not (null val)))
-       :append (list (alexandria:make-keyword sparam) (if (eql :gate sparam) 1 val)))))
+       :append (list (if (eql :group sparam) ;; :group is an alias for :to
+                         :to
+                         sparam)
+                     (if (eql :gate sparam) 1 val)))))
 
 (defun get-proxys-node-id (name)
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
@@ -59,6 +65,10 @@
         (sc:busnum bus)
         object)))
 
+(defmethod supercollider-convert-object ((object sc::group) key)
+  (declare (ignore key))
+  (sc::id object))
+
 (defvar *supercollider-node-map* (make-node-map)
   "Hash mapping cl-patterns tasks to SuperCollider nodes.")
 
@@ -88,9 +98,7 @@
                     (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (sc:now))
                     offset))
            (params (loop :for (key value) :on (supercollider-make-synth-args-list inst item) :by #'cddr
-                      :append (list key (supercollider-convert-object value key))))
-           ;; (group (event-value item :group)) ;; FIX: should be possible to auto-assign synths to groups with :group. https://github.com/ntrocado/cl-collider-examples/blob/df79d8d820581b720b8e409e819fd715a570bb0b/chapter6.lisp
-           )
+                      :append (list key (supercollider-convert-object value key)))))
       (if (or (eql (event-value item :type) :mono)
               (typep inst 'sc::node))
           (let ((node (sc:at time
