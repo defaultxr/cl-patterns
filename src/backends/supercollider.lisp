@@ -27,7 +27,7 @@
     ;; get the value of each of the synth's arguments from the event...
     (loop :for param :in synth-params
        :for sparam = (alexandria:make-keyword param)
-       :for val = (event-value event sparam)
+       :for val = (supercollider-convert-object (event-value event sparam) sparam)
        :if (or (eql :gate sparam)
                (not (null val)))
        :append (list (if (eql :group sparam) ;; :group is an alias for :to
@@ -97,8 +97,7 @@
            (time (+ (or (raw-event-value item :latency) *latency*)
                     (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (sc:now))
                     offset))
-           (params (loop :for (key value) :on (supercollider-make-synth-args-list inst item) :by #'cddr
-                      :append (list key (supercollider-convert-object value key)))))
+           (params (supercollider-make-synth-args-list inst item)))
       (if (or (eql (event-value item :type) :mono)
               (typep inst 'sc::node))
           (let ((node (sc:at time

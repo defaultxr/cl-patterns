@@ -250,7 +250,7 @@ Additionally, because :define-methods is true, we can also do the following:
 (define-event-special-key instrument (t :default)
   :define-methods t)
 
-(define-event-special-key group (t 0))
+(define-event-special-key group (t 1))
 
 (define-event-special-key out (t 0))
 
