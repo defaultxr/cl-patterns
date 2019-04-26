@@ -13,7 +13,7 @@
   ((beat :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
    (tempo :initarg :tempo :initform 1 :reader tempo :documentation "The tempo of the clock, in beats per second.")
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
-   (tasks-lock :initform (bt:make-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
+   (tasks-lock :initform (bt:make-recursive-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
    (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed."))
   (:documentation "A musical time-based clock defining a tempo and pulse that its tasks synchronize to."))
@@ -67,7 +67,7 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
   (when (null clock)
     (error "cl-patterns clock is NIL; perhaps try (defparameter *clock* (make-clock)) or (start-clock-loop)"))
   (with-slots (tasks tasks-lock) clock
-    (bt:with-lock-held (tasks-lock)
+    (bt:with-recursive-lock-held (tasks-lock)
       (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (quant item) (slot-value clock 'beat)))))
         (setf tasks (append tasks (list task)))
         task))))
@@ -75,7 +75,7 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
 (defun clock-remove (task &optional (clock *clock*))
   "Remove TASK from CLOCK's tasks."
   (with-slots (tasks tasks-lock) clock
-    (bt:with-lock-held (tasks-lock)
+    (bt:with-recursive-lock-held (tasks-lock)
       (setf tasks
             (remove-if
              (lambda (ctask)
@@ -140,16 +140,17 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
                                    nil)
                                  (clock-process-task task (1+ times))))
                            nil))))))
-      (dolist (task (slot-value clock 'tasks))
-        (restart-case
-            (unless (clock-process-task task)
-              (clock-remove task clock))
-          (skip-event ()
-            :report "Skip this event, preserving the task on the clock so it can be run again."
-            nil)
-          (remove-task ()
-            :report "Remove this task from the clock."
-            (clock-remove task clock)))))
+      (bt:with-recursive-lock-held ((slot-value clock 'tasks-lock))
+        (dolist (task (slot-value clock 'tasks))
+          (restart-case
+              (unless (clock-process-task task)
+                (clock-remove task clock))
+            (skip-event ()
+              :report "Skip this event, preserving the task on the clock so it can be run again."
+              nil)
+            (remove-task ()
+              :report "Remove this task from the clock."
+              (clock-remove task clock))))))
     (incf (slot-value clock 'beat) beats)))
 
 ;;; basic clock-loop convenience functionality
