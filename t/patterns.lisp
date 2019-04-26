@@ -498,6 +498,20 @@
 (test parp
   "Test parp"
   (is-true (every-event-equal
+            (list (event :foo 1 :bar 4)
+                  (event :foo 1 :bar 5)
+                  (event :foo 1 :bar 6)
+                  (event :foo 2 :bar 4)
+                  (event :foo 2 :bar 5)
+                  (event :foo 2 :bar 6)
+                  (event :foo 3 :bar 4)
+                  (event :foo 3 :bar 5)
+                  (event :foo 3 :bar 6))
+            (next-n (parp (pbind :foo (pseq (list 1 2 3)))
+                          (pbind :bar (pseq (list 4 5 6) 1)))
+                    9))
+           "parp returns correct results")
+  (is-true (every-event-equal
             (list (event :freq 200 :xx 400)
                   (event :freq 200 :xx 200)
                   (event :freq 300 :xx 600)
