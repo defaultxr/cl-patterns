@@ -1694,6 +1694,7 @@ See also: `pfindur'")
   (pattern
    dur
    (tolerance :default 0)
+   (current-dur :state t)
    (current-elapsed :state t :initform 0))
   "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR. Any events that would end beyond DUR are cut short.
 
@@ -1709,27 +1710,28 @@ See also: `pfin', `psync'")
   (with-slots (pattern dur tolerance) pfindur
     (make-instance 'pfindur-pstream
                    :pattern (as-pstream pattern)
-                   :dur (next dur)
+                   :dur (as-pstream dur)
                    :tolerance (next tolerance))))
 
-(defmethod next ((pfindur pfindur-pstream)) ;; FIX: make this affect the dur AND delta properly.
-  (with-slots (pattern dur tolerance current-elapsed) pfindur
+(defmethod next ((pfindur pfindur-pstream))
+  (with-slots (pattern dur tolerance current-dur current-elapsed) pfindur
     (alexandria:when-let ((n-event (next pattern)))
-      (when (or (eql :inf dur)
-                (< (if (= 0 tolerance)
-                       current-elapsed
-                       (round-up current-elapsed tolerance))
-                   dur))
-        (let ((new-elapsed (+ (event-value n-event :delta) current-elapsed)))
-          (prog1
-              (if (and (not (eql :inf dur))
-                       (> (if (= 0 tolerance)
-                              new-elapsed
-                              (round-up new-elapsed tolerance))
-                          dur))
-                  (combine-events n-event (event :dur (- dur current-elapsed)))
-                  n-event)
-            (incf current-elapsed (event-value n-event :delta))))))))
+      (unless (slot-boundp pfindur 'current-dur)
+        (setf current-dur (next dur)))
+      (when current-dur
+        (if (eql :inf current-dur)
+            n-event
+            (let ((new-elapsed (+ (event-value n-event :delta) current-elapsed)))
+              (prog1
+                  (if (> (if (= 0 tolerance)
+                             new-elapsed
+                             (round-up new-elapsed tolerance))
+                         current-dur)
+                      (let ((tdur (- current-dur current-elapsed)))
+                        (when (plusp tdur)
+                          (combine-events n-event (event :dur tdur))))
+                      n-event)
+                (incf current-elapsed (event-value n-event :delta)))))))))
 
 ;;; psync
 
