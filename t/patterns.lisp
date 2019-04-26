@@ -9,7 +9,16 @@
   (is (equal
        (list 0 1 2 3 4 5 nil)
        (next-n (pseq (list 0 (pseq (list 1 (pseq (list 2 3) 1) 4) 1) 5) 1) 7))
-      "Stacked pseqs give correct results"))
+      "Stacked pseqs give correct results")
+  (is-true (equal (list 0 0 0 1 1 1 2 2)
+                  (gete
+                   (next-n
+                    (pbind :foo 3
+                           :embed (pr (pbind :inner (pseries))
+                                      (pk :foo)))
+                    8)
+                   :inner))
+           "Embedded patterns can access event values from their parent pattern."))
 
 (test number-key
   "Test the number key in patterns and pstreams"
@@ -68,6 +77,12 @@
 
 (test beat-key
   "Test that the :beat key is correct"
+  (is-true (equal (list 0 1/2 1 3/2)
+                  (gete (next-n (pbind :dur 1/2
+                                       :x (pf (beat *event*)))
+                                4)
+                        :x))
+           "event's beat is accessible and correct in basic patterns")
   (is-true (every-event-equal
             (list (event :beat 0)
                   (event :beat 3))
@@ -80,7 +95,13 @@
             (next-upto-n (pbind :beat 2
                                 :embed (pbind :beat (p+ (pk :beat) (pseq '(1 3) 1))
                                               :x (pseries)))))
-           ":beat key is accessible in embedded patterns"))
+           ":beat key is accessible in embedded patterns")
+  (is-true (equal (list 0 1/2 1 3/2 2 5/2 3 7/2)
+                  (gete (next-upto-n (pseq (list (pbind :dur (pn 1/2 4))
+                                                 (pbind :dur (pn 1/2 4)))
+                                           1))
+                        :beat))
+           ":beat key is correct for sequential subpatterns"))
 
 (test pstream-count
   "Test `pstream-count' functionality"
