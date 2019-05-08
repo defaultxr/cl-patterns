@@ -99,7 +99,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                                                                 ;; FIX: don't show arguments that are set to the defaults?
                                                                 ))
                                                           slots))))))
-         (defclass ,name-pstream (,name ,super-pstream)
+         (defclass ,name-pstream (,super-pstream ,name)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
            (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
          ,(let* ((gen-func-p (or (null creation-function)
@@ -203,7 +203,7 @@ See also: `events-after-p'"))
 ;;; pstream
 
 (defclass pstream (pattern)
-  ((number :initform 0 :documentation "The number of outputs yielded from the pstream.") ;; FIX: maybe remove this and just use (length (slot-value pstream 'history)) instead?
+  ((number :initform 0 :documentation "The number of outputs yielded from the pstream.")
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
    (history :initform (list) :documentation "The history of outputs yielded by the pstream.") ;; FIX: should this be turned into an array instead?
    (beat :initform 0 :reader beat :documentation "The number of beats that have elapsed since the start of the pstream.")
@@ -211,6 +211,11 @@ See also: `events-after-p'"))
    (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1.")
    (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times previously a pstream was made of this pstream's parent. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
+
+(defmethod print-object ((pstream pstream) stream)
+  (with-slots (number) pstream
+    (print-unreadable-object (pstream stream :type t)
+      (format stream "~s ~s" :number number))))
 
 (defmethod events-in-range ((pstream pstream) min max)
   (loop :while (and (<= (beat pstream) max)
