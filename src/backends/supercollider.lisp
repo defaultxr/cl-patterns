@@ -156,5 +156,5 @@
 
 ;; (enable-backend :supercollider)
 
-(in-package :cl-patterns-user)
+(in-package :cl-patterns)
 
