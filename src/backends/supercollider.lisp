@@ -39,7 +39,8 @@
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
   (if (typep name 'sc::node)
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'sc::name))))
-      (sc::id (gethash name (sc::node-proxy-table sc::*s*)))))
+      (alexandria:when-let ((val (gethash name (sc::node-proxy-table sc::*s*))))
+	(sc::id val))))
 
 (defgeneric supercollider-convert-object (object key)
   (:documentation "Method used to convert objects in events to values the SuperCollider server can understand. For example, any `cl-collider::buffer' objects are converted to their bufnum."))
