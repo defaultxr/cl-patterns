@@ -40,7 +40,7 @@
   (if (typep name 'sc::node)
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'sc::name))))
       (alexandria:when-let ((val (gethash name (sc::node-proxy-table sc::*s*))))
-	(sc::id val))))
+        (sc::id val))))
 
 (defgeneric supercollider-convert-object (object key)
   (:documentation "Method used to convert objects in events to values the SuperCollider server can understand. For example, any `cl-collider::buffer' objects are converted to their bufnum."))
@@ -156,6 +156,3 @@
 (register-backend :supercollider)
 
 ;; (enable-backend :supercollider)
-
-(in-package :cl-patterns)
-
