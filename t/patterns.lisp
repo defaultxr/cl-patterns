@@ -101,7 +101,13 @@
                                                  (pbind :dur (pn 1/2 4)))
                                            1))
                         :beat))
-           ":beat key is correct for sequential subpatterns"))
+           ":beat key is correct for sequential subpatterns")
+  (is-true (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
+             (pb :c1 :dur (pn 1 4))
+             (pb :c2 :dur (pn 1 4))
+             (equal (list 0 1 2 3 4 5 6 7)
+                    (gete (next-upto-n (pseq (list (pdef :c1) (pdef :c2)) 1)) :beat)))
+           ":beat key is correct for sequential pdef subpatterns"))
 
 (test pstream-count
   "Test `pstream-count' functionality"

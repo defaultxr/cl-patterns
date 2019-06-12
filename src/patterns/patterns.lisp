@@ -371,6 +371,7 @@ See also: `last-output'"))
               (setf (beat result) (beat pattern)))
             (alexandria:appendf (slot-value pattern 'history) (list result))
             (when (typep result 'event)
+              (setf (slot-value result '%beat) (+ (or (slot-value pattern 'start-beat) 0) (beat pattern))) ;; FIX: this might modify the event in the subpattern's history; copy-event instead?
               (incf (slot-value pattern 'beat) (event-value result :delta)))
             result)))))
 
