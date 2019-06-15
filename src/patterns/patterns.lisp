@@ -1408,7 +1408,7 @@ See also: `ppatlace'")
 
 (defpattern ppatlace (pattern)
   (list
-   (repeats :default 1)
+   (repeats :default :inf)
    (current-repeats-remaining :state t))
   "ppatlace yields each value from LIST in sequence. If the value is a pattern, one value is yielded from that pattern before moving on to the next item in LIST. The second time around the LIST, the second value yielded from each pattern in LIST will be yielded instead. If one of the patterns embedded in LIST ends sooner than the others, it is simply removed and the ppatlace continues to yield from the rest of the LIST. The entire LIST is yielded through a total of REPEATS times.
 
@@ -1493,7 +1493,7 @@ See also: `pfunc'"
 
 (defpattern pslide (pattern)
   (list
-   (repeats :default 1)
+   (repeats :default :inf)
    (len :default 3)
    (step :default 1)
    (start :default 0)
