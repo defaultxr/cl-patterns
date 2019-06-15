@@ -1365,13 +1365,54 @@ See also: `prand'")
       (format stream "~a~a~%" prefix result)
       n)))
 
+;;; place
+
+(defpattern place (pattern)
+  (list
+   (repeats :default :inf)
+   (current-repeat :state t)
+   (current-repeats-remaining :state t))
+  "place yields each value from LIST in sequence. If the value is a list, the first element of that list is yielded. The second time that sub-list is encountered, its second element will be yielded; the third time, the third element, and so on. REPEATS controls the number of times LIST is repeated.
+
+Example:
+
+;; (next-upto-n (place (list 1 2 (list 3 4 5)) 3))
+;; => (1 2 3 1 2 4 1 2 5)
+
+See also: `ppatlace'")
+
+(defmethod as-pstream ((place place))
+  (with-slots (list repeats) place
+    (make-instance 'place-pstream
+                   :list (next list)
+                   :repeats (as-pstream repeats)
+                   :current-repeat 0)))
+
+(defmethod next ((place place-pstream))
+  (with-slots (number list current-repeat) place
+    (when (and (not (= number 0))
+               (= 0 (mod number (length list))))
+      (incf current-repeat)
+      (decf-remaining place 'current-repeats-remaining))
+    (when (if (plusp number)
+              (and (not (null (pstream-elt place -1)))
+                   (remaining-p place))
+              (remaining-p place))
+      (let* ((mod (mod number (length list)))
+             (result (next (nth mod list))))
+        (if (listp result)
+            (elt-wrap result current-repeat)
+            result)))))
+
 ;;; ppatlace
 
 (defpattern ppatlace (pattern)
   (list
    (repeats :default 1)
    (current-repeats-remaining :state t))
-  "ppatlace yields each value from LIST in sequence. If the value is a pattern, one value is yielded from that pattern before moving on to the next item in LIST. The second time around the LIST, the second value yielded from each pattern in LIST will be yielded instead. If one of the patterns embedded in LIST ends sooner than the others, it is simply removed and the ppatlace continues to yield from the rest of the LIST. The entire LIST is yielded through a total of REPEATS times.")
+  "ppatlace yields each value from LIST in sequence. If the value is a pattern, one value is yielded from that pattern before moving on to the next item in LIST. The second time around the LIST, the second value yielded from each pattern in LIST will be yielded instead. If one of the patterns embedded in LIST ends sooner than the others, it is simply removed and the ppatlace continues to yield from the rest of the LIST. The entire LIST is yielded through a total of REPEATS times.
+
+See also: `place'")
 
 (defmethod as-pstream ((pattern ppatlace))
   (with-slots (repeats list) pattern

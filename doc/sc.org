@@ -20,7 +20,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Ptuple~
 - ~Pwalk~ - done as ~pwalk~.
 - ~Pindex~ - done as ~pindex~.
-- ~Place~
+- ~Place~ - done as ~place~.
 - ~Ppatlace~ - done as ~ppatlace~.
 - ~Pswitch~
 * filter patterns

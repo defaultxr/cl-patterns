@@ -459,6 +459,15 @@
   ;; FIX
   )
 
+(test place
+  "Test place"
+  (is (equal (list 1 2 3 1 2 4 1 2 5)
+             (next-upto-n (place (list 1 2 (list 3 4 5)) 3)))
+      "place returns correct results")
+  (is (equal (list 1 2 3 1 2 4 1 2 5 1 2 3 1 2 4 1 2 5)
+             (next-upto-n (place (list 1 2 (list 3 4 5)) :inf) 18))
+      "place returns correct results"))
+
 (test ppatlace
   "Test ppatlace"
   (is (equal (list 1 4 2 5 3 6 7 8 nil)
