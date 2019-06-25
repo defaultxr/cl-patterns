@@ -127,6 +127,7 @@ still trying to think of ideas for how to make a good "performance mode" without
 * Renoise import/export
 * pure data OSC (make sure it works)
 * make sure our clock works with the cl-collider TempoClock so they can be used together/synced etc.
+** same with [[https://github.com/byulparan/sc-extensions][sc-extensions]]
 * make a quickproject-like feature (perhaps by using quickproject) to quickly generate a cl-patterns project
 * test on ccl and other implementations
 * cl-patterns "patterns-as-audio" backend
@@ -159,3 +160,7 @@ still trying to think of ideas for how to make a good "performance mode" without
 | gtranspose       | gamut transposition of note within a ~steps-per-octave~ e.t. scale           |
 | ctranspose       | chromatic transposition of midinote within 12 tone e.t. scale                |
 * equivalent for SuperCollider's ~strum~ event key (maybe make it a pattern instead? ~pstrum~ ? something like ~parp~ ?)
+* consider alternatives to ~nil~ for end of pattern
+(mainly because patterns like ~pif~ otherwise have no way to differentiate between "end of pattern" and "false"...)
+- perhaps use ~'cl-patterns:end~ as the end-of-pattern symbol instead? the symbol is already exported anyway, however it does refer to the ~end~ method
+- perhaps make a ~'cl-patterns:eop~ ("end of pattern") symbol?

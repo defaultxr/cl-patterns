@@ -1,8 +1,10 @@
 #+TITLE: SuperCollider Patterns
 
-This is a listing of some of the pattern classes from SuperCollider and a few of the quarks I had installed. I'm planning on making equivalents of many of these for cl-patterns, but as I go through this list I might skip some of the more esoteric or less useful ones, since I didn't really go through them too in-depth when I copied the list from SC.
+This is a listing of many of the pattern classes from SuperCollider and various quarks. Any patterns that have equivalents in cl-patterns are marked as such. If a pattern you want is not yet implemented (or not listed here), feel free to open an issue requesting it (or if you're feeling inspired, code it yourself and open a pull request!).
 
-This list basically is a quick overview of the implementation status of various pattern classes from SuperCollider, so if you're familiar with SC then hopefully this will be helpful. For more in-depth information, I recommend reading the [[file:sc-differences.org][sc-differences.org]] file instead, which will give more details about the ways cl-patterns differs from SuperCollider.
+Note that this is just a simple rip of all the ~Pattern~ subclasses and that a pattern's inclusion in this list doesn't necessarily guarantee it will be implemented in the future.
+
+Treat this list as a "quick reference" for users familiar with SuperCollider's patterns. For more in-depth information, have a look at the [[file:sc-differences.org][sc-differences.org]] file instead, which will give more details about the ways cl-patterns differs from SuperCollider.
 
 * list patterns
 - ~Pseq~ - done as ~pseq~.
@@ -30,9 +32,9 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pclutch~
 - ~Pconst~
 - ~Pdelay~
-- ~Pdelta~ - done as ~pdelta~
-- ~Pdiff~ - done as ~pdiff~
-- ~Pdrop~ - done as ~pdrop~
+- ~Pdelta~ - done as ~pdelta~.
+- ~Pdiff~ - done as ~pdiff~.
+- ~Pdrop~ - done as ~pdrop~.
 - ~PfadeIn~
 - ~PfadeOut~
 - ~Pfin~ - done as ~pfin~. see also: ~pbind~'s ~:pfin~ key.
@@ -52,7 +54,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Pset~
 - ~Psetpre~
 - ~Pstretch~
-- ~Pstutter~ - done as ~pstutter~. see also: ~pr~
+- ~Pstutter~ - done as ~pstutter~. see also: ~pr~.
 - ~PdurStutter~ - done as ~pdurstutter~. see also: ~pbind~'s ~:pdurstutter~ key.
 - ~Psym~ - done as ~psym~.
 - ~Psync~ - done as ~psync~. see also: ~pbind~'s ~:psync~ key.
@@ -104,7 +106,7 @@ This list basically is a quick overview of the implementation status of various 
 - ~Plet~
 - ~Pget~
 - ~Ppatmod~
-- ~Pproto~ - maybe just use a ~pbind~ key like ~:init~ instead?
+- ~Pproto~ - not yet implemented; [FIX: maybe just use a ~pbind~ key like ~:init~ instead?]
 - ~Pvoss~
 - ~Pfunc~ - done as ~pfunc~.
 - ~Pfuncn~ - functionality is covered by ~pfunc~.
