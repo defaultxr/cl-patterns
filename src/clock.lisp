@@ -206,7 +206,7 @@ See also: `clock-loop'"
 (defmethod play ((pattern pattern))
   (clock-add (as-pstream pattern) *clock*))
 
-(defmethod play ((pdef pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway. (FIX: make a fork method?)
+(defmethod play ((pdef pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway.
   (with-slots (key) pdef
     (unless (position (pdef-ref-get key :task)
                       (slot-value *clock* 'tasks))
@@ -215,8 +215,21 @@ See also: `clock-loop'"
           (pdef-ref-set key :task task)
           task)))))
 
-(defmethod play ((symbol symbol)) ;; FIX: possibly make this work for proxies & other stuff as well
+(defmethod play ((symbol symbol))
   (play (pdef symbol)))
+
+(defmethod fork ((event event))
+  (play event))
+
+(defmethod fork ((pattern pattern))
+  (play pattern))
+
+(defmethod fork ((pdef pdef))
+  (with-slots (key) pdef
+    (play (pdef-ref-get key :pattern))))
+
+(defmethod fork ((symbol symbol))
+  (fork (pdef symbol)))
 
 (defmethod stop ((pdef pdef))
   (with-slots (key) pdef
@@ -225,7 +238,7 @@ See also: `clock-loop'"
     (pdef-ref-set key :pstream (as-pstream (pdef-ref-get key :pattern)))
     (pdef-ref-set key :task nil)))
 
-(defmethod stop ((symbol symbol)) ;; we assume they meant the pdef with that symbol as name.
+(defmethod stop ((symbol symbol))
   (stop (pdef symbol)))
 
 (defmethod stop ((task task))
@@ -243,7 +256,7 @@ See also: `clock-loop'"
 (defmethod end ((item task))
   (setf (slot-value item 'loop-p) nil))
 
-(defun pdefs-playing (&optional (clock *clock*))
+(defun pdefs-playing (&optional (clock *clock*)) ;; FIX: rename to playing-pdefs (to be consistent with the naming scheme of `all-pdefs')
   "Get a list of the names of all pdefs playing on CLOCK."
   (loop :for i :in (slot-value clock 'tasks)
      :collect (slot-value (slot-value i 'item) 'key)))

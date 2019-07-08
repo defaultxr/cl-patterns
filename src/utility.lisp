@@ -230,12 +230,19 @@ See also: `seq'"
   nil)
 
 (defgeneric play (item)
-  (:documentation "Play an item (typically an event or pattern) according to the current `*event-output-function*'."))
+  (:documentation "Play an item (typically an event or pattern) according to the current `*event-output-function*'.
+
+See also: `fork', `stop'"))
+
+(defgeneric fork (item)
+  (:documentation "Play a new copy of ITEM on the clock. Unlike `play', calling this method on a `pdef' will always start a new copy of its pattern instead of the pdef itself.
+
+See also: `play'"))
 
 (defgeneric stop (item)
   (:documentation "Immediately stop a playing item (typically a playing task or pdef).
 
-See also: `end'"))
+See also: `end', `play'"))
 
 (defgeneric end (item)
   (:documentation "End a task; it will stop when its current loop completes."))

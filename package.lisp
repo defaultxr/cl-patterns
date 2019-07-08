@@ -19,6 +19,7 @@
    #:tempo
    #:beat
    #:play
+   #:fork
    #:stop
    #:end
    #:playing-p

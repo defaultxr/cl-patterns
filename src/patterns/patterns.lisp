@@ -1,10 +1,10 @@
 (in-package :cl-patterns)
 
 ;; NOTES:
-;; FIX: make fork method, which copies the pstream and continues it from the same position in the copy and the original.
 ;; FIX: take each pattern's name out of its docstring, and make sure the first sentence in each docstring is a good concise description of the functionality.
 ;; FIX: use &key instead of &optional for defpattern
 ;; FIX: don't append stuff to the end of lists; https://stackoverflow.com/questions/6439972/what-is-the-cons-to-add-an-item-to-the-end-of-the-list
+;; FIX: make sure providing a symbol to pattern functions will always attempt to use the symbol as the name of a pdef
 
 ;;; pattern glue
 
