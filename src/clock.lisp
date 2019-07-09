@@ -218,18 +218,18 @@ See also: `clock-loop'"
 (defmethod play ((symbol symbol))
   (play (pdef symbol)))
 
-(defmethod fork ((event event))
+(defmethod launch ((event event))
   (play event))
 
-(defmethod fork ((pattern pattern))
+(defmethod launch ((pattern pattern))
   (play pattern))
 
-(defmethod fork ((pdef pdef))
+(defmethod launch ((pdef pdef))
   (with-slots (key) pdef
     (play (pdef-ref-get key :pattern))))
 
-(defmethod fork ((symbol symbol))
-  (fork (pdef symbol)))
+(defmethod launch ((symbol symbol))
+  (launch (pdef symbol)))
 
 (defmethod stop ((pdef pdef))
   (with-slots (key) pdef
