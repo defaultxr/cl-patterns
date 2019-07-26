@@ -28,7 +28,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 * filter patterns
 - ~Pavaroh~
 - ~Pbus~
-- ~Pclump~
+- ~Pclump~ - done as ~pclump~.
 - ~Pclutch~
 - ~Pconst~
 - ~Pdelay~

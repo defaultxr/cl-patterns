@@ -2366,3 +2366,37 @@ See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
     (when (and current-index list)
       (elt-wrap list current-index))))
 
+(defpattern pclump (pattern)
+  (pattern
+   (n :default 1))
+  "Group outputs of the source pattern into lists of up to N items each.
+
+Example:
+
+;; (next-upto-n (pclump (pseries 0 1 5) 2))
+;; => ((0 1) (2 3) (4))
+
+See also: `paclump'")
+
+(defmethod next ((pclump pclump-pstream))
+  (with-slots (pattern n) pclump
+    (alexandria:when-let ((next (next n)))
+      (next-upto-n pattern next))))
+
+(defpattern paclump ()
+  (pattern)
+  "Automatically group outputs of the source pattern into lists of up to N items each. Unlike `pclump', clump size is automatically set to the length of the longest list in the values of `*event*', or 1 if there are no lists.
+
+Example:
+
+;; (next-upto-n (pbind :foo (pseq '((1) (1 2) (1 2 3)) 1) :bar (paclump (pseries))))
+;; => ((EVENT :FOO (1) :BAR (0)) (EVENT :FOO (1 2) :BAR (1 2)) (EVENT :FOO (1 2 3) :BAR (3 4 5)))
+
+See also: `pclump'")
+
+(defmethod next ((paclump paclump-pstream))
+  (with-slots (pattern) paclump
+    (when *event*
+      (let ((max (loop :for key :in (keys *event*)
+                    :maximizing (length (alexandria:ensure-list (event-value *event* key))))))
+        (next-upto-n pattern max)))))

@@ -753,3 +753,20 @@
              (next-n (pwalk (list 60 64 67 72 76 79 84) (pseq (list 1)) (pseq (list 1 -1)) 0) 12))
       "pwalk's DIRECTION-PATTERN input operates correctly"))
 
+(test pclump
+  "Test pclump"
+  (is-true (equal (list (list 0 1) (list 2 3) (list 4))
+                  (next-upto-n (pclump (pseries 0 1 5) 2)))
+           "pclump returns correct output for constant N")
+  (is-true (equal (list (list 0) (list 1 2) (list 3 4 5) (list 6 7 8 9) (list 10 11 12 13 14))
+                  (next-upto-n (pclump (pseries 0 1) (pseries 1 1 5))))
+           "pclump returns correct output for pattern N"))
+
+(test paclump
+  "Test paclump"
+  (is-true (every-event-equal
+            (list (event :foo (list 1) :bar (list 0))
+                  (event :foo (list 1 2) :bar (list 1 2))
+                  (event :foo (list 1 2 3) :bar (list 3 4 5)))
+            (next-upto-n (pbind :foo (pseq (list (list 1) (list 1 2) (list 1 2 3)) 1) :bar (paclump (pseries)))))
+           "paclump returns correct output"))
