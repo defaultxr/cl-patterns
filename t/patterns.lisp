@@ -33,6 +33,15 @@
                (mapcar (lambda (e) (event-value e :foo)) (next-upto-n pstr 8))))
       "pstream's number can be accessed by pk"))
 
+(test next
+  "Test next and next-upto-n"
+  (is-true (equal (list (list 0 1) (list 2 3) (list 4) nil)
+                  (let ((pstr (as-pstream (pseries 0 1 5))))
+                    (list (next-upto-n pstr 2)
+                          (next-upto-n pstr 2)
+                          (next-upto-n pstr 2)
+                          (next-upto-n pstr 2))))))
+
 (test peek
   "Test peek functionality"
   (is-false (position nil (let ((pstr (as-pstream (pwhite 0 127))))
@@ -170,7 +179,7 @@
       "pseq returns the correct number of results when its REPEATS is a pattern")
   (is (= 3
          (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) :inf))))))
+           (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) 1))))))
       "pseq returns the correct number of results when its REPEATS is a pattern"))
 
 (test special-wrap-keys ;; FIX: should work for all filter patterns
@@ -225,7 +234,7 @@
       "pser correctly returns three results when its LENGTH is specified")
   (is (equal
        (list 1 2 3 1 2 1 1 2 3 1 2 1)
-       (next-upto-n (pser (list 1 2 3) (pseq (list 3 2 1 3 2 1 0) :inf))))
+       (next-upto-n (pser (list 1 2 3) (pseq (list 3 2 1 3 2 1 0) 1))))
       "pser returns the correct results when its LENGTH is a pattern")
   (is (equal
        (list 1 1 0 0 2 2)
