@@ -35,7 +35,9 @@
 (defun event-value (event key)
   "Get the value of KEY in EVENT, running any necessary conversion functions.
 
-Returns 2 values: the value of the key, and the name of the key the value was derived from (or t if the default value of the key was used, or nil if no value or default was provided)."
+Returns 2 values: the value of the key, and the name of the key the value was derived from (or t if the default value of the key was used, or nil if no value or default was provided).
+
+See also: `e'"
   (when (null event)
     (return-from event-value (values nil nil)))
   (let* ((key (alexandria:make-keyword key))
@@ -51,6 +53,12 @@ Returns 2 values: the value of the key, and the name of the key the value was de
                 nil
                 (funcall func event))
             key)))
+
+(defun e (key)
+  "Like `event-value', but always gets the value from `*event*'.
+
+See also: `event-value'"
+  (event-value *event* key))
 
 (defun event-equal (event1 event2)
   "Test if EVENT1 and EVENT2 are equivalent.
@@ -103,6 +111,11 @@ See also: `every-event-equal'"
            :do (remove-event-value event i))))
     (raw-set-event-value event key value)
     value))
+
+(defun (setf e) (value key)
+  (if (event-p *event*)
+      (setf (event-value *event* key) value)
+      (error "Can't setf (e ~s); *EVENT* is not currently set to an event." key)))
 
 (defun raw-set-event-value (event key value)
   "Set the value of KEY to VALUE in EVENT without running any conversion functions."
