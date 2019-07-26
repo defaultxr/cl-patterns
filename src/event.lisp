@@ -105,8 +105,10 @@ See also: `every-event-equal'"
   (with-slots (event-plist) event
     (setf event-plist (plist-set event-plist (alexandria:make-keyword key) value))))
 
-(defun set-event-value (event key value) ;; DEPRECATED; use (setf (event-value EVENT KEY) VALUE) instead.
-  "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist.
+(defun set-event-value (event key value) ;; DEPRECATED; use `(setf event-value)' instead.
+  "Note: This function is deprecated; please use `(setf (event-value))' instead.
+
+Set the value of KEY to VALUE in EVENT, running any conversion functions that exist.
 
 This function is deprecated; use `(setf event-value)' instead, i.e.:
 
@@ -123,8 +125,10 @@ This function is deprecated; use `(setf event-value)' instead, i.e.:
   "Get the value of KEY in EVENT without running any conversion functions."
   (getf (slot-value event 'event-plist) (alexandria:make-keyword key)))
 
-(defun get-event-value (event &optional key) ;; FIX: swap argument order
-  "Get the value of KEY in EVENT, running any necessary conversion functions.
+(defun get-event-value (event &optional key) ;; DEPRECATED; use `event' or `event-value' instead.
+  "Note: This function is deprecated; please use `event' or `event-value' instead.
+
+Get the value of KEY in EVENT, running any necessary conversion functions.
 
 The EVENT parameter can be omitted, in which case the KEY key is looked up from `*event*'.
 
