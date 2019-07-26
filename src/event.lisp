@@ -28,6 +28,10 @@
 (defparameter *event-special-keys* (list)
   "Plist mapping event special keys to their case lists.")
 
+(defun event-p (object)
+  "Return true if OBJECT is an event, and NIL otherwise."
+  (typep object 'event))
+
 (defun event-value (event key)
   "Get the value of KEY in EVENT, running any necessary conversion functions.
 

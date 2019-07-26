@@ -93,6 +93,7 @@
    ;;; event.lisp
 
    #:event
+   #:event-p
    #:combine-events
    #:copy-event
    #:split-event-by-lists
