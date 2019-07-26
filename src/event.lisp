@@ -143,7 +143,7 @@ See also: `event-value'"
 (defun combine-events (&rest events)
   "Returns a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
 
-See also: `copy-event', `split-event-by-lists'"
+See also: `copy-event', `split-event-by-lists', `combine-events-via-lists'"
   (let ((result (loop :for ev :in events
                    :if (null ev)
                    :return nil
@@ -183,6 +183,33 @@ See also: `combine-events'"
              (apply 'event
                     (loop :for key :in (keys event)
                        :append (list key (elt-wrap (alexandria:ensure-list (event-value event key)) i))))))))
+
+(defun combine-events-via-lists (&rest events)
+  "Combine EVENTS together to produce one event. Any keys that differ between the events will have be set to lists containing all the values from each event (unless the value is null). This is the opposite of `split-event-by-lists'.
+
+Example:
+
+;; (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5))
+;; => (EVENT :FOO 1 :BAR (2 3) :QUX 4 :BAZ 5)
+
+See also: `split-event-by-lists', `combine-events'"
+  ;; FIX
+  (let ((event (event))
+        (listified nil))
+    (dolist (ev events)
+      (dolist (key (keys ev))
+        (let ((cv (event-value event key))
+              (nv (event-value ev key)))
+          (if (null cv)
+              (setf (event-value event key) nv)
+              (when (not (eql cv nv))
+                (setf (event-value event key) (append (if (position key listified)
+                                                          cv
+                                                          (progn
+                                                            (push key listified)
+                                                            (list cv)))
+                                                      (list nv))))))))
+    event))
 
 (defun play-test (item &optional pstream) ;; FIX: move this to debug.lisp
   "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."

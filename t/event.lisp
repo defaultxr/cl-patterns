@@ -93,3 +93,11 @@
     (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
    "split-event-by-lists correctly splits an event into a list of three events"))
 
+(test combine-events-via-lists
+  "Test combine-events-via-lists"
+  (is-true
+   (event-equal
+    (event :foo 1 :bar (list 2 3) :qux 4 :baz 5)
+    (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5)))
+   "combine-events-via-lists returns correct results"))
+

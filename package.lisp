@@ -96,6 +96,7 @@
    #:combine-events
    #:copy-event
    #:split-event-by-lists
+   #:combine-events-via-lists
    #:event-plist
    #:event-equal
    #:every-event-equal
