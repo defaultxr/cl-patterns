@@ -159,20 +159,28 @@ See also: `random-range'"
                      low))
              (random 1.0)))))
 
-(defun seq (&key start end limit step)
+(defun seq (&key start end limit step (default :mean))
   "Generate a sequence of numbers as a list.
 
 START is the start of the range, END is the end. LIMIT is a hard limit on the number of results in the sequence. STEP is the interval between each number in the sequence.
 
 When STEP is omitted and LIMIT is provided, the step is automatically calculated by dividing the range between LIMIT steps.
 
+If LIMIT is 1, DEFAULT is used to find the value. DEFAULT can be :START, :END, :MEAN, or another value. :START and :END mean the returned value is the value of those arguments. :MEAN means the mean value of START and END is used. If another value is provided, it is used as the default instead.
+
 See also: `seq-range'"
   (cond ((and limit step)
          (loop :for i :from start :upto end :by step :repeat limit
             :collect i))
         ((and limit (null step))
-         (loop :for i :from start :upto end :by (/ (- end start) (1- limit))
-            :collect i))
+         (if (= 1 limit)
+             (case default
+               (:mean (/ (+ start end) 2))
+               (:start start)
+               (:end end)
+               (t default))
+             (loop :for i :from start :upto end :by (/ (- end start) (1- limit))
+                :collect i)))
         ((and step (null limit))
          (loop :for i :from start :upto end :by step
             :collect i))
