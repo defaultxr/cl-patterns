@@ -18,6 +18,7 @@
 
    #:tempo
    #:beat
+   #:quant
    #:play
    #:launch
    #:stop

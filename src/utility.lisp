@@ -237,6 +237,17 @@ See also: `seq'"
 (defmethod beat ((null null))
   nil)
 
+(defgeneric quant (object)
+  (:documentation "Get the quant of OBJECT; a list representing when OBJECT is allowed to begin playing.
+
+A quant takes the form (divisor phase offset) where all provided elements are numbers. Only the first element is required.
+
+- \"divisor\" is the divisor to quantize the clock to. The next time (mod (beats *clock*) divisor) is 0 is when OBJECT will start playing.
+- \"phase\" is the number of beats to add on to the position determined by \"divisor\".
+- \"offset\" is the number of seconds to add on to the position determined by \"divisor\" and \"phase\".
+
+See also: `next-beat-for-quant', `beat', `play'"))
+
 (defgeneric play (item)
   (:documentation "Play an item (typically an event or pattern) according to the current `*event-output-function*'.
 

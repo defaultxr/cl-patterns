@@ -97,6 +97,7 @@
                        0))
            (time (+ (or (raw-event-value item :latency) *latency*)
                     (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (sc:now))
+                    (time-dur (or (raw-event-value item :timing-offset) 0) (tempo *clock*))
                     offset))
            (params (supercollider-make-synth-args-list inst item)))
       (if (or (eql (event-value item :type) :mono)
