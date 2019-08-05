@@ -123,7 +123,7 @@ still trying to think of ideas for how to make a good "performance mode" without
 * ~pblend~ to blend between two patterns
 * export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime
 ** then make ~render~ or ~record~ functions
-* make pstreams compatible with sequence functions (at least in sbcl; not sure if it would work for other implementations); http://www.sbcl.org/manual/#Extensible-Sequences
+* make pstreams compatible with sequence functions: http://www.sbcl.org/manual/#Extensible-Sequences
 * Renoise import/export
 * pure data OSC (make sure it works)
 * make sure our clock works with the cl-collider TempoClock so they can be used together/synced etc.

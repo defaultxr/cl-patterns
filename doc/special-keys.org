@@ -56,6 +56,10 @@ Here is a listing of all of the pbind special init keys:
 
 ** ~quant~
 Set the ~quant~ of the pattern, which determines when the pattern is allowed to start playing.
+** ~condition~
+NOTE: Not implemented yet.
+
+Set the ~condition~ of the pattern, which determines when the pattern is allowed to switch over to a new version of it after redefinition.
 ** ~cleanup~
 NOTE: Not implemented yet.
 

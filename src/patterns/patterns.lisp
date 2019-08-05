@@ -1648,10 +1648,8 @@ See also: `phistory'")
 ;;; pif
 
 (defpattern pif (pattern)
-  (condition
-   true
-   false)
-  "pif acts as an if statement for patterns. CONDITION is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step. Also note that pif will continue to advance even if CONDITION yields nil; pif only yields nil if TRUE or FALSE do.
+  (test true false)
+  "pif acts as an if statement for patterns. TEST is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step. Also note that pif will continue to advance even if TEST yields nil; pif only yields nil if TRUE or FALSE do.
 
 Example:
 
@@ -1660,15 +1658,15 @@ Example:
 ;; => (1 2 3 NIL 4)")
 
 (defmethod as-pstream ((pif pif))
-  (with-slots (condition true false) pif
+  (with-slots (test true false) pif
     (make-instance 'pif-pstream
-                   :condition (pattern-as-pstream condition)
+                   :test (pattern-as-pstream test)
                    :true (pattern-as-pstream true)
                    :false (pattern-as-pstream false))))
 
 (defmethod next ((pif pif-pstream))
-  (with-slots (condition true false) pif
-    (if (next condition)
+  (with-slots (test true false) pif
+    (if (next test)
         (next true)
         (next false))))
 

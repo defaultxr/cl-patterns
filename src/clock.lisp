@@ -48,7 +48,7 @@
 (defun make-clock (&optional (tempo 1) tasks)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
 
-To start the clock, run `clock-loop' on a new thread, like so:
+To make and start the clock, run `clock-loop' on a new thread, like so:
 
 ;; (bt:make-thread (lambda () (clock-loop *clock*)) :name \"cl-patterns clock-loop\")
 
@@ -79,7 +79,7 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
       (setf tasks
             (remove-if
              (lambda (ctask)
-               (alexandria:when-let ((eq (eql ctask task)))
+               (alexandria:when-let ((eq (eq ctask task)))
                  (dolist (backend *enabled-backends*)
                    (backend-task-removed task backend))
                  eq))
