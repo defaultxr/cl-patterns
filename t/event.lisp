@@ -35,7 +35,10 @@
       "event correctly converts amp to db")
   (is (= (db-amp -7)
          (event-value (event :db -7) :amp))
-      "event correctly converts db to amp"))
+      "event correctly converts db to amp")
+  (is-true (= 5
+              (slot-value (event :beat 5) '%beat))
+           "event correctly sets the internal %beat slot"))
 
 (test event-equal
   "Test event-equal"
@@ -77,11 +80,17 @@
   (is-true (event-equal
             (event :foo 1 :bar 2 :baz 3)
             (combine-events (event :foo 1) (event :bar 2 :baz 3)))
-           "event-equal works correctly on two events")
+           "combine-events works correctly on two events")
   (is-true (event-equal
             (event :freq 450 :qux 69 :baz 3)
             (combine-events (event :freq 450) (event :qux 69) (event :baz 3)))
-           "event-equal works correctly on three events"))
+           "combine-events works correctly on three events")
+  (is-true (= 2
+              (slot-value (combine-events
+                           (event :beat 3)
+                           (event :beat 2))
+                          '%beat))
+           "combine-events sets the %beat correctly sets the %beat slot"))
 
 (test split-event-by-lists
   "Test split-event-by-lists"

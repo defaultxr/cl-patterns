@@ -98,8 +98,8 @@ Example:
 ;; => (NIL (:FOO) (:FOO))
 
 See also: `every-event-equal'"
-  (loop :for idx :from 0 :below (reduce 'max (mapcar 'length lists))
-        :collect (apply 'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists))))
+  (loop :for idx :from 0 :below (reduce #'max (mapcar #'length lists))
+     :collect (apply #'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists))))
 
 (defun (setf event-value) (value event key)
   "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."
@@ -110,6 +110,8 @@ See also: `every-event-equal'"
         (loop :for i :in keys
            :do (remove-event-value event i))))
     (raw-set-event-value event key value)
+    (when (eql key :beat)
+      (setf (slot-value event '%beat) value))
     value))
 
 (defun (setf e) (value key)
