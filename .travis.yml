@@ -11,11 +11,12 @@ script:
             (uiop:quit (if (fiveam:run! 'cl-patterns/tests::cl-patterns-tests)
                            0 1))"
 
+# matrix notifications on failures
 notifications:
   email: false
   webhooks:
     urls:
       - "https://scalar.vector.im/api/neb/services/hooks/dHJhdmlzLWNpLyU0MGRlZmF1bHR4ciUzQXN0cnVjdC53cy8lMjFNT1JMTkN0YWdLUW1jdXBvZ28lM0FzdHJ1Y3Qud3M"
-    on_success: change  # always|never|change
+    on_success: change # always|never|change
     on_failure: always
     on_start: never
