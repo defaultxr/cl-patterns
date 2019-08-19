@@ -35,10 +35,24 @@
       "event correctly converts amp to db")
   (is (= (db-amp -7)
          (event-value (event :db -7) :amp))
-      "event correctly converts db to amp")
+      "event correctly converts db to amp"))
+
+(test event-beat
+  "Test the beat key for events"
   (is-true (= 5
               (slot-value (event :beat 5) 'cl-patterns::%beat))
-           "event correctly sets the internal %beat slot"))
+           "event correctly sets the internal %beat slot")
+  (is-true (= 2
+              (slot-value (combine-events
+                           (event :beat 3)
+                           (event :beat 2))
+                          'cl-patterns::%beat))
+           "combine-events sets the %beat correctly sets the %beat slot")
+  (is-true (= 94
+              (let ((ev (event)))
+                (setf (event-value ev :beat) 94)
+                (slot-value ev 'cl-patterns::%beat)))
+           "setting an event's :beat key correctly sets its %beat slot as well"))
 
 (test event-equal
   "Test event-equal"
@@ -84,13 +98,7 @@
   (is-true (event-equal
             (event :freq 450 :qux 69 :baz 3)
             (combine-events (event :freq 450) (event :qux 69) (event :baz 3)))
-           "combine-events works correctly on three events")
-  (is-true (= 2
-              (slot-value (combine-events
-                           (event :beat 3)
-                           (event :beat 2))
-                          'cl-patterns::%beat))
-           "combine-events sets the %beat correctly sets the %beat slot"))
+           "combine-events works correctly on three events"))
 
 (test split-event-by-lists
   "Test split-event-by-lists"
