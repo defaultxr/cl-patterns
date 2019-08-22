@@ -89,7 +89,7 @@
 
 (defmethod backend-play-event (item task (backend (eql :supercollider)))
   "Play ITEM on the SuperCollider sound server. TASK is an internal parameter used when this function is called from the clock."
-  (unless (eql (event-value item :type) :rest)
+  (unless (position (event-value item :type) (list :rest :tempo-change)) ;; FIX: make sure other backends ignore tempo-change too.
     (let* ((inst (instrument item))
            (quant (alexandria:ensure-list (quant item)))
            (offset (if (> (length quant) 2)

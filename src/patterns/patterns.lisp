@@ -1257,6 +1257,7 @@ See also: `prand'")
         (setf current-value (alexandria:clamp current-value nlo nhi))))))
 
 ;;; pexprand
+;; FIX: should integer inputs result in integer outputs?
 
 (defpattern pexprand (pattern)
   ((lo :default 0.0001)

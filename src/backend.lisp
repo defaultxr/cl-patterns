@@ -6,7 +6,7 @@
   (:documentation "Get the list of names of controls for SYNTH in BACKEND."))
 
 (defun has-gate-p (synth backend)
-  "Whether or not SYNTH in BACKEND has a gate control."
+  "Whether or not SYNTH in BACKEND has a gate control (i.e. whether it needs to be manually released or if it acts as a \"one-shot\")."
   (position :gate (synth-controls synth backend) :test 'string-equal))
 
 (defun make-node-map ()

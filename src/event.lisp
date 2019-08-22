@@ -42,7 +42,7 @@ See also: `e'"
     (return-from event-value (values nil nil)))
   (let* ((key (alexandria:make-keyword key))
          (cases (car (getf *event-special-keys* key)))
-         (cases (if (not (position key (keys cases)))
+         (cases (if (not (position key (keys cases))) ;; FIX: move this to when the special-key is defined instead?
                     (append (list key (lambda (event) (raw-event-value event key))) cases)
                     cases))
          (cases-keys (keys cases))
@@ -55,7 +55,7 @@ See also: `e'"
             key)))
 
 (defun e (key)
-  "Like `event-value', but always gets the value from `*event*'.
+  "Syntax sugar; like `event-value', but always gets the value from `*event*'.
 
 See also: `event-value'"
   (event-value *event* key))
