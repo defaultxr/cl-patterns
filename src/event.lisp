@@ -124,16 +124,6 @@ See also: `every-event-equal'"
   (with-slots (event-plist) event
     (setf event-plist (plist-set event-plist (alexandria:make-keyword key) value))))
 
-(defun set-event-value (event key value) ;; DEPRECATED; use `(setf event-value)' instead.
-  "Note: This function is deprecated; please use `(setf (event-value))' instead.
-
-Set the value of KEY to VALUE in EVENT, running any conversion functions that exist.
-
-This function is deprecated; use `(setf event-value)' instead, i.e.:
-
-;; (setf (event-value EVENT KEY) VALUE)"
-  (setf (event-value event key) value))
-
 (defun remove-event-value (event key)
   "Removes KEY from EVENT."
   (with-slots (event-plist) event
@@ -143,21 +133,6 @@ This function is deprecated; use `(setf event-value)' instead, i.e.:
 (defun raw-event-value (event key)
   "Get the value of KEY in EVENT without running any conversion functions."
   (getf (slot-value event 'event-plist) (alexandria:make-keyword key)))
-
-(defun get-event-value (event &optional key) ;; DEPRECATED; use `event' or `event-value' instead.
-  "Note: This function is deprecated; please use `event' or `event-value' instead.
-
-Get the value of KEY in EVENT, running any necessary conversion functions.
-
-The EVENT parameter can be omitted, in which case the KEY key is looked up from `*event*'.
-
-Returns 2 values: the value of the key, and the name of the key the value was derived from (or t if the default value of the key was used, or nil if no value or default was provided).
-
-See also: `event-value'"
-  (when (null key) ;; if called like (get-event-value :foo) then assume *event* is the event and :foo is the key.
-    (assert (typep event 'symbol))
-    (return-from get-event-value (get-event-value *event* event)))
-  (event-value event key))
 
 (defun combine-events (&rest events)
   "Returns a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.

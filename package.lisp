@@ -107,8 +107,6 @@
 
    #:event-value
    #:e
-   #:get-event-value
-   #:set-event-value
    #:remove-event-value
 
    #:instrument
