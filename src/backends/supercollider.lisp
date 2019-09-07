@@ -4,6 +4,11 @@
 
 (in-package :cl-patterns)
 
+;;; global settings
+
+(defvar *cl-collider-buffer-preview-synth* :sp
+  "The name of the synth to use to `play' a buffer.")
+
 ;;; helper functions
 
 (defun timestamp-to-cl-collider (timestamp)
@@ -153,6 +158,9 @@
 (defmethod playing-p ((node cl-collider::node) &optional (server cl-collider:*s*))
   (when (position (cl-collider::node-watcher server) (cl-collider::id node))
     t))
+
+(defmethod play ((buffer cl-collider::buffer))
+  (play (event :instrument *cl-collider-buffer-preview-synth* :bufnum (cl-collider:bufnum buffer))))
 
 (register-backend :supercollider)
 
