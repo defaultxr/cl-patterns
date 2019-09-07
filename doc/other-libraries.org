@@ -13,11 +13,21 @@ Another supported backend for cl-patterns. Written from the ground up and design
 ** [[https://github.com/ormf/cm][Common Music]]
 The original Lisp music library. This repository is a fork of the last version before the project switched over to using Scheme exclusively.
 
-** [[https://github.com/MegaLoler/Music][Music]]
-A framework for musical expression in Lisp with a focus on music theory. (Unrelated to Common Music)
-
 ** [[https://github.com/zkat/cl-openal][cl-openal]]
 Lisp bindings to the [[https://www.openal.org/][OpenAL]] audio API, a cross-platform 3D audio API appropriate for use with gaming applications and many other types of audio applications.
+
+* Common Lisp audio-related
+
+Extensions and convenience functionality useful when working with the systems above.
+
+** [[https://github.com/defaultxr/bdef][bdef]]
+Buffer definition; audio buffer abstraction for Lisp sound synthesis systems. Abstracts away sound loading, file conversion, metadata handling, etc, to make working with buffers in systems like cl-collider and Incudine easier.
+
+** [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
+Functionality to interface with [[https://www.renoise.com/][Renoise]] from Common Lisp.
+
+** [[https://github.com/MegaLoler/Music][Music]]
+A framework for musical expression in Lisp with a focus on music theory. (Unrelated to Common Music)
 
 * Common Lisp graphics
 
@@ -39,7 +49,7 @@ A Common Lisp interface to gnuplot, a command line-driven cross-platform graphin
 * Common Lisp extensions
 
 ** [[http://cl21.org/][cl21]]
-"Common Lisp for the 21st century". Extends and enhances Common Lisp with improvements to the syntax and functionality. May be useful for livecoders since many of its changes make Lisp more consistent and succinct.
+"Common Lisp for the 21st century". Extends and enhances Common Lisp with improvements to the syntax and functionality. May be useful for livecoders since many of its changes make Lisp more consistent and succinct. However, it seems to have gone dormant...
 
 ** [[https://github.com/vseloved/rutils][rutils]]
 "Radical Utilities for Common Lisp". Extends Common Lisp with many additional functions and syntactic sugar, but unlike CL21 it remains backwards compatible with standard Common Lisp.
