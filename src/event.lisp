@@ -271,6 +271,10 @@ Additionally, because :define-methods is true, we can also do the following:
              (defmethod (setf ,name) (value (event event))
                (setf (event-value event ,kwname) value)))))))
 
+;;; type
+
+(define-event-special-key type (t :note))
+
 ;;; instrument/group/out
 
 (define-event-special-key instrument (t :default)
