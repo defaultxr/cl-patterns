@@ -116,6 +116,9 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
                                             tempo (event-value event :tempo)
                                             beat-at-tempo beat)
                                       (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event)))
+                                (dolist (backend (enabled-backends))
+                                  (when (backend-plays-event-p event backend)
+                                    (backend-play-event event task backend)))
                                 nil)
                                (:rest
                                 nil)
