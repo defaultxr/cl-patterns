@@ -675,7 +675,9 @@ See also: `pbind', `pdef'"
   (if value
       (if (eql t value)
           (ptrace pattern)
-          (ptrace pattern value))
+          (etypecase value
+            (pattern (ptrace value))
+            (symbol (ptrace pattern value))))
       pattern))
 
 (define-pbind-special-wrap-key pmeta
@@ -1360,10 +1362,9 @@ See also: `prand'")
 (defmethod next ((ptrace ptrace-pstream))
   (with-slots (pattern key stream prefix) ptrace
     (let* ((n (next pattern))
-           (result (if (and (not (null key))
-                            (not (null n)))
-                       (event-value n key)
-                       n)))
+           (result (if (null key)
+                       n
+                       (event-value n key))))
       (format stream "~a~a~%" prefix result)
       n)))
 
