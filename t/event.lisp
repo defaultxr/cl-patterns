@@ -35,7 +35,13 @@
       "event correctly converts amp to db")
   (is (= (db-amp -7)
          (event-value (event :db -7) :amp))
-      "event correctly converts db to amp"))
+      "event correctly converts db to amp")
+  (is-true (eql :freq
+                (cadr (multiple-value-list (event-value (event :freq 420) :midinote))))
+           "event-value provides the key it derives its value from as the second return value")
+  (is-true (eql :freq
+                (cadr (multiple-value-list (event-value (event :freq 420) :rate))))
+           "event-value provides the key it derives its value from as the second return value when called for :rate"))
 
 (test event-beat
   "Test the beat key for events"
