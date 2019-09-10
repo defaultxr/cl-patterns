@@ -80,7 +80,7 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
             (remove-if
              (lambda (ctask)
                (alexandria:when-let ((eq (eq ctask task)))
-                 (dolist (backend *enabled-backends*)
+                 (dolist (backend (enabled-backends))
                    (backend-task-removed task backend))
                  eq))
              tasks)))))
