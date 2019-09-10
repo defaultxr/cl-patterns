@@ -48,11 +48,11 @@ See also: `e'"
          (cases-keys (keys cases))
          (key (car (or (member-if (lambda (k) (position k (keys event))) cases-keys)
                        (member t cases-keys))))
-         (func (getf cases key)))
-    (values (if (null func)
-                nil
-                (funcall func event))
-            key)))
+         (func (getf cases key))
+         (res (if (null func)
+                  (list nil nil)
+                  (multiple-value-list (funcall func event)))))
+    (values (car res) (or (cadr res) key))))
 
 (defun e (key)
   "Syntax sugar; like `event-value', but always gets the value from `*event*'.
@@ -390,6 +390,7 @@ Additionally, because :define-methods is true, we can also do the following:
 (define-event-special-key base-note (:base-freq (freq-midinote (event-value event :base-freq))
                                                 t 69))
 
-(define-event-special-key rate (t (freq-rate (event-value event :freq)
-                                             (event-value event :base-freq)))
+(define-event-special-key rate (t (let ((res (multiple-value-list (event-value event :freq))))
+                                    (values (freq-rate (car res) (event-value event :base-freq))
+                                            (cadr res))))
   :define-methods t)
