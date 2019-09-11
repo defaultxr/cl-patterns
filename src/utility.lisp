@@ -113,12 +113,17 @@ Example:
   "Wraps a number between BOTTOM and TOP, similar to `cl:mod'."
   (+ (mod (- number bottom) (- top bottom)) bottom))
 
-(defun round-up (number &optional (divisor 1))
-  "Round NUMBER up to the next multiple of DIVISOR if it isn't already a multiple of it."
-  (if (= 0 (mod number divisor))
+(defun round-by (number &optional (by 1))
+  "Round NUMBER by BY."
+  (* (round (/ number by)) by))
+
+(defun round-by-direction (number &optional (by 1))
+  "Round NUMBER by BY. With positive BY, round up; with negative, round down."
+  (if (= 0 (mod number by))
       number
-      (let ((diff (multiple-value-bind (res div) (floor number divisor) (declare (ignore res)) div)))
-        (+ number (- divisor diff)))))
+      (let* ((positive (plusp by))
+             (diff (cadr (multiple-value-list (funcall (if positive #'floor #'ceiling) number (abs by))))))
+        (funcall (if positive #'+ #'-) number (funcall (if positive #'- #'+) (abs by) diff)))))
 
 (defun random-coin (&optional (probability 0.5))
   "Randomly return true with a probability of PROBABILITY/1."
@@ -213,18 +218,21 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
-(defun next-beat-for-quant (quant current-beat)
-  "Get the next valid beat for QUANT after CURRENT-BEAT."
+(defun next-beat-for-quant (quant beat &optional (direction 1))
+  "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT."
   (destructuring-bind (quant &optional (phase 0) (offset 0)) (alexandria:ensure-list quant)
     (declare (ignore offset))
-    (labels ((find-next (quant phase cb try)
-               (let ((res (+ phase (* quant (+ try (round-up (/ current-beat quant)))))))
-                 (if (>= res cb)
-                     res
-                     (find-next quant phase cb (1+ try))))))
-      (if (= 0 quant)
-          current-beat
-          (find-next quant phase current-beat 0)))))
+    (let ((sign (sign direction)))
+      (labels ((find-next (quant phase cb try)
+                 (let ((res (+ phase
+                               (+ (* sign try)
+                                  (round-by-direction beat (* sign quant))))))
+                   (if (funcall (if (plusp direction) #'>= #'<=) res cb)
+                       res
+                       (find-next quant phase cb (1+ try))))))
+        (if (= 0 quant)
+            beat
+            (find-next quant phase beat 0))))))
 
 ;;; generics
 

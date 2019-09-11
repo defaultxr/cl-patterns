@@ -99,17 +99,32 @@
          (cl-patterns::wrap 4 -1 4))
       "wrap correctly wraps numbers within the given range (when the bottom is non-zero)"))
 
-(test round-up
-  "Test the `round-up' function"
-  (is (= 2.04
-         (cl-patterns::round-up 2.03 0.02))
-      "round-up gives correct results for positive numbers")
-  (is (= -2.02
-         (cl-patterns::round-up -2.03 0.02))
-      "round-up gives correct results for negative numbers")
-  (is (= 8
-         (cl-patterns::round-up 5 4))
-      "round-up gives correct results for arguments 5, 4"))
+(test round-by
+  "Test the `round-by' function"
+  (is (= 3.5
+         (cl-patterns::round-by 3.26 0.5))
+      "round-by gives correct results")
+  (is (= 3.25
+         (cl-patterns::round-by 3.25 0.25))
+      "round-by gives correct results when its input is a multiple of the divisor"))
+
+(test round-by-direction
+  "Test the `round-by-direction' function"
+  (is-true (= 2.04
+              (cl-patterns::round-by-direction 2.03 0.02))
+           "round-by-direction gives correct results for positive numbers")
+  (is-true (= -2.02
+              (cl-patterns::round-by-direction -2.03 0.02))
+           "round-by-direction gives correct results for negative numbers")
+  (is-true (= 8
+              (cl-patterns::round-by-direction 5 4))
+           "round-by-direction gives correct results for arguments 5, 4")
+  (is-true (= 3.5
+              (cl-patterns::round-by-direction 3.9 -0.5))
+           "round-by-drection gives correct results when rounding down")
+  (is-true (= (+ 2 1/10)
+              (cl-patterns::round-by-direction (+ 2 19/100) -1/10))
+           "round-by-direction gives correct results for rounding down ratios"))
 
 (test random-coin
   "Test the `random-coin' function"
@@ -174,7 +189,11 @@
   (is-true (= 5 (next-beat-for-quant (list 4 1) 3))
            "next-beat-for-quant correctly takes phase into account")
   (is-true (= 3 (next-beat-for-quant (list 4 -1) 3))
-           "next-beat-for-quant correctly takes negative phase into account"))
+           "next-beat-for-quant correctly takes negative phase into account")
+  (is-true (= 1 (next-beat-for-quant 0.25 1.1 -1))
+           "next-beat-for-quant is correct for negative DIRECTION")
+  ;; FIX: test more of the negative DIRECTION
+  )
 
 (test beat
   "Test the `beat' function"
