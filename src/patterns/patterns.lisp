@@ -1774,7 +1774,7 @@ See also: `pfin', `psync'")
               (prog1
                   (if (> (if (= 0 tolerance)
                              new-elapsed
-                             (round-up new-elapsed tolerance))
+                             (round-by-direction new-elapsed tolerance))
                          current-dur)
                       (let ((tdur (- current-dur current-elapsed)))
                         (when (plusp tdur)
@@ -1815,7 +1815,7 @@ See also: `pfindur'")
   (with-slots (pattern sync-quant maxdur tolerance history) psync
     (let* ((n-event (next pattern))
            (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (alexandria:circular-list :delta))))
-           (delta (- (round-up elapsed-dur sync-quant) elapsed-dur)))
+           (delta (- (round-by-direction elapsed-dur sync-quant) elapsed-dur)))
       (if (null n-event)
           (when (plusp delta)
             (event :type :rest :dur delta))
@@ -2151,7 +2151,7 @@ See also: `pdiff', `pbind''s :beat key")
     (alexandria:when-let ((lv (or (pstream-elt pattern -1) 0))
                           (cv (next pattern)))
       (- cv
-         (- lv (round-up (- lv cv) cycle))))))
+         (- lv (round-by-direction (- lv cv) cycle))))))
 
 ;;; pdrop
 
