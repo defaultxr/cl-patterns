@@ -116,7 +116,10 @@
              (pb :c2 :dur (pn 1 4))
              (equal (list 0 1 2 3 4 5 6 7)
                     (gete (next-upto-n (pseq (list (pdef :c1) (pdef :c2)) 1)) :beat)))
-           ":beat key is correct for sequential pdef subpatterns"))
+           ":beat key is correct for sequential pdef subpatterns")
+  (is-true (equal (mapcar #'beat (next-upto-n (pbind :dur (pn 1 1) :pdurstutter 3)))
+                  (list 0 1/3 2/3))
+           ":beat key of events from subpatterns is not altered by the containing pattern next :around method"))
 
 (test pstream-count
   "Test `pstream-count' functionality"
