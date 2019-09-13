@@ -81,7 +81,7 @@
   "Test the `parent-pbind' function"
   (is-true (let* ((child (pn 1 4))
                   (parent (pbind :foo child)))
-             (eql parent (parent-pbind child)))
+             (eq parent (parent-pbind child)))
            "parent-pbind gives correct results"))
 
 (test beat-key
@@ -184,6 +184,27 @@
          (let ((*max-pattern-yield-length* 64))
            (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) 1))))))
       "pseq returns the correct number of results when its REPEATS is a pattern"))
+
+(test pstream-elt
+  "Test the behavior of the `pstream-elt' function"
+  (is (null
+       (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
+         (next-upto-n pstr)
+         (pstream-elt pstr -1)))
+      "pstream-elt -1 returns nil for ended pstreams")
+  (is (= 99
+         (let ((pstr (as-pstream (pseq '(1 2 99) 1))))
+           (next-n pstr 3)
+           (pstream-elt pstr -1)))
+      "pstream-elt -1 returns the last item in the pstream")
+  (is (= 1
+         (let ((pstr (as-pstream (pseq '(1 2 99) 1))))
+           (next-n pstr 3)
+           (pstream-elt pstr 0)))
+      "pstream-elt 0 returns the first item in the pstream")
+  (signals cl-patterns::pstream-out-of-range
+    (pstream-elt (as-pstream (pseq '(1 2 99) 1)) 2)
+    "pstream-elt gives a pstream-out-of-range error when called for an index not yet generated"))
 
 (test special-wrap-keys ;; FIX: should work for all filter patterns
   "Test behavior of wrap keys"
