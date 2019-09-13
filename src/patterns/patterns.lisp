@@ -126,7 +126,9 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
   (:documentation "Abstract pattern superclass."))
 
 (defun all-patterns ()
-  "Get a list of all defined patterns."
+  "Get a list of all defined patterns.
+
+See also: `all-pdefs'"
   (remove-if (lambda (s) (eql s 'pstream))
              (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern)))))
 
@@ -136,20 +138,21 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 (defgeneric peek (pattern)
   (:documentation "\"Peek\" at the next value of a pstream, without advancing its current position.
 
-See also: `next', `peek-n'"))
+See also: `next', `peek-n', `peek-upto-n'"))
 
 (defun peek-n (pstream n)
   "Peek at the next N results of a pstream, without advancing it forward in the process.
 
-See also: `peek', `peek-upto-n'"
+See also: `peek', `peek-upto-n', `next', `next-n'"
   (loop :repeat n
      :collect (peek pstream)))
 
 (defun peek-upto-n (pstream &optional (n *max-pattern-yield-length*))
   "Peek at up to the next N results of a pstream, without advancing it forward in the process.
 
-See also: `peek', `peek-n'"
-  (loop :repeat n ;; FIX: just copy this function from next-upto-n (so :inf will work too)
+See also: `peek', `peek-n', `next', `next-upto-n'"
+  (assert (integerp n) (n) "peek-upto-n's N argument must be an integer.")
+  (loop :repeat n
      :for val = (peek pstream)
      :until (null val)
      :collect val))
@@ -157,7 +160,7 @@ See also: `peek', `peek-n'"
 (defgeneric next (pattern)
   (:documentation "Get the next value of a pstream, function, or other object, advancing the pstream forward in the process.
 
-See also: `peek', `next-n', `next-upto-n'")
+See also: `next-n', `next-upto-n', `peek'")
   (:method-combination pattern))
 
 (defmethod next ((pattern t))
@@ -172,7 +175,7 @@ See also: `peek', `next-n', `next-upto-n'")
 (defun next-n (pattern n)
   "Get the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
 
-See also: `next', `next-upto-n'"
+See also: `next', `next-upto-n', `peek', `peek-n'"
   (assert (integerp n) (n) "next-n's N argument must be an integer.")
   (let ((pstream (as-pstream pattern)))
     (loop :repeat n
@@ -181,7 +184,7 @@ See also: `next', `next-upto-n'"
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
   "Get a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
 
-See also: `next', `next-n'"
+See also: `next', `next-n', `peek', `peek-upto-n'"
   (assert (integerp n) (n) "next-upto-n's N argument must be an integer.")
   (let ((pstream (as-pstream pattern)))
     (loop
@@ -206,7 +209,7 @@ See also: `events-after-p'"))
 (defclass pstream (pattern)
   ((number :initform 0 :documentation "The number of outputs yielded from the pstream.")
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
-   (history :initform (list) :documentation "The history of outputs yielded by the pstream.") ;; FIX: should this be turned into an array instead?
+   (history :initform (list) :documentation "The history of outputs yielded by the pstream.")
    (beat :initform 0 :reader beat :documentation "The number of beats that have elapsed since the start of the pstream.")
    (start-beat :initarg :start-beat :initform nil :documentation "The beat number of the parent pstream when this pstream started.") ;; FIX: remove?
    (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1.")
@@ -438,11 +441,6 @@ See also: `pattern-as-pstream'"))
   (:report (lambda (condition stream)
              (format stream "The pstream has insufficient history to index to element ~d." (pstream-elt-index condition)))))
 
-(defun pstream-nth (n pstream)
-  "Obsolete alias for `pstream-elt'."
-  (warn "~s is deprecated; use ~s instead." 'pstream-nth 'pstream-elt)
-  (pstream-elt pstream n))
-
 (defun pstream-elt (pstream n)
   "Return the Nth element from PSTREAM's history. Does not automatically advance PSTREAM if N is out of range.
 
@@ -462,11 +460,6 @@ See also: `pstream-elt-future', `phistory'"
     (if (>= n (length history))
         (error 'pstream-out-of-range :index n)
         (elt-wrap history n))))
-
-(defun pstream-nth-future (n pstream)
-  "Obsolete alias for `pstream-elt-future'."
-  (warn "~s is deprecated; use ~s instead." 'pstream-nth-future 'pstream-elt-future)
-  (pstream-elt-future pstream n))
 
 (defun pstream-elt-future (pstream n)
   "Return the Nth element from PSTREAM's history, automatically advancing PSTREAM as necessary if the Nth element has not yet occurred.
@@ -491,7 +484,7 @@ See also: `pstream-elt'"
                  (>= n (length history))
                  (not (position nil history)))))
       (loop :while (should-advance)
-         :do (next pstream)) ;; FIX: use `peek' instead once `peek' is implemented.
+         :do (peek pstream))
       (if (>= n 0)
           (nth n history)
           (let ((sub-history (subseq history 0 (position nil history))))
@@ -582,7 +575,7 @@ See also: `pmono', `pb'"
     (alexandria:appendf pattern-chain (list pattern))
     (unless (alexandria:length= 1 pattern-chain)
       (setf pattern (apply #'pchain pattern-chain)))
-    ;; process :quant key. ;; FIX: should this be applied to the pdef, or the pattern itself?
+    ;; process :quant key.
     (alexandria:when-let ((quant (getf pairs :quant)))
       (setf (quant pattern)
             (if (functionp quant)
@@ -1054,7 +1047,9 @@ See also: `pstutter', `pdurstutter', `parp'")
 (create-global-dictionary pdef)
 
 (defun all-pdefs ()
-  "Get a list of all pdefs."
+  "Get a list of all pdefs.
+
+See also: `all-patterns'"
   (keys *pdef-dictionary*))
 
 (defmethod pdef-pattern ((object pdef))
