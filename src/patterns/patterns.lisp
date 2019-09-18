@@ -2221,7 +2221,7 @@ See also: `psym'")
               (when nip
                 (let ((beppar (beat ppar))
                       (benip (beat nip)))
-                  (if (<= beppar benip)
+                  (if (< beppar benip)
                       (event :type :rest :delta (- benip beppar))
                       (next ppar)))))
             (combine-events nxt (event :delta (- (beat (next-in-pstreams)) (beat ppar)))))))))
