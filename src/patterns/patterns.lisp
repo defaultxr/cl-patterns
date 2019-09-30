@@ -1037,7 +1037,17 @@ See also: `pstutter', `pdurstutter', `parp'")
   ((key :reader pdef-key)
    (current-pstream :state t)
    (loop-p :initform t))
-  "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p')."
+  "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
+
+Example:
+
+;; (pdef :foo (pbind :degree (pseries 0 1 4)))
+;;
+;; (play (pdef :foo))
+;; ;; redefine the pdef's pattern... note that the redefinition doesn't become audible until the current loop finishes playing:
+;; (pdef :foo (pbind :degree (pseries 4 -1 4)))
+
+See also: `all-pdefs', `pb', `pmeta', `ps'"
   (defun pdef (key &optional (pattern nil pattern-supplied-p))
     (when pattern-supplied-p
       (pdef-ref-set key :pattern pattern))

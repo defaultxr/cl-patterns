@@ -84,7 +84,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Penv~
 - ~Ptempo~ - see also: ~(pk :tempo)~.
 - ~Ptime~ - done as ~pbeat~.
-- ~Pstep~
+- ~Pstep~ - see also: ~prun~.
 * ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
 - ~PSinOsc~
 - ~POsc~
