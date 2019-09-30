@@ -803,3 +803,11 @@
                   (event :foo (list 1 2 3) :bar (list 3 4 5)))
             (next-upto-n (pbind :foo (pseq (list (list 1) (list 1 2) (list 1 2 3)) 1) :bar (paclump (pseries)))))
            "paclump returns correct output"))
+
+(test ps
+  "Test ps"
+  (is (equal (list (list 0 1 2 3) (list 4 5 6 7) (list 8 9 10 11))
+             (let ((pat (ps (pseries))))
+               (loop :repeat 3
+                  :collect (next-upto-n pat 4))))
+      "ps resumes the pstream on subsequent calls to as-pstream"))

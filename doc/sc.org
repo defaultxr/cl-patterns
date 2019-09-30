@@ -112,3 +112,4 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pfuncn~ - functionality is covered by ~pfunc~.
 - ~Prout~
 - ~Pbjorklund~ - done as ~pbjorklund~.
+- ~PS~ - done as ~ps~.

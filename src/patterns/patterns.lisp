@@ -2395,3 +2395,44 @@ See also: `pclump'")
       (let ((max (loop :for key :in (keys *event*)
                     :maximizing (length (alexandria:ensure-list (event-value *event* key))))))
         (next-upto-n pattern max)))))
+
+(defpattern ps (pattern)
+  (pattern
+   pstream)
+  "Defines a pattern whose pstream will be preserved to subsequent calls to `as-pstream'. To reset the pstream, simply re-evaluate the ps definition.
+
+Based on the pattern originally from SuperCollider's from miSCellaneous lib.
+
+Example:
+
+;; (defparameter pst (ps (pseries)))
+;;
+;; (next-upto-n pst 4)
+;; => (0 1 2 3)
+;;
+;; (next-upto-n pst 4)
+;; => (4 5 6 7)
+;;
+;; (defparameter pst (ps (pseries)))
+;;
+;; (next-upto-n pst 4)
+;; => (0 1 2 3)
+
+See also: `pdef'"
+  (defun ps (pattern)
+    (make-instance 'ps
+                   :pattern pattern)))
+
+(defmethod as-pstream ((ps ps))
+  (with-slots (pattern pstream) ps
+    (make-instance 'ps-pstream
+                   :pattern pattern
+                   :pstream (if (slot-boundp ps 'pstream)
+                                pstream
+                                (let ((pstr (as-pstream pattern)))
+                                  (setf pstream pstr)
+                                  pstr)))))
+
+(defmethod next ((ps-pstream ps-pstream))
+  (with-slots (pstream) ps-pstream
+    (next pstream)))
