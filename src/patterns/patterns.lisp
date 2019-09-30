@@ -484,7 +484,7 @@ See also: `pstream-elt'"
                  (>= n (length history))
                  (not (position nil history)))))
       (loop :while (should-advance)
-         :do (peek pstream))
+         :do (next pstream)) ;; FIX: use peek instead (and make sure (play (pbind :freq (pseq (a 440 550 660 770) 1) :dur 1)) sounds correct when this change is made!)
       (if (>= n 0)
           (nth n history)
           (let ((sub-history (subseq history 0 (position nil history))))
