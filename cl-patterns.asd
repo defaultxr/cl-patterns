@@ -77,7 +77,8 @@
   :license "MIT"
   :depends-on (#:cl-patterns
                #:fiveam
-               #:cl-org-mode)
+               #:cl-org-mode
+               #:cl-ppcre)
   :components ((:file "t/test")
                (:file "t/utility")
                (:file "t/conversions")
