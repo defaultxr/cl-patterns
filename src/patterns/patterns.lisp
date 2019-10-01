@@ -1838,7 +1838,9 @@ See also: `pfindur'")
    n
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t :initform 0))
-  "pstutter yields each output from PATTERN N times before moving on to the next output from PATTERN.
+  "DEPRECATED - use `pr' instead as its funtionality is a superset of pstutter's.
+
+pstutter yields each output from PATTERN N times before moving on to the next output from PATTERN.
 
 Example:
 

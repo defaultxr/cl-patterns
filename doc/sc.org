@@ -54,7 +54,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pset~
 - ~Psetpre~
 - ~Pstretch~
-- ~Pstutter~ - done as ~pstutter~. see also: ~pr~.
+- ~Pstutter~ - functionality covered by ~pr~.
 - ~PdurStutter~ - done as ~pdurstutter~. see also: ~pbind~'s ~:pdurstutter~ key.
 - ~Psym~ - done as ~psym~.
 - ~Psync~ - done as ~psync~. see also: ~pbind~'s ~:psync~ key.
