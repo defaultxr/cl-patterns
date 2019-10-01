@@ -56,7 +56,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
                "Whether the slot is optional or not. A slot is optional if a default is provided."
                (position :default (keys (cdr slot))))
              (state-slot-p (slot)
-               "Whether the slot is a state slot or not. State slots will not be included as arguments to the pattern creation function."
+               "Whether the slot is a pstream state slot or not. Pstream state slots only appear as slots for the pattern's pstream class and not for the pattern itself."
                (position :state (keys (cdr slot))))
              (function-lambda-list (slots)
                "Generate the lambda list for the pattern's creation function."
@@ -1084,7 +1084,9 @@ See also: `all-patterns'"
 (defpattern plazy (pattern)
   (func
    (current-pstream :state t :initform nil))
-  "plazy funcalls FUNC which should return a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern.")
+  "plazy funcalls FUNC which should return a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern.
+
+See also: `plazyn', `pfunc'")
 
 (defmethod as-pstream ((plazy plazy))
   (with-slots (func) plazy
@@ -1109,7 +1111,9 @@ See also: `all-patterns'"
    (repeats :default :inf)
    (current-pstream :state t :initform nil)
    (current-repeats-remaining :state t :initform nil))
-  "plazyn funcalls FUNC which should return a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern. The pattern is generated a total of REPEATS times.")
+  "plazyn funcalls FUNC which should return a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern. The pattern is generated a total of REPEATS times.
+
+See also: `plazy'")
 
 (defmethod as-pstream ((pattern plazyn))
   (with-slots (func repeats) pattern
@@ -1629,7 +1633,7 @@ See also: `phistory', `pscratch'")
   (pattern
    step-pattern
    (current-index :state t :initform 0))
-  "pscratch \"scratches\" across the values yielded by a pstream. PATTERN is the source pattern, and STEP-PATTERN determines the increment of the index into the pstream history.
+  "\"Scratches\" across the values yielded by a pstream, similar in concept to how a DJ might scratch a record, altering the normal flow of playback. PATTERN is the source pattern, and STEP-PATTERN determines the increment of the index into the pstream history.
 
 Example:
 
@@ -1994,8 +1998,10 @@ See also: `pwalk', `pswitch'")
         (funcall (if wrap-p 'elt-wrap 'elt) list idx)))))
 
 ;;; prun
+;; FIX: make this work on event patterns too (make DUR a duration multiplier)
+;; FIX: should give a more helpful error or warning message when used outside of a pbind.
 
-(defpattern prun (pattern) ;; FIX: make this work on event patterns too (make DUR a duration multiplier)
+(defpattern prun (pattern)
   (pattern
    (dur :default 1)
    (dur-history :state t))

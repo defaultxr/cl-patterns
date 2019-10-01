@@ -28,7 +28,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 * filter patterns
 - ~Pavaroh~
 - ~Pbus~
-- ~Pclump~ - done as ~pclump~.
+- ~Pclump~ - done as ~pclump~. see also: ~paclump~.
 - ~Pclutch~
 - ~Pconst~
 - ~Pdelay~
@@ -91,9 +91,9 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 * other / unsorted patterns
 - ~Pbind~ - done as ~pbind~.
 - ~Pbindf~
-- ~Pbindef~ - ~pb~ covers this functionality.
+- ~Pbindef~ - functionality covered by ~pb~.
 - ~Pmono~ - done as ~pmono~.
-- ~PmonoArtic~ - ~pmono~ covers this functionality.
+- ~PmonoArtic~ - functionality covered by ~pmono~.
 - ~Pdef~ - done as ~pdef~. see also: ~pbind~'s ~:name~ / ~:pdef~ keys.
 - ~Pchain~ - done as ~pchain~. see also: ~pbind~'s ~:embed~ key.
 - ~Pdict~
@@ -109,7 +109,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pproto~ - not yet implemented; [FIX: maybe just use a ~pbind~ key like ~:init~ instead?]
 - ~Pvoss~
 - ~Pfunc~ - done as ~pfunc~.
-- ~Pfuncn~ - functionality is covered by ~pfunc~.
+- ~Pfuncn~ - functionality covered by ~pfunc~.
 - ~Prout~
 - ~Pbjorklund~ - done as ~pbjorklund~.
 - ~PS~ - done as ~ps~.
