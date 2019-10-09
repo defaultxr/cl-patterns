@@ -728,17 +728,15 @@ See also: `pbind'"
    (repeats :default :inf)
    (offset :default 0)
    (current-repeats-remaining :state t))
-  "pseq yields values from LIST in the same order they were provided, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
+  "Sequentially yields items from LIST, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
 
 Example:
 
 ;; (next-n (pseq '(5 6 7) 2) 7)
-;;
-;; => (5 6 7 5 6 7 NIL)
+;; ;; => (5 6 7 5 6 7 NIL)
 ;;
 ;; (next-upto-n (pseq '(5 6 7) 2 1))
-;;
-;; => (6 7 5 6 7 5)
+;; ;; => (6 7 5 6 7 5)
 
 See also: `pser'")
 
@@ -767,7 +765,7 @@ See also: `pser'")
    (offset :default 0)
    (current-repeats-remaining :state t)
    (current-index :state t))
-  "pser yields values from LIST in the same order they were provided, returning a total of LENGTH values.
+  "Sequentially yields values from LIST, returning a total of LENGTH values.
 
 Example:
 
@@ -800,15 +798,14 @@ See also: `pseq'")
 (defpattern pk (pattern)
   (key
    (default :default 1))
-  "pk returns the value of KEY in the current *event* context, returning DEFAULT if that value is nil.
+  "Gets the value of KEY in the current `*event*' context, returning DEFAULT if that value is nil.
 
 Example:
 
-;; (next-n (pbind :foo (pseq '(1 2 3)) :bar (pk :foo)) 3)
-;;
-;; => ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))
+;; (next-upto-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :foo)))
+;; ;; => ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))
 
-See also: `event-value', `*event*'")
+See also: `pbind', `event-value', `*event*'")
 
 (defmethod as-pstream ((pattern pk))
   (with-slots (key default) pattern
@@ -829,13 +826,12 @@ See also: `event-value', `*event*'")
   (list
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "prand returns a random value from LIST, returning a total of LENGTH values.
+  "Returns random values from LIST.
 
 Example:
 
 ;; (next-n (prand '(1 2 3) 5) 6)
-;;
-;; => (3 2 2 1 1 NIL)
+;; ;; => (3 2 2 1 1 NIL)
 
 See also: `pxrand', `pwrand', `pwxrand'")
 
@@ -857,7 +853,12 @@ See also: `pxrand', `pwrand', `pwxrand'")
    (length :default :inf)
    (last-result :state t :initform nil)
    (current-repeats-remaining :state t))
-  "pxrand returns a random value from LIST that is not equal to the last result, returning a total of LENGTH values.
+  "Returns random values from LIST, never repeating equal values twice in a row.
+
+Example:
+
+;; (next-upto-n (pxrand '(1 2 3) 4))
+;; ;; => (3 1 2 1)
 
 See also: `prand', `pwrand', `pwxrand'"
   (assert (> (length (remove-duplicates list)) 1) (list)))
@@ -885,7 +886,12 @@ See also: `prand', `pwrand', `pwxrand'"
    (weights :default (make-list (length list) :initial-element 1))
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "pwrand returns a random element from LIST weighted by respective values from WEIGHTS, for a total of LENGTH values.
+  "Returns random elements from LIST weighted by respective values from WEIGHTS.
+
+Example:
+
+;; (next-upto-n (pwrand '(1 2 3) '(7 5 3) 10))
+;; ;; => (1 1 2 2 2 1 2 1 1 3)
 
 See also: `prand', `pxrand', `pwxrand'")
 
@@ -911,7 +917,14 @@ See also: `prand', `pxrand', `pwxrand'")
    (weights :default (make-list (length list) :initial-element 1))
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "pwxrand returns a random element from LIST weighted by respective values from WEIGHTS, for a total of LENGTH values, never repeating the same value twice in a row."
+  "Returns random elements from LIST weighted by respective values from WEIGHTS, never repeating equivalent values twice in a row. This is effectively `pxrand' and `pwrand' combined.
+
+Example:
+
+;; (next-upto-n (pwxrand '(1 2 3) '(7 5 3) 10))
+;; ;; => (1 2 1 2 1 3 1 2 1 2)
+
+See also: `prand', `pxrand', `pwrand'"
   (assert (> (length (remove-duplicates list)) 1) (list)))
 
 (defmethod as-pstream ((pattern pwxrand))
@@ -943,12 +956,16 @@ See also: `prand', `pxrand', `pwxrand'")
   (func
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "pfunc evaluates the function FUNC each time its next output is requested, and yields the result of that function. It does this a maximum of LENGTH times. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
+  "Yields the result of evaluating FUNC. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
 
 Example:
 
 ;; (next-upto-n (pfunc (lambda () (random 10)) 4))
-;; => ((5 2 8 9))
+;; ;; => ((5 2 8 9))
+;;
+;; (next-upto-n (pbind :foo (pwhite 0 10 4) :bar (pfunc (lambda () (if (> (event-value *event* :foo) 5) :greater :lesser)))))
+;; ;; => ((EVENT :FOO 0 :BAR :LESSER) (EVENT :FOO 6 :BAR :GREATER)
+;; ;;     (EVENT :FOO 7 :BAR :GREATER) (EVENT :FOO 8 :BAR :GREATER))
 
 See also: `pf', `pnary'"
   (assert (typep func 'function) (func)))
@@ -977,9 +994,14 @@ See also: `pf', `pnary'"
    (repeats :default :inf)
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t))
-  "pr yields a value from PATTERN REPEATS times before moving on to the next value from PATTERN.
+  "Repeats each value from PATTERN REPEATS times. If REPEATS is 0, the value is skipped.
 
-See also: `pstutter', `pdurstutter', `parp'")
+Example:
+
+;; (next-upto-n (pr (pseries) (pseq '(1 3 0 2) 1)))
+;; ;; => (0 1 1 1 3 3)
+
+See also: `pstutter', `pdurstutter', `pn', `pdrop', `parp'")
 
 (defmethod as-pstream ((pattern pr))
   (with-slots (pattern repeats) pattern
@@ -1037,7 +1059,7 @@ See also: `pstutter', `pdurstutter', `parp'")
   ((key :reader pdef-key)
    (current-pstream :state t)
    (loop-p :initform t))
-  "pdef defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
+  "Defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
 Example:
 
@@ -1084,7 +1106,12 @@ See also: `all-patterns'"
 (defpattern plazy (pattern)
   (func
    (current-pstream :state t :initform nil))
-  "plazy funcalls FUNC which should return a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern.
+  "Evaluates FUNC to get a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern.
+
+Example:
+
+;; (next-n (plazy (lambda () (if (= 0 (random 2)) (pseq '(1 2 3) 1) (pseq '(9 8 7) 1)))) 6)
+;; ;; => (9 8 7 1 2 3)
 
 See also: `plazyn', `pfunc'")
 
@@ -1274,7 +1301,14 @@ See also: `prand'")
    (hi :default 1)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "pexprand yields LENGTH exponentially-distributed random numbers between LO and HI.")
+  "Yields exponentially-distributed random numbers between LO and HI.
+
+Example:
+
+;; (next-upto-n (pexprand 1.0 8.0 4))
+;; ;; => (2.710497 2.782872 1.4438503 1.9216299)
+
+See also: `pwhite', `pbrown', `prand'")
 
 (defmethod as-pstream ((pattern pexprand))
   (with-slots (lo hi length) pattern
@@ -1299,7 +1333,14 @@ See also: `prand'")
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t))
-  "pseries yields START, and then each subsequent value is the previous value plus STEP, for a total of LENGTH values yielded.")
+  "Yields START and then generates subsequent values by adding STEP, for a total of LENGTH values yielded.
+
+Example:
+
+;; (next-upto-n (pseries 1 2 4))
+;; ;; => (1 3 5 7)
+
+See also: `pseries*', `pgeom', `paccum'")
 
 (defmethod as-pstream ((pattern pseries))
   (with-slots (start step length) pattern
@@ -1330,7 +1371,14 @@ See also: `prand'")
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t))
-  "pgeom yields START, and then each subsequent value is the previous value times GROW, for a total of LENGTH values yielded.")
+  "Yields START, and then generates subsequent values by multiplying by GROW, for a total of LENGTH values yielded.
+
+Example:
+
+;; (next-upto-n (pgeom 1 2 4))
+;; ;; => (1 2 4 8)
+
+See also: `pseries', `paccum'")
 
 (defmethod as-pstream ((pattern pgeom))
   (with-slots (start grow length) pattern
@@ -1388,7 +1436,7 @@ See also: `prand'")
 Example:
 
 ;; (next-upto-n (place (list 1 2 (list 3 4 5)) 3))
-;; => (1 2 3 1 2 4 1 2 5)
+;; ;; => (1 2 3 1 2 4 1 2 5)
 
 See also: `ppatlace'")
 
@@ -1518,8 +1566,7 @@ See also: `pfunc'"
 Example:
 
 ;; (next-upto-n (pslide (list 0 1 2 3 4 5 6) 3 3 2 1 t))
-;;
-;; => (1 2 3 3 4 5 5 6 0)
+;; ;; => (1 2 3 3 4 5 5 6 0)
 
 See also: `pscratch'")
 
@@ -1570,8 +1617,7 @@ See also: `pscratch'")
 Example:
 
 ;; (next-n (phistory (pseries) (pseq '(0 2 1))) 3)
-;;
-;; => (0 NIL 1)
+;; ;; => (0 NIL 1)
 
 See also: `pfuture', `pscratch'")
 
@@ -1626,7 +1672,7 @@ See also: `phistory', `pscratch'")
 ;;
 ;; lisp:
 ;; > (next-n (pscratch (pseries 0 1) (pseq (list 1 1 1 -3) :inf)) 12)
-;; (1 2 3 0 1 2 3 0 1 2 3 0)
+;; (0 1 2 3 0 1 2 3 0 1 2 3)
 ;; FIX: document this in sc-differences.org
 
 (defpattern pscratch (pattern)
@@ -1635,11 +1681,12 @@ See also: `phistory', `pscratch'")
    (current-index :state t :initform 0))
   "\"Scratches\" across the values yielded by a pstream, similar in concept to how a DJ might scratch a record, altering the normal flow of playback. PATTERN is the source pattern, and STEP-PATTERN determines the increment of the index into the pstream history.
 
+Based on the pattern originally from the ddwPatterns SuperCollider library.
+
 Example:
 
 ;; (next-upto-n (pscratch (pseries) (pseq '(0 1 1 -1 2))))
-;;
-;; => (0 1 2 1 3)
+;; ;; => (0 1 2 1 3)
 
 See also: `phistory'")
 
@@ -1664,8 +1711,7 @@ See also: `phistory'")
 Example:
 
 ;; (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4))) 5)
-;;
-;; => (1 2 3 NIL 4)")
+;; ;; => (1 2 3 NIL 4)")
 
 (defmethod as-pstream ((pif pif))
   (with-slots (test true false) pif
@@ -1692,10 +1738,9 @@ Example:
 Example:
 
 ;; (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6) 1))) 9)
-;;
-;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 1 :BAR 5) (EVENT :FOO 1 :BAR 6)
-;;     (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
-;;     (EVENT :FOO 3 :BAR 4) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 3 :BAR 6))
+;; ;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 1 :BAR 5) (EVENT :FOO 1 :BAR 6)
+;; ;;     (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
+;; ;;     (EVENT :FOO 3 :BAR 4) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 3 :BAR 6))
 
 See also: `psym', `pmeta'")
 
@@ -1730,8 +1775,7 @@ See also: `psym', `pmeta'")
 Example:
 
 ;; (next-n (pfin (pseq '(1 2 3) :inf) 3) 5)
-;;
-;; => (1 2 3 NIL NIL)
+;; ;; => (1 2 3 NIL NIL)
 
 See also: `pfindur'")
 
@@ -2395,6 +2439,8 @@ See also: `paclump'")
   (with-slots (pattern n) pclump
     (alexandria:when-let ((next (next n)))
       (next-upto-n pattern next))))
+
+;;; paclump
 
 (defpattern paclump ()
   (pattern)

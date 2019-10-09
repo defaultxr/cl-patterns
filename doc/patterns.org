@@ -19,8 +19,8 @@ Patterns that generate output based on an input list.
 
 * Curve patterns
 Patterns that generate numbers according to curve formulae.
-- ~pseries~ - Each element is the previous element plus a number.
-- ~pgeom~ - Each element is the previous element multiplied by a number.
+- ~pseries~ - Each output is the previous element plus a number.
+- ~pgeom~ - Each output is the previous element multiplied by a number.
 # - ~penv~ - FIX
 
 * Randomness patterns
