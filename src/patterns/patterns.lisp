@@ -661,10 +661,8 @@ See also: `pbind', `pdef'"
   (pfindur pattern value))
 
 (define-pbind-special-wrap-key psync
-  (if (listp value)
-      (destructuring-bind (quant &optional maxdur) value
-        (psync pattern quant maxdur))
-      (psync pattern value value)))
+  (destructuring-bind (quant &optional maxdur) (alexandria:ensure-list value)
+    (psync pattern quant (or maxdur quant))))
 
 (define-pbind-special-wrap-key pdurstutter
   (pdurstutter pattern value))
@@ -2194,6 +2192,8 @@ See also: `pdelta'")
 
 Unlike `pdiff', pdelta is written with its use as input for `pbind''s :delta key in mind. If PATTERN's successive values would result in a negative difference, pdelta instead wraps the delta around to the next multiple of CYCLE. This would allow you to, for example, supply the number of the beat that each event occurs on, rather than specifying the delta between each event. This is of course achievable using pbind's :beat key as well, however that method requires the pbind to peek at future values, which is not always desirable.
 
+Based on the pattern originally from the ddwPatterns SuperCollider library.
+
 Example:
 
 ;; (next-n (pdelta (pseq '(0 1 2 3)) 4) 8)
@@ -2434,6 +2434,8 @@ See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
     (when (and current-index list)
       (elt-wrap list current-index))))
 
+;;; pclump
+
 (defpattern pclump (pattern)
   (pattern
    (n :default 1))
@@ -2471,12 +2473,14 @@ See also: `pclump'")
                     :maximizing (length (alexandria:ensure-list (event-value *event* key))))))
         (next-upto-n pattern max)))))
 
+;;; ps
+
 (defpattern ps (pattern)
   (pattern
    pstream)
   "Defines a pattern whose pstream will be preserved to subsequent calls to `as-pstream'. To reset the pstream, simply re-evaluate the ps definition.
 
-Based on the pattern originally from SuperCollider's from miSCellaneous lib.
+Based on the pattern originally from the miSCellaneous SuperCollider library.
 
 Example:
 
