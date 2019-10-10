@@ -1114,50 +1114,25 @@ See also: `all-patterns'"
 
 (defpattern plazy (pattern)
   (func
-   (current-pstream :state t :initform nil))
-  "Evaluates FUNC to get a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern.
+   (repeats :default :inf)
+   (current-pstream :state t :initform nil)
+   (current-repeats-remaining :state t :initform nil))
+  "Evaluates FUNC to generate a pattern, which is then yielded from until its end, at which point FUNC is evaluated again to generate the next pattern. The pattern is generated a total of REPEATS times.
 
 Example:
 
 ;; (next-n (plazy (lambda () (if (= 0 (random 2)) (pseq '(1 2 3) 1) (pseq '(9 8 7) 1)))) 6)
 ;; ;; => (9 8 7 1 2 3)
 
-See also: `plazyn', `pfunc'")
+See also: `pfunc'")
 
-(defmethod as-pstream ((plazy plazy))
-  (with-slots (func) plazy
-    (make-instance 'plazy-pstream
-                   :func func)))
-
-(defmethod next ((pattern plazy-pstream))
-  (with-slots (current-pstream func) pattern
-    (let ((nv (next current-pstream)))
-      (loop :repeat 5
-         :while (or (null current-pstream)
-                    (null nv))
-         :do
-           (setf current-pstream (as-pstream (funcall func)))
-           (setf nv (next current-pstream)))
-      nv)))
-
-;;; plazyn
-
-(defpattern plazyn (pattern)
-  (func
-   (repeats :default :inf)
-   (current-pstream :state t :initform nil)
-   (current-repeats-remaining :state t :initform nil))
-  "plazyn funcalls FUNC which should return a pattern, which is then yielded from until its end, at which point FUNC is re-evaluated to generate the next pattern. The pattern is generated a total of REPEATS times.
-
-See also: `plazy'")
-
-(defmethod as-pstream ((pattern plazyn))
+(defmethod as-pstream ((pattern plazy))
   (with-slots (func repeats) pattern
-    (make-instance 'plazyn-pstream
+    (make-instance 'plazy-pstream
                    :func func
                    :repeats (as-pstream repeats))))
 
-(defmethod next ((pattern plazyn-pstream))
+(defmethod next ((pattern plazy-pstream))
   (with-slots (func repeats current-pstream current-repeats-remaining) pattern
     (labels ((maybe-funcall ()
                (when (remaining-p pattern)
@@ -1173,6 +1148,14 @@ See also: `plazy'")
               (maybe-funcall)
               (next current-pstream))
             nv)))))
+
+;;; plazyn
+
+(defun plazyn (func &optional (repeats :inf))
+  "Deprecated alias for `plazy'."
+  (apply #'plazy func (list repeats)))
+
+(export 'plazyn)
 
 ;;; pshift
 ;; shift a pattern N forward or backward, wrapping around

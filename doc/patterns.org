@@ -75,7 +75,6 @@ Patterns that generate output based on an input function.
 - ~pf~ - Syntax sugar for ~pfunc~ so you don't have to write ~(lambda () ...)~.
 - ~pnary~ - N-ary function pattern for applying a function to each of its arguments' outputs.
 - ~plazy~ - Lazily generate a pattern in place of this one by using the result of the input function.
-- ~plazyn~ - Like ~plazy~ but only calls the input function a maximum of N times.
 - ~pif~ - "If" expression. If the source pattern returns a true value, yield the next output from the "then" pattern; otherwise, yield the next output from the "else" pattern.
 
 * Domain-specific language patterns
