@@ -480,6 +480,23 @@
                    :y))
       "pseries START can't access *event*"))
 
+(test pseries*
+  "Test pseries*"
+  (for-all ((num (gen-integer :min 2 :max 128)))
+    (is (alexandria:length= num
+                            (next-upto-n (pseries* 1 2 num)))
+        "pseries* yields the wrong number of outputs"))
+  (for-all ((num (gen-integer :min 0)))
+    (is (= num (next (pseries* num 2 4)))
+        "pseries* did not yield START as the first output (when provided with ~a as START)"
+        num))
+  (for-all ((end (gen-integer :min -40 :max 40))
+            (len (gen-integer :min 2 :max 40)))
+    (is (= end
+           (alexandria:lastcar (next-upto-n (pseries* 50 end len))))
+        "pseries*'s last output is incorrect when END is ~a and LENGTH is ~a"
+        end len)))
+
 (test pgeom
   "Test pgeom"
   (is (equal (list 1 2 4 8 16 32 64 128)
@@ -492,6 +509,25 @@
              (gete (next-upto-n (pbind :f 4 :y (pgeom (pk :f) 1 1)))
                    :y))
       "pgeom's START can't access *EVENT*"))
+
+(test pgeom*
+  "Test pgeom*"
+  (for-all ((len (gen-integer :min 2 :max 128)))
+    (is (alexandria:length= len
+                            (next-upto-n (pgeom* 1 2 len)))
+        "pgeom* yields the wrong number of outputs when LENGTH is ~a"
+        len))
+  (for-all ((start (gen-integer)))
+    (is (= start (next (pgeom* start 2 4)))
+        "pgeom* did not yield START as the first output (when ~a provided as START)"
+        start))
+  (for-all ((end (gen-integer :min -40 :max 40))
+            (len (gen-integer :min 2 :max 20)))
+    (let ((res (alexandria:lastcar (next-upto-n (pgeom* 50 end len)))))
+      (is (> 1
+             (abs (- end res)))
+          "pgeom*'s last output is nowhere near END (it is ~a when END is ~a and LENGTH is ~a)"
+          res end len))))
 
 (test ptrace
   ;; FIX

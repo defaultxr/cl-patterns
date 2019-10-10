@@ -160,6 +160,9 @@
    #:all-pdefs
    #:pdef-pattern
 
+   #:pseries*
+   #:pgeom*
+
    #:p+
    #:p-
    #:p*

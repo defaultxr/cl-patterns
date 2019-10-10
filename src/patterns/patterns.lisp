@@ -1372,6 +1372,25 @@ See also: `pseries*', `pgeom', `paccum'")
               (incf current-value nxt) ;; FIX: current-value should be CURRENT value, not the next one! also write tests for this!
               (setf current-value nil)))))))
 
+;;; pseries*
+
+(defun pseries* (&optional (start 0) (end 1) (length 16))
+  "Syntax sugar to generate a `pseries' whose values go from START to END linearly over LENGTH steps. LENGTH cannot be infinite since delta calculation requires dividing by it.
+
+Based on the Pseries extension from the ddwPatterns SuperCollider library.
+
+Example:
+
+;; (pseries* 0 10 16)
+;; ;; => (pseries 0 2/3 16)
+;;
+;; (next-upto-n *)
+;; ;; => (0 2/3 4/3 2 8/3 10/3 4 14/3 16/3 6 20/3 22/3 8 26/3 28/3 10)
+
+See also: `pseries', `pgeom', `pgeom*'"
+  (assert (and (integerp length) (> length 1)) (length) "LENGTH must be an integer greater than 1 (~s provided)." length)
+  (pseries start (/ (- end start) (1- length)) length))
+
 ;;; pgeom
 
 (defpattern pgeom (pattern)
@@ -1406,6 +1425,26 @@ See also: `pseries', `paccum'")
           current-value
           (alexandria:when-let ((n (next grow)))
             (setf current-value (* current-value n)))))))
+
+;;; pgeom*
+
+(defun pgeom* (&optional (start 0) (end 1) (length 16))
+  "Syntax sugar to generate a `pgeom' whose values go from START to END exponentially over LENGTH steps. LENGTH cannot be infinite since delta calculation requires dividing by it.
+
+Based on the Pgeom extension from the ddwPatterns SuperCollider library.
+
+Example:
+
+;; (pgeom* 1 100 8)
+;; ;; => (pgeom 1 1.9306977 8)
+;;
+;; (next-upto-n *)
+;; ;; => (1 1.9306977 3.7275934 7.196856 13.894953 26.826954 51.79474 99.999985)
+;; ;; Note that due to floating point rounding errors the last output may not always be exactly END.
+
+See also: `pgeom', `pseries', `pseries*'"
+  (assert (and (integerp length) (> length 1)) (length) "LENGTH must be an integer greater than 1 (~s provided)." length)
+  (pgeom start (expt (/ end start) (/ 1 (1- length))) length))
 
 ;;; ptrace
 
