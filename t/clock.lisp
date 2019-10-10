@@ -10,9 +10,9 @@
 
 (test clock
   "Test basic clock functionality"
-  (let ((*clock* (make-clock 1)))
-    (is-true (= 1 (tempo *clock*))
-             "clock's tempo is correct")))
+  (let ((clock (make-clock 3/4)))
+    (is-true (= 3/4 (tempo clock))
+             "clock's tempo is not set properly at creation time")))
 
 (test tempo-change
   "Test clock tempo-changing functionality")

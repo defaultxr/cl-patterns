@@ -2,11 +2,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; doc (FIX - add more)
-
-(defparameter *special-keys.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/special-keys.org")))
-
-(defparameter *patterns.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/patterns.org")))
+;;; utility functions
 
 (defun child-nodes (node)
   "Get the child nodes of NODE."
@@ -44,16 +40,16 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
        :if (not (find-org-header wrap-header (string-downcase (symbol-name key))))
        :collect key)))
 
-(test special-keys.org ;; FIX: should give a more descriptive failure message listing the missing keys
-  "Make sure the special keys are documented"
-  (is-false (find-missing-keys "pbind special init keys" (keys cl-patterns::*pbind-special-init-keys*))
-            "All pbind special wrap keys are documented")
-  (is-false (find-missing-keys "pbind special wrap keys" (keys cl-patterns::*pbind-special-wrap-keys*))
-            "All pbind special wrap keys are documented")
-  (is-false (find-missing-keys "pbind special process keys" (keys cl-patterns::*pbind-special-process-keys*))
-            "All pbind special process keys are documented"))
+;;; org files
 
-(defparameter *patterns.org-undocumented-patterns*
+(defparameter *special-keys.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/special-keys.org")))
+
+(defparameter *patterns.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/patterns.org")))
+
+;;; tests
+
+(test patterns.org
+  "Make sure all patterns are listed in patterns.org"
   (let* ((nodes (child-nodes *patterns.org*))
          (list-items (labels ((process-nodes (nodes)
                                 (loop :for node :in nodes
@@ -63,10 +59,23 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
                                    :if (typep node 'cl-org-mode::outline-node)
                                    :append (process-nodes (child-nodes node)))))
                        (process-nodes nodes)))
-         (code-texts (mapcar #'find-code-text list-items)))
-    (remove-if (lambda (pat) (position pat code-texts :test #'string-equal)) (mapcar #'symbol-name (all-patterns))))
-  "Patterns which are not documented in patterns.org.")
+         (code-texts (mapcar #'find-code-text list-items))
+         (missing (remove-if (lambda (pat) (position pat code-texts :test #'string-equal)) (mapcar #'symbol-name (all-patterns)))))
+    (is-false missing
+              "some patterns are not documented in patterns.org: ~a"
+              missing)))
 
-(test patterns.org ;; FIX
-  "Make sure all patterns are listed in patterns.org"
-  (is-false *patterns.org-undocumented-patterns*))
+(test special-keys.org
+  "Make sure the special keys are documented"
+  (let ((missing (find-missing-keys "pbind special init keys" (keys cl-patterns::*pbind-special-init-keys*))))
+    (is-false missing
+              "some pbind init keys are not documented: ~a"
+              missing))
+  (let ((missing (find-missing-keys "pbind special wrap keys" (keys cl-patterns::*pbind-special-wrap-keys*))))
+    (is-false missing
+              "some pbind wrap keys are not documented: ~a"
+              missing))
+  (let ((missing (find-missing-keys "pbind special process keys" (keys cl-patterns::*pbind-special-process-keys*))))
+    (is-false missing
+              "some pbind process keys are not documented: ~a"
+              missing)))

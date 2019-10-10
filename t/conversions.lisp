@@ -13,41 +13,41 @@
   (is (equal
        (list 0.1 0.5 0.7 0.8 0.9 1.0)
        (mapcar #'db-amp (mapcar #'amp-db (list 0.1 0.5 0.7 0.8 0.9 1.0))))
-      "db-amp conversion is equivalent to amp-db conversion")
+      "db-amp conversion is not equivalent to amp-db conversion")
   (is (equal
        (alexandria:iota 22 :step 1/10)
        (mapcar #'time-dur (mapcar #'dur-time (alexandria:iota 22 :step 1/10))))
-      "time-dur conversion is equivalent to dur-time conversion")
+      "time-dur conversion is not equivalent to dur-time conversion")
   (is-false (let ((input (remove-if (lambda (n) (= n 20)) ;; 20 is the only input that has rounding errors. So close to perfect...!
                                     (alexandria:iota 128))))
               (position-if #'null (mapcar #'=
                                           input
                                           (mapcar #'freq-midinote (mapcar #'midinote-freq input)))))
-            "freq-midinote conversion is equivalent to midinote-freq conversion")
+            "freq-midinote conversion is not equivalent to midinote-freq conversion")
   (is (every (lambda (x) (eql x t))
              (mapcar #'=
                      (list 13.75 27.5 55 110 220 440 880 3520)
                      (mapcar 'midinote-freq (list 9 21 33 45 57 69 81 105))))
-      "midinote-freq conversion is correct")
+      "midinote-freq conversion is not correct")
   (is (equal
        (loop :for i :from 0 :upto 10
           :append (make-list 12 :initial-element i))
        (mapcar #'midinote-octave (alexandria:iota 132)))
-      "midinote-octave conversion is correct")
+      "midinote-octave conversion is not correct")
   (is (every (lambda (x) (eql x t))
              (mapcar #'=
                      (list 55 110 220 440 880 1760)
                      (mapcar #'rate-freq (list 1/8 0.25 0.5 1 2 4))))
-      "rate-freq conversion is correct")
+      "rate-freq conversion is not correct")
   (is (= 300
          (rate-freq 1 300))
-      "rate-freq conversion is correct when base-freq is provided")
+      "rate-freq conversion is not correct when base-freq is provided")
   (is (every (lambda (x) (eql x t))
              (mapcar #'=
                      (list 1/8 0.25 0.5 1 2 4)
                      (mapcar #'freq-rate (list 55 110 220 440 880 1760))))
-      "freq-rate conversion is correct")
+      "freq-rate conversion is not correct")
   (is (= 2
          (freq-rate 2600 1300))
-      "freq-rate conversion is correct when base-freq is provided"))
+      "freq-rate conversion is not correct when base-freq is provided"))
 

@@ -7,13 +7,13 @@
 (test chords
   "Test chord functionality"
   (is (typep (chord :major) 'chord)
-      "chord function returns a chord object for :major as input")
+      "chord doesn't return a chord object for :major as input")
   (is (equal (list 0 2 4)
              (chord-indexes (chord :major)))
-      "Major chord has correct indexes")
+      "major chord has incorrect indexes")
   (is (equal (list 0 4 7)
              (chord-note-numbers (chord :major)))
-      "Major chord has correct note numbers")
+      "major chord has incorrect note numbers")
   ;; FIX: add more
   )
 
