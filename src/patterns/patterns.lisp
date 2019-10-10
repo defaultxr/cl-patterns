@@ -118,7 +118,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 ;;; pattern
 
 (defclass pattern ()
-  ((quant :initarg :quant :initform (list 1) :reader quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
+  ((quant :initarg :quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :initform nil :accessor loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
@@ -131,6 +131,11 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
 See also: `all-pdefs'"
   (remove-if (lambda (s) (eql s 'pstream))
              (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern)))))
+
+(defmethod quant ((pattern pattern))
+  (if (slot-boundp pattern 'quant)
+      (slot-value pattern 'quant)
+      (list 1)))
 
 (defmethod (setf quant) (value (pattern pattern))
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
@@ -424,8 +429,9 @@ See also: `pattern-as-pstream'"))
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
-              :collect (alexandria:make-keyword slot)
-              :collect (pattern-as-pstream (slot-value pattern slot))))))
+              :if (slot-boundp pattern slot)
+              :append (list (alexandria:make-keyword slot)
+                            (pattern-as-pstream (slot-value pattern slot)))))))
 
 (defmethod as-pstream :around ((pattern pattern))
   (let ((pstream (call-next-method)))
@@ -612,16 +618,19 @@ See also: `pbind', `pdef'"
        :do (alexandria:appendf results (list key (pattern-as-pstream val))))
     results))
 
-(defmethod as-pstream ((pattern pbind))
-  (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))))
+(defmethod as-pstream ((pbind pbind))
+  (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pbind)))))
     (apply #'make-instance
-           (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
+           (intern (concatenate 'string (symbol-name (class-name (class-of pbind))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
-              :collect (alexandria:make-keyword slot)
-              :if (eql :pairs (alexandria:make-keyword slot))
-              :collect (as-pstream-pairs (slot-value pattern 'pairs))
-              :else
-              :collect (slot-value pattern slot)))))
+              :for slot-kw = (alexandria:make-keyword slot)
+              :for bound = (slot-boundp pbind slot)
+              :if bound
+              :collect slot-kw
+              :if (eql :pairs slot-kw)
+              :collect (as-pstream-pairs (slot-value pbind 'pairs))
+              :if (and bound (not (eql :pairs slot-kw)))
+              :collect (slot-value pbind slot)))))
 
 (defmacro define-pbind-special-init-key (key &body body)
   "Define a special key for pbind that alters the pbind during its initialization, either by embedding a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should embed values into the pbind pairs, or NIL if it should not."
@@ -1088,7 +1097,9 @@ See also: `all-patterns'"
   (pdef-ref-get (pdef-key object) :pattern))
 
 (defmethod quant ((pdef pdef))
-  (quant (pdef-pattern pdef)))
+  (if (slot-boundp pdef 'quant)
+      (slot-value pdef 'quant)
+      (quant (pdef-pattern pdef))))
 
 (defmethod as-pstream ((pdef pdef))
   (with-slots (key) pdef

@@ -49,7 +49,7 @@ pbind supports a set of special keys that, during the initialization of the pbin
 #+BEGIN_SRC lisp
   (defparameter *pat* (pbind :foo (pseq '(1 2 3))))
 
-  (setf (slot-value *pat* 'cl-patterns::quant) 4)
+  (setf (quant *pat*) 4)
 #+END_SRC
 
 Here is a listing of all of the pbind special init keys:
