@@ -36,12 +36,16 @@
   (is (= (db-amp -7)
          (event-value (event :db -7) :amp))
       "event incorrectly converts db to amp")
-  (is-true (eql :freq
-                (cadr (multiple-value-list (event-value (event :freq 420) :midinote))))
-           "event-value does not provide the key it derives its value from as the second return value")
-  (is-true (eql :freq
-                (cadr (multiple-value-list (event-value (event :freq 420) :rate))))
-           "event-value does not provide the key it derives its value from as the second return value when called for :rate"))
+  (is (eql :freq
+           (cadr (multiple-value-list (event-value (event :freq 420) :midinote))))
+      "event-value does not provide the key it derives its value from as the second return value")
+  (is (eql :freq
+           (cadr (multiple-value-list (event-value (event :freq 420) :rate))))
+      "event-value does not provide the key it derives its value from as the second return value when called for :rate")
+  (is-true (let ((*clock* (make-clock 9/7)))
+             (equal (list 9/7 :tempo)
+                    (multiple-value-list (event-value (event) :tempo))))
+           "event-value doesn't provide :tempo when getting the tempo from *clock*"))
 
 (test event-beat
   "Test the beat key for events"

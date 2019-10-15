@@ -300,7 +300,7 @@ Additionally, because :define-methods is true, we can also do the following:
 ;;; dur/delta
 
 (define-event-special-key tempo (t (if (and (boundp '*clock*) (not (null *clock*)))
-                                       (tempo *clock*)
+                                       (values (tempo *clock*) :tempo)
                                        1)))
 
 (define-event-special-key beat (t (or (raw-event-value event :beat)
