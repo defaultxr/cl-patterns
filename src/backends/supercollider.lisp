@@ -16,11 +16,11 @@
   (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9)))
 
 (defmethod synth-controls (synth (backend (eql :supercollider)))
-  (mapcar #'car (cl-collider::synthdef-metadata synth :controls)))
+  (mapcar #'car (cl-collider:synthdef-metadata synth :controls)))
 
 (defun supercollider-make-synth-args-list (instrument event)
   "Generate a plist of parameters for a synth based off of the synth's arguments. Unlike `event-plist', this function doesn't include event keys that aren't also one of the synth's arguments."
-  (when (not (cl-collider::get-synthdef-metadata instrument)) ;; if we don't have data for the synth, simply return a plist for the event and hope for the best.
+  (when (not (cl-collider:synthdef-metadata instrument)) ;; if we don't have data for the synth, simply return a plist for the event and hope for the best.
     (return-from supercollider-make-synth-args-list (copy-list (event-plist event))))
   (let ((synth-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the synth's defaults, NOT the event's...
                                    (unless (string= (symbol-name arg) "SUSTAIN") ;; ...with the exception of sustain, which the synth should always get.
@@ -64,9 +64,9 @@
 
 (defmethod supercollider-convert-object ((object cl-collider::node) key)
   (let ((bus (if (eql key :out)
-                 (cl-collider:get-synthdef-metadata object :input-bus)
-                 (or (cl-collider:get-synthdef-metadata object :output-bus)
-                     (cl-collider:get-synthdef-metadata object :input-bus)))))
+                 (cl-collider:synthdef-metadata object :input-bus)
+                 (or (cl-collider:synthdef-metadata object :output-bus)
+                     (cl-collider:synthdef-metadata object :input-bus)))))
     (if bus
         (cl-collider:busnum bus)
         object)))
