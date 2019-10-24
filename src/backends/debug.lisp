@@ -15,6 +15,18 @@
 (defparameter *debug-backend-events* (list)
   "A list of all events received by the debug backend, with the most recent events first.")
 
+(defun debug-recent-events (&optional (n 10))
+  "Get the N most recent events that the debug backend received."
+  (loop :for i :in *debug-backend-events*
+     :repeat n
+     :collect i))
+
+(defun debug-clear-events ()
+  "Clear the log of events captured by the cl-patterns debug backend."
+  (setf *debug-backend-events* (list)))
+
+(export '(debug-recent-events debug-clear-events))
+
 (defmethod backend-play-event (item task (backend (eql :debug)))
   (declare (ignore task))
   (format t "~&Debug: playing event: ~s~%" item)
@@ -22,13 +34,5 @@
 
 (defmethod backend-task-removed (task (backend (eql :debug)))
   (format t "~&Debug: task removed: ~s~%" task))
-
-(defun debug-recent-events (&optional (n 10))
-  "Get the N most recent events that the debug backend received."
-  (loop :for i :in *debug-backend-events*
-     :repeat n
-     :collect i))
-
-(export 'debug-recent-events)
 
 (register-backend :debug)
