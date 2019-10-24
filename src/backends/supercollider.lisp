@@ -160,7 +160,10 @@
     t))
 
 (defmethod play ((buffer cl-collider::buffer))
-  (play (event :instrument *cl-collider-buffer-preview-synth* :bufnum (cl-collider:bufnum buffer))))
+  (play (event :instrument *cl-collider-buffer-preview-synth*
+               :bufnum (cl-collider:bufnum buffer) ;; FIX: send as :buffer or :bufnum key, depending on what the synthdef actually has.
+               :quant 0
+               :latency 0)))
 
 (register-backend :supercollider)
 
