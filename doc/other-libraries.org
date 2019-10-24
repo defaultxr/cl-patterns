@@ -57,6 +57,9 @@ A Common Lisp interface to gnuplot, a command line-driven cross-platform graphin
 ** [[https://github.com/rongarret/ergolib][ergolib]]
 "A library designed to make programming in Common Lisp easier".
 
+** [[http://series.sourceforge.net/][series]]
+"A series is a data structure much like a sequence, with similar kinds of operations. The difference is that in many situations, operations on series may be composed functionally and yet execute iteratively, without the need to construct intermediate series values explicitly. In this manner, series provide both the clarity of a functional programming style and the efficiency of an iterative programming style."
+
 * Non-CL
 
 ** [[https://supercollider.github.io/][SuperCollider]]

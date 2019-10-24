@@ -132,7 +132,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 
 *** backends
 
-- [[file:src/backends/debug.lisp][debug.lisp]] - basic debug backend. responds to all events and prints and stores them without any audio output.
+- [[file:src/backends/debug.lisp][debug.lisp]] - basic debug backend. responds to all events, printing and storing them without any audio output.
 - [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with [[https://supercollider.github.io/][SuperCollider]] via the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
 - [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
 - [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
