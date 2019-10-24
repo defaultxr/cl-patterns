@@ -375,8 +375,8 @@
 
 (test pdef
   (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
-    (is (print (equal (list)
-                      (all-pdefs)))
+    (is (equal (list)
+               (all-pdefs))
         "all-pdefs doesn't return an empty list when no pdefs are defined")
     (let* ((pat (pbind :quant 6/9))
            (pdef (pdef :x pat)))
