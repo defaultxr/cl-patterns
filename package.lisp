@@ -196,6 +196,7 @@
    #:*performance-errors*
 
    #:make-clock
+   #:clock-process
    #:clock-loop
    #:start-clock-loop
    #:pdefs-playing
