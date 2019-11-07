@@ -6,26 +6,45 @@
 
 (defpattern pcycles (pattern) ;; FIX: add REPEATS slot
   (list
+   map
    (parsed-list :state t))
-  "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once.")
+  "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
+  (defun pcycles (list &optional map)
+    (etypecase list
+      (string
+       (pcycles (mapcar (lambda (c) (alexandria:make-keyword (string-upcase (string c))))
+                        (coerce list 'list))
+                map))
+      (list
+       (make-instance 'pcycles :list list :map map)))))
 
-(defun pcycles-parse-list (list)
-  (labels ((recurse (list dur)
-             (loop :for i :in list
-                :collect (if (consp i)
-                             (recurse i (* dur (/ 1 (length i))))
-                             (event :value i :dur dur)))))
-    (alexandria:flatten (recurse list (/ 1 (length list))))))
+(defmethod print-object ((pcycles pcycles) stream)
+  (format stream "(~s ~s)" 'pcycles (slot-value pcycles 'list)))
+
+(defun pcycles-parse-list (list &optional map)
+  (let ((map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest)))))
+    (labels ((recurse (list dur)
+               (loop :for i :in list
+                  :collect (if (consp i)
+                               (recurse i (* dur (/ 1 (length i))))
+                               (combine-events (let ((res (getf map i)))
+                                                 (if res
+                                                     res
+                                                     (event)))
+                                               (event :value i :dur dur))))))
+      (alexandria:flatten (recurse list (/ 1 (length list)))))))
 
 (defmethod as-pstream ((pattern pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
-  (with-slots (list) pattern
+  (with-slots (list map) pattern
     (make-instance 'pcycles-pstream
                    :list list
-                   :parsed-list (pcycles-parse-list list))))
+                   :map map
+                   :parsed-list (pcycles-parse-list list map))))
 
 (defmethod next ((pattern pcycles-pstream))
   (with-slots (number parsed-list) pattern
-    (nth number parsed-list)))
+    (unless (>= number (length parsed-list))
+      (elt parsed-list number))))
 
 (defun cycles-parse (list)
   (labels ((modifier-symbol-p (symbol)
@@ -78,13 +97,14 @@
 (defmacro cycles (spec map &rest list)
   "Convenience macro to specify a rhythm or melody using symbols. Outputs a list of events with :type, :dur, and another parameter which is specifiable. Usually used to :embed into a pattern.
 
-SPEC is a symbol representing the type of output you're going to send. It can be midinote, freq, note, instrument, or bufnum. It can also be a list, which provides the spec as the first element, and keywords (such as :dur for the total dur) for the rest.
+SPEC is a symbol representing the type of output you're going to send. It can be midinote, freq, note, instrument, or buffer/bufnum. It can also be a list, which provides the spec as the first element, and keywords (such as :dur for the total dur) for the rest.
 
-MAP is a plist specifying the mapping from symbols to SPEC's parameter. It can be blank if you're just making a melody.
+MAP is a plist specifying the mapping from symbols to SPEC's parameter. It can be blank if you're just making a melody. By default, the map includes keys that map - and _ to rests.
 
 LIST is the actual pattern to generate."
-  (destructuring-bind (key &key (dur 1)) spec
-    (let ((key (alexandria:make-keyword key)))
+  (destructuring-bind (key &key (dur 1)) (alexandria:ensure-list spec)
+    (let ((key (alexandria:make-keyword key))
+          (map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest)))))
       (labels ((translate-symbol (symbol)
                  (or (getf map symbol)
                      symbol)))
