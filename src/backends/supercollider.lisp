@@ -150,13 +150,13 @@
   t)
 
 (defmethod stop ((object cl-collider::node))
-  (cl-collider:stop object))
+  (cl-collider:free object))
 
 (defmethod end ((object cl-collider::node))
   (cl-collider:release object))
 
 (defmethod playing-p ((node cl-collider::node) &optional (server cl-collider:*s*))
-  (when (position (cl-collider::node-watcher server) (cl-collider::id node))
+  (when (position (cl-collider::id node) (cl-collider::node-watcher server))
     t))
 
 (defmethod play ((buffer cl-collider::buffer))
