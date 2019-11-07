@@ -4,6 +4,7 @@
   :description "Pattern library for algorithmic music composition and performance in Common Lisp."
   :license "MIT"
   :version "0.5"
+  :homepage "https://w.struct.ws/cl-patterns/"
   :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
   :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
   :depends-on (#:alexandria
