@@ -101,6 +101,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 
 ** doc
 
+- [[file:doc/cookbook.org][cookbook.org]] - a cookbook of ideas and inspiration for your cl-patterns hacking.
 - [[file:doc/features.org][features.org]] - listing of notable features of cl-patterns.
 - [[file:doc/other-libraries.org][other-libraries.org]] - listing of other libraries that have similar goals or may be useful in conjunction with cl-patterns.
 - [[file:doc/patterns.org][patterns.org]] - organized index of the pattern classes included in cl-patterns.

@@ -1,0 +1,56 @@
+#+TITLE: cl-patterns cookbook
+#+OPTIONS: num:nil
+
+A "cookbook" for cl-patterns; various recipes for instruction and inspiration.
+
+* Random notes from a scale
+
+cl-patterns provides musical scale data in ~scales.lisp~. If we feel like being blasphemous, we can shuffle a scale and call it "automatic jazz":
+
+#+BEGIN_SRC lisp
+  (pbind :degree (pshuf (scale-notes :minor) 4)
+         :dur (pshuf (list 1/3 1/4)))
+#+END_SRC
+
+# * Quantize to a scale # FIX: add this :)
+
+* Play sections of an audio file
+
+With the [[https://github.com/defaultxr/bdef][bdef]] library, you can conveniently load sound files and define ~splits~, which represent sections of the file. The library comes with a ~psplits~ pattern in its ~bdef/cl-patterns~ sub-system which makes it easy to integrate with cl-patterns. Example:
+
+#+BEGIN_SRC lisp
+  (bdef :song "/path/to/song.wav")
+
+  (pbind :instrument :spt
+         :bufnum (bdef :song)
+         :split (pseries 0 1 (splits-length (bdef :song)))
+         :legato 1
+         :embed (psplits))
+#+END_SRC
+
+The above does the following:
+
+- Loads a song into a buffer with ~bdef~, giving it the ~song~ key.
+- Selects the ~spt~ synth, which has a ~gate~ parameter, as well as ~start~ and ~end~, which represent the start and end points of the split as a percentage in the file (~0..1~).
+- Loads a song.
+- Automatically finds onset points in the song with any defined bdef "auto-metadata".
+- Uses ~pseries~ to select each split associated with the bdef, in order.
+- Sets the ~legato~ to 1 to ensure the full split is played.
+- Uses ~psplits~ to embed the parameters for the selected split to be played with ~spt~.
+
+So what does this pattern actually _do_? All it does is play each section of the audio file in order. If the file is divided into a series of consecutive, non-overlapping splits, the pattern will sound just like the input file.
+
+Why would we want to do this? This is often a good starting point for if you want to do something like remixing a song. From here you can add further keys to the end of the ~pbind~ to change the split pitch, send the output to an effect, change the rhythm, etc.
+
+Keep in mind that ~psplits~ outputs events that include ~start~, ~end~, and ~dur~ for each split. So if you wanted to do something like playing every even split for half its original length, and every odd for double, you'd add the following after the ~psplits~:
+
+#+BEGIN_SRC lisp
+  :dur (p* (pk :dur) (pseq '(1/2 2)))
+#+END_SRC
+
+Of course, the possibilities are endless here. And thanks to ~splits~ having a ~comments~ slot, you can associate any data you want with each split. This could be manually-entered textual comments, automatically-generated audio analysis data, etc.
+
+Ideas for things to use the ~comments~ field for:
+
+- Divide the splits up by the part of the song they fall into, to allow a remix to run different "algorithms" for each.
+- Analyze the pitch of each split, then use it to create a makeshift "autotune".
