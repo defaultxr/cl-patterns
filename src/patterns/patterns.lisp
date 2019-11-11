@@ -1718,8 +1718,8 @@ Based on the pattern originally from the ddwPatterns SuperCollider library.
 
 Example:
 
-;; (next-upto-n (pscratch (pseries) (pseq '(0 1 1 -1 2))))
-;; ;; => (0 1 2 1 3)
+;; (next-upto-n (pscratch (pseries) (pseq '(0 1 1 -1 2) 2)))
+;; ;; => (0 0 1 2 1 3 3 4 5 4)
 
 See also: `phistory'")
 
@@ -1732,8 +1732,9 @@ See also: `phistory'")
 (defmethod next ((pscratch pscratch-pstream))
   (with-slots (pattern step-pattern current-index) pscratch
     (alexandria:when-let ((nxt (next step-pattern)))
-      (incf current-index nxt) ;; FIX: should we clamp this so negative indexes don't happen?
-      (pstream-elt-future pattern current-index))))
+      (prog1
+          (pstream-elt-future pattern current-index)
+        (setf current-index (max (+ current-index nxt) 0))))))
 
 ;;; pif
 
