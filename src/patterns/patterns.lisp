@@ -1085,6 +1085,10 @@ See also: `all-pdefs', `pb', `pmeta', `ps'"
     (make-instance 'pdef
                    :key key)))
 
+(defmethod print-object ((pdef pdef) stream)
+  (with-slots (key) pdef
+    (format stream "(~s ~s)" 'pdef key)))
+
 (create-global-dictionary pdef)
 
 (defun all-pdefs ()
@@ -1093,8 +1097,15 @@ See also: `all-pdefs', `pb', `pmeta', `ps'"
 See also: `all-patterns'"
   (keys *pdef-dictionary*))
 
-(defmethod pdef-pattern ((object pdef))
-  (pdef-ref-get (pdef-key object) :pattern))
+(defun ensure-pdef (object)
+  "Attempt to ensure OBJECT is a pdef."
+  (etypecase object
+    (pdef object)
+    (symbol (pdef object))
+    (string (ensure-pdef (alexandria:make-keyword object)))))
+
+(defun pdef-pattern (pdef)
+  (pdef-ref-get (pdef-key (ensure-pdef pdef)) :pattern))
 
 (defmethod quant ((pdef pdef))
   (if (slot-boundp pdef 'quant)
