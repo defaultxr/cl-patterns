@@ -45,9 +45,6 @@
 (defun midinote-degree (midinote &key root octave (scale :major))
   "Get the degree of MIDINOTE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
   (warn "#'midinote-degree is not done yet.")
-  ;; (flet ((index-of-greater-than (n list) ;; FIX
-  ;;          ;; LIST should be a sorted list.
-  ;;          (position n (sort list #'<=) :test #'<=))))
   (let* ((notes (scale-notes (scale (scale (or scale :major)))))
          (octave (or octave (truncate (/ midinote 12))))
          (diff (- midinote (* octave 12)))

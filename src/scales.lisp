@@ -21,62 +21,15 @@
 Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\"."
   (car (elt-wrap *note-names* note-number)))
 
-;;; scales
-
-(defparameter *scales* (list)
-  "Plist of all defined scales.")
-
-(defun define-scale (name notes &optional (tuning :et12) aliases)
-  "Define a scale and add it to the *scales* list."
-  (let ((key (string-keyword name)))
-    (when (not (tuning tuning))
-      (warn "Tuning ~s does not exist." tuning))
-    (setf *scales* (plist-set *scales*
-                              key
-                              (make-scale :name name
-                                          :notes notes
-                                          :tuning tuning)))
-    (map nil
-         (lambda (x)
-           (setf *scales* (plist-set *scales* x key)))
-         aliases)))
-
-(defun all-scales ()
-  "Get a list of all defined scales."
-  (loop :for i :in (keys *scales*)
-     :unless (symbolp (getf *scales* i))
-     :collect i))
-
-(defgeneric scale (item)
-  (:documentation "Get a scale struct by name."))
-
-(defmethod scale ((item symbol))
-  (let ((scale (getf *scales* item)))
-    (when (not (null scale))
-      (if (typep scale 'symbol)
-          (scale scale)
-          scale))))
-
-(defmethod scale ((item string))
-  (scale (alexandria:make-keyword (string-upcase item))))
-
-(defmethod scale ((item scale))
-  item)
-
-(defun scale-midinotes (scale &key (start-note :c) (octave 5))
-  "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
-  (typecase octave
-    (symbol (if (eql :all octave)
-                (scale-midinotes scale :start-note start-note :octave (list 0 9))
-                (error "Invalid OCTAVE argument for scale-midinotes; try :all, a number, or a 2-element list denoting a range instead.")))
-    (number (scale-midinotes scale :start-note start-note :octave (list octave octave)))
-    (cons
-     (let ((scale (scale scale))
-           (root (note-number start-note)))
-       (loop :for i :from (car octave) :upto (cadr octave)
-          :append (mapcar (lambda (note) (note-midinote note :root root :octave i)) (scale-notes scale)))))))
-
 ;;; tunings
+
+(defclass tuning (standard-object #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
+  ((name :initarg :name :accessor tuning-name)
+   (tuning :initarg :tuning :accessor tuning-tuning)
+   (octave-ratio :initarg :octave-ratio :accessor tuning-octave-ratio)))
+
+(defmethod print-object ((this tuning) stream)
+  (format stream "(~s ~s)" 'tuning (tuning-name this)))
 
 (defparameter *tunings* (list)
   "Plist of all defined tunings.")
@@ -86,19 +39,23 @@ Note that this function is not aware of context and thus always returns the firs
   (let ((key (string-keyword name)))
     (setf *tunings* (plist-set *tunings*
                                key
-                               (make-tuning :name name
-                                            :tuning tuning
-                                            :octave-ratio octave-ratio)))
-    (apply #'define-tuning-aliases name aliases)))
-
-(defun define-tuning-aliases (tuning-name &rest aliases)
-  "Define aliases for the tuning named TUNING-NAME."
-  (let ((key (string-keyword tuning-name)))
-    (assert (position key (keys *tunings*)) (tuning-name) "No tuning named ~a defined." tuning-name)
+                               (make-instance 'tuning
+                                              :name name
+                                              :tuning tuning
+                                              :octave-ratio octave-ratio)))
     (map nil
          (lambda (x)
            (setf *tunings* (plist-set *tunings* x key)))
-         aliases)))
+         (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase name))))))))
+
+;; (defun define-tuning-aliases (tuning-name &rest aliases)
+;;   "Define aliases for the tuning named TUNING-NAME."
+;;   (let ((key (string-keyword tuning-name)))
+;;     (assert (position key (keys *tunings*)) (tuning-name) "No tuning named ~a defined." tuning-name)
+;;     (map nil
+;;          (lambda (x)
+;;            (setf *tunings* (plist-set *tunings* x key)))
+;;          (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase tuning-name))))))))
 
 (defun all-tunings ()
   "Get a list of all defined tunings."
@@ -107,7 +64,7 @@ Note that this function is not aware of context and thus always returns the firs
      :collect i))
 
 (defgeneric tuning (item)
-  (:documentation "Get a tuning struct by name."))
+  (:documentation "Get a tuning by name."))
 
 (defmethod tuning ((item symbol))
   (let ((tuning (getf *tunings* item)))
@@ -121,6 +78,15 @@ Note that this function is not aware of context and thus always returns the firs
 
 (defmethod tuning ((item tuning))
   item)
+
+(defmethod tuning-name ((this symbol))
+  (tuning-name (tuning this)))
+
+(defmethod tuning-tuning ((this symbol))
+  (tuning-tuning (tuning this)))
+
+(defmethod tuning-octave-ratio ((this symbol))
+  (tuning-octave-ratio (tuning this)))
 
 ;;; Scala (.scl) scale file support
 ;; Scala refers to these as "scales" but we call them tunings.
@@ -154,14 +120,97 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
       (unless (loop :for i :in (all-tunings)
                  :if (equal (tuning-tuning i) pitches)
                  :return (progn
-                           (warn "~&Tuning already exists as ~a; adding aliases: ~a" (tuning-name i) aliases)
-                           (apply #'define-tuning-aliases (tuning-name i) aliases)
+                           ;; (warn "~&Tuning already exists as ~a; adding aliases: ~a" (tuning-name i) aliases)
+                           ;; (apply #'define-tuning-aliases (tuning-name i) aliases)
+                           ;; FIX: should we just remove the already-defined tuning and re-add with all the aliases, or was there a reason we were doing define-tuning-aliases separately?
                            ;; FIX: define scale aliases too
                            t))
         (define-tuning name pitches octave-ratio aliases)
         (define-scale name (alexandria:iota (length pitches)) name aliases)))))
 
+;;; scales
+
+(defclass scale (standard-object #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
+  ((name :initarg :name :accessor scale-name)
+   (notes :initarg :notes :accessor scale-notes)
+   (tuning :initarg :tuning :accessor scale-tuning)))
+
+(defmethod print-object ((this scale) stream)
+  (format stream "(~s ~s)" 'scale (scale-name this)))
+
+(defparameter *scales* (list)
+  "Plist of all defined scales.")
+
+(defun define-scale (name notes &optional (tuning :et12) aliases)
+  "Define a scale and add it to the *scales* list."
+  (let ((key (string-keyword name)))
+    (unless (tuning tuning)
+      (warn "Tuning ~s does not exist." tuning))
+    (setf *scales* (plist-set *scales*
+                              key
+                              (make-instance 'scale
+                                             :name name
+                                             :notes notes
+                                             :tuning tuning)))
+    (map nil
+         (lambda (x)
+           (unless (eql x key)
+             (setf *scales* (plist-set *scales* x key))))
+         (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase name))))))))
+
+(defun all-scales ()
+  "Get a list of all defined scales."
+  (loop :for i :in (keys *scales*)
+     :unless (symbolp (getf *scales* i))
+     :collect i))
+
+(defgeneric scale (item)
+  (:documentation "Get a scale by name."))
+
+(defmethod scale ((item symbol))
+  (let ((scale (getf *scales* item)))
+    (when (not (null scale))
+      (if (typep scale 'symbol)
+          (scale scale)
+          scale))))
+
+(defmethod scale ((item string))
+  (scale (alexandria:make-keyword (string-upcase item))))
+
+(defmethod scale ((item scale))
+  item)
+
+(defmethod scale-name ((this symbol))
+  (scale-name (scale this)))
+
+(defmethod scale-notes ((this symbol))
+  (scale-notes (scale this)))
+
+(defmethod scale-tuning ((this symbol))
+  (scale-tuning (scale this)))
+
+(defun scale-midinotes (scale &key (start-note :c) (octave 5))
+  "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
+  (typecase octave
+    (symbol (if (eql :all octave)
+                (scale-midinotes scale :start-note start-note :octave (list 0 9))
+                (error "Invalid OCTAVE argument for scale-midinotes; try :all, a number, or a 2-element list denoting a range instead.")))
+    (number (scale-midinotes scale :start-note start-note :octave (list octave octave)))
+    (cons
+     (let ((scale (scale scale))
+           (root (note-number start-note)))
+       (loop :for i :from (car octave) :upto (cadr octave)
+          :append (mapcar (lambda (note) (note-midinote note :root root :octave i)) (scale-notes scale)))))))
+
 ;;; chords
+
+(defclass chord (standard-object #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
+  ((name :initarg :name :accessor chord-name)
+   (scale :initarg :scale :accessor chord-scale)
+   (indexes :initarg :indexes :accessor chord-indexes)))
+
+(defmethod print-object ((this chord) stream)
+  (format stream "(~s ~s)" 'chord (chord-name this)))
 
 (defparameter *chords* (list))
 
@@ -170,13 +219,14 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
   (let ((key (string-keyword name)))
     (setf *chords* (plist-set *chords*
                               key
-                              (make-chord :name name
-                                          :scale scale
-                                          :indexes indexes)))
+                              (make-instance 'chord
+                                             :name name
+                                             :scale scale
+                                             :indexes indexes)))
     (map nil
          (lambda (x)
            (setf *chords* (plist-set *chords* x key)))
-         aliases)))
+         (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase name))))))))
 
 (defun all-chords ()
   "Get a list of all defined chords."
@@ -198,6 +248,15 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
 
 (defmethod chord ((item chord))
   item)
+
+(defmethod chord-name ((this symbol))
+  (chord-name (chord this)))
+
+(defmethod chord-scale ((this symbol))
+  (chord-scale (chord this)))
+
+(defmethod chord-indexes ((this symbol))
+  (chord-indexes (chord this)))
 
 ;; (defun chord-aliases (name) ;; FIX: automatically shorten words like major, augmented, etc.
 ;;   (error "Not done yet.")
