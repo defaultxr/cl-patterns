@@ -224,6 +224,9 @@ See also: `clock-loop'"
 (defmethod play ((symbol symbol))
   (play (pdef symbol)))
 
+(defmethod play ((list list))
+  (mapcar 'play list))
+
 (defmethod launch ((event event))
   (play event))
 
@@ -237,6 +240,9 @@ See also: `clock-loop'"
 (defmethod launch ((symbol symbol))
   (launch (pdef symbol)))
 
+(defmethod launch ((list list))
+  (mapcar 'launch list))
+
 (defmethod stop ((pdef pdef))
   (with-slots (key) pdef
     (when (pdef-ref-get key :task)
@@ -249,6 +255,9 @@ See also: `clock-loop'"
 
 (defmethod stop ((task task))
   (clock-remove task))
+
+(defmethod stop ((list list))
+  (mapcar 'stop list))
 
 (defmethod end ((item pdef))
   (with-slots (key) item
@@ -266,6 +275,8 @@ See also: `clock-loop'"
   "Get a list of the names of all pdefs playing on CLOCK."
   (loop :for i :in (slot-value clock 'tasks)
      :collect (slot-value (slot-value i 'item) 'key)))
+(defmethod end ((list list))
+  (mapcar 'end list))
 
 (defmethod playing-p ((task task) &optional (clock *clock*))
   (position task (slot-value clock 'tasks)))
@@ -275,3 +286,6 @@ See also: `clock-loop'"
 
 (defmethod playing-p ((key symbol) &optional (clock *clock*))
   (position key (pdefs-playing clock)))
+
+(defmethod playing-p ((list list) &optional (clock *clock*))
+  (mapcar (lambda (item) (playing-p item clock)) list))
