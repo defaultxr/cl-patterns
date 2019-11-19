@@ -195,10 +195,15 @@
    #:*performance-mode*
    #:*performance-errors*
 
+   #:task-pattern
+   #:pattern-tasks
+   #:playing-pdefs
+   #:pdefs-playing
+
    #:make-clock
+   #:clock-tasks
    #:clock-process
    #:clock-loop
    #:start-clock-loop
-   #:pdefs-playing
 
    ))

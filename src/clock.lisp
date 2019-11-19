@@ -45,6 +45,39 @@
       (slot-value task 'loop-p)
       (slot-value (slot-value task 'item) 'loop-p)))
 
+(defun task-pattern (task)
+  "Attempt to get the pattern that TASK is playing. Returns nil if the pattern couldn't be found.
+
+See also: `pattern-tasks', `clock-tasks'"
+  (with-slots (item) task
+    (when (slot-boundp item 'source)
+      (slot-value item 'source))))
+
+(defun pattern-tasks (pattern &optional (clock *clock*))
+  "Attempt to get the tasks that are playing PATTERN.
+
+See also: `task-pattern', `clock-tasks'"
+  (remove-if-not (lambda (i)
+                   (let ((item (slot-value i 'item)))
+                     (or (eq pattern item)
+                         (let ((source (slot-value item 'source)))
+                           (or (eq pattern source)
+                               (when (typep source 'pdef)
+                                 (or (and (typep pattern 'pdef)
+                                          (eql (pdef-key source) (pdef-key pattern)))
+                                     (eq pattern (pdef-pattern source)))))))))
+                 (slot-value clock 'tasks)))
+
+(defun playing-pdefs (&optional (clock *clock*))
+  "Get a list of the names of all pdefs playing on CLOCK."
+  (loop :for task :in (clock-tasks clock)
+     :collect (slot-value (slot-value task 'item) 'key)))
+
+(defun pdefs-playing (&optional (clock *clock*))
+  "Deprecated alias for `playing-pdefs'"
+  (warn "pdefs-playing is deprecated; please use `playing-pdefs' instead.")
+  (apply 'playing-pdefs (list clock)))
+
 (defun make-clock (&optional (tempo 1))
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
 
@@ -88,13 +121,22 @@ See also: `clock-add', `stop', `end'"
                  eq))
              tasks)))))
 
+(defun clock-tasks (&optional (clock *clock*))
+  "Get a list of all tasks running on CLOCK.
+
+See also: `pattern-tasks'"
+  (slot-value clock 'tasks))
+
 (defun clock-clear-tasks (&optional (clock *clock*))
-  "Remove all tasks from CLOCK."
-  (dolist (task (slot-value clock 'tasks))
-    (clock-remove task clock)))
+  "Remove all tasks from CLOCK.
+
+See also: `clock-tasks'"
+  (mapc (lambda (task) (clock-remove task clock)) (clock-tasks clock)))
 
 (defun clock-process (clock beats)
-  "Process any of CLOCK's tasks that occur in the next BEATS beats."
+  "Process any of CLOCK's tasks that occur in the next BEATS beats.
+
+See also: `clock-loop', `clock-tasks', `make-clock'"
   (let* ((sbeat (slot-value clock 'beat))
          (ebeat (+ sbeat beats)))
     (labels ((clock-process-task (task &optional (times 0))
@@ -214,8 +256,7 @@ See also: `clock-loop'"
 
 (defmethod play ((pdef pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway.
   (with-slots (key) pdef
-    (unless (position (pdef-ref-get key :task)
-                      (slot-value *clock* 'tasks))
+    (unless (position (pdef-ref-get key :task) (clock-tasks *clock*))
       (let ((task (call-next-method)))
         (when (typep task 'task)
           (pdef-ref-set key :task task)
@@ -271,18 +312,14 @@ See also: `clock-loop'"
 (defmethod end ((item task))
   (setf (slot-value item 'loop-p) nil))
 
-(defun pdefs-playing (&optional (clock *clock*)) ;; FIX: rename to playing-pdefs (to be consistent with the naming scheme of `all-pdefs')
-  "Get a list of the names of all pdefs playing on CLOCK."
-  (loop :for i :in (slot-value clock 'tasks)
-     :collect (slot-value (slot-value i 'item) 'key)))
 (defmethod end ((list list))
   (mapcar 'end list))
 
 (defmethod playing-p ((task task) &optional (clock *clock*))
-  (position task (slot-value clock 'tasks)))
+  (position task (clock-tasks clock)))
 
 (defmethod playing-p ((pdef pdef) &optional (clock *clock*))
-  (position pdef (slot-value clock 'tasks)))
+  (position pdef (clock-tasks clock)))
 
 (defmethod playing-p ((key symbol) &optional (clock *clock*))
   (position key (pdefs-playing clock)))
