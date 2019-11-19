@@ -204,6 +204,4 @@
    #:clock-tasks
    #:clock-process
    #:clock-loop
-   #:start-clock-loop
-
-   ))
+   #:start-clock-loop))

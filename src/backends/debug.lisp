@@ -25,7 +25,7 @@
   "Clear the log of events captured by the cl-patterns debug backend."
   (setf *debug-backend-events* (list)))
 
-(defparameter *debug-print-events* t
+(defparameter *debug-print-events* nil
   "If T, the debug backend will print events it plays; if NIL, it will only record them to `*debug-backend-events*'.")
 
 (export '(debug-recent-events debug-clear-events *debug-print-events*))

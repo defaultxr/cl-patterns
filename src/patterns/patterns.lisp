@@ -344,7 +344,7 @@ See also: `last-output'"))
             (decf (slot-value pstream 'beat) (event-value nxt :delta)))
           (setf pstream-offset (1- c-offset)))))))
 
-(defmethod next :around ((pattern pstream))
+(defmethod next :around ((pstream pstream))
   (labels ((pattern-embed (pattern embed)
              (assert (typep pattern 'pstream) (pattern))
              (let ((pstr (as-pstream embed)))
@@ -369,19 +369,19 @@ See also: `last-output'"))
                   (pattern-embed pattern res)
                   (get-value-from-stack pattern))
                  (t res)))))
-    (with-slots (pstream-offset) pattern
+    (with-slots (pstream-offset) pstream
       (if (minusp pstream-offset)
           (prog1
-              (pstream-elt pattern pstream-offset)
+              (pstream-elt pstream pstream-offset)
             (incf pstream-offset))
-          (let ((result (get-value-from-stack pattern)))
+          (let ((result (get-value-from-stack pstream)))
             (when (typep result 'event)
               (setf result (copy-event result))
               (when (and (null (beat result))
-                         (null (slot-value pattern 'parent)))
-                (setf (beat result) (beat pattern)))
-              (incf (slot-value pattern 'beat) (event-value result :delta)))
-            (alexandria:appendf (slot-value pattern 'history) (list result)) ;; FIX: don't append, push.
+                         (null (slot-value pstream 'parent)))
+                (setf (beat result) (beat pstream)))
+              (incf (slot-value pstream 'beat) (event-value result :delta)))
+            (alexandria:appendf (slot-value pstream 'history) (list result)) ;; FIX: don't append, push.
             result)))))
 
 (defgeneric as-pstream (thing)
@@ -494,9 +494,9 @@ See also: `pstream-elt'"
       (loop :while (should-advance)
          :do (next pstream)) ;; FIX: use peek instead (and make sure (play (pbind :freq (pseq (a 440 550 660 770) 1) :dur 1)) sounds correct when this change is made!)
       (if (>= n 0)
-          (nth n history)
+          (elt history n)
           (let ((sub-history (subseq history 0 (position nil history))))
-            (nth (+ n (length sub-history)) sub-history))))))
+            (elt sub-history (+ n (length sub-history))))))))
 
 (defgeneric parent-pattern (pattern)
   (:documentation "Get the containing pattern of PATTERN, or NIL if there isn't one.
@@ -1010,7 +1010,7 @@ Example:
 ;; (next-upto-n (pr (pseries) (pseq '(1 3 0 2) 1)))
 ;; ;; => (0 1 1 1 3 3)
 
-See also: `pstutter', `pdurstutter', `pn', `pdrop', `parp'")
+See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defmethod as-pstream ((pattern pr))
   (with-slots (pattern repeats) pattern
@@ -1924,7 +1924,7 @@ See also: `pfindur'")
                 (combine-events n-event (event :dur (- maxdur elapsed-dur)))
                 n-event))))))
 
-;;; pstutter
+;;; pstutter ;; DEPRECATED - use `pr' instead
 
 (defpattern pstutter (pattern)
   (pattern
@@ -1944,6 +1944,7 @@ Example:
 See also: `pr', `pdurstutter'")
 
 (defmethod as-pstream ((pstutter pstutter))
+  (warn "pstutter is deprecated; please use pr instead.")
   (with-slots (n pattern) pstutter
     (make-instance 'pstutter-pstream
                    :pattern (as-pstream pattern)
@@ -1979,7 +1980,7 @@ Example:
 ;;
 ;; => ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
 
-See also: `pr', `pstutter'")
+See also: `pr'")
 
 (defmethod as-pstream ((pdurstutter pdurstutter))
   (with-slots (pattern n) pdurstutter
@@ -2089,6 +2090,7 @@ See also: `pwalk', `pswitch'")
 ;;; prun
 ;; FIX: make this work on event patterns too (make DUR a duration multiplier)
 ;; FIX: should give a more helpful error or warning message when used outside of a pbind.
+;; FIX: check if this is the exact same as SC's Pstep
 
 (defpattern prun (pattern)
   (pattern

@@ -57,6 +57,9 @@ A Common Lisp interface to gnuplot, a command line-driven cross-platform graphin
 ** [[https://github.com/vseloved/rutils][rutils]]
 "Radical Utilities for Common Lisp". Extends Common Lisp with many additional functions and syntactic sugar, but unlike CL21 it remains backwards compatible with standard Common Lisp.
 
+** [[https://github.com/alex-gutev/generic-cl/][generic-cl]]
+Provides generic function wrappers over various functions in the Common Lisp standard, such as equality predicates and sequence operations. The goal of this wrapper is to provide a standard interface to common operations, such as testing for the equality of two objects, which is extensible to user-defined types.
+
 ** [[https://github.com/rongarret/ergolib][ergolib]]
 "A library designed to make programming in Common Lisp easier".
 
