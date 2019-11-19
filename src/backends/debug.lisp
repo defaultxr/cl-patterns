@@ -25,11 +25,15 @@
   "Clear the log of events captured by the cl-patterns debug backend."
   (setf *debug-backend-events* (list)))
 
-(export '(debug-recent-events debug-clear-events))
+(defparameter *debug-print-events* t
+  "If T, the debug backend will print events it plays; if NIL, it will only record them to `*debug-backend-events*'.")
+
+(export '(debug-recent-events debug-clear-events *debug-print-events*))
 
 (defmethod backend-play-event (item task (backend (eql :debug)))
   (declare (ignore task))
-  (format t "~&Debug: playing event: ~s~%" item)
+  (when *debug-print-events*
+    (format t "~&Debug: playing event: ~s~%" item))
   (push item *debug-backend-events*))
 
 (defmethod backend-task-removed (task (backend (eql :debug)))
