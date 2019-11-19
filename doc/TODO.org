@@ -162,3 +162,7 @@ see [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
 - perhaps use ~'cl-patterns:end~ as the end-of-pattern symbol instead? the symbol is already exported anyway, however it does refer to the ~end~ method
 - perhaps make a ~'cl-patterns:eop~ ("end of pattern") symbol?
 * pattern that "curves" the time of another pattern (basically like the ~curve~ parameter for SuperCollider's envelopes does)
+* [[https://github.com/carrierdown/mutateful][mutateful]]-inspired pattern mini-language
+https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
+* curve parameter for ~pdurstutter~/~pstutter~
+** maybe also a way to apply dur curves in general, i.e. so it can be used in ~parp~ as well?

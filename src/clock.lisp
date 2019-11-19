@@ -29,7 +29,7 @@
   (setf (tempo *clock*) number))
 
 (defclass task ()
-  ((item :initarg :item :initform nil :documentation "The actual playing item that the task refers to.")
+  ((item :initarg :item :initform nil :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
    (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
    (start-beat :initarg :start-beat :initform nil :documentation "The beat of the clock when the task started.")
    (clock :initarg :clock :documentation "The clock that the task is running on."))
@@ -52,18 +52,22 @@ To make and start the clock, run `clock-loop' on a new thread, like so:
 
 ;; (bt:make-thread (lambda () (clock-loop *clock*)) :name \"cl-patterns clock-loop\")
 
-Alternatively, you can call `clock-process' manually to process N beats on the clock."
   (let ((clock (make-instance 'clock :tempo tempo)))
     (dolist (task tasks)
       (clock-add task clock))
     clock))
+Alternatively, you can call `clock-process' manually to process N beats on the clock.
+
+See also: `clock-loop', `clock-process'"
 
 (defmethod print-object ((clock clock) stream)
   (with-slots (tempo beat) clock
     (format stream "#<~s :tempo ~s :beat ~f>" 'clock tempo beat)))
 
 (defun clock-add (item &optional (clock *clock*))
-  "Add ITEM to CLOCK's tasks."
+  "Add ITEM to CLOCK's tasks. Generally you don't need to use this directly and would use `play' instead.
+
+See also: `clock-remove', `play'"
   (when (null clock)
     (error "cl-patterns clock is NIL; perhaps try (defparameter *clock* (make-clock)) or (start-clock-loop)"))
   (with-slots (tasks tasks-lock) clock
@@ -73,7 +77,9 @@ Alternatively, you can call `clock-process' manually to process N beats on the c
         task))))
 
 (defun clock-remove (task &optional (clock *clock*))
-  "Remove TASK from CLOCK's tasks."
+  "Remove TASK from CLOCK's tasks. Generally you don't need to use this directly and would use `stop' or `end' instead.
+
+See also: `clock-add', `stop', `end'"
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
       (setf tasks

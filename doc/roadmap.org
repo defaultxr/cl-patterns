@@ -6,7 +6,9 @@ This is just a general overview of where this library is going. For more specifi
 
 * 0.5
 
-** clean up ~clock.lisp~ (use univeral time, etc)
+** clean up ~clock.lisp~
+- perhaps use something other than ~local-time~
+- etc
 
 ** DONE clean up ~event.lisp~ (improve ~event-method~, ~event-translation-method~, the ~event~ class, etc)
 CLOSED: [2017-10-25 Wed 18:49]
@@ -16,13 +18,16 @@ CLOSED: [2017-07-06 Thu 03:07]
 
 * 1.0
 
-** SuperCollider backend
+** DONE SuperCollider backend
+CLOSED: [2019-11-09 Sat 15:17]
 
 ** implementation of most common/useful SuperCollider patterns (see [[file:sc.org][sc.org]])
 
-** [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests]] for all patterns, event keys, clock, etc
+** DONE [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests]] for all patterns, event keys, clock, etc
+CLOSED: [2019-11-09 Sat 15:17]
 
-** documentation for all patterns and exported symbols
+** DONE documentation for all patterns and exported symbols
+CLOSED: [2019-11-09 Sat 15:17]
 
 ** remove all (or most) "FIX"es in the code
 

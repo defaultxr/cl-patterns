@@ -16,6 +16,9 @@ The original Lisp music library. This repository is a fork of the last version b
 ** [[https://github.com/zkat/cl-openal][cl-openal]]
 Lisp bindings to the [[https://www.openal.org/][OpenAL]] audio API, a cross-platform 3D audio API appropriate for use with gaming applications and many other types of audio applications.
 
+** [[https://github.com/Shirakumo/harmony][Harmony]]
+A Common Lisp sound system. Most suited for use in a game system, but may feasibly also be used for more advanced things such as an audio processing tool.
+
 * Common Lisp audio-related
 
 Extensions and convenience functionality useful when working with the systems above.
