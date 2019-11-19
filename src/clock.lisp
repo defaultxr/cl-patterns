@@ -322,7 +322,7 @@ See also: `clock-loop'"
   (position pdef (clock-tasks clock)))
 
 (defmethod playing-p ((key symbol) &optional (clock *clock*))
-  (position key (pdefs-playing clock)))
+  (position key (playing-pdefs clock)))
 
 (defmethod playing-p ((list list) &optional (clock *clock*))
   (mapcar (lambda (item) (playing-p item clock)) list))

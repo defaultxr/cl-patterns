@@ -277,7 +277,7 @@ See also: `end', `play'"))
 (defgeneric playing-p (item &optional clock)
   (:documentation "Whether ITEM is playing.
 
-See also: `play-or-stop', `play-or-end', `pdefs-playing'"))
+See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
 
 (defgeneric loop-p (item)
   (:documentation "Whether or not ITEM should play again after it ends."))
