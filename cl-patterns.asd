@@ -76,7 +76,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "FiveAM-based tests suite for cl-patterns."
   :license "MIT"
-  :depends-on (#:cl-patterns
+  :depends-on (#:cl-patterns/debug
                #:fiveam
                #:cl-org-mode
                #:cl-ppcre)

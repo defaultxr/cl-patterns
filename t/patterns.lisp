@@ -831,7 +831,11 @@
 (test pmeta
   "Test pmeta"
   ;; FIX
-  )
+  (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
+    (pdef :foo (pbind :dur (pwhite 0.5 2.0 8)))
+    (is (= 4
+           (reduce #'+ (mapcar #'dur (next-upto-n (pmeta (pbind :dur 4 :pattern (pseq (list :foo) 1)))))))
+        "pmeta's :dur key doesn't work properly")))
 
 (test pts
   "Test pts"
