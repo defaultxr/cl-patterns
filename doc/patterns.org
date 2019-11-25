@@ -28,6 +28,7 @@ Patterns that generate random numbers.
 - ~pwhite~ - White noise pattern; random numbers evenly distributed within a range.
 - ~pbrown~ - Brownian motion pattern; random numbers within a range, where each number is a maximum amount away from the previous output.
 - ~pexprand~ - Exponentially-distributed random numbers.
+- ~pgauss~ - Gaussian-distributed random numbers.
 
 * Math patterns
 Patterns whose outputs are the results of math operations on other patterns.

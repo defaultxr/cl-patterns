@@ -123,7 +123,7 @@ Example:
 (defun random-range (low &optional high)
   "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW).
 
-See also: `exponential-random-range'"
+See also: `exponential-random-range', `gauss'"
   (if high
       (let ((rval (- high low)))
         (+ low
@@ -149,11 +149,20 @@ See also: `exponential-random-range'"
 (defun exponential-random-range (low high) ;; adapted from supercollider/include/plugin_interface/SC_RGen.h
   "Generate a random number between LOW and HIGH, with exponential distribution.
 
-See also: `random-range'"
+See also: `random-range', `gauss'"
   (* low
      (exp (* (log (/ high
                      low))
              (random 1.0)))))
+
+(defun gauss (mean standard-deviation)
+  "Generate a random number from a normal (Gaussian) distribution.
+
+See also: `random-range', `exponential-random-range'"
+  (+ (* (sqrt (* -2 (log (random 1.0))))
+        (sin (random (* 2 pi)))
+        standard-deviation)
+     mean))
 
 (defun seq (&key start end limit step (default :mean))
   "Generate a sequence of numbers as a list.

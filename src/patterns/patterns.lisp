@@ -1330,6 +1330,37 @@ See also: `pwhite', `pbrown', `prand'")
                             (nhi (next hi)))
         (exponential-random-range nlo nhi)))))
 
+;;; pgauss
+
+(defpattern pgauss (pattern)
+  ((mean :default 0.0)
+   (deviation :default 1.0)
+   (length :default :inf)
+   (current-repeats-remaining :state t))
+  "Yields random numbers along a normal (gaussian) distribution. MEAN is the \"center\" of the distribution, DEVIATION is the standard deviation (i.e. the higher the value, the further the outputs are spread from MEAN).
+
+Example:
+
+;; (next-n (pgauss) 4)
+;; ;=> (0.08918811646370092d0 0.1745957067161632d0 0.7954678768273173d0 -1.2215823449671597d0)
+
+See also: `pwhite', `pexprand', `pbrown'")
+
+(defmethod as-pstream ((pgauss pgauss))
+  (with-slots (mean deviation length) pgauss
+    (make-instance 'pgauss-pstream
+                   :mean (pattern-as-pstream mean)
+                   :deviation (pattern-as-pstream deviation)
+                   :length (as-pstream length))))
+
+(defmethod next ((pgauss pgauss-pstream))
+  (with-slots (mean deviation) pgauss
+    (when (remaining-p pgauss 'length)
+      (decf-remaining pgauss 'current-repeats-remaining)
+      (alexandria:when-let ((nmean (next mean))
+                            (ndev (next deviation)))
+        (gauss nmean ndev)))))
+
 ;;; pseries
 
 (defpattern pseries (pattern)

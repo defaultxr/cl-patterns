@@ -70,7 +70,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pbeta~
 - ~Pgbrown~
 - ~Pcauchy~
-- ~Pgauss~
+- ~Pgauss~ - done as ~pgauss~.
 - ~Pseries~ - done as ~pseries~.
 - ~Pgeom~ - done as ~pgeom~.
 - ~Phprand~

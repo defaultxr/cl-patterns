@@ -12,6 +12,7 @@
    #:random-coin
    #:random-range
    #:exponential-random-range
+   #:gauss
    #:seq
    #:seq-range
    #:next-beat-for-quant

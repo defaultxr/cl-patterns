@@ -489,6 +489,10 @@
   ;; FIX
   )
 
+(test pgauss
+  (is (= 8 (length (next-upto-n (pgauss 8 8 8))))
+      "pgauss yields the wrong number of outputs"))
+
 (test pseries
   "Test pseries"
   (is (equal (alexandria:iota 64)
