@@ -71,7 +71,9 @@ See also: `task-pattern', `clock-tasks'"
 (defun playing-pdefs (&optional (clock *clock*))
   "Get a list of the names of all pdefs playing on CLOCK."
   (loop :for task :in (clock-tasks clock)
-     :collect (slot-value (slot-value task 'item) 'key)))
+     :for item = (slot-value task 'item)
+     :if (ignore-errors (slot-boundp item 'key))
+     :collect (slot-value item 'key)))
 
 (defun pdefs-playing (&optional (clock *clock*))
   "Deprecated alias for `playing-pdefs'"
