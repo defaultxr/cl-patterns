@@ -382,7 +382,8 @@ Additionally, because :define-methods is true, we can also do the following:
   :define-methods t)
 
 (define-event-special-key scale (t :major)
-  :remove-keys (:freq :midinote))
+  :remove-keys (:freq :midinote)
+  :define-methods t)
 
 (define-event-special-key base-freq (:base-note (midinote-freq (event-value event :base-note))
                                                 t 440))
