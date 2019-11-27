@@ -1250,7 +1250,14 @@ See also: `prand'")
    (hi :default 1)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "pwhite yields LENGTH random numbers between LO and HI.")
+  "Linearly-distributed random numbers between LO and HI, inclusive.
+
+Example:
+
+;; (next-upto-n (pwhite 0 10 16))
+;; ;=> (7 2 4 5 7 10 4 8 10 2 3 5 9 2 5 4)
+
+See also: `pexprand', `pbrown', `pgauss', `prand'")
 
 (defmethod as-pstream ((pattern pwhite))
   (with-slots (lo hi length) pattern
@@ -1276,7 +1283,14 @@ See also: `prand'")
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t :initform nil))
-  "pbrown implements brownian motion, yielding LENGTH values between LO and HI, each value a maximum of STEP away from the previous value.")
+  "Brownian motion within a range; each output a maximum of STEP away from the previous. LO and HI define the lower and upper bounds of the range.
+
+Example:
+
+;; (next-upto-n (pbrown 0 10 1 10))
+;; ;=> (2 3 3 3 4 3 4 5 6 5)
+
+See also: `pwhite', `pexprand', `pgauss'")
 
 (defmethod as-pstream ((pattern pbrown))
   (with-slots (lo hi step length) pattern
@@ -1306,26 +1320,26 @@ See also: `prand'")
    (hi :default 1)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Yields exponentially-distributed random numbers between LO and HI.
+  "Exponentially-distributed random numbers between LO and HI. Note that LO and HI cannot be 0, and that LO and HI must have the same sign or else complex numbers will be output.
 
 Example:
 
 ;; (next-upto-n (pexprand 1.0 8.0 4))
-;; ;; => (2.710497 2.782872 1.4438503 1.9216299)
+;; ;=> (1.0420843091865208d0 1.9340168112124456d0 2.173209129035095d0 4.501371557329618d0)
 
-See also: `pwhite', `pbrown', `prand'")
+See also: `pwhite', `pbrown', `pgauss', `prand'")
 
-(defmethod as-pstream ((pattern pexprand))
-  (with-slots (lo hi length) pattern
+(defmethod as-pstream ((pexprand pexprand))
+  (with-slots (lo hi length) pexprand
     (make-instance 'pexprand-pstream
                    :lo (pattern-as-pstream lo)
                    :hi (pattern-as-pstream hi)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pexprand-pstream))
-  (with-slots (lo hi) pattern
-    (when (remaining-p pattern 'length)
-      (decf-remaining pattern 'current-repeats-remaining)
+(defmethod next ((pexprand pexprand-pstream))
+  (with-slots (lo hi) pexprand
+    (when (remaining-p pexprand 'length)
+      (decf-remaining pexprand 'current-repeats-remaining)
       (alexandria:when-let ((nlo (next lo))
                             (nhi (next hi)))
         (exponential-random-range nlo nhi)))))
@@ -1337,7 +1351,7 @@ See also: `pwhite', `pbrown', `prand'")
    (deviation :default 1.0)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Yields random numbers along a normal (gaussian) distribution. MEAN is the \"center\" of the distribution, DEVIATION is the standard deviation (i.e. the higher the value, the further the outputs are spread from MEAN).
+  "Random numbers distributed along a normal (gaussian) curve. MEAN is the \"center\" of the distribution, DEVIATION is the standard deviation (i.e. the higher the value, the further the outputs are spread from MEAN).
 
 Example:
 
@@ -1401,8 +1415,8 @@ See also: `pseries*', `pgeom', `paccum'")
 
 ;;; pseries*
 
-(defun pseries* (&optional (start 0) (end 1) (length 16))
-  "Syntax sugar to generate a `pseries' whose values go from START to END linearly over LENGTH steps. LENGTH cannot be infinite since delta calculation requires dividing by it.
+(defun pseries* (&optional (start 0) (end 1) length)
+  "Syntax sugar to generate a `pseries' whose values go from START to END linearly over LENGTH steps. If LENGTH is not provided, it is calculated such that the step will be 1. Note that LENGTH cannot be infinite since delta calculation requires dividing by it.
 
 Based on the Pseries extension from the ddwPatterns SuperCollider library.
 
