@@ -141,8 +141,6 @@
    #:next-n
    #:next-upto-n
    #:pstream
-   #:pstream-nth
-   #:pstream-nth-future
    #:pstream-elt
    #:pstream-elt-future
    #:parent-pattern
