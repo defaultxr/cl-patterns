@@ -139,6 +139,9 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
 - [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
 
+*** formats
+
+- [[file:src/formats/midifile.lisp][midifile.lisp]] - functionality to interact with MIDI files (load the ~cl-patterns/midifile~ system to use this).
 ** t
 
 contains the files for the [[https://github.com/sionescu/fiveam][FiveAM]]-based test suite for the library.

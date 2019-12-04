@@ -75,6 +75,16 @@
   :serial t
   :components ((:file "src/backends/alsa-midi")))
 
+(asdf:defsystem #:cl-patterns/midifile
+  :name "cl-patterns/midifile"
+  :author "modula t. <defaultxr@gmail.com>"
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp with MIDI file functionality."
+  :license "MIT"
+  :version "0.6"
+  :depends-on (#:cl-patterns
+               #:midi)
+  :serial t
+  :components ((:file "src/formats/midifile")))
 (asdf:defsystem #:cl-patterns/tests
   :name "cl-patterns/tests"
   :author "modula t. <defaultxr@gmail.com>"
