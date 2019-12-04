@@ -88,7 +88,7 @@ See also: `every-event-equal', `events-lists-differing-keys'"
                        events)
           :collect key))
 
-(defun events-lists-differing-keys (&rest lists)
+(defun events-lists-differing-keys (&rest lists) ;; FIX: what is this for? is it needed?
   "Get a list of the keys that differ between respective event in LISTS.
 
 Example:

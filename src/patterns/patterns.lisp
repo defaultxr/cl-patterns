@@ -232,14 +232,15 @@ See also: `events-after-p'"))
 ;;; pstream
 
 (defclass pstream (pattern)
-  ((number :initform 0 :documentation "The number of outputs yielded from the pstream.")
-   (source :documentation "The source object (i.e. pattern) that this pstream was created from.")
+  ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
-   (history :initform (list) :documentation "The history of outputs yielded by the pstream.")
+   (source :documentation "The source object (i.e. pattern) that this pstream was created from.")
+   (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
    (beat :initform 0 :reader beat :documentation "The number of beats that have elapsed since the start of the pstream.")
-   (start-beat :initarg :start-beat :initform nil :documentation "The beat number of the parent pstream when this pstream started.") ;; FIX: remove?
-   (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1.")
-   (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times previously a pstream was made of this pstream's parent. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0."))
+   (history :initform (list) :documentation "The history of outputs yielded by the pstream.") ;; FIX: remove?
+   (history-length :initform 0 :documentation "The number of items in this pstream's history (differs from the number slot in that all outputs are immediately included in its count).") ;; FIX: implement this and use it in sequence-extensions
+   (start-beat :initarg :start-beat :initform nil :documentation "The beat number of the parent pstream when this pstream started.")
+   (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
 (defmethod print-object ((pstream pstream) stream)
@@ -1063,7 +1064,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
                                  (funcall repeats)
                                  (funcall repeats current-value))
                              (handler-case
-                                 (funcall repeats current-value)
+                                 (funcall repeats current-value) ;; FIX: just provide the current-value as a key in *event*
                                #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
                                         (declare (ignore e))
                                         (funcall repeats)))))
@@ -1344,6 +1345,7 @@ See also: `pwhite', `pexprand', `pgauss'")
 
 ;;; pexprand
 ;; FIX: should integer inputs result in integer outputs?
+;; FIX: assert against 0 as an input
 
 (defpattern pexprand (pattern)
   ((lo :default 0.0001)
@@ -1836,7 +1838,7 @@ See also: `phistory'")
 Example:
 
 ;; (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4))) 5)
-;; ;; => (1 2 3 NIL 4)")
+;; ;=> (1 2 3 NIL 4)")
 
 (defmethod as-pstream ((pif pif))
   (with-slots (test true false) pif
@@ -1928,7 +1930,6 @@ See also: `pfindur'")
 Example:
 
 ;; (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3)
-;;
 ;; => ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
 
 See also: `pfin', `psync'")
@@ -1936,7 +1937,7 @@ See also: `pfin', `psync'")
 (defmethod as-pstream ((pfindur pfindur))
   (with-slots (pattern dur tolerance) pfindur
     (make-instance 'pfindur-pstream
-                   :pattern (as-pstream pattern)
+                   :pattern (pattern-as-pstream pattern)
                    :dur (as-pstream dur)
                    :tolerance (next tolerance))))
 
@@ -2042,6 +2043,7 @@ See also: `pr', `pdurstutter'")
       current-value)))
 
 ;;; pdurstutter
+;; FIX: make a version where events skipped with 0 are turned to rests instead (to keep the correct dur)
 
 (defpattern pdurstutter (pattern)
   (pattern
@@ -2053,12 +2055,12 @@ See also: `pr', `pdurstutter'")
 Example:
 
 ;; (next-n (pdurstutter (pseq '(1 2 3 4 5)) (pseq '(3 2 1 0 2))) 9)
+;; ;=> (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
 ;;
-;; => (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
-;;
-;; (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5))) (pseq '(3 2 1 0 2))) 9)
-;;
-;; => ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
+;; (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5)))
+;;                      (pseq '(3 2 1 0 2)))
+;;         9)
+;; ;=> ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
 
 See also: `pr'")
 

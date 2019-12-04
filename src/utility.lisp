@@ -153,7 +153,7 @@ See also: `random-range', `gauss'"
   (* low
      (exp (* (log (/ high
                      low))
-             (random 1.0)))))
+             (random 1d0)))))
 
 (defun gauss (mean standard-deviation)
   "Generate a random number from a normal (Gaussian) distribution.
