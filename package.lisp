@@ -197,7 +197,6 @@
    #:task-pattern
    #:pattern-tasks
    #:playing-pdefs
-   #:pdefs-playing
 
    #:make-clock
    #:clock-tasks
