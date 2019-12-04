@@ -665,6 +665,9 @@ See also: `pbind', `pdef'"
 ;; (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well. maybe just rename to 'synth'?
 ;;   (list :instrument value))
 
+(define-pbind-special-init-key loop-p
+  (setf (loop-p pattern) value))
+
 (defmacro define-pbind-special-wrap-key (key &body body)
   "Define a special key for pbind that replaces the pbind with another pattern during the pbind's initialization. Each encapsulation key is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
   (let ((keyname (alexandria:make-keyword key)))
