@@ -2005,43 +2005,6 @@ See also: `pfindur'")
                 (combine-events n-event (event :dur (- maxdur elapsed-dur)))
                 n-event))))))
 
-;;; pstutter ;; DEPRECATED - use `pr' instead
-
-(defpattern pstutter (pattern)
-  (pattern
-   n
-   (current-value :state t :initform nil)
-   (current-repeats-remaining :state t :initform 0))
-  "DEPRECATED - use `pr' instead as its funtionality is a superset of pstutter's.
-
-pstutter yields each output from PATTERN N times before moving on to the next output from PATTERN.
-
-Example:
-
-;; (next-n (pstutter (pseries) (pseq '(3 2 1 0 2) 1)) 9)
-;;
-;; => (0 0 0 1 1 2 4 4 NIL)
-
-See also: `pr', `pdurstutter'")
-
-(defmethod as-pstream ((pstutter pstutter))
-  (warn "pstutter is deprecated; please use pr instead.")
-  (with-slots (n pattern) pstutter
-    (make-instance 'pstutter-pstream
-                   :pattern (as-pstream pattern)
-                   :n (pattern-as-pstream n))))
-
-(defmethod next ((pattern pstutter-pstream))
-  (with-slots (n current-value current-repeats-remaining) pattern
-    (loop :while (and (not (null current-repeats-remaining))
-                      (= 0 current-repeats-remaining))
-       :do
-         (setf current-value (next (slot-value pattern 'pattern)))
-         (setf current-repeats-remaining (next n)))
-    (when (not (null current-repeats-remaining))
-      (decf-remaining pattern 'current-repeats-remaining)
-      current-value)))
-
 ;;; pdurstutter
 ;; FIX: make a version where events skipped with 0 are turned to rests instead (to keep the correct dur)
 
