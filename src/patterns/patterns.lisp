@@ -1637,6 +1637,11 @@ See also: `pfunc'"
   "p/ divides NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
   (apply #'pnary #'/ numbers))
 
+(defun prerange (input from-range to-range)
+  (pnary #'rerange input from-range to-range))
+
+(export 'prerange)
+
 ;;; pslide
 
 (defpattern pslide (pattern)

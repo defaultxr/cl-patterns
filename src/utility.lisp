@@ -298,6 +298,39 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
         nil)
       (play item)))
 
+;;; range stuff
+
+(defun from-range (input map)
+  "Unmap INPUT from the range specified by MAP to the range [0..1].
+
+See also: `to-range', `rerange'"
+  (destructuring-bind (&optional (min 0) (max 1) (warp :linear)) map
+    (case warp
+      ((:lin :linear 0) (/ (- input min) (- max min)))
+      ((:exp :exponential 1) (/ (log (/ input min))
+                                (log (/ max min))))
+      ((:cos :cosine) (error "not done yet!"))
+      (t (error "not done yet!")) ;; curve (other)
+      )))
+
+(defun to-range (input map)
+  "Map INPUT from the range [0..1] to the range specified by MAP.
+
+See also: `from-range', `rerange'"
+  (destructuring-bind (&optional (min 0) (max 1) (warp :linear)) map
+    (case warp
+      ((:ste :step :stp) (if (zerop input) min max))
+      ((:hol :hold :hld) (if (< input 1) min max))
+      ((:lin :linear 0) (+ min (* input (- max min))))
+      ((:exp :exponential 1) (* min (expt (/ max min) input)))
+      (t (error "not done yet!")))))
+
+(defun rerange (input from-range to-range)
+  "Unmap INPUT from FROM-RANGE and re-map it to the range TO-RANGE.
+
+See also: `to-range', `from-range'"
+  (to-range (from-range input from-range) to-range))
+
 ;;; MIDI stuff
 
 (defun midi-truncate-clamp (number &optional (max 127))
