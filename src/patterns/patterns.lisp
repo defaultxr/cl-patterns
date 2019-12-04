@@ -231,7 +231,7 @@ See also: `events-after-p'"))
 
 ;;; pstream
 
-(defclass pstream (pattern)
+(defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
    (source :documentation "The source object (i.e. pattern) that this pstream was created from.")

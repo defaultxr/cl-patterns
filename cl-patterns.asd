@@ -25,7 +25,11 @@
                (:file "src/patterns/cycles")
                (:file "src/patterns/tracker")
                (:file "src/backend")
-               (:file "src/clock"))
+               (:file "src/clock")
+               ;; implementations don't currently push a symbol to *features* for extensible sequences.
+               ;; the following line tests for the sequence package, which should only be available when extensible-sequence functionality is available.
+               #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or))
+               (:file "src/sequence-extensions"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
 (asdf:defsystem #:cl-patterns/debug

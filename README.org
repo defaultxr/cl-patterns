@@ -122,6 +122,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
+- [[file:src/sequence-extensions.lisp][sequence-extensions.lisp]] - additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].
 
 *** patterns
 
