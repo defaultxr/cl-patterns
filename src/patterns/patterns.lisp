@@ -26,7 +26,7 @@
            (set-parent (slot-value pattern slot) pattern)))
     pattern))
 
-(defmacro defpattern (name superclasses slots &optional documentation creation-function) ;; FIX: should warn if `set-parents' is not called in the creation-function.
+(defmacro defpattern (name superclasses slots &key documentation defun) ;; FIX: should warn if `set-parents' is not called in the creation-function.
   "Define a pattern. This macro automatically generates the pattern's class, its pstream class, and the function to create an instance of the pattern, and makes them external in the cl-patterns package.
 
 NAME is the name of the pattern. Typically a word or two that describes its function, prefixed with p.
@@ -37,7 +37,7 @@ SLOTS is a list of slots that the pattern and pstreams derived from it have. Eac
 
 DOCUMENTATION is a docstring describing the pattern. We recommend providing at least one example, and a \"See also\" section to refer to similar pattern classes.
 
-CREATION-FUNCTION is an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
+DEFUN can either be a full defun form for the pattern, or an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
   (let* ((superclasses (or superclasses (list 'pattern)))
          (slots (mapcar #'alexandria:ensure-list slots))
          (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
@@ -90,7 +90,7 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
            ,(mapcar #'desugar-slot (remove-if #'state-slot-p slots))
            ,@(when documentation
                `((:documentation ,documentation))))
-         ,(unless creation-function ;; FIX: does this work properly for all patterns?
+         ,(unless defun ;; FIX: does this work properly for all patterns?
             `(defmethod print-object ((,name ,name) stream)
                (format stream "#<~s~{ ~s~}>" ',name
                        (mapcar (lambda (slot) (slot-value ,name slot))
@@ -102,14 +102,14 @@ CREATION-FUNCTION is an expression which will be inserted into the pattern creat
          (defclass ,name-pstream (,super-pstream ,name)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
            (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
-         ,(let* ((gen-func-p (or (null creation-function)
-                                 (and (listp creation-function)
-                                      (position (car creation-function) (list 'assert)))))
+         ,(let* ((gen-func-p (or (null defun)
+                                 (and (listp defun)
+                                      (position (car defun) (list 'assert)))))
                  (pre-init (when gen-func-p
-                             creation-function)))
+                             defun)))
             (if gen-func-p
                 (make-defun pre-init)
-                (add-doc-to-defun creation-function)))
+                (add-doc-to-defun defun)))
          (export '(,name ,name-pstream))))))
 
 (defparameter *max-pattern-yield-length* 256
@@ -737,7 +737,7 @@ See also: `pbind'"
    (repeats :default :inf)
    (offset :default 0)
    (current-repeats-remaining :state t))
-  "Sequentially yields items from LIST, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
+  :documentation "Sequentially yields items from LIST, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
 
 Example:
 
@@ -774,7 +774,7 @@ See also: `pser'")
    (offset :default 0)
    (current-repeats-remaining :state t)
    (current-index :state t))
-  "Sequentially yields values from LIST, returning a total of LENGTH values.
+  :documentation "Sequentially yields values from LIST, returning a total of LENGTH values.
 
 Example:
 
@@ -807,7 +807,7 @@ See also: `pseq'")
 (defpattern pk (pattern)
   (key
    (default :default 1))
-  "Gets the value of KEY in the current `*event*' context, returning DEFAULT if that value is nil.
+  :documentation "Gets the value of KEY in the current `*event*' context, returning DEFAULT if that value is nil.
 
 Example:
 
@@ -835,7 +835,7 @@ See also: `pbind', `event-value', `*event*'")
   (list
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Returns random values from LIST.
+  :documentation "Returns random values from LIST.
 
 Example:
 
@@ -862,7 +862,7 @@ See also: `pxrand', `pwrand', `pwxrand'")
    (length :default :inf)
    (last-result :state t :initform nil)
    (current-repeats-remaining :state t))
-  "Returns random values from LIST, never repeating equal values twice in a row.
+  :documentation "Returns random values from LIST, never repeating equal values twice in a row.
 
 Example:
 
@@ -870,7 +870,7 @@ Example:
 ;; ;; => (3 1 2 1)
 
 See also: `prand', `pwrand', `pwxrand'"
-  (assert (> (length (remove-duplicates list)) 1) (list)))
+  :defun (assert (> (length (remove-duplicates list)) 1) (list)))
 
 (defmethod as-pstream ((pattern pxrand))
   (with-slots (list length) pattern
@@ -895,7 +895,7 @@ See also: `prand', `pwrand', `pwxrand'"
    (weights :default (make-list (length list) :initial-element 1))
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Returns random elements from LIST weighted by respective values from WEIGHTS.
+  :documentation "Returns random elements from LIST weighted by respective values from WEIGHTS.
 
 Example:
 
@@ -926,7 +926,7 @@ See also: `prand', `pxrand', `pwxrand'")
    (weights :default (make-list (length list) :initial-element 1))
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Returns random elements from LIST weighted by respective values from WEIGHTS, never repeating equivalent values twice in a row. This is effectively `pxrand' and `pwrand' combined.
+  :documentation "Returns random elements from LIST weighted by respective values from WEIGHTS, never repeating equivalent values twice in a row. This is effectively `pxrand' and `pwrand' combined.
 
 Example:
 
@@ -934,7 +934,7 @@ Example:
 ;; ;; => (1 2 1 2 1 3 1 2 1 2)
 
 See also: `prand', `pxrand', `pwrand'"
-  (assert (> (length (remove-duplicates list)) 1) (list)))
+  :defun (assert (> (length (remove-duplicates list)) 1) (list)))
 
 (defmethod as-pstream ((pattern pwxrand))
   (with-slots (list weights length) pattern
@@ -965,7 +965,7 @@ See also: `prand', `pxrand', `pwrand'"
   (func
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Yields the result of evaluating FUNC. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
+  :documentation "Yields the result of evaluating FUNC. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
 
 Example:
 
@@ -977,7 +977,7 @@ Example:
 ;; ;;     (EVENT :FOO 7 :BAR :GREATER) (EVENT :FOO 8 :BAR :GREATER))
 
 See also: `pf', `pnary'"
-  (assert (typep func 'function) (func)))
+  :defun (assert (typep func 'function) (func)))
 
 (defmethod as-pstream ((pattern pfunc))
   (with-slots (func length) pattern
@@ -1003,7 +1003,7 @@ See also: `pf', `pnary'"
    (repeats :default :inf)
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t))
-  "Repeats each value from PATTERN REPEATS times. If REPEATS is 0, the value is skipped.
+  :documentation "Repeats each value from PATTERN REPEATS times. If REPEATS is 0, the value is skipped.
 
 Example:
 
@@ -1068,7 +1068,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
   ((key :reader pdef-key)
    (current-pstream :state t)
    (loop-p :initform t))
-  "Defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
+  :documentation "Defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
 Example:
 
@@ -1079,11 +1079,11 @@ Example:
 ;; (pdef :foo (pbind :degree (pseries 4 -1 4)))
 
 See also: `all-pdefs', `pb', `pmeta', `ps'"
-  (defun pdef (key &optional (pattern nil pattern-supplied-p))
-    (when pattern-supplied-p
-      (pdef-ref-set key :pattern pattern))
-    (make-instance 'pdef
-                   :key key)))
+  :defun (defun pdef (key &optional (pattern nil pattern-supplied-p))
+           (when pattern-supplied-p
+             (pdef-ref-set key :pattern pattern))
+           (make-instance 'pdef
+                          :key key)))
 
 (defmethod print-object ((pdef pdef) stream)
   (with-slots (key) pdef
@@ -1130,7 +1130,7 @@ See also: `all-patterns'"
    (repeats :default :inf)
    (current-pstream :state t :initform nil)
    (current-repeats-remaining :state t :initform nil))
-  "Evaluates FUNC to generate a pattern, which is then yielded from until its end, at which point FUNC is evaluated again to generate the next pattern. The pattern is generated a total of REPEATS times.
+  :documentation "Evaluates FUNC to generate a pattern, which is then yielded from until its end, at which point FUNC is evaluated again to generate the next pattern. The pattern is generated a total of REPEATS times.
 
 Example:
 
@@ -1183,7 +1183,7 @@ See also: `pfunc'")
    (repeats :default :inf)
    (current-repeats-remaining :state t)
    (current-pstream :state t :initform nil))
-  "pn embeds the full PATTERN into the pstream REPEATS times.")
+  :documentation "pn embeds the full PATTERN into the pstream REPEATS times.")
 
 (defmethod as-pstream ((pn pn)) ;; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
   (with-slots (pattern repeats) pn
@@ -1212,7 +1212,7 @@ See also: `pfunc'")
    (repeats :default :inf)
    (shuffled-list :state t)
    (current-repeats-remaining :state t))
-  "pshuf shuffles LIST, then yields each item from the shuffled list, repeating the list REPEATS times.
+  :documentation "pshuf shuffles LIST, then yields each item from the shuffled list, repeating the list REPEATS times.
 
 Example:
 
@@ -1250,7 +1250,7 @@ See also: `prand'")
    (hi :default 1)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Linearly-distributed random numbers between LO and HI, inclusive.
+  :documentation "Linearly-distributed random numbers between LO and HI, inclusive.
 
 Example:
 
@@ -1283,7 +1283,7 @@ See also: `pexprand', `pbrown', `pgauss', `prand'")
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t :initform nil))
-  "Brownian motion within a range; each output a maximum of STEP away from the previous. LO and HI define the lower and upper bounds of the range.
+  :documentation "Brownian motion within a range; each output a maximum of STEP away from the previous. LO and HI define the lower and upper bounds of the range.
 
 Example:
 
@@ -1320,7 +1320,7 @@ See also: `pwhite', `pexprand', `pgauss'")
    (hi :default 1)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Exponentially-distributed random numbers between LO and HI. Note that LO and HI cannot be 0, and that LO and HI must have the same sign or else complex numbers will be output.
+  :documentation "Exponentially-distributed random numbers between LO and HI. Note that LO and HI cannot be 0, and that LO and HI must have the same sign or else complex numbers will be output.
 
 Example:
 
@@ -1351,7 +1351,7 @@ See also: `pwhite', `pbrown', `pgauss', `prand'")
    (deviation :default 1.0)
    (length :default :inf)
    (current-repeats-remaining :state t))
-  "Random numbers distributed along a normal (gaussian) curve. MEAN is the \"center\" of the distribution, DEVIATION is the standard deviation (i.e. the higher the value, the further the outputs are spread from MEAN).
+  :documentation "Random numbers distributed along a normal (gaussian) curve. MEAN is the \"center\" of the distribution, DEVIATION is the standard deviation (i.e. the higher the value, the further the outputs are spread from MEAN).
 
 Example:
 
@@ -1383,7 +1383,7 @@ See also: `pwhite', `pexprand', `pbrown'")
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t))
-  "Yields START and then generates subsequent values by adding STEP, for a total of LENGTH values yielded.
+  :documentation "Yields START and then generates subsequent values by adding STEP, for a total of LENGTH values yielded.
 
 Example:
 
@@ -1440,7 +1440,7 @@ See also: `pseries', `pgeom', `pgeom*'"
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t))
-  "Yields START, and then generates subsequent values by multiplying by GROW, for a total of LENGTH values yielded.
+  :documentation "Yields START, and then generates subsequent values by multiplying by GROW, for a total of LENGTH values yielded.
 
 Example:
 
@@ -1494,7 +1494,7 @@ See also: `pgeom', `pseries', `pseries*'"
    (key :default nil)
    (stream :default t)
    (prefix :default ""))
-  "ptrace prints to STREAM the PREFIX and then the value of KEY for each event yielded by PATTERN, or the whole event or value if KEY is not provided. ptrace yields everything from the source PATTERN unaffected.")
+  :documentation "ptrace prints to STREAM the PREFIX and then the value of KEY for each event yielded by PATTERN, or the whole event or value if KEY is not provided. ptrace yields everything from the source PATTERN unaffected.")
 
 (defmethod as-pstream ((ptrace ptrace))
   (with-slots (pattern key stream prefix) ptrace
@@ -1520,7 +1520,7 @@ See also: `pgeom', `pseries', `pseries*'"
    (repeats :default :inf)
    (current-repeat :state t)
    (current-repeats-remaining :state t))
-  "place yields each value from LIST in sequence. If the value is a list, the first element of that list is yielded. The second time that sub-list is encountered, its second element will be yielded; the third time, the third element, and so on. REPEATS controls the number of times LIST is repeated.
+  :documentation "place yields each value from LIST in sequence. If the value is a list, the first element of that list is yielded. The second time that sub-list is encountered, its second element will be yielded; the third time, the third element, and so on. REPEATS controls the number of times LIST is repeated.
 
 Example:
 
@@ -1558,7 +1558,7 @@ See also: `ppatlace'")
   (list
    (repeats :default :inf)
    (current-repeats-remaining :state t))
-  "ppatlace yields each value from LIST in sequence. If the value is a pattern, one value is yielded from that pattern before moving on to the next item in LIST. The second time around the LIST, the second value yielded from each pattern in LIST will be yielded instead. If one of the patterns embedded in LIST ends sooner than the others, it is simply removed and the ppatlace continues to yield from the rest of the LIST. The entire LIST is yielded through a total of REPEATS times.
+  :documentation "ppatlace yields each value from LIST in sequence. If the value is a pattern, one value is yielded from that pattern before moving on to the next item in LIST. The second time around the LIST, the second value yielded from each pattern in LIST will be yielded instead. If one of the patterns embedded in LIST ends sooner than the others, it is simply removed and the ppatlace continues to yield from the rest of the LIST. The entire LIST is yielded through a total of REPEATS times.
 
 See also: `place'")
 
@@ -1591,14 +1591,14 @@ See also: `place'")
 (defpattern pnary (pattern)
   (operator
    (patterns :initarg :patterns))
-  "pnary yields the result of applying OPERATOR to each value yielded by each pattern in PATTERNS.
+  :documentation "pnary yields the result of applying OPERATOR to each value yielded by each pattern in PATTERNS.
 
 See also: `pfunc'"
-  (defun pnary (operator &rest patterns)
-    (set-parents
-     (make-instance 'pnary
-                    :operator operator
-                    :patterns patterns))))
+  :defun (defun pnary (operator &rest patterns)
+           (set-parents
+            (make-instance 'pnary
+                           :operator operator
+                           :patterns patterns))))
 
 (defmethod as-pstream ((pattern pnary))
   (with-slots (operator patterns) pattern
@@ -1655,7 +1655,7 @@ See also: `pfunc'"
    (current-repeats :state t :initform nil)
    (remaining-current-segment :state t :initform nil)
    (current-value :state t :initform nil))
-  "pslide slides across sections LIST. REPEATS is the total number of sections to output, LEN the length of the section. STEP the number to increment the start index by after each section, and START is the initial index that the first section starts from. WRAP-AT-END, when true, means that an index outside of the list will wrap around. When false, indexes outside of the list will return nils.
+  :documentation "pslide slides across sections LIST. REPEATS is the total number of sections to output, LEN the length of the section. STEP the number to increment the start index by after each section, and START is the initial index that the first section starts from. WRAP-AT-END, when true, means that an index outside of the list will wrap around. When false, indexes outside of the list will return nils.
 
 Example:
 
@@ -1706,7 +1706,7 @@ See also: `pscratch'")
 (defpattern phistory (pattern)
   (pattern
    step-pattern)
-  "phistory refers back to PATTERN's history, yielding the value at the index provided by STEP-PATTERN. Note that PATTERN is still advanced once per event, and if STEP-PATTERN yields a number pointing to an event in PATTERN that hasn't been yielded yet (i.e. if PATTERN has only advanced once but STEP-PATTERN yields 3 for its output), it will return nil.
+  :documentation "phistory refers back to PATTERN's history, yielding the value at the index provided by STEP-PATTERN. Note that PATTERN is still advanced once per event, and if STEP-PATTERN yields a number pointing to an event in PATTERN that hasn't been yielded yet (i.e. if PATTERN has only advanced once but STEP-PATTERN yields 3 for its output), it will return nil.
 
 Example:
 
@@ -1738,7 +1738,7 @@ See also: `pfuture', `pscratch'")
 (defpattern pfuture (phistory)
   (pattern
    step-pattern)
-  "DEPRECATED - just use `phistory' instead.
+  :documentation "DEPRECATED - just use `phistory' instead.
 
 pfuture gets the first *max-pattern-yield-length* outputs from PATTERN, and then uses STEP-PATTERN to index that history.
 
@@ -1773,7 +1773,7 @@ See also: `phistory', `pscratch'")
   (pattern
    step-pattern
    (current-index :state t :initform 0))
-  "\"Scratches\" across the values yielded by a pstream, similar in concept to how a DJ might scratch a record, altering the normal flow of playback. PATTERN is the source pattern, and STEP-PATTERN determines the increment of the index into the pstream history.
+  :documentation "\"Scratches\" across the values yielded by a pstream, similar in concept to how a DJ might scratch a record, altering the normal flow of playback. PATTERN is the source pattern, and STEP-PATTERN determines the increment of the index into the pstream history.
 
 Based on the pattern originally from the ddwPatterns SuperCollider library.
 
@@ -1801,7 +1801,7 @@ See also: `phistory'")
 
 (defpattern pif (pattern)
   (test true false)
-  "pif acts as an if statement for patterns. TEST is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step. Also note that pif will continue to advance even if TEST yields nil; pif only yields nil if TRUE or FALSE do.
+  :documentation "pif acts as an if statement for patterns. TEST is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step. Also note that pif will continue to advance even if TEST yields nil; pif only yields nil if TRUE or FALSE do.
 
 Example:
 
@@ -1828,7 +1828,7 @@ Example:
    arpeggiator
    (current-pattern-event :state t :initform nil)
    (current-arpeggiator-stream :state t :initform nil))
-  "parp is an \"arpeggiator\"; each event yielded by PATTERN is bound to *event* and then the entirety of the ARPEGGIATOR pattern is yielded.
+  :documentation "parp is an \"arpeggiator\"; each event yielded by PATTERN is bound to *event* and then the entirety of the ARPEGGIATOR pattern is yielded.
 
 Example:
 
@@ -1865,7 +1865,7 @@ See also: `psym', `pmeta'")
 (defpattern pfin (pattern)
   (pattern
    count)
-  "pfin yields up to COUNT outputs from PATTERN.
+  :documentation "pfin yields up to COUNT outputs from PATTERN.
 
 Example:
 
@@ -1893,7 +1893,7 @@ See also: `pfindur'")
    (tolerance :default 0)
    (current-dur :state t)
    (current-elapsed :state t :initform 0))
-  "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR. Any events that would end beyond DUR are cut short.
+  :documentation "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR. Any events that would end beyond DUR are cut short. If PATTERN outputs numbers, their total sum is limited instead.
 
 Example:
 
@@ -1937,7 +1937,7 @@ See also: `pfin', `psync'")
    sync-quant
    (maxdur :default nil)
    (tolerance :default 0.001))
-  "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of SYNC-QUANT.
+  :documentation "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of SYNC-QUANT.
 
 Example:
 
@@ -2018,7 +2018,7 @@ See also: `pr', `pdurstutter'")
    n
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t :initform 0))
-  "pdurstutter yields each output from PATTERN N times, dividing it by N. If the output from PATTERN is an event, its dur is divided; if it's a number, the number itself is divided instead of being yielded directly.
+  :documentation "pdurstutter yields each output from PATTERN N times, dividing it by N. If the output from PATTERN is an event, its dur is divided; if it's a number, the number itself is divided instead of being yielded directly.
 
 Example:
 
@@ -2059,7 +2059,7 @@ See also: `pr'")
 
 (defpattern pbeat (pattern)
   ()
-  "pbeat yields the number of beats elapsed since its embedding in the pstream.
+  :documentation "pbeat yields the number of beats elapsed since its embedding in the pstream.
 
 Example:
 
@@ -2078,7 +2078,7 @@ See also: `beat', `prun'")
   ((last-beat-checked :state t :initform nil)
    (tempo-at-beat :state t :initform nil)
    (elapsed-time :state t :initform 0))
-  "ptime yields the number of seconds elapsed since its embedding in the pstream.
+  :documentation "ptime yields the number of seconds elapsed since its embedding in the pstream.
 
 Note: May give inaccurate results if the clock's tempo changes occur more frequently than events in the parent pbind.
 
@@ -2109,7 +2109,7 @@ See also: `pbeat', `prun', `beat'")
   (list-pat
    index-pat
    (wrap-p :default nil))
-  "Use INDEX-PAT to index into the list returned by LIST-PAT. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil.
+  :documentation "Use INDEX-PAT to index into the list returned by LIST-PAT. WRAP-P is whether indexes that are out of range will be wrapped (if t) or will simply return nil.
 
 Example:
 
@@ -2146,7 +2146,7 @@ See also: `pwalk', `pswitch'")
   (pattern
    (dur :default 1)
    (dur-history :state t))
-  "Run PATTERN independently of when `next' is called on its pstream. Each output of PATTERN is treated as if it lasted DUR beats, during which time it will be continuously yielded by prun. If PATTERN is an event pattern, DUR acts as a duration multiplier instead.
+  :documentation "Run PATTERN independently of when `next' is called on its pstream. Each output of PATTERN is treated as if it lasted DUR beats, during which time it will be continuously yielded by prun. If PATTERN is an event pattern, DUR acts as a duration multiplier instead.
 
 Example:
 
@@ -2186,7 +2186,7 @@ See also: `beat', `pbeat'")
   (pattern
    ;; (dict :default nil) ;; FIX: implement this
    (current-pstream :state t :initform nil))
-  "Use a pattern of symbols to embed `pdef's. PATTERN is the source pattern that yields symbols naming the pdef to embed.
+  :documentation "Use a pattern of symbols to embed `pdef's. PATTERN is the source pattern that yields symbols naming the pdef to embed.
 
 Example:
 
@@ -2221,7 +2221,7 @@ See also: `pdef', `ppar', `pmeta'")
 
 (defpattern pchain (pattern)
   (patterns)
-  "Combine multiple patterns into one event stream.
+  :documentation "Combine multiple patterns into one event stream.
 
 Example:
 
@@ -2230,10 +2230,10 @@ Example:
 ;; => ((EVENT :FOO 1 :BAR 7) (EVENT :FOO 2 :BAR 8) (EVENT :FOO 3 :BAR 9) NIL)
 
 See also: `pbind''s :embed key"
-  (defun pchain (&rest patterns)
-    (set-parents
-     (make-instance 'pchain
-                    :patterns patterns))))
+  :defun (defun pchain (&rest patterns)
+           (set-parents
+            (make-instance 'pchain
+                           :patterns patterns))))
 
 (defmethod as-pstream ((pchain pchain))
   (with-slots (patterns) pchain
@@ -2253,7 +2253,7 @@ See also: `pbind''s :embed key"
 
 (defpattern pdiff (pattern)
   (pattern)
-  "Output the difference between successive outputs of PATTERN.
+  :documentation "Output the difference between successive outputs of PATTERN.
 
 Example:
 
@@ -2276,7 +2276,7 @@ See also: `pdelta'")
 (defpattern pdelta (pattern)
   (pattern
    (cycle :default 4))
-  "Output the difference between successive outputs of PATTERN, assuming PATTERN restarts every CYCLE outputs.
+  :documentation "Output the difference between successive outputs of PATTERN, assuming PATTERN restarts every CYCLE outputs.
 
 Unlike `pdiff', pdelta is written with its use as input for `pbind''s :delta key in mind. If PATTERN's successive values would result in a negative difference, pdelta instead wraps the delta around to the next multiple of CYCLE. This would allow you to, for example, supply the number of the beat that each event occurs on, rather than specifying the delta between each event. This is of course achievable using pbind's :beat key as well, however that method requires the pbind to peek at future values, which is not always desirable.
 
@@ -2314,7 +2314,7 @@ See also: `pdiff', `pbind''s :beat key")
 (defpattern pdrop (pattern)
   (pattern
    (n :default 0))
-  "Drop the first N outputs from PATTERN and yield the rest. If N is negative, drop the last N outputs from PATTERN instead.
+  :documentation "Drop the first N outputs from PATTERN and yield the rest. If N is negative, drop the last N outputs from PATTERN instead.
 
 Example:
 
@@ -2346,7 +2346,7 @@ See also: `pshift'")
 (defpattern ppar (pattern)
   (list
    (pstreams :state t :initform nil))
-  "Combine multiple event patterns into one pstream with all events in temporal order. LIST is the list of patterns, or a pattern yielding lists of patterns. The ppar ends when all of the patterns in LIST end.
+  :documentation "Combine multiple event patterns into one pstream with all events in temporal order. LIST is the list of patterns, or a pattern yielding lists of patterns. The ppar ends when all of the patterns in LIST end.
 
 Example:
 
@@ -2392,7 +2392,7 @@ See also: `psym'")
 (defpattern pmeta (pattern) ;; FIX: add example
   (pattern
    (current-pstream :state t))
-  "Meta-control patterns using the events output by PATTERN. In other words, instead of triggering synths directly, the events output by PATTERN are used to embed patterns into the pmeta's pstream.
+  :documentation "Meta-control patterns using the events output by PATTERN. In other words, instead of triggering synths directly, the events output by PATTERN are used to embed patterns into the pmeta's pstream.
 
 The following keys are supported:
 
@@ -2451,7 +2451,7 @@ See also: `psym', `parp'")
 (defpattern pts (pattern)
   (pattern
    (dur :default 4))
-  "Timestretch PATTERN so its total duration is DUR. Note that only the first `*max-pattern-yield-length*' events from PATTERN are considered, and that they are calculated immediately at pstream creation time rather than lazily as the pstream yields.
+  :documentation "Timestretch PATTERN so its total duration is DUR. Note that only the first `*max-pattern-yield-length*' events from PATTERN are considered, and that they are calculated immediately at pstream creation time rather than lazily as the pstream yields.
 
 Example:
 
@@ -2485,7 +2485,7 @@ See also: `pfindur', `psync'")
    (start-pos :default 0)
    (current-index :state t)
    (current-direction :default 1 :state t))
-  "\"Walk\" over the values in LIST by using the accumulated value of the outputs of STEP-PATTERN as the index. At the beginning of the pwalk and each time the start or end of the list is passed, the output of DIRECTION-PATTERN is taken and used as the multiplier for values from STEP-PATTERN. START-POS is the index in LIST for pwalk to take its first output from.
+  :documentation "\"Walk\" over the values in LIST by using the accumulated value of the outputs of STEP-PATTERN as the index. At the beginning of the pwalk and each time the start or end of the list is passed, the output of DIRECTION-PATTERN is taken and used as the multiplier for values from STEP-PATTERN. START-POS is the index in LIST for pwalk to take its first output from.
 
 Example:
 
@@ -2527,7 +2527,7 @@ See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
 (defpattern pclump (pattern)
   (pattern
    (n :default 1))
-  "Group outputs of the source pattern into lists of up to N items each.
+  :documentation "Group outputs of the source pattern into lists of up to N items each.
 
 Example:
 
@@ -2545,7 +2545,7 @@ See also: `paclump'")
 
 (defpattern paclump ()
   (pattern)
-  "Automatically group outputs of the source pattern into lists of up to N items each. Unlike `pclump', clump size is automatically set to the length of the longest list in the values of `*event*', or 1 if there are no lists.
+  :documentation "Automatically group outputs of the source pattern into lists of up to N items each. Unlike `pclump', clump size is automatically set to the length of the longest list in the values of `*event*', or 1 if there are no lists.
 
 Example:
 
@@ -2566,7 +2566,7 @@ See also: `pclump'")
 (defpattern ps (pattern)
   (pattern
    pstream)
-  "Defines a pattern whose pstream will be preserved to subsequent calls to `as-pstream'. To reset the pstream, simply re-evaluate the ps definition.
+  :documentation "Defines a pattern whose pstream will be preserved to subsequent calls to `as-pstream'. To reset the pstream, simply re-evaluate the ps definition.
 
 Based on the pattern originally from the miSCellaneous SuperCollider library.
 
@@ -2586,9 +2586,9 @@ Example:
 ;; => (0 1 2 3)
 
 See also: `pdef'"
-  (defun ps (pattern)
-    (make-instance 'ps
-                   :pattern pattern)))
+  :defun (defun ps (pattern)
+           (make-instance 'ps
+                          :pattern pattern)))
 
 (defmethod as-pstream ((ps ps))
   (with-slots (pattern pstream) ps

@@ -9,8 +9,8 @@
   (header
    rows
    (current-row :state t))
-  "" ;; FIX: docstring needed
-  (assert (evenp (length header)) (header)))
+  :documentation "" ;; FIX: docstring needed
+  :defun (assert (evenp (length header)) (header)))
 
 (defmacro pt (header &rest rows)
   `(ptracker (list ,@header) ,@rows))

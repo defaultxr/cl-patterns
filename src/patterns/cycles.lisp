@@ -8,15 +8,15 @@
   (list
    map
    (parsed-list :state t))
-  "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
-  (defun pcycles (list &optional map)
-    (etypecase list
-      (string
-       (pcycles (mapcar (lambda (c) (alexandria:make-keyword (string-upcase (string c))))
-                        (coerce list 'list))
-                map))
-      (list
-       (make-instance 'pcycles :list list :map map)))))
+  :documentation "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
+  :defun (defun pcycles (list &optional map)
+           (etypecase list
+             (string
+              (pcycles (mapcar (lambda (c) (alexandria:make-keyword (string-upcase (string c))))
+                               (coerce list 'list))
+                       map))
+             (list
+              (make-instance 'pcycles :list list :map map)))))
 
 (defmethod print-object ((pcycles pcycles) stream)
   (format stream "(~s ~s)" 'pcycles (slot-value pcycles 'list)))
