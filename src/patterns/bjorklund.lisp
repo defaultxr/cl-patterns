@@ -39,7 +39,7 @@ See also: `pbjorklund'"
   (pulses
    steps
    (offset :default 0))
-  "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, STEPS is number of steps in the sequence, and OFFSET is the number to rotate the sequence by. This pattern outputs events which can be embedded into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. The total duration of the sequence is normalized to 1 beat, so it can be easily multiplied if you want it to be longer or shorter. If you just want the raw output from the Bjorklund algorithm, not in pattern form, use `bjorklund' instead.
+  :documentation "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, STEPS is number of steps in the sequence, and OFFSET is the number to rotate the sequence by. This pattern outputs events which can be embedded into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. The total duration of the sequence is normalized to 1 beat, so it can be easily multiplied if you want it to be longer or shorter. If you just want the raw output from the Bjorklund algorithm, not in pattern form, use `bjorklund' instead.
 
 Example:
 
