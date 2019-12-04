@@ -35,6 +35,11 @@
    (clock :initarg :clock :documentation "The clock that the task is running on."))
   (:documentation "An item scheduled to be run on the clock."))
 
+(defmethod print-object ((task task) stream)
+  (with-slots (item) task
+    (print-unreadable-object (task stream :type t)
+      (format stream ":ITEM ~s" item))))
+
 (defun absolute-beats-to-timestamp (beats clock)
   "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's beat-at-tempo slot."
   (with-slots (timestamp-at-tempo beat-at-tempo) clock
