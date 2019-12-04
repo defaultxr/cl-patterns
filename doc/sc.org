@@ -30,7 +30,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pbus~
 - ~Pclump~ - done as ~pclump~. see also: ~paclump~.
 - ~Pclutch~
-- ~Pconst~
+- ~Pconst~ - functionality covered by ~pfindur~.
 - ~Pdelay~
 - ~Pdelta~ - done as ~pdelta~.
 - ~Pdiff~ - done as ~pdiff~.
