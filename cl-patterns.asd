@@ -3,7 +3,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp."
   :license "MIT"
-  :version "0.5"
+  :version "0.6"
   :homepage "https://w.struct.ws/cl-patterns/"
   :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
   :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
@@ -37,7 +37,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with debug backend."
   :license "MIT"
-  :version "0.5"
+  :version "0.6"
   :depends-on (#:cl-patterns)
   :serial t
   :components ((:file "src/backends/debug")))
@@ -47,7 +47,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with SuperCollider backend."
   :license "MIT"
-  :version "0.5"
+  :version "0.6"
   :depends-on (#:cl-patterns
                #:cl-collider)
   :serial t
@@ -58,7 +58,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with Incudine backend."
   :license "MIT"
-  :version "0.5"
+  :version "0.6"
   :depends-on (#:cl-patterns
                #:incudine)
   :serial t
@@ -69,7 +69,7 @@
   :author "modula t. <defaultxr@gmail.com>"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
   :license "MIT"
-  :version "0.5"
+  :version "0.6"
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t
