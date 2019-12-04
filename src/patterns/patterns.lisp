@@ -1942,24 +1942,30 @@ See also: `pfin', `psync'")
                    :tolerance (next tolerance))))
 
 (defmethod next ((pfindur pfindur-pstream))
-  (with-slots (pattern dur tolerance current-dur current-elapsed) pfindur
-    (alexandria:when-let ((n-event (next pattern)))
-      (unless (slot-boundp pfindur 'current-dur)
-        (setf current-dur (next dur)))
-      (when current-dur
-        (if (eql :inf current-dur)
-            n-event
-            (let ((new-elapsed (+ (event-value n-event :delta) current-elapsed)))
-              (prog1
-                  (if (> (if (= 0 tolerance)
-                             new-elapsed
-                             (round-by-direction new-elapsed tolerance))
-                         current-dur)
-                      (let ((tdur (- current-dur current-elapsed)))
-                        (when (plusp tdur)
-                          (combine-events n-event (event :dur tdur))))
-                      n-event)
-                (incf current-elapsed (event-value n-event :delta)))))))))
+  (flet ((get-delta (ev)
+           (if (event-p ev)
+               (event-value ev :delta)
+               ev)))
+    (with-slots (pattern dur tolerance current-dur current-elapsed) pfindur
+      (alexandria:when-let ((n-event (next pattern)))
+        (unless (slot-boundp pfindur 'current-dur)
+          (setf current-dur (next dur)))
+        (when current-dur
+          (if (eql :inf current-dur)
+              n-event
+              (let ((new-elapsed (+ (get-delta n-event) current-elapsed)))
+                (prog1
+                    (if (> (if (= 0 tolerance)
+                               new-elapsed
+                               (round-by-direction new-elapsed tolerance))
+                           current-dur)
+                        (let ((tdur (- current-dur current-elapsed)))
+                          (when (plusp tdur)
+                            (if (event-p n-event)
+                                (combine-events n-event (event :dur tdur))
+                                tdur)))
+                        n-event)
+                  (incf current-elapsed (get-delta n-event))))))))))
 
 ;;; psync
 
