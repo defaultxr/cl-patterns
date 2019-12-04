@@ -120,7 +120,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
 (defclass pattern ()
   ((quant :initarg :quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
-   (loop-p :initarg :loop-p :initform nil :accessor loop-p :documentation "Whether or not the pattern should loop when played.")
+   (loop-p :initarg :loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
    (pstream-count :initform 0 :reader pstream-count :documentation "The number of pstreams that have been made of this pattern."))
   (:documentation "Abstract pattern superclass."))
@@ -139,6 +139,14 @@ See also: `all-pdefs'"
 
 (defmethod (setf quant) (value (pattern pattern))
   (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
+
+(defmethod loop-p ((pattern pattern))
+  (if (slot-boundp pattern 'loop-p)
+      (slot-value pattern 'loop-p)
+      nil))
+
+(defmethod (setf loop-p) (value (pattern pattern))
+  (setf (slot-value pattern 'loop-p) value))
 
 (defgeneric peek (pattern)
   (:documentation "\"Peek\" at the next value of a pstream, without advancing its current position.
@@ -1066,8 +1074,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defpattern pdef (pattern)
   ((key :reader pdef-key)
-   (current-pstream :state t)
-   (loop-p :initform t))
+   (current-pstream :state t))
   :documentation "Defines a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
 Example:
@@ -1111,6 +1118,14 @@ See also: `all-patterns'"
   (if (slot-boundp pdef 'quant)
       (slot-value pdef 'quant)
       (quant (pdef-pattern pdef))))
+
+(defmethod loop-p ((pdef pdef))
+  (if (slot-boundp pdef 'loop-p)
+      (slot-value pdef 'loop-p)
+      (let ((pattern (pdef-pattern pdef)))
+        (if (slot-boundp pattern 'loop-p)
+            (slot-value pattern 'loop-p)
+            t))))
 
 (defmethod as-pstream ((pdef pdef))
   (with-slots (key) pdef

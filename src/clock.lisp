@@ -48,7 +48,7 @@
 (defmethod loop-p ((task task))
   (if (slot-boundp task 'loop-p)
       (slot-value task 'loop-p)
-      (slot-value (slot-value task 'item) 'loop-p)))
+      (loop-p (slot-value task 'item))))
 
 (defun task-pattern (task)
   "Attempt to get the pattern that TASK is playing. Returns nil if the pattern couldn't be found.

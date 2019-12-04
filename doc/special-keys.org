@@ -56,6 +56,10 @@ Here is a listing of all of the pbind special init keys:
 
 ** ~quant~
 Set the ~quant~ of the pattern, which determines when the pattern is allowed to start playing.
+** ~loop-p~
+Set the ~loop-p~ slot of the pattern, which determines if the pattern should loop when it finishes playing.
+
+Note that by default, patterns don't loop, but pdefs do.
 ** ~condition~
 NOTE: Not implemented yet.
 
