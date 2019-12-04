@@ -140,6 +140,7 @@
    #:next
    #:next-n
    #:next-upto-n
+   #:pattern-metadata
    #:pstream
    #:pstream-elt
    #:pstream-elt-future

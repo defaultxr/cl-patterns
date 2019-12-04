@@ -122,7 +122,8 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
-   (pstream-count :initform 0 :reader pstream-count :documentation "The number of pstreams that have been made of this pattern."))
+   (pstream-count :initform 0 :reader pstream-count :documentation "The number of pstreams that have been made of this pattern.")
+   (metadata :initarg :metadata :initform (make-hash-table) :type hash-table :documentation "Hash table of additional data associated with the pattern, accessible with the `pattern-metadata' function."))
   (:documentation "Abstract pattern superclass."))
 
 (defun all-patterns ()
@@ -216,6 +217,17 @@ See also: `events-after-p'"))
 
 (defmethod events-in-range ((pattern pattern) min max)
   (events-in-range (as-pstream pattern) min max))
+
+(defgeneric pattern-metadata (pattern &optional key)
+  (:documentation "Get the value of PATTERN's metadata for KEY. Returns true as a second value if the metadata had an entry for KEY, or nil if it did not."))
+
+(defmethod pattern-metadata ((pattern pattern) &optional key)
+  (if key
+      (gethash key (slot-value pattern 'metadata))
+      (slot-value pattern 'metadata)))
+
+(defun (setf pattern-metadata) (value pattern key)
+  (setf (gethash key (slot-value pattern 'metadata)) value))
 
 ;;; pstream
 
