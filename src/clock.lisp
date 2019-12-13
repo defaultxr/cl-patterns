@@ -118,7 +118,7 @@ See also: `clock-add', `stop', `end'"
             (remove-if
              (lambda (ctask)
                (alexandria:when-let ((eq (eq ctask task)))
-                 (dolist (backend (enabled-backends))
+                 (dolist (backend (backends-for-event (slot-value task 'item)))
                    (backend-task-removed task backend))
                  eq))
              tasks)))))
