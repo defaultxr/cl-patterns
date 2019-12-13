@@ -9,9 +9,6 @@
 (defmethod stop-backend ((backend (eql :debug)))
   (format t "~&Stopping debug backend (i.e. doing nothing).~%"))
 
-(defmethod backend-plays-event-p (event (backend (eql :debug)))
-  t)
-
 (defparameter *debug-backend-events* (list)
   "A list of all events received by the debug backend, with the most recent events first.")
 

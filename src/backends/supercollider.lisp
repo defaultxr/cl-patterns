@@ -87,51 +87,49 @@
 (defmethod stop-backend ((backend (eql :supercollider)))
   (cl-collider:server-quit cl-collider:*s*))
 
-(defmethod backend-plays-event-p (event (backend (eql :supercollider)))
-  (let ((inst (event-value event :instrument)))
-    (or (cl-collider:synthdef-metadata inst)
-        (typep inst 'cl-collider::node))))
-
 (defmethod backend-play-event (item task (backend (eql :supercollider)))
   "Play ITEM on the SuperCollider sound server. TASK is an internal parameter used when this function is called from the clock."
-  (unless (position (event-value item :type) (list :rest :tempo-change)) ;; FIX: make sure other backends ignore tempo-change too.
-    (let* ((inst (instrument item))
-           (quant (alexandria:ensure-list (quant item)))
-           (offset (if (> (length quant) 2)
-                       (nth 2 quant)
-                       0))
-           (time (+ (or (raw-event-value item :latency) *latency*)
-                    (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (cl-collider:now))
-                    (time-dur (or (raw-event-value item :timing-offset) 0) (tempo *clock*))
-                    offset))
-           (params (supercollider-make-synth-args-list inst item)))
-      (if (or (eql (event-value item :type) :mono)
-              (typep inst 'cl-collider::node))
-          (let ((node (cl-collider:at time
-                        (let ((nodes (task-nodes task *supercollider-node-map*)))
-                          (cond ((not (null nodes))
-                                 (apply #'cl-collider:ctrl (car nodes) params))
-                                ((typep inst 'cl-collider::node)
-                                 ;; redefining a proxy changes its Node's ID.
-                                 ;; thus if the user redefines a proxy, the Node object previously provided to the pbind will become inaccurate.
-                                 ;; thus we look up the proxy in the node-proxy-table to ensure we always have the correct ID.
-                                 (let ((node (or (get-proxys-node-id inst)
-                                                 inst)))
-                                   (apply #'cl-collider:ctrl node params)))
-                                (t
-                                 (apply #'cl-collider:synth inst params)))))))
-            (unless (or (typep inst 'cl-collider::node)
-                        (not (has-gate-p inst :supercollider)))
-              (if (< (legato item) 1)
-                  (cl-collider:at (+ time (dur-time (sustain item)))
-                    (setf (task-nodes task *supercollider-node-map*) nil)
-                    (cl-collider:release node))
-                  (setf (task-nodes task *supercollider-node-map*) (list node)))))
-          (let ((node (cl-collider:at time
-                        (apply #'cl-collider:synth inst params))))
-            (when (has-gate-p node :supercollider)
-              (cl-collider:at (+ time (dur-time (sustain item)))
-                (cl-collider:release node))))))))
+  (let ((type (event-value item :type))
+        (inst (instrument item)))
+    (when (and (not (position type (list :rest :tempo-change))) ;; FIX: make sure other backends ignore tempo-change too.
+               (or (cl-collider:synthdef-metadata inst)
+                   (typep inst 'cl-collider::node)))
+      (let* ((quant (quant item))
+             (offset (if (> (length quant) 2)
+                         (nth 2 quant)
+                         0))
+             (time (+ (or (raw-event-value item :latency) *latency*)
+                      (or (timestamp-to-cl-collider (raw-event-value item :timestamp-at-start)) (cl-collider:now))
+                      (time-dur (or (raw-event-value item :timing-offset) 0) (tempo *clock*))
+                      offset))
+             (params (supercollider-make-synth-args-list inst item)))
+        (if (or (eql type :mono)
+                (typep inst 'cl-collider::node))
+            (let ((node (cl-collider:at time
+                          (let ((nodes (task-nodes task *supercollider-node-map*)))
+                            (cond ((not (null nodes))
+                                   (apply #'cl-collider:ctrl (car nodes) params))
+                                  ((typep inst 'cl-collider::node)
+                                   ;; redefining a proxy changes its Node's ID.
+                                   ;; thus if the user redefines a proxy, the Node object previously provided to the pbind will become inaccurate.
+                                   ;; thus we look up the proxy in the node-proxy-table to ensure we always have the correct ID.
+                                   (let ((node (or (get-proxys-node-id inst)
+                                                   inst)))
+                                     (apply #'cl-collider:ctrl node params)))
+                                  (t
+                                   (apply #'cl-collider:synth inst params)))))))
+              (unless (or (typep inst 'cl-collider::node)
+                          (not (has-gate-p inst :supercollider)))
+                (if (< (legato item) 1)
+                    (cl-collider:at (+ time (dur-time (sustain item)))
+                      (setf (task-nodes task *supercollider-node-map*) nil)
+                      (cl-collider:release node))
+                    (setf (task-nodes task *supercollider-node-map*) (list node)))))
+            (let ((node (cl-collider:at time
+                          (apply #'cl-collider:synth inst params))))
+              (when (has-gate-p node :supercollider)
+                (cl-collider:at (+ time (dur-time (sustain item)))
+                  (cl-collider:release node)))))))))
 
 (defmethod backend-task-removed (task (backend (eql :supercollider)))
   (let ((item (slot-value task 'item)))

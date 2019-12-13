@@ -34,6 +34,8 @@ The timing offset of the event, added onto the time when it would normally occur
 FIX: Not sure if this should be in beats or seconds.
 ** ~freq~ / ~midinote~ / ~degree~ + ~octave~ + ~root~ + ~scale~
 Various ways to specify the pitch of the synth.
+** ~backend~
+A symbol or list of symbols naming backends that the event should be played on. If omitted, the event will be sent to all backends. Note that backends will usually ignore any events they don't understand (i.e. the supercollider backend will not play any events whose ~instrument~ does not reference a known node or synthdef).
 
 * pbind special init keys
 

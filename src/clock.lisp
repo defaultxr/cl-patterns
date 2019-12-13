@@ -163,16 +163,14 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                                             tempo (event-value event :tempo)
                                             beat-at-tempo beat)
                                       (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event)))
-                                (dolist (backend (enabled-backends))
-                                  (when (backend-plays-event-p event backend)
-                                    (backend-play-event event task backend)))
+                                (dolist (backend (backends-for-event event))
+                                  (backend-play-event event task backend))
                                 nil)
                                (:rest
                                 nil)
                                (otherwise
-                                (dolist (backend (enabled-backends))
-                                  (when (backend-plays-event-p event backend)
-                                    (backend-play-event event task backend))))))))
+                                (dolist (backend (backends-for-event event))
+                                  (backend-play-event event task backend)))))))
                        (if (typep item 'event)
                            nil
                            task))

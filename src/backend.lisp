@@ -23,6 +23,11 @@
       (remhash task map)
       (setf (gethash task map) value)))
 
+(defun backends-for-event (event)
+  "Get a list of backends that EVENT should be played on, either via the event's :backend key or via the `enabled-backends'."
+  (or (alexandria:ensure-list (event-value event :backends))
+      (enabled-backends)))
+
 ;;; backend management
 
 (defvar *enabled-backends* nil
@@ -64,9 +69,6 @@
 
 (defgeneric stop-backend (backend) ;; FIX
   (:documentation "Stop a backend. This is automatically called when `disable-backend' is run."))
-
-(defgeneric backend-plays-event-p (event backend)
-  (:documentation "Method returning true when BACKEND should play EVENT."))
 
 (defgeneric backend-play-event (event task backend)
   (:documentation "Play EVENT using BACKEND."))
