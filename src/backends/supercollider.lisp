@@ -40,11 +40,15 @@
                          sparam)
                      (if (eql :gate sparam) 1 val)))))
 
+(defun cl-collider-proxy (name)
+  "Get the object representing the `cl-collider:proxy' with the given name."
+  (gethash name (cl-collider::node-proxy-table cl-collider::*s*)))
+
 (defun get-proxys-node-id (name)
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
   (if (typep name 'cl-collider::node)
       (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'cl-collider::name))))
-      (alexandria:when-let ((val (gethash name (cl-collider::node-proxy-table cl-collider::*s*))))
+      (alexandria:when-let ((val (cl-collider-proxy name)))
         (cl-collider::id val))))
 
 (defgeneric supercollider-convert-object (object key)
