@@ -268,6 +268,9 @@ See also: `clock-loop'"
 (defmethod play ((list list))
   (mapcar 'play list))
 
+(defmethod launch ((item t)) ;; forward to `play' if a more specific method hasn't been defined for a class.
+  (play item))
+
 (defmethod launch ((event event))
   (play event))
 
@@ -299,6 +302,9 @@ See also: `clock-loop'"
 
 (defmethod stop ((list list))
   (mapcar 'stop list))
+
+(defmethod end ((item t)) ;; forward to `stop' if a more specific method hasn't been defined for a class.
+  (stop item))
 
 (defmethod end ((item pdef))
   (with-slots (key) item
