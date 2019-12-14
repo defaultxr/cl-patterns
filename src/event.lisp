@@ -329,13 +329,12 @@ Additionally, because :define-methods is true, we can also do the following:
   :remove-keys (:sustain)
   :define-methods t)
 
-;;; timing-offset
+;;; timing
 
 (define-event-special-key timing-offset (t 0))
 
-;;; quant
-
-(define-event-special-key quant (t 1)
+(define-event-special-key quant (:quant (ensure-list (raw-event-value event :quant))
+                                        t (list 1))
   :define-methods t)
 
 ;;; pitch
