@@ -31,7 +31,7 @@
                                          (list :group :to :id)))))
     ;; get the value of each of the synth's arguments from the event...
     (loop :for param :in synth-params
-       :for sparam = (alexandria:make-keyword param)
+       :for sparam = (make-keyword param)
        :for val = (supercollider-convert-object (event-value event sparam) sparam)
        :if (or (eql :gate sparam)
                (not (null val)))
@@ -47,8 +47,8 @@
 (defun get-proxys-node-id (name)
   "Get the current node ID of the proxy NAME, or NIL if it doesn't exist in cl-collider's node-proxy-table."
   (if (typep name 'cl-collider::node)
-      (get-proxys-node-id (alexandria:make-keyword (string-upcase (slot-value name 'cl-collider::name))))
-      (alexandria:when-let ((val (cl-collider-proxy name)))
+      (get-proxys-node-id (make-keyword (string-upcase (slot-value name 'cl-collider::name))))
+      (when-let ((val (cl-collider-proxy name)))
         (cl-collider::id val))))
 
 (defgeneric supercollider-convert-object (object key)

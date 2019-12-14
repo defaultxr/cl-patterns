@@ -15,11 +15,11 @@
        (mapcar #'db-amp (mapcar #'amp-db (list 0.1 0.5 0.7 0.8 0.9 1.0))))
       "db-amp conversion is not equivalent to amp-db conversion")
   (is (equal
-       (alexandria:iota 22 :step 1/10)
-       (mapcar #'time-dur (mapcar #'dur-time (alexandria:iota 22 :step 1/10))))
+       (iota 22 :step 1/10)
+       (mapcar #'time-dur (mapcar #'dur-time (iota 22 :step 1/10))))
       "time-dur conversion is not equivalent to dur-time conversion")
   (is-false (let ((input (remove-if (lambda (n) (= n 20)) ;; 20 is the only input that has rounding errors. So close to perfect...!
-                                    (alexandria:iota 128))))
+                                    (iota 128))))
               (position-if #'null (mapcar #'=
                                           input
                                           (mapcar #'freq-midinote (mapcar #'midinote-freq input)))))
@@ -32,7 +32,7 @@
   (is (equal
        (loop :for i :from 0 :upto 10
           :append (make-list 12 :initial-element i))
-       (mapcar #'midinote-octave (alexandria:iota 132)))
+       (mapcar #'midinote-octave (iota 132)))
       "midinote-octave conversion is not correct")
   (is (every (lambda (x) (eql x t))
              (mapcar #'=

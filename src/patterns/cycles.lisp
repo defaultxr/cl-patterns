@@ -12,7 +12,7 @@
   :defun (defun pcycles (list &optional map)
            (etypecase list
              (string
-              (pcycles (mapcar (lambda (c) (alexandria:make-keyword (string-upcase (string c))))
+              (pcycles (mapcar (lambda (c) (make-keyword (string-upcase (string c))))
                                (coerce list 'list))
                        map))
              (list
@@ -32,7 +32,7 @@
                                                      res
                                                      (event)))
                                                (event :value i :dur dur))))))
-      (alexandria:flatten (recurse list (/ 1 (length list)))))))
+      (flatten (recurse list (/ 1 (length list)))))))
 
 (defmethod as-pstream ((pattern pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
   (with-slots (list map) pattern
@@ -52,7 +52,7 @@
                   (position (aref (symbol-name symbol) 0) (list "*" "/") :test #'string=)))
            (parse-modifier-symbol (symbol)
              (let ((str (symbol-name symbol)))
-               (list (alexandria:make-keyword (aref str 0)) (read-from-string (subseq str 1)))))
+               (list (make-keyword (aref str 0)) (read-from-string (subseq str 1)))))
            (modifier-symbol-dup (symbol)
              (let ((parsed (parse-modifier-symbol symbol)))
                (case (car parsed)
@@ -102,8 +102,8 @@ SPEC is a symbol representing the type of output you're going to send. It can be
 MAP is a plist specifying the mapping from symbols to SPEC's parameter. It can be blank if you're just making a melody. By default, the map includes keys that map - and _ to rests.
 
 LIST is the actual pattern to generate."
-  (destructuring-bind (key &key (dur 1)) (alexandria:ensure-list spec)
-    (let ((key (alexandria:make-keyword key))
+  (destructuring-bind (key &key (dur 1)) (ensure-list spec)
+    (let ((key (make-keyword key))
           (map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest)))))
       (labels ((translate-symbol (symbol)
                  (or (getf map symbol)

@@ -1,5 +1,6 @@
 (defpackage #:cl-patterns
-  (:use #:cl)
+  (:use #:cl
+        #:alexandria)
   (:export
 
    ;;; utility.lisp

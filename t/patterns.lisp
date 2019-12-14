@@ -132,7 +132,7 @@
                   (as-pstream pb)
                   (pstream-count pb)))
            "pstream-count doesn't return 1 for a pattern that one pstream has been made of")
-  (is-true (equal (alexandria:iota 20)
+  (is-true (equal (iota 20)
                   (let* ((pb (pbind :foo 1))
                          (lst (loop :repeat 20 :collect (as-pstream pb))))
                     (mapcar #'pstream-count lst)))
@@ -343,7 +343,7 @@
   (is (= 4
          (next (pfunc (lambda () (+ 2 2)))))
       "pfunc yields incorrect results")
-  (is (alexandria:length= 4 (next-upto-n (pfunc (lambda () (random 10)) 4)))
+  (is (length= 4 (next-upto-n (pfunc (lambda () (random 10)) 4)))
       "pfunc yields the wrong number of results when LENGTH is provided."))
 
 (test pr
@@ -408,8 +408,8 @@
       "plazy yields incorrect outputs when its function returns nil")
   (is (null (next-upto-n (plazy (lambda () (pseq (list 1 2 3))) 0)))
       "plazy yields 0 outputs when REPEATS is 0")
-  (is (alexandria:length= 14
-                          (next-upto-n (plazy (lambda () (random 20)) 14)))
+  (is (length= 14
+               (next-upto-n (plazy (lambda () (random 20)) 14)))
       "plazy yields the wrong number of outputs when REPEATS is provided"))
 
 (test pcycles
@@ -495,7 +495,7 @@
 
 (test pseries
   "Test pseries"
-  (is (equal (alexandria:iota 64)
+  (is (equal (iota 64)
              (next-n (pseries 0 1 :inf) 64))
       "pseries yields incorrect outputs")
   (is (equal (list 0 1 1 0 -1 -2)
@@ -509,8 +509,8 @@
 (test pseries*
   "Test pseries*"
   (for-all ((num (gen-integer :min 2 :max 128)))
-    (is (alexandria:length= num
-                            (next-upto-n (pseries* 1 2 num)))
+    (is (length= num
+                 (next-upto-n (pseries* 1 2 num)))
         "pseries* yields the wrong number of outputs"))
   (for-all ((num (gen-integer :min 0)))
     (is (= num (next (pseries* num 2 4)))
@@ -519,7 +519,7 @@
   (for-all ((end (gen-integer :min -40 :max 40))
             (len (gen-integer :min 2 :max 40)))
     (is (= end
-           (alexandria:lastcar (next-upto-n (pseries* 50 end len))))
+           (lastcar (next-upto-n (pseries* 50 end len))))
         "pseries*'s last output is incorrect when END is ~a and LENGTH is ~a"
         end len)))
 
@@ -539,8 +539,8 @@
 (test pgeom*
   "Test pgeom*"
   (for-all ((len (gen-integer :min 2 :max 128)))
-    (is (alexandria:length= len
-                            (next-upto-n (pgeom* 1 2 len)))
+    (is (length= len
+                 (next-upto-n (pgeom* 1 2 len)))
         "pgeom* yields the wrong number of outputs when LENGTH is ~a"
         len))
   (for-all ((start (gen-integer)))
@@ -549,7 +549,7 @@
         start))
   (for-all ((end (gen-integer :min -40 :max 40))
             (len (gen-integer :min 2 :max 20)))
-    (let ((res (alexandria:lastcar (next-upto-n (pgeom* 50 end len)))))
+    (let ((res (lastcar (next-upto-n (pgeom* 50 end len)))))
       (is (> 1
              (abs (- end res)))
           "pgeom*'s last output is nowhere near END (it is ~a when END is ~a and LENGTH is ~a)"

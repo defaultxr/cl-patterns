@@ -1,7 +1,8 @@
 (defpackage #:cl-patterns/tests
-  (:use :cl
-        :cl-patterns
-        :fiveam))
+  (:use #:cl
+        #:cl-patterns
+        #:alexandria
+        #:fiveam))
 
 (in-package #:cl-patterns/tests)
 

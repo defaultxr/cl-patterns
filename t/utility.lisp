@@ -4,7 +4,7 @@
 
 (test gete
   "Test the `gete' function"
-  (is (equal (alexandria:iota *max-pattern-yield-length*)
+  (is (equal (iota *max-pattern-yield-length*)
              (gete (next-upto-n (pbind :foo (pseries))) :foo))
       "gete returns incorrect results"))
 

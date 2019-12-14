@@ -25,7 +25,7 @@
 
 (defun backends-for-event (event)
   "Get a list of backends that EVENT should be played on, either via the event's :backend key or via the `enabled-backends'."
-  (or (alexandria:ensure-list (event-value event :backends))
+  (or (ensure-list (event-value event :backends))
       (enabled-backends)))
 
 ;;; backend management
@@ -38,7 +38,7 @@
 
 (defun register-backend (name)
   "Register a cl-patterns backend."
-  (pushnew (alexandria:make-keyword name) *backends*))
+  (pushnew (make-keyword name) *backends*))
 
 (defun all-backends ()
   "Get a list of all registered backends."
@@ -50,7 +50,7 @@
 
 (defun enable-backend (name)
   "Enable a registered backend."
-  (let ((name (alexandria:make-keyword name)))
+  (let ((name (make-keyword name)))
     (assert (position name *backends*) (name) "No backend named ~s registered." name)
     (if (member name *enabled-backends*)
         (warn "Backend ~a already enabled; doing nothing." name)
@@ -58,7 +58,7 @@
 
 (defun disable-backend (name)
   "Disable a registered backend."
-  (let ((name (alexandria:make-keyword name)))
+  (let ((name (make-keyword name)))
     (setf *enabled-backends*
           (delete name *enabled-backends*))))
 

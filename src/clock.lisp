@@ -117,7 +117,7 @@ See also: `clock-add', `stop', `end'"
       (setf tasks
             (remove-if
              (lambda (ctask)
-               (alexandria:when-let ((eq (eq ctask task)))
+               (when-let ((eq (eq ctask task)))
                  (dolist (backend (backends-for-event (slot-value task 'item)))
                    (backend-task-removed task backend))
                  eq))
@@ -148,7 +148,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                      ;; FIX: need to make sure tempo-change events are processed first
                      (progn
                        (dolist (ev (if (typep item 'event)
-                                       (alexandria:ensure-list item)
+                                       (ensure-list item)
                                        (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
                          (let* ((beat (+ start-beat (or (event-value ev :beat) 0)))
                                 (ts (absolute-beats-to-timestamp beat clock))
@@ -228,7 +228,7 @@ See also: `start-clock-loop', `clock-process'"
                                                  *performance-mode*
                                                  'remove-task)))
                                 (warn "Task had error ~s; invoked ~s restart, with state recorded as index ~s in ~s." e restart (length *performance-errors*) '*performance-errors*)
-                                (alexandria:appendf *performance-errors* (list (list :error e :stack (dissect:stack))))
+                                (appendf *performance-errors* (list (list :error e :stack (dissect:stack))))
                                 (invoke-restart restart))))))
                 (clock-process clock granularity))
               (clock-process clock granularity))

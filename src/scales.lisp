@@ -13,7 +13,7 @@
   (etypecase note
     (number note)
     (keyword (position note *note-names* :test #'position))
-    (symbol (note-number (alexandria:make-keyword note)))))
+    (symbol (note-number (make-keyword note)))))
 
 (defun note-name (note-number)
   "Given a note number, return its note name.
@@ -46,7 +46,7 @@ Note that this function is not aware of context and thus always returns the firs
     (map nil
          (lambda (x)
            (setf *tunings* (plist-set *tunings* x key)))
-         (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase name))))))))
+         (remove-duplicates (append aliases (list (make-keyword (string-upcase name))))))))
 
 ;; (defun define-tuning-aliases (tuning-name &rest aliases)
 ;;   "Define aliases for the tuning named TUNING-NAME."
@@ -55,7 +55,7 @@ Note that this function is not aware of context and thus always returns the firs
 ;;     (map nil
 ;;          (lambda (x)
 ;;            (setf *tunings* (plist-set *tunings* x key)))
-;;          (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase tuning-name))))))))
+;;          (remove-duplicates (append aliases (list (make-keyword (string-upcase tuning-name))))))))
 
 (defun all-tunings ()
   "Get a list of all defined tunings."
@@ -74,7 +74,7 @@ Note that this function is not aware of context and thus always returns the firs
           tuning))))
 
 (defmethod tuning ((item string))
-  (tuning (alexandria:make-keyword (string-upcase item))))
+  (tuning (make-keyword (string-upcase item))))
 
 (defmethod tuning ((item tuning))
   item)
@@ -126,7 +126,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
                            ;; FIX: define scale aliases too
                            t))
         (define-tuning name pitches octave-ratio aliases)
-        (define-scale name (alexandria:iota (length pitches)) name aliases)))))
+        (define-scale name (iota (length pitches)) name aliases)))))
 
 ;;; scales
 
@@ -156,7 +156,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
          (lambda (x)
            (unless (eql x key)
              (setf *scales* (plist-set *scales* x key))))
-         (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase name))))))))
+         (remove-duplicates (append aliases (list (make-keyword (string-upcase name))))))))
 
 (defun all-scales ()
   "Get a list of all defined scales."
@@ -175,7 +175,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
           scale))))
 
 (defmethod scale ((item string))
-  (scale (alexandria:make-keyword (string-upcase item))))
+  (scale (make-keyword (string-upcase item))))
 
 (defmethod scale ((item scale))
   item)
@@ -226,7 +226,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
     (map nil
          (lambda (x)
            (setf *chords* (plist-set *chords* x key)))
-         (remove-duplicates (append aliases (list (alexandria:make-keyword (string-upcase name))))))))
+         (remove-duplicates (append aliases (list (make-keyword (string-upcase name))))))))
 
 (defun all-chords ()
   "Get a list of all defined chords."
@@ -244,7 +244,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
           chord))))
 
 (defmethod chord ((item string))
-  (chord (alexandria:make-keyword (string-upcase item))))
+  (chord (make-keyword (string-upcase item))))
 
 (defmethod chord ((item chord))
   item)
@@ -300,7 +300,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
 (defun chord-midinotes (root &optional type (octave 5))
   (flet ((mchord (root type)
            (mapcar #'+
-                   (alexandria:circular-list (+ (* 12 octave) (note-number root)))
+                   (circular-list (+ (* 12 octave) (note-number root)))
                    (chord-note-numbers (chord type)))))
     (if (null type)
         (progn
@@ -320,7 +320,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
                     t-tuning)
                 (cddr sd))))
      `(;; twelve-tone tunings
-       ("Equal Temperament 12" ,(alexandria:iota 12) 2 (:et12))
+       ("Equal Temperament 12" ,(iota 12) 2 (:et12))
 
        ("Pythagorean" (t 1 256/243 9/8 32/27 81/64 4/3 729/512 3/2 128/81 27/16 16/9 243/128) 2)
        ("5-Limit Just Intonation" (t 1 16/15 9/8 6/5 5/4 4/3 45/32 3/2 8/5 5/3 9/5 15/8) 2 (:just))
@@ -339,12 +339,12 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
        ("Chinese Shi-er-lu scale" (t 1 2187/2048 9/8 19683/16384 81/64 177147/131072 729/612 3/2 6561/4096 27/16 59049/32768 243/128) 2 (:lu))
 
        ;; more than twelve-tone equal temperament
-       ("Equal Temperament 19" ,(mapcar (lambda (n) (* n 12/19)) (alexandria:iota 19)) 2 (:et19))
-       ("Equal Temperament 22" ,(mapcar (lambda (n) (* n 6/11)) (alexandria:iota 22)) 2 (:et22))
-       ("Equal Temperament 24" ,(mapcar (lambda (n) (* n 0.5)) (alexandria:iota 24)) 2 (:et24))
-       ("Equal Temperament 31" ,(mapcar (lambda (n) (* n 12/31)) (alexandria:iota 31)) 2 (:et31))
-       ("Equal Temperament 41" ,(mapcar (lambda (n) (* n 12/41)) (alexandria:iota 41)) 2 (:et41))
-       ("Equal Temperament 53" ,(mapcar (lambda (n) (* n 12/53)) (alexandria:iota 53)) 2 (:et53))
+       ("Equal Temperament 19" ,(mapcar (lambda (n) (* n 12/19)) (iota 19)) 2 (:et19))
+       ("Equal Temperament 22" ,(mapcar (lambda (n) (* n 6/11)) (iota 22)) 2 (:et22))
+       ("Equal Temperament 24" ,(mapcar (lambda (n) (* n 0.5)) (iota 24)) 2 (:et24))
+       ("Equal Temperament 31" ,(mapcar (lambda (n) (* n 12/31)) (iota 31)) 2 (:et31))
+       ("Equal Temperament 41" ,(mapcar (lambda (n) (* n 12/41)) (iota 41)) 2 (:et41))
+       ("Equal Temperament 53" ,(mapcar (lambda (n) (* n 12/53)) (iota 53)) 2 (:et53))
 
        ;; non-twelve-tone just intonation
        ("Ben Johnston" (t 1 25/24 135/128 16/15 10/9 9/8 75/64 6/5 5/4 81/64 32/25 4/3 27/20 45/32 36/25 3/2 25/16 8/5 5/3 27/16 225/128 16/9 9/5 15/8 48/25) 2 (:johnston))
@@ -357,14 +357,14 @@ Note that Scala refers to these as \"scales\" but in cl-patterns we call them tu
        ("Michael Harrison 24 tone 7-limit" (t 1 28/27 135/128 16/15 243/224 9/8 8/7 7/6 32/27 6/5 135/112 5/4 81/64 9/7 21/16 4/3 112/81 45/32 64/45 81/56 3/2 32/21 14/9 128/81 8/5 224/135 5/3 27/16 12/7 7/4 16/9 15/8 243/128 27/14) 2 (:michaelharrison))
 
        ;; harmonic series -- length arbitary
-       ("Harmonic Series 24" (t ,@(alexandria:iota 24 :start 1)) 2 (:harmonic))
+       ("Harmonic Series 24" (t ,@(iota 24 :start 1)) 2 (:harmonic))
 
        ;; stretched/shrunk octave
-       ("Bohlen-Pierce" ,(mapcar (lambda (n) (* n (/ (ratio-midi 3) 13))) (alexandria:iota 12)) 3 (:bp))
+       ("Bohlen-Pierce" ,(mapcar (lambda (n) (* n (/ (ratio-midi 3) 13))) (iota 12)) 3 (:bp))
 
-       ("Wendy Carlos Alpha" ,(mapcar (lambda (n) (* n 0.78)) (alexandria:iota 14)) ,(midi-ratio (* 15 0.78)) (:wcAlpha))
-       ("Wendy Carlos Beta" ,(mapcar (lambda (n) (* n 0.638)) (alexandria:iota 18)) ,(midi-ratio (* 19 0.638)) (:wcBeta))
-       ("Wendy Carlos Gamma" ,(mapcar (lambda (n) (* n 0.351)) (alexandria:iota 33)) ,(midi-ratio (* 34 0.351)) (:wcGamma))))
+       ("Wendy Carlos Alpha" ,(mapcar (lambda (n) (* n 0.78)) (iota 14)) ,(midi-ratio (* 15 0.78)) (:wcAlpha))
+       ("Wendy Carlos Beta" ,(mapcar (lambda (n) (* n 0.638)) (iota 18)) ,(midi-ratio (* 19 0.638)) (:wcBeta))
+       ("Wendy Carlos Gamma" ,(mapcar (lambda (n) (* n 0.351)) (iota 33)) ,(midi-ratio (* 34 0.351)) (:wcGamma))))
 
 (map nil ;; scales
      (lambda (sd)

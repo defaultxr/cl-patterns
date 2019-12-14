@@ -20,7 +20,7 @@
       (error "cl-patterns cannot sync to Incudine, as *incudine-tempo-start-beat* is still NIL. You may need to call (start-backend :incudine) first.")))
 
 (defun incudine-dsp-name (instrument) ;; FIX: make sure this works if INSTRUMENT is a node itself
-  (alexandria:ensure-symbol instrument :incudine.scratch))
+  (ensure-symbol instrument :incudine.scratch))
 
 (defmethod synth-controls (synth (backend (eql :incudine)))
   (incudine.vug::dsp-properties-arguments (incudine.vug::get-dsp-properties (incudine-dsp-name synth))))
@@ -30,7 +30,7 @@
 
 NOTE: This function may produce incorrect results if you fail to provide a required parameter for a DSP."
   (loop :for ctl :in (synth-controls (incudine-dsp-name (instrument event)) :incudine)
-     :for kwctl = (alexandria:make-keyword ctl)
+     :for kwctl = (make-keyword ctl)
      :for res = (multiple-value-list (event-value event kwctl))
      :for val = (if (eql :gate kwctl)
                     1
@@ -70,7 +70,7 @@ NOTE: This function may produce incorrect results if you fail to provide a requi
       (unless (position dsp-name (incudine::all-dsp-names))
         (warn "No Incudine DSP with the name ~s defined - skipping event ~s." instrument event)
         (return-from backend-play-event nil))
-      (let* ((quant (alexandria:ensure-list (quant event)))
+      (let* ((quant (quant event))
              (offset (if (> (length quant) 2)
                          (nth 2 quant)
                          0))

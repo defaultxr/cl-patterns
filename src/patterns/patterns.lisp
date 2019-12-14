@@ -39,7 +39,7 @@ DOCUMENTATION is a docstring describing the pattern. We recommend providing at l
 
 DEFUN can either be a full defun form for the pattern, or an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
   (let* ((superclasses (or superclasses (list 'pattern)))
-         (slots (mapcar #'alexandria:ensure-list slots))
+         (slots (mapcar #'ensure-list slots))
          (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
          (super-pstream (if (eql 'pattern (car superclasses))
                             'pstream
@@ -48,9 +48,9 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                "Convert a slot into something appropriate for defclass to handle."
                (let ((name (car slot))
                      (rest (cdr slot)))
-                 (setf rest (alexandria:remove-from-plist rest :default :state))
+                 (setf rest (remove-from-plist rest :default :state))
                  (unless (position :initarg (keys rest))
-                   (alexandria:appendf rest (list :initarg (alexandria:make-keyword name))))
+                   (appendf rest (list :initarg (make-keyword name))))
                  (append (list name) rest)))
              (optional-slot-p (slot)
                "Whether the slot is optional or not. A slot is optional if a default is provided."
@@ -77,7 +77,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                   ,@(when pre-init (list pre-init))
                   (set-parents
                    (make-instance ',name
-                                  ,@(mapcan (lambda (i) (list (alexandria:make-keyword (car i)) (car i)))
+                                  ,@(mapcan (lambda (i) (list (make-keyword (car i)) (car i)))
                                             (remove-if #'state-slot-p slots))))))
              (add-doc-to-defun (sexp)
                (if (and (listp sexp)
@@ -139,7 +139,7 @@ See also: `all-pdefs'"
       (list 1)))
 
 (defmethod (setf quant) (value (pattern pattern))
-  (setf (slot-value pattern 'quant) (alexandria:ensure-list value)))
+  (setf (slot-value pattern 'quant) (ensure-list value)))
 
 (defmethod loop-p ((pattern pattern))
   (if (slot-boundp pattern 'loop-p)
@@ -402,7 +402,7 @@ See also: `last-output'"))
                          (null (slot-value pstream 'parent)))
                 (setf (beat result) (beat pstream)))
               (incf (slot-value pstream 'beat) (event-value result :delta)))
-            (alexandria:appendf (slot-value pstream 'history) (list result)) ;; FIX: don't append, push.
+            (appendf (slot-value pstream 'history) (list result)) ;; FIX: don't append, push.
             result)))))
 
 (defgeneric as-pstream (thing)
@@ -434,7 +434,7 @@ See also: `pattern-as-pstream'"))
   (if (keywordp symbol)
       (or (when (pdef-ref symbol)
             (as-pstream (pdef symbol)))
-          (alexandria:when-let ((event-value (event-value *event* symbol)))
+          (when-let ((event-value (event-value *event* symbol)))
             event-value)
           (t-pstream symbol))
       (t-pstream symbol)))
@@ -452,7 +452,7 @@ See also: `pattern-as-pstream'"))
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
               :if (slot-boundp pattern slot)
-              :append (list (alexandria:make-keyword slot)
+              :append (list (make-keyword slot)
                             (pattern-as-pstream (slot-value pattern slot)))))))
 
 (defmethod as-pstream :around ((pattern pattern))
@@ -581,8 +581,8 @@ See also: `pmono', `pb'"
            (when (typep value 'pattern)
              (setf (slot-value value 'parent) pattern))
            (cond ((position key *pbind-special-init-keys*)
-                  (alexandria:when-let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
-                    (alexandria:appendf res-pairs result)))
+                  (when-let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
+                    (appendf res-pairs result)))
                  ((position key *pbind-special-wrap-keys*)
                   (unless (null res-pairs)
                     (setf (slot-value pattern 'pairs) res-pairs)
@@ -593,25 +593,25 @@ See also: `pmono', `pb'"
                   (setf pattern (funcall (getf *pbind-special-wrap-keys* key) value pattern)))
                  (t
                   (unless (typep pattern 'pbind)
-                    (alexandria:appendf pattern-chain (list pattern))
+                    (appendf pattern-chain (list pattern))
                     (setf pattern (make-instance 'pbind)))
-                  (alexandria:appendf res-pairs (list key (if (and (eql key :embed)
+                  (appendf res-pairs (list key (if (and (eql key :embed)
                                                                    (typep value 'symbol))
                                                               (pdef value)
                                                               value)))))))
     (unless (null res-pairs)
       (setf (slot-value pattern 'pairs) res-pairs))
-    (alexandria:appendf pattern-chain (list pattern))
-    (unless (alexandria:length= 1 pattern-chain)
+    (appendf pattern-chain (list pattern))
+    (unless (length= 1 pattern-chain)
       (setf pattern (apply #'pchain pattern-chain)))
     ;; process :quant key.
-    (alexandria:when-let ((quant (getf pairs :quant)))
+    (when-let ((quant (getf pairs :quant)))
       (setf (quant pattern)
             (if (functionp quant)
                 (funcall quant)
                 quant)))
     ;; process :pdef key.
-    (alexandria:when-let ((pdef-name (getf pairs :pdef)))
+    (when-let ((pdef-name (getf pairs :pdef)))
       (pdef pdef-name pattern))
     pattern))
 
@@ -624,7 +624,7 @@ See also: `pmono', `pb'"
   "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. KEY is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
 
 See also: `pbind', `pdef'"
-  (if (alexandria:length= 1 pairs)
+  (if (length= 1 pairs)
       `(pdef ,key ,@pairs)
       `(pbind :pdef ,key ,@pairs)))
 
@@ -638,7 +638,7 @@ See also: `pbind', `pdef'"
 (defun as-pstream-pairs (pairs)
   (let ((results (list)))
     (loop :for (key val) :on pairs :by #'cddr
-       :do (alexandria:appendf results (list key (pattern-as-pstream val))))
+       :do (appendf results (list key (pattern-as-pstream val))))
     results))
 
 (defmethod as-pstream ((pbind pbind))
@@ -646,7 +646,7 @@ See also: `pbind', `pdef'"
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pbind))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
-              :for slot-kw = (alexandria:make-keyword slot)
+              :for slot-kw = (make-keyword slot)
               :for bound = (slot-boundp pbind slot)
               :if bound
               :collect slot-kw
@@ -657,7 +657,7 @@ See also: `pbind', `pdef'"
 
 (defmacro define-pbind-special-init-key (key &body body)
   "Define a special key for pbind that alters the pbind during its initialization, either by embedding a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should embed values into the pbind pairs, or NIL if it should not."
-  (let ((keyname (alexandria:make-keyword key)))
+  (let ((keyname (make-keyword key)))
     `(setf (getf *pbind-special-init-keys* ,keyname)
            (lambda (value pattern)
              (declare (ignorable value pattern))
@@ -671,7 +671,7 @@ See also: `pbind', `pdef'"
 
 (defmacro define-pbind-special-wrap-key (key &body body)
   "Define a special key for pbind that replaces the pbind with another pattern during the pbind's initialization. Each encapsulation key is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
-  (let ((keyname (alexandria:make-keyword key)))
+  (let ((keyname (make-keyword key)))
     `(setf (getf *pbind-special-wrap-keys* ,keyname)
            (lambda (value pattern)
              (declare (ignorable value pattern))
@@ -687,7 +687,7 @@ See also: `pbind', `pdef'"
   (pfindur pattern value))
 
 (define-pbind-special-wrap-key psync
-  (destructuring-bind (quant &optional maxdur) (alexandria:ensure-list value)
+  (destructuring-bind (quant &optional maxdur) (ensure-list value)
     (psync pattern quant (or maxdur quant))))
 
 (define-pbind-special-wrap-key pdurstutter
@@ -712,7 +712,7 @@ See also: `pbind', `pdef'"
 
 (defmacro define-pbind-special-process-key (key &body body)
   "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should embed values into the event stream, or NIL if it should not."
-  (let ((keyname (alexandria:make-keyword key)))
+  (let ((keyname (make-keyword key)))
     `(setf (getf *pbind-special-process-keys* ,keyname)
            (lambda (value)
              ,@body))))
@@ -731,7 +731,7 @@ See also: `pbind', `pdef'"
                    (if (position (car pairs) (keys *pbind-special-process-keys*))
                        (setf *event* (combine-events *event*
                                                      (funcall (getf *pbind-special-process-keys* (car pairs)) next-cadr)))
-                       (setf (event-value *event* (alexandria:ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
+                       (setf (event-value *event* (ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
                    (if (not (null (cddr pairs)))
                        (pbind-accumulator (cddr pairs))
                        *event*))))))
@@ -785,7 +785,7 @@ See also: `pser'")
     (when (and (plusp number)
                (= 0 (mod number (length list))))
       (decf-remaining pseq 'current-repeats-remaining))
-    (alexandria:when-let ((off (next offset)))
+    (when-let ((off (next offset)))
       (when (and (remaining-p pseq)
                  list)
         (elt-wrap list (+ off number))))))
@@ -817,7 +817,7 @@ See also: `pseq'")
 
 (defmethod next ((pser pser-pstream))
   (with-slots (list offset current-index) pser
-    (alexandria:when-let ((remaining (remaining-p pser 'length))
+    (when-let ((remaining (remaining-p pser 'length))
                           (off (next offset)))
       (decf-remaining pser 'current-repeats-remaining)
       (when (eql :reset remaining)
@@ -877,7 +877,7 @@ See also: `pxrand', `pwrand', `pwxrand'")
 (defmethod next ((pattern prand-pstream))
   (when (remaining-p pattern 'length)
     (decf-remaining pattern 'current-repeats-remaining)
-    (alexandria:random-elt (slot-value pattern 'list))))
+    (random-elt (slot-value pattern 'list))))
 
 ;;; pxrand
 
@@ -906,9 +906,9 @@ See also: `prand', `pwrand', `pwxrand'"
   (with-slots (list last-result) pattern
     (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
-      (let ((res (alexandria:random-elt list)))
+      (let ((res (random-elt list)))
         (loop :while (eql res last-result)
-           :do (setf res (alexandria:random-elt list)))
+           :do (setf res (random-elt list)))
         (setf last-result res)
         res))))
 
@@ -1060,7 +1060,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
                    (if (typep repeats 'function)
                        (let ((fle (function-lambda-expression repeats)))
                          (if fle
-                             (if (alexandria:length= 0 (cadr fle))
+                             (if (length= 0 (cadr fle))
                                  (funcall repeats)
                                  (funcall repeats current-value))
                              (handler-case
@@ -1082,11 +1082,11 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defun pdef-ref-get (pdef-key key)
   "Get PDEF-KEY's KEY value from its plist."
-  (getf (pdef-ref pdef-key) (alexandria:make-keyword key)))
+  (getf (pdef-ref pdef-key) (make-keyword key)))
 
 (defun pdef-ref-set (pdef-key key pattern)
   "Set PDEF-KEY's KEY in its plist to PATTERN."
-  (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (alexandria:make-keyword key) pattern)))
+  (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (make-keyword key) pattern)))
 
 (defpattern pdef (pattern)
   ((key :reader pdef-key)
@@ -1125,7 +1125,7 @@ See also: `all-patterns'"
   (etypecase object
     (pdef object)
     (symbol (pdef object))
-    (string (ensure-pdef (alexandria:make-keyword object)))))
+    (string (ensure-pdef (make-keyword object)))))
 
 (defun pdef-pattern (pdef)
   (pdef-ref-get (pdef-key (ensure-pdef pdef)) :pattern))
@@ -1224,7 +1224,7 @@ See also: `pfunc'")
 
 (defmethod next ((pn pn-pstream))
   (with-slots (pattern current-pstream) pn
-    (alexandria:when-let ((rem (remaining-p pn)))
+    (when-let ((rem (remaining-p pn)))
       (when (eql :reset rem)
         (setf current-pstream (as-pstream pattern)))
       (let ((nv (next current-pstream)))
@@ -1268,9 +1268,9 @@ See also: `prand'")
     (when (and (= 0 (mod number (length list)))
                (plusp number))
       (decf-remaining pattern 'current-repeats-remaining))
-    (alexandria:when-let ((rem (remaining-p pattern)))
+    (when-let ((rem (remaining-p pattern)))
       (when (eql :reset rem)
-        (setf shuffled-list (alexandria:shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
+        (setf shuffled-list (shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
       (nth (mod number (length shuffled-list))
            shuffled-list))))
 
@@ -1301,7 +1301,7 @@ See also: `pexprand', `pbrown', `pgauss', `prand'")
   (with-slots (lo hi) pattern
     (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
-      (alexandria:when-let ((nlo (next lo))
+      (when-let ((nlo (next lo))
                             (nhi (next hi)))
         (random-range nlo nhi)))))
 
@@ -1335,13 +1335,13 @@ See also: `pwhite', `pexprand', `pgauss'")
   (when (remaining-p pattern 'length)
     (decf-remaining pattern 'current-repeats-remaining)
     (with-slots (lo hi step current-value) pattern
-      (alexandria:when-let ((nlo (next lo))
+      (when-let ((nlo (next lo))
                             (nhi (next hi))
                             (nstep (next step)))
         (when (null current-value)
           (setf current-value (random-range nlo nhi)))
         (incf current-value (random-range (* -1 nstep) nstep))
-        (setf current-value (alexandria:clamp current-value nlo nhi))))))
+        (setf current-value (clamp current-value nlo nhi))))))
 
 ;;; pexprand
 ;; FIX: should integer inputs result in integer outputs?
@@ -1372,7 +1372,7 @@ See also: `pwhite', `pbrown', `pgauss', `prand'")
   (with-slots (lo hi) pexprand
     (when (remaining-p pexprand 'length)
       (decf-remaining pexprand 'current-repeats-remaining)
-      (alexandria:when-let ((nlo (next lo))
+      (when-let ((nlo (next lo))
                             (nhi (next hi)))
         (exponential-random-range nlo nhi)))))
 
@@ -1403,7 +1403,7 @@ See also: `pwhite', `pexprand', `pbrown'")
   (with-slots (mean deviation) pgauss
     (when (remaining-p pgauss 'length)
       (decf-remaining pgauss 'current-repeats-remaining)
-      (alexandria:when-let ((nmean (next mean))
+      (when-let ((nmean (next mean))
                             (ndev (next deviation)))
         (gauss nmean ndev)))))
 
@@ -1496,7 +1496,7 @@ See also: `pseries', `paccum'")
       (decf-remaining pattern 'current-repeats-remaining)
       (if (= 0 (slot-value pattern 'number))
           current-value
-          (alexandria:when-let ((n (next grow)))
+          (when-let ((n (next grow)))
             (setf current-value (* current-value n)))))))
 
 ;;; pgeom*
@@ -1755,7 +1755,7 @@ See also: `pfuture', `pscratch'")
 
 (defmethod next ((pstream phistory-pstream))
   (with-slots (pattern step-pattern) pstream
-    (alexandria:when-let ((next-step (next step-pattern)))
+    (when-let ((next-step (next step-pattern)))
       (next pattern)
       (handler-case (pstream-elt pattern next-step)
         (pstream-out-of-range ()
@@ -1824,7 +1824,7 @@ See also: `phistory'")
 
 (defmethod next ((pscratch pscratch-pstream))
   (with-slots (pattern step-pattern current-index) pscratch
-    (alexandria:when-let ((nxt (next step-pattern)))
+    (when-let ((nxt (next step-pattern)))
       (prog1
           (pstream-elt-future pattern current-index)
         (setf current-index (max (+ current-index nxt) 0))))))
@@ -1947,7 +1947,7 @@ See also: `pfin', `psync'")
                (event-value ev :delta)
                ev)))
     (with-slots (pattern dur tolerance current-dur current-elapsed) pfindur
-      (alexandria:when-let ((n-event (next pattern)))
+      (when-let ((n-event (next pattern)))
         (unless (slot-boundp pfindur 'current-dur)
           (setf current-dur (next dur)))
         (when current-dur
@@ -1999,7 +1999,7 @@ See also: `pfindur'")
 (defmethod next ((psync psync-pstream)) ;; FIX: implement tolerance
   (with-slots (pattern sync-quant maxdur tolerance history) psync
     (let* ((n-event (next pattern))
-           (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (alexandria:circular-list :delta))))
+           (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (circular-list :delta))))
            (delta (- (round-by-direction elapsed-dur sync-quant) elapsed-dur)))
       (if (null n-event)
           (when (plusp delta)
@@ -2173,7 +2173,7 @@ See also: `beat', `pbeat'")
         (loop :while (and (ok) (<= cdur beats))
            :do
              (let ((nxt (next dur)))
-               (alexandria:appendf dur-history (list nxt))
+               (appendf dur-history (list nxt))
                (when nxt
                  (incf cdur nxt))))
         (when (ok)
@@ -2268,8 +2268,8 @@ See also: `pdelta'")
   (with-slots (pattern) pdiff
     (when (null (slot-value pattern 'history))
       (next pattern))
-    (alexandria:when-let ((last (pstream-elt pattern -1))
-                          (next (next pattern)))
+    (when-let ((last (pstream-elt pattern -1))
+               (next (next pattern)))
       (- next last))))
 
 ;;; pdelta
@@ -2305,8 +2305,8 @@ See also: `pdiff', `pbind''s :beat key")
   (with-slots (pattern cycle history) pdelta
     (when (null history)
       (next pattern))
-    (alexandria:when-let ((lv (or (pstream-elt pattern -1) 0))
-                          (cv (next pattern)))
+    (when-let ((lv (or (pstream-elt pattern -1) 0))
+               (cv (next pattern)))
       (- cv
          (- lv (round-by-direction (- lv cv) cycle))))))
 
@@ -2364,10 +2364,10 @@ See also: `psym'")
 (defmethod next ((ppar ppar-pstream))
   (with-slots (list pstreams history) ppar
     (labels ((next-in-pstreams ()
-               (alexandria:when-let ((res (remove-if (lambda (pstream)
-                                                       (and (not (null (slot-value pstream 'history)))
-                                                            (null (pstream-elt pstream -1))))
-                                                     pstreams)))
+               (when-let ((res (remove-if (lambda (pstream)
+                                            (and (not (null (slot-value pstream 'history)))
+                                                 (null (pstream-elt pstream -1))))
+                                          pstreams)))
                  (most-x res #'< #'beat)))
              (maybe-reset-pstreams ()
                (when (null (remove-if #'null pstreams))
@@ -2539,7 +2539,7 @@ See also: `paclump'")
 
 (defmethod next ((pclump pclump-pstream))
   (with-slots (pattern n) pclump
-    (alexandria:when-let ((next (next n)))
+    (when-let ((next (next n)))
       (next-upto-n pattern next))))
 
 ;;; paclump
@@ -2559,7 +2559,7 @@ See also: `pclump'")
   (with-slots (pattern) paclump
     (when *event*
       (let ((max (loop :for key :in (keys *event*)
-                    :maximizing (length (alexandria:ensure-list (event-value *event* key))))))
+                    :maximizing (length (ensure-list (event-value *event* key))))))
         (next-upto-n pattern max)))))
 
 ;;; ps

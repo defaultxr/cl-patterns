@@ -17,7 +17,7 @@
   (let ((ev (make-instance 'event)))
     (labels ((accumulator (pairs)
                (when (not (null (car pairs)))
-                 (setf (event-value ev (alexandria:ensure-symbol (car pairs) 'cl-patterns)) (cadr pairs))
+                 (setf (event-value ev (ensure-symbol (car pairs) 'cl-patterns)) (cadr pairs))
                  (accumulator (cddr pairs)))))
       (accumulator params)
       ev)))
@@ -40,7 +40,7 @@ Returns 2 values: the value of the key, and the name of the key the value was de
 See also: `e'"
   (when (null event)
     (return-from event-value (values nil nil)))
-  (let* ((key (alexandria:make-keyword key))
+  (let* ((key (make-keyword key))
          (cases (car (getf *event-special-keys* key)))
          (cases (if (not (position key (keys cases))) ;; FIX: move this to when the special-key is defined instead?
                     (append (list key (lambda (event) (raw-event-value event key))) cases)
@@ -64,7 +64,7 @@ See also: `event-value'"
   "Test if EVENT1 and EVENT2 are equivalent.
 
 See also: `every-event-equal'"
-  (and (alexandria:set-equal (keys event1)
+  (and (set-equal (keys event1)
                              (keys event2))
        (loop :for key :in (keys event1)
           :if (not (equal (event-value event1 key) (event-value event2 key)))
@@ -82,7 +82,7 @@ See also: `events-differing-keys'"
   "Get a list of keys that differ between EVENTS.
 
 See also: `every-event-equal', `events-lists-differing-keys'"
-  (loop :for key :in (remove-duplicates (alexandria:flatten (mapcar (lambda (event) (keys event)) events)))
+  (loop :for key :in (remove-duplicates (flatten (mapcar (lambda (event) (keys event)) events)))
         :unless (every (lambda (event) (equal (event-value (nth 0 events) key)
                                               (event-value event key)))
                        events)
@@ -103,7 +103,7 @@ See also: `every-event-equal'"
 
 (defun (setf event-value) (value event key)
   "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."
-  (let* ((key (alexandria:make-keyword key))
+  (let* ((key (make-keyword key))
          (cases (getf *event-special-keys* key)))
     (when (cadr cases) ;; remove-keys
       (let ((keys (remove-if (lambda (c) (eql c t)) (keys (car cases)))))
@@ -122,17 +122,17 @@ See also: `every-event-equal'"
 (defun raw-set-event-value (event key value)
   "Set the value of KEY to VALUE in EVENT without running any conversion functions."
   (with-slots (event-plist) event
-    (setf event-plist (plist-set event-plist (alexandria:make-keyword key) value))))
+    (setf event-plist (plist-set event-plist (make-keyword key) value))))
 
 (defun remove-event-value (event key)
   "Removes KEY from EVENT."
   (with-slots (event-plist) event
-    (setf event-plist (alexandria:remove-from-plist event-plist (alexandria:make-keyword key))))
+    (setf event-plist (remove-from-plist event-plist (make-keyword key))))
   event)
 
 (defun raw-event-value (event key)
   "Get the value of KEY in EVENT without running any conversion functions."
-  (getf (slot-value event 'event-plist) (alexandria:make-keyword key)))
+  (getf (slot-value event 'event-plist) (make-keyword key)))
 
 (defun combine-events (&rest events)
   "Returns a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
@@ -167,7 +167,7 @@ Example:
 See also: `combine-events'"
   (let ((length (reduce 'max
                         (mapcar
-                         (lambda (x) (length (alexandria:ensure-list x)))
+                         (lambda (x) (length (ensure-list x)))
                          (loop :for key :in (keys event)
                             :collect (event-value event key))))))
     (if (= 1 length)
@@ -176,7 +176,7 @@ See also: `combine-events'"
            :collect
              (apply 'event
                     (loop :for key :in (keys event)
-                       :append (list key (elt-wrap (alexandria:ensure-list (event-value event key)) i))))))))
+                       :append (list key (elt-wrap (ensure-list (event-value event key)) i))))))))
 
 (defun combine-events-via-lists (&rest events)
   "Combine EVENTS together to produce one event. Any keys that differ between the events will have be set to lists containing all the values from each event (unless the value is null). This is the opposite of `split-event-by-lists'.
@@ -248,7 +248,7 @@ Additionally, because :define-methods is true, we can also do the following:
 ;; (amp *foo*) ;=> 0.9
 ;; (setf (amp *foo*) 0.7)"
   ;; FIX: does not handle cases with multiple keys. (i.e. (((:foo :bar) 5)))
-  (let ((kwname (alexandria:make-keyword name)))
+  (let ((kwname (make-keyword name)))
     (unless (position kwname (keys cases))
       (setf cases (append (list kwname (list 'raw-event-value 'event kwname)) cases)))
     `(progn
@@ -258,11 +258,11 @@ Additionally, because :define-methods is true, we can also do the following:
                                                                  :append (list
                                                                           (if (eql key t)
                                                                               key
-                                                                              (alexandria:make-keyword key))
+                                                                              (make-keyword key))
                                                                           `(lambda (event)
                                                                              (declare (ignorable event))
                                                                              ,value))))
-                                                      (list ,@(alexandria:ensure-list remove-keys)))))
+                                                      (list ,@(ensure-list remove-keys)))))
        ,(when define-methods
           `(progn
              (defmethod ,name ((event null)) nil)

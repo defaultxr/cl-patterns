@@ -33,7 +33,7 @@
 ;;                                                 :for i :from 0
 ;;                                                 :append (list (nth i h-keys) e))))))))
 ;;            (if r-ev
-;;                (alexandria:appendf result (list (combine-events h-ev r-ev)))
+;;                (appendf result (list (combine-events h-ev r-ev)))
 ;;                (incf (event-value (car (last result)) :dur) (dur h-ev)))))
 ;;     (pseq result 1)))
 

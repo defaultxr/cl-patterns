@@ -19,10 +19,10 @@
 
 (defun string-keyword (string)
   "Return STRING as a keyword, with all non-alphanumeric characters removed."
-  (alexandria:make-keyword (string-upcase (remove-if-not (lambda (letter)
-                                                           (or (digit-char-p letter)
-                                                               (alpha-char-p letter)))
-                                                         string))))
+  (make-keyword (string-upcase (remove-if-not (lambda (letter)
+                                                (or (digit-char-p letter)
+                                                    (alpha-char-p letter)))
+                                              string))))
 
 ;;; list stuff
 
@@ -48,7 +48,7 @@ Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
 
 (defun flatten-1 (list)
   "Like `alexandria:flatten', but only flattens one layer."
-  (apply #'append (mapcar #'alexandria:ensure-list list)))
+  (apply #'append (mapcar #'ensure-list list)))
 
 (defun most-x (list predicate key) ;; from https://stackoverflow.com/questions/30273802/how-would-i-get-the-min-max-of-a-list-using-a-key
   "Get the most PREDICATE item in LIST by comparing whether PREDICATE is true for the values returned by KEY applied to each element of LIST.
@@ -69,7 +69,7 @@ Example:
 (defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
   "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
   (if (null value)
-      (alexandria:remove-from-plist plist key)
+      (remove-from-plist plist key)
       (if (getf plist key)
           (progn
             (setf (getf plist key) value)
@@ -90,7 +90,7 @@ Example:
     (accum item)))
 
 (defmethod keys ((item hash-table))
-  (alexandria:hash-table-keys item))
+  (hash-table-keys item))
 
 ;;; math stuff
 
@@ -220,7 +220,7 @@ See also: `seq'"
 
 (defun next-beat-for-quant (quant beat &optional (direction 1))
   "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT."
-  (destructuring-bind (quant &optional (phase 0) (offset 0)) (alexandria:ensure-list quant)
+  (destructuring-bind (quant &optional (phase 0) (offset 0)) (ensure-list quant)
     (declare (ignore offset))
     (let ((sign (sign direction)))
       (labels ((find-next (quant phase cb try)
@@ -336,15 +336,15 @@ See also: `to-range', `from-range'"
 (defun midi-truncate-clamp (number &optional (max 127))
   "Truncate NUMBER and clamp it to the range 0..MAX (default 127)."
   (declare (number number))
-  (alexandria:clamp (truncate number) 0 max))
+  (clamp (truncate number) 0 max))
 
 (defun bipolar-1-to-midi (number)
   "Convert the range -1..1 to 0..127."
-  (alexandria:clamp (ceiling (* 63.5 (1+ number))) 0 127))
+  (clamp (ceiling (* 63.5 (1+ number))) 0 127))
 
 (defun unipolar-1-to-midi (number)
   "Convert the range 0..1 to 0..127."
-  (alexandria:clamp (round (* 127 number)) 0 127))
+  (clamp (round (* 127 number)) 0 127))
 
 (defun frequency-to-midi (frequency)
   "Convert FREQUENCY to a MIDI note number (rounding to ensure it's an integer).
@@ -362,7 +362,7 @@ Note that this function is meant for use with the MIDI backend; for frequency-to
          ,(concatenate 'string "The global " name-name " dictionary."))
        (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional (value nil value-provided-p))
          ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
-         (let ((key (alexandria:make-keyword key)))
+         (let ((key (make-keyword key)))
            (if value-provided-p
                (if (null value)
                    (remhash key ,dict-symbol)

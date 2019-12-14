@@ -17,7 +17,7 @@ See also: `pbjorklund'"
                    (destructuring-bind (a b) (split arr)
                      (if (and (> (length b) 1) (> (length a) 0))
                          (from-array (lace a b))
-                         (alexandria:flatten (append a b)))))
+                         (flatten (append a b)))))
                  (split (arr)
                    (let ((index (position (car (last arr)) arr :test #'equal)))
                      (list (subseq arr 0 index)
@@ -29,7 +29,7 @@ See also: `pbjorklund'"
                               :collect (list x (nth i b)))
                            (when (<= (length a) (length b))
                              (subseq b (length a))))))
-          (alexandria:rotate
+          (rotate
            (from-array
             (append (make-list pulses :initial-element (list 1))
                     (make-list (- steps pulses) :initial-element (list 0))))
@@ -59,7 +59,7 @@ See also: `bjorklund'")
 
 (defmethod next ((pattern pbjorklund-pstream))
   (with-slots (number pulses steps offset) pattern
-    (alexandria:when-let ((val (nth number (bjorklund pulses steps (next offset)))))
+    (when-let ((val (nth number (bjorklund pulses steps (next offset)))))
       (event :type (if (= 1 val) :note :rest)
              :dur (/ 1 steps)))))
 

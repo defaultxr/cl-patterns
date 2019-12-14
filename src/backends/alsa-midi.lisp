@@ -6,7 +6,7 @@
 
 (defun alsa-midi-panic (&key channel manually-free)
   "Stop all notes on CHANNEL, or all channels if CHANNEL is nil."
-  (loop :for c :in (or (alexandria:ensure-list channel) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+  (loop :for c :in (or (ensure-list channel) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
      :do (if manually-free
              (loop :for note :from 0 :upto 127
                 :do (midihelper:send-event (midihelper:ev-noteoff c note 0)))
