@@ -2,7 +2,7 @@
 
 ;;; special variables
 
-(defparameter *event* nil
+(defvar *event* nil
   "The event special variable. Can be referenced inside a pattern's code.")
 
 (defvar *clock* nil

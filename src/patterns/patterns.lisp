@@ -1286,7 +1286,7 @@ See also: `prand'")
 Example:
 
 ;; (next-upto-n (pwhite 0 10 16))
-;; ;=> (7 2 4 5 7 10 4 8 10 2 3 5 9 2 5 4)
+;; => (7 2 4 5 7 10 4 8 10 2 3 5 9 2 5 4)
 
 See also: `pexprand', `pbrown', `pgauss', `prand'")
 
@@ -1319,7 +1319,7 @@ See also: `pexprand', `pbrown', `pgauss', `prand'")
 Example:
 
 ;; (next-upto-n (pbrown 0 10 1 10))
-;; ;=> (2 3 3 3 4 3 4 5 6 5)
+;; => (2 3 3 3 4 3 4 5 6 5)
 
 See also: `pwhite', `pexprand', `pgauss'")
 
@@ -1357,7 +1357,7 @@ See also: `pwhite', `pexprand', `pgauss'")
 Example:
 
 ;; (next-upto-n (pexprand 1.0 8.0 4))
-;; ;=> (1.0420843091865208d0 1.9340168112124456d0 2.173209129035095d0 4.501371557329618d0)
+;; => (1.0420843091865208d0 1.9340168112124456d0 2.173209129035095d0 4.501371557329618d0)
 
 See also: `pwhite', `pbrown', `pgauss', `prand'")
 
@@ -1388,7 +1388,7 @@ See also: `pwhite', `pbrown', `pgauss', `prand'")
 Example:
 
 ;; (next-n (pgauss) 4)
-;; ;=> (0.08918811646370092d0 0.1745957067161632d0 0.7954678768273173d0 -1.2215823449671597d0)
+;; => (0.08918811646370092d0 0.1745957067161632d0 0.7954678768273173d0 -1.2215823449671597d0)
 
 See also: `pwhite', `pexprand', `pbrown'")
 
@@ -1838,7 +1838,7 @@ See also: `phistory'")
 Example:
 
 ;; (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4))) 5)
-;; ;=> (1 2 3 NIL 4)")
+;; => (1 2 3 NIL 4)")
 
 (defmethod as-pstream ((pif pif))
   (with-slots (test true false) pif
@@ -1931,6 +1931,11 @@ Example:
 
 ;; (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3)
 ;; => ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
+;;
+;; (next-upto-n (pfindur (pwhite 0 4) 16))
+;; => (1 3 0 1 2 2 1 3 0 1 2)
+;; (reduce #'+ *)
+;; => 16
 
 See also: `pfin', `psync'")
 
@@ -2024,12 +2029,12 @@ See also: `pfindur'")
 Example:
 
 ;; (next-n (pdurstutter (pseq '(1 2 3 4 5)) (pseq '(3 2 1 0 2))) 9)
-;; ;=> (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
+;; => (1/3 1/3 1/3 1 1 3 5/2 5/2 NIL)
 ;;
 ;; (next-n (pdurstutter (pbind :dur (pseq '(1 2 3 4 5)))
 ;;                      (pseq '(3 2 1 0 2)))
 ;;         9)
-;; ;=> ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
+;; => ((EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1/3) (EVENT :DUR 1) (EVENT :DUR 1) (EVENT :DUR 3) (EVENT :DUR 5/2) (EVENT :DUR 5/2) NIL)
 
 See also: `pr'")
 
