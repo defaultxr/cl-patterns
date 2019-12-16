@@ -118,7 +118,7 @@ See also: `clock-add', `stop', `end'"
             (remove-if
              (lambda (ctask)
                (when-let ((eq (eq ctask task)))
-                 (dolist (backend (backends-for-event (slot-value task 'item)))
+                 (dolist (backend (enabled-backends))
                    (backend-task-removed task backend))
                  eq))
              tasks)))))
