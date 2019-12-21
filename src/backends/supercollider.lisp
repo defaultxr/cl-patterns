@@ -6,7 +6,7 @@
 
 ;;; global settings
 
-(defvar *cl-collider-buffer-preview-synth* :sp
+(defvar *cl-collider-buffer-preview-synth* :spt
   "The name of the synth to use to `play' a buffer.")
 
 ;;; helper functions
@@ -137,13 +137,14 @@
 
 (defmethod backend-task-removed (task (backend (eql :supercollider)))
   (let ((item (slot-value task 'item)))
-    (unless (typep item 'event)
-      (let ((last-output (last-output item)))
-        (dolist (node (task-nodes task *supercollider-node-map*))
-          (cl-collider:at (timestamp-to-cl-collider
-                           (absolute-beats-to-timestamp (+ (slot-value task 'start-beat) (beat last-output) (sustain last-output))
-                                                        (slot-value task 'clock)))
-            (cl-collider:release node))))))
+    (if (typep item 'event)
+        (map nil 'stop (task-nodes task *supercollider-node-map*)) ;; FIX: this doesn't work because the preview synth doesn't have a gate argument, and non-gated synths aren't kept in the *supercollider-node-map*.
+        (let ((last-output (last-output item)))
+          (dolist (node (task-nodes task *supercollider-node-map*))
+            (cl-collider:at (timestamp-to-cl-collider
+                             (absolute-beats-to-timestamp (+ (slot-value task 'start-beat) (beat last-output) (sustain last-output))
+                                                          (slot-value task 'clock)))
+              (cl-collider:release node))))))
   (setf (task-nodes task *supercollider-node-map*) nil))
 
 ;;; convenience methods
@@ -162,10 +163,19 @@
     t))
 
 (defmethod play ((buffer cl-collider::buffer))
-  (play (event :instrument *cl-collider-buffer-preview-synth*
-               :bufnum (cl-collider:bufnum buffer) ;; FIX: send as :buffer or :bufnum key, depending on what the synthdef actually has.
-               :quant 0
-               :latency 0)))
+  (let* ((synth *cl-collider-buffer-preview-synth*)
+         (synthdef-controls (mapcar #'car (cl-collider:synthdef-metadata synth :controls))))
+    (play (event :backend :supercollider
+                 :instrument synth
+                 (find-if (lambda (x)
+                            (position-if (lambda (y)
+                                           (string-equal y x))
+                                         (list 'buffer 'bufnum)))
+                          synthdef-controls)
+                 (cl-collider:bufnum buffer)
+                 :dur (time-dur (cl-collider:buffer-dur buffer)) ;; FIX: this doesn't calculate the correct time for this.
+                 :quant 0
+                 :latency 0))))
 
 (register-backend :supercollider)
 
