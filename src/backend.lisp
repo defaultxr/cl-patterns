@@ -25,7 +25,8 @@
 
 (defun backends-for-event (event)
   "Get a list of backends that EVENT should be played on, either via the event's :backend key or via the `enabled-backends'."
-  (or (ensure-list (event-value event :backends))
+  (or (ensure-list (or (event-value event :backends)
+                       (event-value event :backend)))
       (enabled-backends)))
 
 ;;; backend management

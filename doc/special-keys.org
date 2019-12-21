@@ -36,7 +36,7 @@ FIX: Not sure if this should be in beats or seconds.
 Various ways to specify the pitch of the synth.
 ** ~buffer~ / ~bufnum~
 The buffer that buffer-playing synths should play from.
-** ~backend~
+** ~backend~ / ~backends~
 A symbol or list of symbols naming backends that the event should be played on. If omitted, the event will be sent to all backends. Note that backends will usually ignore any events they don't understand (i.e. the supercollider backend will not play any events whose ~instrument~ does not reference a known node or synthdef).
 
 * pbind special init keys
