@@ -7,8 +7,8 @@
 ;;; event glue
 
 (defclass event ()
-  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type 'list :documentation "The plist containing all of the event's keys and values.")
-   (%beat :initform nil :type 'number :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
+  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type list :documentation "The plist containing all of the event's keys and values.")
+   (%beat :initform nil :type number :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
   (:documentation "Class representing a musical event."))
 
 (defun event (&rest params)
