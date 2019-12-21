@@ -66,6 +66,13 @@ Example:
             list)
       m0)))
 
+(defmacro endpushnew (place thing)
+  "Append THING to the end of PLACE if it doesn't already exist.
+
+See also: `alexandria:appendf', `pushnew'."
+  `(unless (position ,thing ,place)
+     (appendf ,place (list ,thing))))
+
 (defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
   "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
   (if (null value)

@@ -263,7 +263,8 @@ See also: `clock-loop'"
           task)))))
 
 (defmethod play ((symbol symbol))
-  (play (pdef symbol)))
+  (when-let ((res (lookup-object-for-symbol symbol)))
+    (play res)))
 
 (defmethod play ((list list))
   (mapcar 'play list))

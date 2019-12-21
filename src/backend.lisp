@@ -2,6 +2,26 @@
 
 ;;; helpers
 
+(defvar *dictionary-lookup-functions* (list 'find-pdef)
+  "List of functions that can be used to look up the object that a symbol can name. Each function should return the object in question if it exists, or nil (or throw an error) if it doesn't.
+
+Functions like `play', `end', `launch', and `stop' will check symbols against each of these dictionaries in order and will apply themselves to the object from the first dictionary with a matching key. 
+
+Example:
+
+;; *dictionary-lookup-functions*
+;; => (CL-PATTERNS::FIND-PDEF BDEF:BDEF)
+;; (play :foo) ;; will (play (pdef :foo)) if that pdef exists, or (play (bdef :foo)) if the bdef exists. If neither exists, it will throw an error.
+
+See also: `play', `launch', `end', `stop'")
+
+(defun lookup-object-for-symbol (symbol)
+  "Look up the object named by SYMBOL using `*dictionary-lookup-functions*'. Returns nil if no object was found."
+  (loop :for func :in *dictionary-lookup-functions*
+     :for res = (ignore-errors (funcall func symbol))
+     :when res
+     :return res))
+
 (defgeneric synth-controls (synth backend)
   (:documentation "Get the list of names of controls for SYNTH in BACKEND."))
 

@@ -1108,6 +1108,11 @@ See also: `all-pdefs', `pb', `pmeta', `ps'"
            (make-instance 'pdef
                           :key key)))
 
+(defun find-pdef (key)
+  "Get the pdef with the provided name, or nil if one does not exist."
+  (when (pdef-ref key)
+    (pdef key)))
+
 (defmethod print-object ((pdef pdef) stream)
   (with-slots (key) pdef
     (format stream "(~s ~s)" 'pdef key)))

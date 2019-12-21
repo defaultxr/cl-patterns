@@ -149,6 +149,8 @@
 
 ;;; convenience methods
 
+(endpushnew *dictionary-lookup-functions* 'cl-collider-proxy)
+
 (defmethod play ((object cl-collider::node))
   t)
 
