@@ -71,7 +71,10 @@
    "event-equal doesn't return true for equivalent events")
   (is-false
    (event-equal (event :dur 1) (event :dur 1 :foo 2))
-   "event-equal doesn't return false for events with differing keys"))
+   "event-equal doesn't return false for events with differing keys")
+  (is-true
+   (event-equal (list (event :foo 1)) (event :foo 1))
+   "event-equal doesn't consider an event to be equal to a list of the same event"))
 
 (test every-event-equal
   "Test every-event-equal"

@@ -64,12 +64,19 @@ See also: `event-value'"
   "Test if EVENT1 and EVENT2 are equivalent.
 
 See also: `every-event-equal'"
-  (and (set-equal (keys event1)
-                             (keys event2))
-       (loop :for key :in (keys event1)
-          :if (not (equal (event-value event1 key) (event-value event2 key)))
-          :return nil
-          :finally (return t))))
+  (let ((types (mapcar #'type-of (list event1 event2))))
+    (cond ((set-equal types (list 'cons 'cons))
+           (every-event-equal event1 event2))
+          ((set-equal types (list 'event 'event))
+           (let ((ev1-keys (keys event1)))
+             (and (set-equal ev1-keys (keys event2))
+                  (every (lambda (key)
+                           (equal (event-value event1 key)
+                                  (event-value event2 key)))
+                         ev1-keys))))
+          ((set-equal types (list 'cons 'event))
+           (event-equal (ensure-list event1) (ensure-list event2)))
+          (t (equal event1 event2)))))
 
 (defun every-event-equal (&rest lists)
   "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length.
