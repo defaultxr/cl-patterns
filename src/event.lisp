@@ -6,6 +6,9 @@
 
 ;;; event glue
 
+(defgeneric event-plist (event)
+  (:documentation "The raw plist containing the key/value pairs of the event."))
+
 (defclass event ()
   ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type list :documentation "The plist containing all of the event's keys and values.")
    (%beat :initform nil :type number :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
@@ -212,11 +215,6 @@ See also: `split-event-by-lists', `combine-events'"
                                                       (list nv))))))))
     event))
 
-(defun play-test (item &optional pstream) ;; FIX: move this to debug.lisp
-  "Simply output information about the event that's being played. Useful for diagnostics when no audio output is available."
-  (declare (ignore pstream))
-  (format t "Playing ~s at ~f.~%" item (/ (get-internal-real-time) internal-time-units-per-second)))
-
 (defmethod keys ((item event))
   (keys (slot-value item 'event-plist)))
 
@@ -231,7 +229,7 @@ See also: `split-event-by-lists', `combine-events'"
 (defmethod print-object ((item event) stream)
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
-(defmacro define-event-special-key (name cases &key (remove-keys t) (define-methods nil))
+(defmacro define-event-special-key (name cases &key (remove-keys t) (define-methods nil) documentation)
   "Define a special key with the key NAME for events (i.e. keys that take their values from other keys, or keys that have default values).
 
 CASES is a plist of cases mapping event key names to forms. When `event-value' is called on an event for the NAME key, then the event is tested for the keys of CASES in the order they're listed. The associated form of the first key of CASES that exists in the event is evaluated to get the value of that call to `event-value'.
@@ -241,6 +239,8 @@ If no case is provided with a key that's the same as NAME, one is automatically 
 REMOVE-KEYS is a list of keys to remove from the event when the NAME key is being set with `(setf event-value)'. If t (the default), all keys in CASES will be removed from the event.
 
 DEFINE-METHODS, if true, will cause the macro to define methods for getting and setting the key in an event.
+
+DOCUMENTATION is the documentation string for the function.
 
 Example:
 ;; (define-event-special-key amp (:db (db-amp (raw-event-value event :db))
@@ -272,6 +272,9 @@ Additionally, because :define-methods is true, we can also do the following:
                                                       (list ,@(ensure-list remove-keys)))))
        ,(when define-methods
           `(progn
+             ,(when documentation
+                `(defgeneric ,name (object)
+                   (:documentation ,documentation)))
              (defmethod ,name ((event null)) nil)
              (defmethod ,name ((event event))
                (event-value event ,kwname))
@@ -285,7 +288,8 @@ Additionally, because :define-methods is true, we can also do the following:
 ;;; instrument/group/out
 
 (define-event-special-key instrument (t :default)
-  :define-methods t)
+  :define-methods t
+  :documentation "The instrument or synth to trigger.")
 
 (define-event-special-key group (t 1))
 
@@ -294,15 +298,18 @@ Additionally, because :define-methods is true, we can also do the following:
 ;;; amp/pan
 
 (define-event-special-key amp (:db (db-amp (raw-event-value event :db))
-                                    t 0.5)
-  :define-methods t)
+                                   t 0.5)
+  :define-methods t
+  :documentation "Volume in amplitude, from 0 to 1.")
 
 (define-event-special-key db (:amp (amp-db (raw-event-value event :amp))
-                                    t (amp-db 0.5))
-  :define-methods t)
+                                   t (amp-db 0.5))
+  :define-methods t
+  :documentation "Volume in decibels (dB).")
 
 (define-event-special-key pan (t 0)
-  :define-methods t)
+  :define-methods t
+  :documentation "Stereo panning, where -1 is fully left, 1 is fully right, and 0 is center.")
 
 ;;; dur/delta
 
@@ -316,32 +323,44 @@ Additionally, because :define-methods is true, we can also do the following:
 (define-event-special-key delta (:dur (event-value event :dur)
                                       t (event-value event :dur))
   :remove-keys nil
-  :define-methods t)
+  :define-methods t
+  :documentation "The number of beats between the start of this event and the start of the next one.
+
+See also: `dur', `sustain'")
 
 (define-event-special-key dur (:delta (raw-event-value event :delta)
                                       t 1)
   :remove-keys nil
-  :define-methods t)
+  :define-methods t
+  :documentation "The total duration of the note, in beats.
+
+See also: `delta', `legato'")
 
 ;; sustain/legato
 
 (define-event-special-key sustain (t (* (event-value event :legato)
                                         (event-value event :dur)))
   :remove-keys (:legato)
-  :define-methods t)
+  :define-methods t
+  :documentation "How long the note should be held, in beats.
+
+See also: `legato', `delta'")
 
 (define-event-special-key legato (:sustain (* (raw-event-value event :sustain)
                                               (event-value event :dur))
-                                           t 0.8)
+                                  t 0.8)
   :remove-keys (:sustain)
-  :define-methods t)
+  :define-methods t
+  :documentation "How long the note should be held, in beats, as a factor of its total duration (`dur').
+
+See also: `sustain', `dur'")
 
 ;;; timing
 
 (define-event-special-key timing-offset (t 0))
 
 (define-event-special-key quant (:quant (ensure-list (raw-event-value event :quant))
-                                        t (list 1))
+                                 t (list 1))
   :define-methods t)
 
 ;;; pitch
@@ -351,18 +370,22 @@ Additionally, because :define-methods is true, we can also do the following:
                                                      :root (event-value event :root)
                                                      :octave (event-value event :octave)
                                                      :scale (event-value event :scale))
-                                          t 440)
+                                t 440)
   :remove-keys (:midinote :degree :root :octave)
-  :define-methods t)
+  :define-methods t
+  :documentation "Frequency of the note, in Hz.
+
+See also: `rate', `midinote', `degree'")
 
 (define-event-special-key midinote (:freq (freq-midinote (event-value event :freq))
                                     :degree (degree-midinote (event-value event :degree)
                                                              :root (event-value event :root)
                                                              :octave (event-value event :octave)
                                                              :scale (event-value event :scale))
-                                          t 69)
+                                    t 69)
   :remove-keys (:freq :degree :root :octave)
-  :define-methods t)
+  :define-methods t
+  :documentation "MIDI note number of the note (0-127).")
 
 ;; FIX: this can return NIL. i.e. (degree (event :midinote 0))
 (define-event-special-key degree (:freq (midinote-degree (freq-midinote (event-value event :freq))
@@ -370,34 +393,34 @@ Additionally, because :define-methods is true, we can also do the following:
                                                          :octave (event-value event :octave)
                                                          :scale (event-value event :scale))
                                   :midinote (midinote-degree (event-value event :midinote)
-                                                             :root (event-value event :root)
-                                                             :octave (event-value event :octave)
-                                                             :scale (event-value event :scale))
-                                        t 5)
-  :remove-keys (:freq :midinote)
-  :define-methods t)
+                                                                   :root (event-value event :root)
+                                                                   :octave (event-value event :octave)
+                                                                   :scale (event-value event :scale))
+                                  t 5)
+  :remove-keys (:freq :midinote))
 
 (define-event-special-key root (t 0) ;; FIX: can we derive this when :freq, :midinote, :degree, etc are available?
-  :remove-keys (:freq :midinote)
-  :define-methods t)
+  :remove-keys (:freq :midinote))
 
 (define-event-special-key octave (:freq (freq-octave (raw-event-value event :freq))
                                   :midinote (midinote-octave (raw-event-value event :midinote))
-                                        t 5)
-  :remove-keys (:freq :midinote)
-  :define-methods t)
+                                  t 5)
+  :remove-keys (:freq :midinote))
 
 (define-event-special-key scale (t :major)
   :remove-keys (:freq :midinote)
   :define-methods t)
 
 (define-event-special-key base-freq (:base-note (midinote-freq (event-value event :base-note))
-                                                t 440))
+                                     t 440))
 
 (define-event-special-key base-note (:base-freq (freq-midinote (event-value event :base-freq))
-                                                t 69))
+                                     t 69))
 
 (define-event-special-key rate (t (let ((res (multiple-value-list (event-value event :freq))))
                                     (values (freq-rate (car res) (event-value event :base-freq))
                                             (cadr res))))
-  :define-methods t)
+  ;; we don't do remove-keys because other frequency keys are not exact synonyms.
+  ;; it's also conceivable that some instruments may use both :rate and :freq.
+  :define-methods t
+  :documentation "Playback rate, i.e. for playing back sound buffers. 1 is normal speed, 2 is twice as fast, 0.5 half as fast, etc.")
