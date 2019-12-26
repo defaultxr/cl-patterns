@@ -42,7 +42,10 @@
 (defun cumulative-list (list)
   "Return a copy of LIST where the elements previous are added to the current one.
 
-Example: (cumulative-list (list 1 2 3 4)) => (1 3 6 10)"
+Example:
+
+;; (cumulative-list (list 1 2 3 4))
+;; => (1 3 6 10)"
   (loop :for element :in list
      :for index :from 0
      :collect (apply #'+ element (subseq list 0 index))))
@@ -88,21 +91,21 @@ See also: `alexandria:appendf', `pushnew'."
             plist)
           (append plist (list key value)))))
 
-(defgeneric keys (item)
-  (:documentation "Get the keys of ITEM, whether it be a plist, event, etc."))
+(defgeneric keys (object)
+  (:documentation "Get the keys of OBJECT, whether it be a plist, event, etc."))
 
-(defmethod keys ((item null))
+(defmethod keys ((object null))
   nil)
 
-(defmethod keys ((item cons))
+(defmethod keys ((object cons))
   (labels ((accum (list)
              (cons (car list)
                    (when (cddr list)
                      (accum (cddr list))))))
-    (accum item)))
+    (accum object)))
 
-(defmethod keys ((item hash-table))
-  (hash-table-keys item))
+(defmethod keys ((object hash-table))
+  (hash-table-keys object))
 
 ;;; math stuff
 
@@ -258,7 +261,7 @@ See also: `seq'"
   nil)
 
 (defgeneric quant (object)
-  (:documentation "Get the quant of OBJECT; a list representing when OBJECT is allowed to begin playing.
+  (:documentation "The quant of OBJECT; a list representing when OBJECT is allowed to begin playing.
 
 A quant takes the form (divisor phase offset) where all provided elements are numbers. Only the first element is required.
 
@@ -268,47 +271,47 @@ A quant takes the form (divisor phase offset) where all provided elements are nu
 
 See also: `next-beat-for-quant', `beat', `play'"))
 
-(defgeneric play (item)
-  (:documentation "Play an item (typically an event or pattern) according to the current `*event-output-function*'.
+(defgeneric play (object)
+  (:documentation "Play an object (typically an event or pattern) according to the current `*event-output-function*'.
 
 See also: `launch', `stop'"))
 
-(defgeneric launch (item)
-  (:documentation "Play a new copy of ITEM on the clock. Unlike `play', calling this method on a `pdef' will always start a new copy of its pattern instead of the pdef itself.
+(defgeneric launch (object)
+  (:documentation "Play a new copy of OBJECT on the clock. Unlike `play', calling this method on a `pdef' will always start a new copy of its pattern instead of the pdef itself.
 
 See also: `play'"))
 
-(defgeneric stop (item)
-  (:documentation "Immediately stop a playing item (typically a playing task or pdef).
+(defgeneric stop (object)
+  (:documentation "Immediately stop a playing object (typically a playing task or pdef).
 
 See also: `end', `play'"))
 
-(defgeneric end (item)
+(defgeneric end (object)
   (:documentation "End a task; it will stop when its current loop completes."))
 
-(defgeneric playing-p (item &optional clock)
-  (:documentation "Whether ITEM is playing.
+(defgeneric playing-p (object &optional clock)
+  (:documentation "Whether OBJECT is playing.
 
 See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
 
-(defgeneric loop-p (item)
-  (:documentation "Whether or not ITEM should play again after it ends."))
+(defgeneric loop-p (object)
+  (:documentation "Whether or not OBJECT should play again after it ends."))
 
-(defun play-or-stop (item)
-  "`play' an item, or `stop' it if it is already playing. Returns the task if the item will start playing, or NIL if it will stop."
-  (if (playing-p item)
+(defun play-or-stop (object)
+  "`play' an object, or `stop' it if it is already playing. Returns the task if the object will start playing, or NIL if it will stop."
+  (if (playing-p object)
       (progn
-        (stop item)
+        (stop object)
         nil)
-      (play item)))
+      (play object)))
 
-(defun play-or-end (item)
-  "`play' an item, or `end' it if it's already playing. Returns the task if the item will start playing, or NIL if it will end."
-  (if (playing-p item)
+(defun play-or-end (object)
+  "`play' an object, or `end' it if it's already playing. Returns the task if the object will start playing, or NIL if it will end."
+  (if (playing-p object)
       (progn
-        (end item)
+        (end object)
         nil)
-      (play item)))
+      (play object)))
 
 ;;; range stuff
 

@@ -13,6 +13,7 @@
   :defun (assert (evenp (length header)) (header)))
 
 (defmacro pt (header &rest rows)
+  "Syntax sugar for `ptracker'"
   `(ptracker (list ,@header) ,@rows))
 
 ;; (defun ptracker (header rows)

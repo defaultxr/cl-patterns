@@ -1130,6 +1130,7 @@ See also: `all-patterns'"
     (string (ensure-pdef (make-keyword object)))))
 
 (defun pdef-pattern (pdef)
+  "Get the pattern that PDEF points to."
   (pdef-ref-get (pdef-key (ensure-pdef pdef)) :pattern))
 
 (defmethod quant ((pdef pdef))

@@ -59,7 +59,7 @@
                                notes))))
 
 (defun note-midinote (note &key (root 0) (octave 5)) ;; FIX?
-  "Get the midinote of NOTE taking into account the ROOT and OCTAVE if provided."
+  "Get the midi note number of NOTE, taking into account the ROOT and OCTAVE if provided."
   (+ root (* octave 12) (note-number note)))
 
 (defun degree-note (degree &optional (scale :major))
