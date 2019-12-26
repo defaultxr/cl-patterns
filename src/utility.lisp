@@ -18,11 +18,16 @@
           list))
 
 (defun string-keyword (string)
-  "Return STRING as a keyword, with all non-alphanumeric characters removed."
-  (make-keyword (string-upcase (remove-if-not (lambda (letter)
-                                                (or (digit-char-p letter)
-                                                    (alpha-char-p letter)))
-                                              string))))
+  "Return STRING as a keyword, with all non-letter, non-number, and non-hypen characters removed."
+  (make-keyword
+   (string-upcase
+    (remove-if-not
+     (lambda (letter)
+       (or (digit-char-p letter)
+           (alpha-char-p letter)
+           (char= #\- letter)))
+     (substitute #\- #\_
+                 (substitute #\- #\space string))))))
 
 ;;; list stuff
 
