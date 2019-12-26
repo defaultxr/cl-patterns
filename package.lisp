@@ -42,8 +42,6 @@
 
    #:dur-time
    #:time-dur
-   #:delta-dur
-   #:dur-delta
 
    #:midinote-freq
    #:freq-midinote
@@ -112,8 +110,6 @@
    #:remove-event-value
 
    #:instrument
-   #:group
-   #:out
 
    #:amp
    #:db
@@ -124,7 +120,6 @@
    #:legato
    #:sustain
    #:delta
-   #:timing-offset
 
    #:freq
    #:midinote
