@@ -117,6 +117,9 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
 
 ;;; pattern
 
+(defgeneric pstream-count (pattern)
+  (:documentation "The number of pstreams that have been made of this pattern."))
+
 (defclass pattern ()
   ((quant :initarg :quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
