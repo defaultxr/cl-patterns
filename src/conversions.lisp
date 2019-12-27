@@ -67,7 +67,7 @@
   (let* ((scale (scale (or scale :major)))
          (notes (scale-notes scale)))
     (+ (elt-wrap notes degree)
-       (* (length (tuning-tuning (tuning (scale-tuning scale))))
+       (* (length (tuning-pitches (tuning (scale-tuning scale))))
           (floor (/ degree (length notes)))))))
 
 (defun degree-midinote (degree &key root octave scale)
@@ -84,7 +84,7 @@
   ;;        (note (degree-note degree scale))))
   (note-midinote (degree-note degree scale) :root root :octave octave)
   ;; (+ (* (+ (/ (+ note root)
-  ;;             (length (tuning-tuning (tuning (scale-tuning scale)))))
+  ;;             (length (tuning-pitches (tuning (scale-tuning scale)))))
   ;;          octave
   ;;          -5)
   ;;       (* 12 (log (tuning-octave-ratio (tuning (scale-tuning scale))) 2)))

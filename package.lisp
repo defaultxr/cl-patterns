@@ -77,7 +77,7 @@
    #:all-tunings
    #:tuning
    #:tuning-name
-   #:tuning-tuning
+   #:tuning-pitches
    #:tuning-octave-ratio
 
    #:load-scala-scale

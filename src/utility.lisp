@@ -29,6 +29,15 @@
      (substitute #\- #\_
                  (substitute #\- #\space string))))))
 
+(defun string-replace (string old new)
+  "Find the first instance of OLD in STRING and replace it with NEW. Return the new string, or if OLD was not found, return STRING unchanged. Returns the position that OLD was found as a second value, or nil if it was not found."
+  (let ((pos (search old string)))
+    (values
+     (if pos
+         (concatenate 'string (subseq string 0 pos) new (subseq string (+ pos (length old))))
+         string)
+     pos)))
+
 ;;; list stuff
 
 (defun elt-wrap (list n)

@@ -47,10 +47,10 @@
 ;;; tuning
 
 (defmethod sequence:length ((this tuning))
-  (length (tuning-tuning this)))
+  (length (tuning-pitches this)))
 
 (defmethod sequence:elt ((this tuning) index)
-  (elt (tuning-tuning this) index))
+  (elt (tuning-pitches this) index))
 
 (defmethod sequence:emptyp ((this tuning))
   nil)
