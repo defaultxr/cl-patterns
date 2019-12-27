@@ -6,10 +6,26 @@
 ;; FIX: use https://github.com/Shinmera/trivial-indent to ensure all forms are correctly indented?
 
 (defpattern ptracker (pattern)
-  (header
-   rows
-   (current-row :state t))
-  :documentation "" ;; FIX: docstring needed
+    (header
+     rows
+     (current-row :state t))
+  :documentation "Creates an event pattern via tracker-inspired notation. HEADER is an argument list mapping the pattern's \"columns\" (keys) to their default values (or to patterns that are used to generate the key's values). ROWS is a list of lists, each sublist specifying the values for that step. Values can be specified on their own (in which case they're matched in order to the columns specified in the header) or by using Lisp's traditional key/value notation.
+
+Example:
+
+;; (ptracker (list :rate 1 :start 0 :bufnum buf-1 :instrument :spt :dur 1/4)
+;;           '((1) ;; play at rate 1
+;;             (-) ;; no event (continue previous note for this 1/4 beat)
+;;             (-) ;; same
+;;             (-) ;; same
+;;             (0.5 0.5) ;; play at rate 0.5 and with start point 0.5
+;;             (-) ;; continue previous note
+;;             (:bufnum buf-2) ;; trigger an event with a different buffer
+;;             (-) ;; continue previous note
+;;             (-) ;; same
+;;             ))
+
+See also: `pbind'"
   :defun (assert (evenp (length header)) (header)))
 
 (defmacro pt (header &rest rows)
