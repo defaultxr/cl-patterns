@@ -11,7 +11,7 @@
 
 (defclass clock ()
   ((beat :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
-   (tempo :initarg :tempo :initform 1 :reader tempo :documentation "The tempo of the clock, in beats per second.")
+   (tempo :initarg :tempo :initform 1 :reader tempo :type number :documentation "The tempo of the clock, in beats per second.")
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (tasks-lock :initform (bt:make-recursive-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
@@ -243,7 +243,7 @@ See also: `start-clock-loop', `clock-process'"
   "Convenience method to make a clock and start its loop in a new thread.
 
 See also: `clock-loop'"
-  (setf *clock* (make-clock tempo))
+  (setf *clock* (make-clock (or tempo 1)))
   (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
 
 ;;; play/stop/end methods
