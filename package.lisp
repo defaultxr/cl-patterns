@@ -17,6 +17,7 @@
    #:seq
    #:seq-range
    #:next-beat-for-quant
+   #:rerange
 
    #:tempo
    #:beat
@@ -163,6 +164,7 @@
    #:p-
    #:p*
    #:p/
+   #:prerange
 
    #:pf
 

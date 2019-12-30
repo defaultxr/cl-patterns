@@ -1676,9 +1676,12 @@ See also: `pfunc'"
   (apply #'pnary #'/ numbers))
 
 (defun prerange (input from-range to-range)
-  (pnary #'rerange input from-range to-range))
+  "Remap INPUT from one range, specified by FROM-RANGE, to another range, specified by TO-RANGE.
 
-(export 'prerange)
+Note that this is effectively a convenience wrapper over `pnary' and `rerange'; thus you should see `rerange' for more information.
+
+See also: `rerange', `pnary'"
+  (pnary #'rerange input from-range to-range))
 
 ;;; pslide
 
