@@ -239,12 +239,20 @@ See also: `start-clock-loop', `clock-process'"
                          (/ *latency* 2)))))
     (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))
 
-(defun start-clock-loop (&optional tempo) ;; FIX: detect if clock is already running?
+(defun start-clock-loop (&key tempo force)
   "Convenience method to make a clock and start its loop in a new thread.
 
+With FORCE, make a new clock and thread even if one already appears to be running.
+
 See also: `clock-loop'"
-  (setf *clock* (make-clock (or tempo 1)))
-  (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
+  (if (or (null *clock*)
+          (null (find "cl-patterns clock-loop" (bt:all-threads) :key #'bt:thread-name :test #'string-equal))
+          force)
+      (progn
+        (setf *clock* (make-clock (or tempo 1)))
+        (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
+      (warn "A clock appears to be running already; doing nothing. Set ~s's ~s argument to true to force the creation of a new clock and thread regardless." 'start-clock-loop 'force))
+  *clock*)
 
 ;;; play/stop/end methods
 
