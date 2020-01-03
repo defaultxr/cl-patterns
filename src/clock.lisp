@@ -32,7 +32,8 @@
   ((item :initarg :item :initform nil :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
    (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
    (start-beat :initarg :start-beat :initform nil :documentation "The beat of the clock when the task started.")
-   (clock :initarg :clock :documentation "The clock that the task is running on."))
+   (clock :initarg :clock :documentation "The clock that the task is running on.")
+   (backend-resources :initarg :backend-resources :initform nil :documentation "Resources associated with this task that should be freed by it, i.e. nodes it triggered, buffers it loaded, etc."))
   (:documentation "An item scheduled to be run on the clock."))
 
 (defmethod print-object ((task task) stream)
@@ -108,7 +109,7 @@ See also: `clock-remove', `play'"
         (setf tasks (append tasks (list task)))
         task))))
 
-(defun clock-remove (task &optional (clock *clock*))
+(defun clock-remove (task &optional (clock *clock*)) ;; FIX: can we just add "remove" events to the clock so that removals are automatically synchronized/happen at the right time?
   "Remove TASK from CLOCK's tasks. Generally you don't need to use this directly and would use `stop' or `end' instead.
 
 See also: `clock-add', `stop', `end'"
@@ -147,21 +148,19 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                          (events-after-p item (- sbeat start-beat)))
                      ;; FIX: need to make sure tempo-change events are processed first
                      (progn
-                       (dolist (ev (if (typep item 'event)
-                                       (ensure-list item)
-                                       (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
-                         (let* ((beat (+ start-beat (or (event-value ev :beat) 0)))
-                                (ts (absolute-beats-to-timestamp beat clock))
-                                (event (combine-events ev (event :timestamp-at-start ts :beat-at-start beat))))
+                       (dolist (event (if (typep item 'event)
+                                          (ensure-list item)
+                                          (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
+                         (let ((event (event-with-raw-timing event task)))
                            (dolist (event (split-event-by-lists event))
                              (case (event-value event :type)
                                (:tempo-change
                                 (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
                                   (if (and (numberp (event-value event :tempo))
                                            (plusp (event-value event :tempo)))
-                                      (setf timestamp-at-tempo ts
+                                      (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
                                             tempo (event-value event :tempo)
-                                            beat-at-tempo beat)
+                                            beat-at-tempo (raw-event-value event :beat-at-start))
                                       (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event)))
                                 (dolist (backend (backends-for-event event))
                                   (backend-play-event event task backend))
@@ -262,8 +261,10 @@ See also: `clock-loop'"
 (defmethod play ((pattern pattern))
   (clock-add (as-pstream pattern) *clock*))
 
-(defmethod play ((pdef pdef)) ;; prevent pdef from playing twice if it's already playing on the clock. you can do (play (pdef-ref-get KEY :pattern)) to bypass this and play it again anyway.
+(defmethod play ((pdef pdef))
   (with-slots (key) pdef
+    ;; if there is already a task playing this pdef, we do nothing.
+    ;; you can use `launch' instead to force launching a second instance of the pattern.
     (unless (position (pdef-ref-get key :task) (clock-tasks *clock*))
       (let ((task (call-next-method)))
         (when (typep task 'task)

@@ -47,19 +47,19 @@
         key-map)))
 
 ;; set default cc mappings
-(map nil (lambda (x) (apply 'set-alsa-midi-cc-mapping x))
-     '((1 "Vibrato/Modulation" :vibrato unipolar-1-to-midi)
-       (8 "Balance" :balance bipolar-1-to-midi)
-       (10 "Pan" :pan bipolar-1-to-midi)
-       (71 "Resonance/Timbre" :res unipolar-1-to-midi)
-       (72 "Release" :release)
-       (73 "Attack" :attack)
-       (74 "Cutoff/Brightness" :ffreq frequency-to-midi)
-       (84 "Portamento amount" :porta)
-       (91 "Reverb" :reverb)
-       (92 "Tremolo" :tremolo)
-       (93 "Chorus" :chorus)
-       (94 "Phaser" :phaser)))
+(mapc (lambda (x) (apply 'set-alsa-midi-cc-mapping x))
+      '((1 "Vibrato/Modulation" :vibrato unipolar-1-to-midi)
+        (8 "Balance" :balance bipolar-1-to-midi)
+        (10 "Pan" :pan bipolar-1-to-midi)
+        (71 "Resonance/Timbre" :res unipolar-1-to-midi)
+        (72 "Release" :release)
+        (73 "Attack" :attack)
+        (74 "Cutoff/Brightness" :ffreq frequency-to-midi)
+        (84 "Portamento amount" :porta)
+        (91 "Reverb" :reverb)
+        (92 "Tremolo" :tremolo)
+        (93 "Chorus" :chorus)
+        (94 "Phaser" :phaser)))
 
 ;;; backend functions
 
@@ -69,6 +69,24 @@
 
 (defmethod stop-backend ((backend (eql :alsa-midi)))
   (midihelper:stop-midihelper))
+
+(defmethod backend-instrument-controls (instrument (backend (eql :alsa-midi)))
+  (keys *alsa-midi-cc-table*))
+
+(defmethod backend-node-p (object (backend (eql :alsa-midi)))
+  nil)
+
+(defmethod backend-timestamps-for-event (event task (backend (eql :alsa-midi)))
+  nil)
+
+(defmethod backend-proxys-node (id (backend (eql :alsa-midi)))
+  nil)
+
+(defmethod backend-control-node-at (time (node number) params (backend (eql :alsa-midi)))
+  (midihelper:ev-noteon node note velocity))
+
+(defmethod backend-control-node-at (time node params (backend (eql :alsa-midi)))
+  nil)
 
 (defmethod backend-play-event (event task (backend (eql :alsa-midi)))
   (when (or (eql (event-value event :type) :midi)
@@ -89,17 +107,18 @@
                             :for cc-mapping = (get-alsa-midi-cc-mapping key)
                             :if cc-mapping
                             :collect (list (car cc-mapping) (funcall (nth 3 cc-mapping) (event-value event key))))))
-      (bt:make-thread (lambda ()
-                        (sleep (local-time:timestamp-difference time (local-time:now)))
-                        (when (and pgm
-                                   (not (= pgm (nth channel *alsa-midi-channels-instruments*))))
-                          (midihelper:send-event (midihelper:ev-pgmchange channel pgm)))
-                        (loop :for i :in extra-params
-                           :do (midihelper:send-event (midihelper:ev-cc channel (car i) (cadr i))))
-                        (midihelper:send-event (midihelper:ev-noteon channel note velocity))
-                        (sleep (dur-time (sustain event) (tempo (slot-value task 'clock)))) ;; FIX: ignore/handle events with negative sleep values?
-                        (midihelper:send-event (midihelper:ev-noteoff channel note velocity)))
-                      :name "cl-patterns temporary alsa midi note thread"))))
+      (bt:make-thread
+       (lambda ()
+         (sleep (local-time:timestamp-difference time (local-time:now)))
+         (when (and pgm
+                    (not (= pgm (nth channel *alsa-midi-channels-instruments*))))
+           (midihelper:send-event (midihelper:ev-pgmchange channel pgm)))
+         (loop :for i :in extra-params
+            :do (midihelper:send-event (midihelper:ev-cc channel (car i) (cadr i))))
+         (midihelper:send-event (midihelper:ev-noteon channel note velocity))
+         (sleep (dur-time (sustain event) (tempo (slot-value task 'clock)))) ;; FIX: ignore/handle events with negative sleep values?
+         (midihelper:send-event (midihelper:ev-noteoff channel note velocity)))
+       :name "cl-patterns temporary alsa midi note thread"))))
 
 (defmethod backend-task-removed (task (backend (eql :alsa-midi)))
   ;; FIX

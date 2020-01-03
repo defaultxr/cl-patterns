@@ -215,6 +215,24 @@ See also: `split-event-by-lists', `combine-events'"
                                                       (list nv))))))))
     event))
 
+(defun event-with-raw-timing (event task)
+  "Get an event like EVENT but with the :BEAT-AT-START and :TIMESTAMP-AT-START keys added."
+  (with-slots (clock start-beat) task
+    (let* ((tempo (tempo clock))
+           (quant (quant event))
+           (beat (+ start-beat
+                    (or (event-value event :beat) 0)
+                    (time-dur (or (raw-event-value event :latency) *latency*)
+                              tempo)
+                    (time-dur (or (raw-event-value event :timing-offset) 0)
+                              tempo)
+                    (if (> (length quant) 2)
+                        (nth 2 quant)
+                        0))))
+      (combine-events event
+                      (event :beat-at-start beat
+                             :timestamp-at-start (absolute-beats-to-timestamp beat clock))))))
+
 (defmethod keys ((item event))
   (keys (slot-value item 'event-plist)))
 
