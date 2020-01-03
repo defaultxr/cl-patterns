@@ -6,9 +6,9 @@
 ;; FIX: use https://github.com/Shinmera/trivial-indent to ensure all forms are correctly indented?
 
 (defpattern ptracker (pattern)
-    (header
-     rows
-     (current-row :state t))
+  (header
+   rows
+   (current-row :state t))
   :documentation "Creates an event pattern via tracker-inspired notation. HEADER is an argument list mapping the pattern's \"columns\" (keys) to their default values (or to patterns that are used to generate the key's values). ROWS is a list of lists, each sublist specifying the values for that step. Values can be specified on their own (in which case they're matched in order to the columns specified in the header) or by using Lisp's traditional key/value notation.
 
 Example:
@@ -27,32 +27,6 @@ Example:
 
 See also: `pbind'"
   :defun (assert (evenp (length header)) (header)))
-
-(defmacro pt (header &rest rows)
-  "Syntax sugar for `ptracker'"
-  `(ptracker (list ,@header) ,@rows))
-
-;; (defun ptracker (header rows)
-;;   (assert (evenp (length header)) (header))
-;;   (let* ((h-ev (apply #'event header))
-;;          (h-keys (keys h-ev))
-;;          (result (list)))
-;;     (loop :for row :in rows :do
-;;          (let ((r-ev (cond ((equal row (list :-))
-;;                             (when (= 0 (length result))
-;;                               (event :type :rest)))
-;;                            ((position (car row) (list :r :rest))
-;;                             (event :type :rest))
-;;                            (t
-;;                             (progn
-;;                               (apply #'event (loop
-;;                                                 :for e :in row
-;;                                                 :for i :from 0
-;;                                                 :append (list (nth i h-keys) e))))))))
-;;            (if r-ev
-;;                (appendf result (list (combine-events h-ev r-ev)))
-;;                (incf (event-value (car (last result)) :dur) (dur h-ev)))))
-;;     (pseq result 1)))
 
 (defmethod as-pstream ((ptracker ptracker))
   (with-slots (header rows current-row) ptracker
@@ -82,13 +56,9 @@ See also: `pbind'"
                       (ignore-errors (subseq row (length h-keys))))))
           (incf current-row))))))
 
-;; (pdef :foo
-;;       (ptracker (list :beat 0 :midinote 69)
-;;                 #T(
-;;                    0 68
-;;                    1 87
-;;                    2 32
-;;                    3 56)))
+(defmacro pt (header &rest rows)
+  "Syntax sugar for `ptracker'"
+  `(ptracker (list ,@header) ,@rows))
 
 (defun tracker-shorthand (stream char subchar)
   "Reader macro for `ptracker' preprocessing. "
