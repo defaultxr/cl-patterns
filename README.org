@@ -150,6 +150,4 @@ contains the files for the [[https://github.com/sionescu/fiveam][FiveAM]]-based 
 
 As far as I'm aware there isn't a huge community of people using this library to make music yet. However, if you need support or just want to chat, the "official" room is on [[https://matrix.to/#/#cl-patterns:struct.ws][Matrix: #cl-patterns:struct.ws]].
 
-You can also use IRC as well if you prefer; the Matrix channel listed above is bridged to ~#cl-patterns~ on irc.freenode.net.
-
 Any bugs, feature requests, suggestions, etc should be submitted to the GitHub [[https://github.com/defaultxr/cl-patterns/issues][issue tracker]]. Please feel free to submit issues even if they might already be known as it helps to figure out what parts of the library to prioritize development on. It's also nice to hear that people are using the library. :)
