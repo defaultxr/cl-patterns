@@ -15,7 +15,7 @@
                #:local-time
                #:dissect)
   :serial t
-  :components ((:file "package")
+  :components ((:file "src/package")
                (:file "src/utility")
                (:file "src/conversions")
                (:file "src/scales")

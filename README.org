@@ -95,7 +95,6 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 * Tour
 
 - [[file:README.org][README.org]] - this file. self-expanatory, I'd hope.
-- [[file:package.lisp][package.lisp]] - the package definition file.
 - [[file:LICENSE][LICENSE]] - the MIT license.
 - [[file:cl-patterns.asd][cl-patterns.asd]] - cl-patterns systems definition file.
 
@@ -116,6 +115,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 
 ** src
 
+- [[file:src/package.lisp][package.lisp]] - the package definition file.
 - [[file:src/utility.lisp][utility.lisp]] - general utility functions and special variable definitions.
 - [[file:src/conversions.lisp][conversions.lisp]] - functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
