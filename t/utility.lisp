@@ -40,13 +40,15 @@
 
 (test flatten-1
   "Test the `flatten-1' function"
-  ;; FIX
-  )
+  (is (equal (list 1 2 (list 3 4) 5)
+             (cl-patterns::flatten-1 (list 1 (list 2 (list 3 4) 5))))
+      "flatten-1 returns incorrect results"))
 
 (test most-x
   "Test the `most-x' function"
-  ;; FIX
-  )
+  (is (equal (list 1 2 3)
+             (cl-patterns::most-x (list (list 1) (list 1 2 3) (list 1 2)) #'> #'length))
+      "most-x returns incorrect results"))
 
 (test plist-set
   "Test the `plist-set' function"
