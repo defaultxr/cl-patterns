@@ -487,9 +487,7 @@ See also: `pstream-elt-future', `phistory'"
 (defun pstream-elt-future (pstream n)
   "Return the Nth element from PSTREAM's history, automatically advancing PSTREAM as necessary if the Nth element has not yet occurred.
 
-When N is negative, NILs at the end of PSTREAM's history are not included in indexing, but NIL may be returned if the negative index points to a position prior to the first element in history. Be careful when using negative numbers for N, since infinite-length patterns will cause this function to never return.
-
-Note that if the Nth element has not yet occurred, this function will advance the pstream, thus affecting what will be returned when `next' is called on the pstream. However, this behavior may change in the future.
+When N is negative, only the first nil in PSTREAM's history is included (such that an N of -1 is nil, while an N of -2 is the last non-nil output). Be careful when using negative numbers for N, because infinite-length patterns will cause this function to hang indefinitely.
 
 Example:
 
@@ -1651,19 +1649,19 @@ See also: `pfunc'"
   (swank::compute-enriched-decoded-arglist 'apply argument-forms))
 
 (defun p+ (&rest numbers)
-  "p+ adds NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."
+  "Add NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."
   (apply #'pnary #'+ numbers))
 
 (defun p- (&rest numbers)
-  "p- subtracts NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'- numbers)."
+  "Subtract NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'- numbers)."
   (apply #'pnary #'- numbers))
 
 (defun p* (&rest numbers)
-  "p* multiplies NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'* numbers)."
+  "Multiply NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'* numbers)."
   (apply #'pnary #'* numbers))
 
 (defun p/ (&rest numbers)
-  "p/ divides NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
+  "Divide NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
   (apply #'pnary #'/ numbers))
 
 (defun prerange (input from-range to-range)
@@ -1687,12 +1685,12 @@ See also: `rerange', `pnary'"
    (current-repeats :state t :initform nil)
    (remaining-current-segment :state t :initform nil)
    (current-value :state t :initform nil))
-  :documentation "pslide slides across sections LIST. REPEATS is the total number of sections to output, LEN the length of the section. STEP the number to increment the start index by after each section, and START is the initial index that the first section starts from. WRAP-AT-END, when true, means that an index outside of the list will wrap around. When false, indexes outside of the list will return nils.
+  :documentation "Slides across sections of LIST. REPEATS is the total number of sections to output, LEN the length of the section. STEP is the number to increment the start index by after each section, and START is the initial index into LIST that the first section starts from. WRAP-AT-END, when true, means that an index outside of the list will wrap around. When false, indexes outside of the list result in nil.
 
 Example:
 
 ;; (next-upto-n (pslide (list 0 1 2 3 4 5 6) 3 3 2 1 t))
-;; ;; => (1 2 3 3 4 5 5 6 0)
+;; => (1 2 3 3 4 5 5 6 0)
 
 See also: `pscratch'")
 

@@ -70,26 +70,9 @@
        (* (length (tuning-pitches (tuning (scale-tuning scale))))
           (floor (/ degree (length notes)))))))
 
-(defun degree-midinote (degree &key root octave scale)
+(defun degree-midinote (degree &key (root 0) (octave 5) (scale :major))
   "Get the midi note number of DEGREE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
-  ;; (let* ((root (or root (if (and (boundp '*event*) (not (null *event*)))
-  ;;                           (event-value *event* 'root)
-  ;;                           0)))
-  ;;        (octave (or octave (if (and (boundp '*event*) (not (null *event*)))
-  ;;                               (event-value *event* 'octave)
-  ;;                               5)))
-  ;;        (scale (scale (or scale (if (and (boundp '*event*) (not (null *event*)))
-  ;;                                    (event-value *event* 'scale)
-  ;;                                    :major))))
-  ;;        (note (degree-note degree scale))))
-  (note-midinote (degree-note degree scale) :root root :octave octave)
-  ;; (+ (* (+ (/ (+ note root)
-  ;;             (length (tuning-pitches (tuning (scale-tuning scale)))))
-  ;;          octave
-  ;;          -5)
-  ;;       (* 12 (log (tuning-octave-ratio (tuning (scale-tuning scale))) 2)))
-  ;;    60)
-  )
+  (note-midinote (degree-note degree scale) :root root :octave octave))
 
 (defun degree-freq (degree &key root octave scale)
   "Get the frequency of DEGREE, based on the ROOT, OCTAVE, and SCALE, if provided."

@@ -121,7 +121,7 @@
           (incudine:at (+ (* (or (raw-event-value last-output :latency) *latency*) ;; FIX: include quant's offset here
                              rt-sr)
                           (beat-to-incudine (+ (slot-value task 'start-beat) (or (beat last-output) 0) (sustain last-output))))
-            #'incudine:set-control node :gate 0)))))
+                       #'incudine:set-control node :gate 0)))))
   (setf (task-nodes task *incudine-node-map*) nil))
 
 (defmethod backend-instrument-controls (instrument (backend (eql :incudine)))

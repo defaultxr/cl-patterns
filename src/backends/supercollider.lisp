@@ -92,9 +92,7 @@
                  ;; :type :note-on ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument synth
                  (find-if (lambda (x) ;; buffer or bufnum argument
-                            (position-if (lambda (y)
-                                           (string-equal y x))
-                                         (list 'buffer 'bufnum)))
+                            (position x (list 'buffer 'bufnum) :test #'string-equal))
                           synthdef-controls)
                  (cl-collider:bufnum buffer) ;; get the actual buffer number
                  :dur 32

@@ -53,11 +53,21 @@ See also: `*abbreviations*'"
   "List of note names in the equal temperament 12-tone tuning.")
 
 (defun note-number (note)
-  "Given a note name or note number, return the note number."
+  "Given a note name or note number, return the note number.
+
+See also: `note-name', `note-midinote'"
   (etypecase note
     (number note)
     (keyword (position note *note-names* :test #'position))
     (symbol (note-number (make-keyword note)))))
+
+(defun note-name (note-number)
+  "Given a note number, return its note name.
+
+Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\".
+
+See also: `note-number', `note-midinote'"
+  (car (elt-wrap *note-names* note-number)))
 
 (defun sharp-or-flat (string)
   "Given STRING, return a number representing how many semitones above or below its number it represents, by counting sharps (#) and flats (b)."
@@ -71,12 +81,6 @@ See also: `*abbreviations*'"
     (symbol (index-and-offset (string num)))
     (string (cons (parse-integer num :junk-allowed t)
                   (sharp-or-flat num)))))
-
-(defun note-name (note-number)
-  "Given a note number, return its note name.
-
-Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\"."
-  (car (elt-wrap *note-names* note-number)))
 
 ;;; tunings
 
@@ -369,10 +373,10 @@ See also: `scale', `define-tuning', `define-scale'"
                :collect i)
             scale
             (scale-notes (scale scale))
-            (chord-note-numbers chord)
-            (mapcar #'note-name (chord-note-numbers chord)))))
+            (chord-notes chord)
+            (mapcar #'note-name (chord-notes chord)))))
 
-(defun chord-note-numbers (chord)
+(defun chord-notes (chord)
   "Return a list consisting of the note numbers for CHORD."
   (mapcar (lambda (idx)
             (let ((io (index-and-offset idx)))
@@ -385,7 +389,7 @@ See also: `scale', `define-tuning', `define-scale'"
   (flet ((mchord (root chord)
            (mapcar #'+
                    (circular-list (+ (* 12 octave) (note-number root)))
-                   (chord-note-numbers (chord chord)))))
+                   (chord-notes (chord chord)))))
     (if (null chord)
         (progn
           (error "Not done yet.")

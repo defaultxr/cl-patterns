@@ -82,4 +82,4 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
 #+END_SRC
 ...in the future, this will be even simpler. :)
 - ~metadata~ slot for patterns
-Hash table associated with each pattern for storing additional data. Access with the ~pattern-metadata~ function. Use by the midifile functionality to include track names/information/etc.
+Hash table associated with each pattern for storing additional data. Access with the ~pattern-metadata~ function. Used by the midifile functionality to include track names/information/etc.

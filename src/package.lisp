@@ -89,7 +89,7 @@
    #:chord-name
    #:chord-scale
    #:chord-indexes
-   #:chord-note-numbers
+   #:chord-notes
    #:chord-midinotes
 
    ;;; event.lisp

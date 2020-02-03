@@ -170,7 +170,7 @@ Example:
 
 ;; (split-event-with-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5)))
 ;;
-;; ;=> ((EVENT :FOO 1 :BAR 1 :BAZ 3)
+;; => ((EVENT :FOO 1 :BAR 1 :BAZ 3)
 ;;      (EVENT :FOO 1 :BAR 2 :BAZ 4)
 ;;      (EVENT :FOO 1 :BAR 1 :BAZ 5))
 
@@ -270,7 +270,7 @@ This defines the amp key for events. Since the :amp KEY is implied, it doesn't n
 Additionally, because :define-methods is true, we can also do the following:
 
 ;; (defparameter *foo* (event :amp 0.9))
-;; (amp *foo*) ;=> 0.9
+;; (amp *foo*) ; => 0.9
 ;; (setf (amp *foo*) 0.7)"
   ;; FIX: does not handle cases with multiple keys. (i.e. (((:foo :bar) 5)))
   (let ((kwname (make-keyword name)))

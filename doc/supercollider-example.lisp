@@ -6,9 +6,7 @@
 
 ;; once that is done, start the SuperCollider server if you haven't already:
 
-(in-package :cl-patterns)
-
-(start-backend :supercollider)
+(cl-patterns:start-backend :supercollider)
 
 ;; (Note: if you get an error, make sure that sc:*sc-synth-program* is the same as the output of "which scsynth" from your command line. You may also need to set sc:*sc-plugin-paths* if you get errors about UGens not being installed.)
 
@@ -31,16 +29,10 @@
 
 (in-package :cl-patterns)
 
-(enable-backend :supercollider)
-
-;; make a clock that patterns will be played on:
+;; start the clock that patterns will be played on:
 
 ;; the clock keeps tempo in beats per second; thus 110/60 = 110 beats per minute
-(defparameter *clock* (make-clock 110/60))
-
-;; run the clock in a new thread:
-
-(bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop")
+(start-clock-loop :tempo 110/60)
 
 ;; ...and then go ahead and write some patterns!
 
