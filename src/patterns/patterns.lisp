@@ -1651,7 +1651,7 @@ See also: `pfunc'"
           (nexts (mapcar #'next patterns)))
       (unless (or (position nil nexts)
                   (null op))
-        (apply op nexts)))))
+        (apply #'multi-channel-funcall op nexts)))))
 
 ;; show the arguments of the function being called in pnary
 #+swank
