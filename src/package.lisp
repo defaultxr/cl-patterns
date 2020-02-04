@@ -168,7 +168,6 @@
    #:p-
    #:p*
    #:p/
-   #:prerange
 
    #:ppc
 

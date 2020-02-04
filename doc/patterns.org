@@ -33,6 +33,7 @@ Patterns that generate random numbers.
 * Math patterns
 Patterns whose outputs are the results of math operations on other patterns.
 - ~p+~, ~p-~, ~p*~, ~p/~ - Basic math patterns.
+- ~prerange~ - Remap an input from one range to another range.
 - ~pdiff~ - Get the difference between successive outputs of the source pattern.
 - ~pdelta~ - Get the difference between successive outputs of the source pattern, wrapping negatives within a specified range.
 

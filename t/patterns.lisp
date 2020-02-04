@@ -589,6 +589,15 @@
              (next-upto-n (pnary (pseq (list #'+ #'-)) 2 (pseq (list 1 2) 1))))
       "pnary yields incorrect outputs when its operator is a pattern"))
 
+(test prerange
+  "Test prerange"
+  (is (equal (list 10 20 30)
+             (mapcar #'round ;; needed because of floating point rounding errors
+                     (next-upto-n (prerange (pseq (list -1 -2 -3) 1)
+                                            (list 0 -10)
+                                            (list 0 100)))))
+      "prerange yields incorrect outputs"))
+
 (test pslide
   "Test pslide"
   (is (equal (list 1 2 3 2 3 4 3 4 5 4 5 1 5)

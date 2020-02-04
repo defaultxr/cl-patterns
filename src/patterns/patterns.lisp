@@ -1674,13 +1674,31 @@ See also: `pfunc'"
   "Divide NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
   (apply #'pnary #'/ numbers))
 
-(defun prerange (input from-range to-range)
-  "Remap INPUT from one range, specified by FROM-RANGE, to another range, specified by TO-RANGE.
+;;; prerange
+
+(defpattern prerange (pattern)
+  (input
+   from-range
+   to-range)
+  :documentation "Remap INPUT from one range, specified by FROM-RANGE, to another range, specified by TO-RANGE.
 
 Note that this is effectively a convenience wrapper over `pnary' and `rerange'; thus you should see `rerange' for more information.
 
-See also: `rerange', `pnary'"
-  (pnary #'rerange input from-range to-range))
+See also: `rerange', `pnary'")
+
+(defmethod as-pstream ((prerange prerange))
+  (with-slots (input from-range to-range) prerange
+    (make-instance 'prerange-pstream
+                   :input (pattern-as-pstream input)
+                   :from-range (pattern-as-pstream from-range)
+                   :to-range (pattern-as-pstream to-range))))
+
+(defmethod next ((prerange prerange-pstream))
+  (with-slots (input from-range to-range) prerange
+    (when-let ((input (next input))
+               (from-range (next from-range))
+               (to-range (next to-range)))
+      (rerange input from-range to-range))))
 
 ;;; pslide
 
