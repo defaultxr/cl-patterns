@@ -7,6 +7,7 @@
 
    #:*event*
    #:*clock*
+
    #:gete
    #:multi-channel-funcall
    #:keys
@@ -155,6 +156,8 @@
 
    ;; NOTE: pattern classes defined with `defpattern' are automatically exported.
 
+   #:pf
+
    #:all-pdefs
    #:pdef-pattern
 
@@ -167,7 +170,6 @@
    #:p/
    #:prerange
 
-   #:pf
    #:ppc
 
    ;;; bjorklund.lisp

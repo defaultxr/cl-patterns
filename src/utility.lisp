@@ -8,14 +8,8 @@
 (defvar *clock* nil
   "The default clock to run tasks on.")
 
-;;; glue
+;;; string stuff
 
-(defun gete (list key)
-  "Get a list of the value of KEY for each event in LIST."
-  (mapcar (lambda (event)
-            (unless (null event)
-              (event-value event key)))
-          list))
 
 (defun string-keyword (string)
   "Return STRING as a keyword, with all non-letter, non-number, and non-hypen characters removed."
@@ -39,6 +33,13 @@
      pos)))
 
 ;;; list stuff
+
+(defun gete (list key)
+  "Get a list of the value of KEY for each event in LIST."
+  (mapcar (lambda (event)
+            (unless (null event)
+              (event-value event key)))
+          list))
 
 (defun elt-wrap (list n)
   "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length."
