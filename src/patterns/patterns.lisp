@@ -1738,7 +1738,7 @@ See also: `pscratch'")
               (decf-remaining pattern 'current-repeats-remaining)
               (setf remaining-current-segment (next len))
               (incf current-repeats)
-              (setf current-value (+ start (* step current-repeats)))
+              (setf current-value (+ start (* (next step) current-repeats)))
               (next pattern)))))))
 
 ;;; phistory
