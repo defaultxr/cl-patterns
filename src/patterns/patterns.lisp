@@ -2570,6 +2570,66 @@ See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
     (when (and current-index list)
       (elt-wrap list current-index))))
 
+;;; pparchain
+
+(defpattern pparchain (pchain)
+  (patterns)
+  :documentation "Combine multiple patterns into several event streams. The event yielded by the first pattern will be used as the input event to the second pattern, and so on. The events yielded by each pattern will be collected into a list and yielded by the pparchain. This pattern is effectively `ppar' and `pchain' combined.
+
+Example:
+
+;; (next-upto-n (pparchain (pbind :foo (pseries 0 1 3)) (pbind :baz (p+ (pk :foo) 1) :foo (p+ (pk :foo) 3))))
+;; => (((EVENT :FOO 0) (EVENT :FOO 3 :BAZ 1))
+;;     ((EVENT :FOO 1) (EVENT :FOO 4 :BAZ 2))
+;;     ((EVENT :FOO 2) (EVENT :FOO 5 :BAZ 3)))
+
+See also: `ppc', `ppar', `pchain', `pbind''s :embed key"
+  :defun (defun pparchain (&rest patterns)
+           (set-parents
+            (make-instance 'pparchain
+                           :patterns patterns))))
+
+(defmethod as-pstream ((pparchain pparchain))
+  (with-slots (patterns) pparchain
+    (make-instance 'pparchain-pstream
+                   :patterns (loop :for pattern :in patterns
+                                :collect (as-pstream pattern)))))
+
+(defmethod next ((pparchain pparchain-pstream))
+  (with-slots (patterns) pparchain
+    (let ((c-event (make-default-event)))
+      (loop :for pattern :in patterns
+         :do (setf c-event (combine-events c-event (let ((*event* (copy-event c-event)))
+                                                     (next pattern))))
+         :if (null c-event)
+         :return nil
+         :else
+         :collect c-event))))
+
+;;; ppc
+
+(defmacro ppc (&body pairs)
+  "Syntax sugar for `pparchain' that automatically splits PAIRS by :- symbols.
+
+Example:
+
+;; (ppc :foo (pseq (list 1 2 3) 1)
+;;      :-
+;;      :bar (p+ (pk :foo) 2))
+;; => (((EVENT :FOO 1) (EVENT :FOO 1 :BAR 3))
+;;     ((EVENT :FOO 2) (EVENT :FOO 2 :BAR 4))
+;;     ((EVENT :FOO 3) (EVENT :FOO 3 :BAR 5)))
+
+See also: `pparchain'"
+  (labels ((ppc-split (pairs)
+             (let ((pos (position :- pairs)))
+               (if pos
+                   (list (subseq pairs 0 pos)
+                         (ppc-split (subseq pairs (1+ pos))))
+                   pairs))))
+    `(pparchain ,@(loop :for i :in (ppc-split pairs)
+                     :collect (cons 'pbind i)))))
+
 ;;; pclump
 
 (defpattern pclump (pattern)

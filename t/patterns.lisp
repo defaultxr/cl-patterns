@@ -865,6 +865,28 @@
              (next-n (pwalk (list 60 64 67 72 76 79 84) (pseq (list 1)) (pseq (list 1 -1)) 0) 12))
       "pwalk's DIRECTION-PATTERN input doesn't work properly"))
 
+(test pparchain
+  "Test pparchain"
+  (is (every-event-equal
+       (list
+        (list (event :foo 0) (event :foo 3 :baz 1))
+        (list (event :foo 1) (event :foo 4 :baz 2))
+        (list (event :foo 2) (event :foo 5 :baz 3)))
+       (next-upto-n (pparchain (pbind :foo (pseries 0 1 3)) (pbind :baz (p+ (pk :foo) 1) :foo (p+ (pk :foo) 3)))))
+      "pparchain yields incorrect outputs"))
+
+(test ppc
+  "Test ppc"
+  (is (every-event-equal
+       (list
+        (list (event :foo 1) (event :foo 1 :bar 3))
+        (list (event :foo 2) (event :foo 2 :bar 4))
+        (list (event :foo 3) (event :foo 3 :bar 5)))
+       (next-upto-n (ppc :foo (pseq (list 1 2 3) 1)
+                         :-
+                         :bar (p+ (pk :foo) 2))))
+      "ppc yields incorrect outputs"))
+
 (test pclump
   "Test pclump"
   (is-true (equal (list (list 0 1) (list 2 3) (list 4))

@@ -102,5 +102,7 @@ Patterns that are used to define or debug others.
 - ~pchain~ - Chain patterns together by using the first source pattern's output as the input to the second, etc.
 - ~parp~ - "Arpeggiate" patterns by using each output of one pattern as input to a full play-through of the other.
 - ~ppar~ - Play patterns in parallel so that their outputs appear together in one pstream while preserving timing.
+- ~pparchain~ - Define and play multiple patterns in parallel, each pattern using the previous's output as its input.
+- ~ppc~ - Syntax sugar for writing ~pparchain~ in the style of ~pb~.
 - ~psym~ - Define a sequence of patterns by name to play in succession and/or parallel.
 - ~pmeta~ - Meta-control patterns by applying various transformations to them with a ~pbind~-like syntax.

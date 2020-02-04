@@ -168,6 +168,7 @@
    #:prerange
 
    #:pf
+   #:ppc
 
    ;;; bjorklund.lisp
 
