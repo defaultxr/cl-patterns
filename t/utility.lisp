@@ -44,6 +44,21 @@
              (cl-patterns::flatten-1 (list 1 (list 2 (list 3 4) 5))))
       "flatten-1 returns incorrect results"))
 
+(test mapcar-longest
+  "Test the `mapcar-longest' function"
+  (is (equal (list 1 3 3)
+             (cl-patterns::mapcar-longest #'+ (list 0 1) (list 1) (list 0 1 2)))
+      "mapcar-longest returns incorrect results")
+  (is (equal (list 0 2 2 4 4 6)
+             (cl-patterns::mapcar-longest #'+ (list 0 1) (list 0 1 2 3 4 5)))
+      "mapcar-longest doesn't wrap indexes of the shorter lists correctly"))
+
+(test multi-channel-funcall
+  "Test the `multi-channel-funcall' function"
+  (is (equal 3
+             (cl-patterns::multi-channel-funcall #'+ 2 1))
+      "multi-channel-funcall doesn't return a lone value when all its inputs are lone values"))
+
 (test most-x
   "Test the `most-x' function"
   (is (equal (list 1 2 3)

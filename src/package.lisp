@@ -8,6 +8,7 @@
    #:*event*
    #:*clock*
    #:gete
+   #:multi-channel-funcall
    #:keys
 
    #:random-coin

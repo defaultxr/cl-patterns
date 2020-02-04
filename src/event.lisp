@@ -174,7 +174,7 @@ Example:
 ;;      (EVENT :FOO 1 :BAR 2 :BAZ 4)
 ;;      (EVENT :FOO 1 :BAR 1 :BAZ 5))
 
-See also: `combine-events'"
+See also: `multi-channel-funcall', `combine-events-via-lists', `combine-events'"
   (let ((length (reduce 'max
                         (mapcar
                          (lambda (x) (length (ensure-list x)))

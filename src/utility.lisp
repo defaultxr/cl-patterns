@@ -67,6 +67,35 @@ Example:
   "Like `alexandria:flatten', but only flattens one layer."
   (apply #'append (mapcar #'ensure-list list)))
 
+(defun mapcar-longest (function &rest lists)
+  "Like `mapcar', but the resulting list is the length of the longest input list instead of the shortest. Indexes into shorter lists are wrapped.
+
+Example:
+
+;; (mapcar-longest #'+ (list 1) (list 2 3 4))
+;; => (3 4 5)
+
+See also: `multi-channel-funcall'"
+  (loop :for i :from 0 :below (reduce #'max (mapcar #'length lists))
+     :collect (apply function
+                     (mapcar
+                      (lambda (list)
+                        (elt-wrap list i))
+                      lists))))
+
+(defun multi-channel-funcall (function &rest args)
+  "Call FUNCTION on the provided arguments. If one or more of the arguments is a list, funcall for each element of the list(s). The length of the resulting list will be the same as the longest input list.
+
+Example:
+
+;; (multi-channel-funcall #'+ 1 (list 1 2 3))
+;; => (2 3 4)
+
+See also: `mapcar-longest', `split-event-by-lists'"
+  (if-let ((has-list (position-if #'listp args)))
+    (apply #'mapcar-longest function (mapcar #'ensure-list args))
+    (apply #'funcall function args)))
+
 (defun most-x (list predicate key) ;; from https://stackoverflow.com/questions/30273802/how-would-i-get-the-min-max-of-a-list-using-a-key
   "Get the most PREDICATE item in LIST by comparing whether PREDICATE is true for the values returned by KEY applied to each element of LIST.
 
