@@ -1106,6 +1106,11 @@ See also: `all-pdefs', `pb', `pmeta', `ps'"
   (with-slots (key) pdef
     (format stream "(~s ~s)" 'pdef key)))
 
+(defmethod print-object ((pdef pdef-pstream) stream)
+  (with-slots (key) pdef
+    (print-unreadable-object (pdef stream :type t)
+      (format stream "~s" key))))
+
 (create-global-dictionary pdef)
 
 (defun all-pdefs ()
