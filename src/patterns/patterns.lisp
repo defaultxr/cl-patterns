@@ -1456,8 +1456,13 @@ Example:
 ;; ;; => (0 2/3 4/3 2 8/3 10/3 4 14/3 16/3 6 20/3 22/3 8 26/3 28/3 10)
 
 See also: `pseries', `pgeom', `pgeom*'"
-  (assert (and (integerp length) (> length 1)) (length) "LENGTH must be an integer greater than 1 (~s provided)." length)
-  (pseries start (/ (- end start) (1- length)) length))
+  (assert (or (null length)
+              (and (integerp length) (> length 1))) ;; FIX: it should be possible to provide length as a pattern; same for pgeom*
+          (length)
+          "LENGTH must be an integer greater than 1 (~s provided)." length)
+  (let ((length (or length
+                    (max 2 (round (1+ (abs (- end start))))))))
+    (pseries start (/ (- end start) (1- length)) length)))
 
 ;;; pgeom
 
