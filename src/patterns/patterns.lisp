@@ -26,6 +26,9 @@
            (set-parent (slot-value pattern slot) pattern)))
     pattern))
 
+(defparameter *patterns* (list)
+  "List of the names of all defined pattern types.")
+
 (defmacro defpattern (name superclasses slots &key documentation defun) ;; FIX: should warn if `set-parents' is not called in the creation-function.
   "Define a pattern. This macro automatically generates the pattern's class, its pstream class, and the function to create an instance of the pattern, and makes them external in the cl-patterns package.
 
@@ -110,6 +113,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
             (if gen-func-p
                 (make-defun pre-init)
                 (add-doc-to-defun defun)))
+         (pushnew ',name *patterns*)
          (export '(,name ,name-pstream))))))
 
 (defparameter *max-pattern-yield-length* 256
@@ -133,8 +137,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
   "Get a list of all defined patterns.
 
 See also: `all-pdefs'"
-  (remove-if (lambda (s) (eql s 'pstream))
-             (mapcar #'class-name (closer-mop:class-direct-subclasses (find-class 'pattern)))))
+  *patterns*)
 
 (defmethod quant ((pattern pattern))
   (if (slot-boundp pattern 'quant)
