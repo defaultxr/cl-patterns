@@ -130,6 +130,15 @@ See also: `clock-add', `stop', `end'"
 See also: `pattern-tasks'"
   (slot-value clock 'tasks))
 
+(defun (setf clock-tasks) (value &optional (clock *clock*))
+  (let* ((current (clock-tasks clock))
+         (removed (set-difference current value))
+         (added (set-difference value current)))
+    (dolist (task removed)
+      (clock-remove task clock))
+    (dolist (task added)
+      (clock-add task clock))))
+
 (defun clock-clear-tasks (&optional (clock *clock*))
   "Remove all tasks from CLOCK.
 
