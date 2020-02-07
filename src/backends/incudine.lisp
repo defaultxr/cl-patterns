@@ -2,18 +2,21 @@
 
 ;;; helper functions
 
-(defparameter *incudine-tempo-start-beat* nil
-  "The `*clock*' beat when the `*incudine-tempo*' tempo started.")
+(defparameter *incudine-start-timestamp* nil
+  "The local-time timestamp when Incudine was started.")
 
-(defparameter *incudine-samples-at-tempo-change* 0
-  "The number of samples in Incudine when the clock's tempo was changed.")
+(defparameter *incudine-start-samples* 0
+  "The result of `incudine:now' when `*incudine-start-timestamp*' was generated.")
 
-(defun beat-to-incudine (beat &optional (clock *clock*))
-  "Convert a cl-patterns clock beat number into an Incudine sample number."
-  (if *incudine-tempo-start-beat*
-      (+ (* (- beat *incudine-tempo-start-beat*) (tempo clock) (incudine:rt-sample-rate))
-         *incudine-samples-at-tempo-change*)
-      (error "cl-patterns cannot sync to Incudine, as *incudine-tempo-start-beat* is still NIL. You may need to call (start-backend :incudine) first.")))
+(defun timestamp-to-incudine (timestamp)
+  "Convert a local-time timestamp to an Incudine sample number."
+  (unless *incudine-start-timestamp*
+    (if (eql (incudine:rt-status) :started)
+        (setf *incudine-start-timestamp* (local-time:now)
+              *incudine-start-samples* (incudine:now))
+        (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (start-backend :incudine) if you want to use Incudine, or disable its backend.")))
+  (* (local-time:timestamp-difference timestamp *incudine-start-timestamp*)
+     (incudine:rt-sample-rate)))
 
 (defun incudine-dsp-name (instrument)
   (etypecase instrument
@@ -50,13 +53,12 @@
 
 ;;; backend functions
 
-(defmethod start-backend ((backend (eql :incudine))) ;; FIX: allow a quant to be used to sync the clock to the newly-created incudine tempo?
+(defmethod start-backend ((backend (eql :incudine)))
   (unless *clock*
     (warn "cl-patterns' *CLOCK* is nil; starting the clock on your behalf with START-CLOCK-LOOP: ~s."
           (start-clock-loop)))
   (incudine:rt-start)
-  (setf *incudine-tempo-start-beat* (beat *clock*)
-        *incudine-tempo* (incudine:make-tempo (tempo *clock*) :bps))) ;; FIX: also need to handle tempo-change events since we're using an incudine tempo object
+  (setf *incudine-start-timestamp* (local-time:now)))
 
 (defmethod stop-backend ((backend (eql :incudine)))
   (incudine:rt-stop))
@@ -69,8 +71,9 @@
   (incudine:node-p object))
 
 (defmethod backend-timestamps-for-event (event task (backend (eql :incudine)))
-  (let ((beat (or (raw-event-value event :beat-at-start) 0)))
-    (mapcar (rcurry #'beat-to-incudine (slot-value task 'clock)) (list beat (+ beat (event-value event :sustain))))))
+  (let ((timestamp (or (raw-event-value event :timestamp-at-start)
+                       (local-time:now))))
+    (mapcar #'timestamp-to-incudine (list timestamp (local-time:timestamp+ timestamp (dur-time (sustain event)) :sec)))))
 
 (defmethod backend-proxys-node (id (backend (eql :incudine)))
   ;; FIX?
