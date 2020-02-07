@@ -1774,7 +1774,7 @@ Example:
 ;; (next-n (phistory (pseries) (pseq '(0 2 1))) 3)
 ;; ;; => (0 NIL 1)
 
-See also: `pfuture', `pscratch'")
+See also: `pscratch'")
 
 (defmethod as-pstream ((phistory phistory))
   (with-slots (pattern step-pattern) phistory
@@ -1789,34 +1789,6 @@ See also: `pfuture', `pscratch'")
       (handler-case (pstream-elt pattern next-step)
         (pstream-out-of-range ()
           nil)))))
-
-;;; pfuture (FIX - remove)
-;; like phistory, but immediately slurps the whole pstream and then allows you to index from its history instead of advancing the source pattern one at a time as normal
-;; phistory is kept around because some (time-based) patterns may need to be advanced normally rather than all at once (though it might be kind of a bad idea to try to use phistory, pfuture, or pscratch on those kinds of patterns)
-;; FIX: maybe deprecate this and just integrate its functionality into phistory somehow?
-;; FIX: use `pstream-elt-future' to get the values for this instead of slurping the whole pstream right away.
-
-(defpattern pfuture (phistory)
-  (pattern
-   step-pattern)
-  :documentation "DEPRECATED - just use `phistory' instead.
-
-pfuture gets the first *max-pattern-yield-length* outputs from PATTERN, and then uses STEP-PATTERN to index that history.
-
-See also: `phistory', `pscratch'")
-
-;; (defun pfuture (pattern step-pattern)
-;;   (make-instance 'pfuture
-;;                  :pattern pattern
-;;                  :step-pattern step-pattern))
-
-(defmethod as-pstream ((pfuture pfuture))
-  (with-slots (pattern step-pattern) pfuture
-    (let ((source-pstream (as-pstream pattern)))
-      (next-upto-n source-pstream)
-      (make-instance 'pfuture-pstream
-                     :pattern source-pstream
-                     :step-pattern (as-pstream step-pattern)))))
 
 ;;; pscratch
 ;;
