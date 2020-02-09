@@ -31,30 +31,37 @@ See also: `pbind'"
 (defmethod as-pstream ((ptracker ptracker))
   (with-slots (header rows current-row) ptracker
     (make-instance 'ptracker-pstream
-                   :header header
+                   :header (mapcar #'pattern-as-pstream header)
                    :rows rows
                    :current-row 0)))
 
 (defmethod next ((ptracker ptracker-pstream))
   (with-slots (header rows current-row) ptracker
-    (labels ((row-keys (row)
-               (let ((h-keys (keys header)))
-                 (append h-keys (keys (ignore-errors (subseq row (length h-keys))))))))
-      (let* ((h-keys (keys header))
-             (row (nth current-row rows))
-             (n-row (nth (1+ current-row) rows))
-             (row-keys (row-keys row)))
-        (prog1
-            (when row
-              (apply 'event
-                     (append
-                      (loop
-                         :for i :in (subseq row 0 (length h-keys))
-                         :for idx :from 0
-                         :append (list (nth idx h-keys)
-                                       i))
-                      (ignore-errors (subseq row (length h-keys))))))
-          (incf current-row))))))
+    (when (>= current-row (length rows))
+      (return-from next nil))
+    (let ((cheader (mapcar #'next header))
+          (row (nth current-row rows)))
+      (unless (position nil cheader)
+        (labels ((parse (index &optional keys-p)
+                   (when-let ((cur (nth index row)))
+                     (if keys-p
+                         (list* cur
+                                (nth (1+ index) row)
+                                (parse (+ 2 index) t))
+                         (if (keywordp cur)
+                             (parse index t)
+                             (list* (nth index (keys cheader))
+                                    cur
+                                    (parse (1+ index))))))))
+          (prog1
+              (let ((res (parse 0)))
+                (apply #'event
+                       (apply #'append
+                              res
+                              (mapcar (lambda (x)
+                                        (list x (getf cheader x)))
+                                      (set-difference (keys cheader) (keys res))))))
+            (incf current-row)))))))
 
 (defmacro pt (header &rest rows)
   "Syntax sugar for `ptracker'"
