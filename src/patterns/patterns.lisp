@@ -1,10 +1,8 @@
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 ;; NOTES:
 ;; FIX: take each pattern's name out of its docstring, and make sure the first sentence in each docstring is a good concise description of the functionality.
-;; FIX: use &key instead of &optional for defpattern
 ;; FIX: don't append stuff to the end of lists; https://stackoverflow.com/questions/6439972/what-is-the-cons-to-add-an-item-to-the-end-of-the-list
-;; FIX: make sure providing a symbol to pattern functions will always attempt to use the symbol as the name of a pdef
 
 ;;; pattern glue
 
@@ -974,8 +972,6 @@ See also: `prand', `pxrand', `pwrand'"
         (get-next)))))
 
 ;;; pfunc
-;; NOTE: This implementation doesn't provide the event as an argument to the function like the SuperCollider implementation does.
-;; Instead, access the event using the special variable *event*.
 
 (defpattern pfunc (pattern)
   (func
@@ -1205,7 +1201,6 @@ See also: `pfunc'")
 (export 'plazyn)
 
 ;;; pshift
-;; shift a pattern N forward or backward, wrapping around
 
 (defun pshift (pattern shift &optional (max-yield *max-pattern-yield-length*)) ;; FIX: don't use pseq internally, and make it possible for 'shift' to be a pattern
   (pseq (alexandria:rotate (next-upto-n pattern max-yield) shift)))
@@ -2644,7 +2639,7 @@ See also: `paclump'")
 
 ;;; paclump
 
-(defpattern paclump ()
+(defpattern paclump (pattern)
   (pattern)
   :documentation "Automatically group outputs of the source pattern into lists of up to N items each. Unlike `pclump', clump size is automatically set to the length of the longest list in the values of `*event*', or 1 if there are no lists.
 

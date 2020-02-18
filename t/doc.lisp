@@ -2,7 +2,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; utility functions
+;;; org-mode utility functions
 
 (defun child-nodes (node)
   "Get the child nodes of NODE."

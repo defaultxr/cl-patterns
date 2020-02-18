@@ -12,7 +12,7 @@
 
 ;; then define a few synths...
 
-(in-package :cl-collider)
+(in-package #:cl-collider)
 
 (defsynth kik ((freq 440) (out 0))
   (let* ((env (env-gen.kr (env (list 0 1 0) (list 0.001 1)) :act :free))
@@ -27,7 +27,7 @@
 
 ;; then, enable cl-patterns's supercollider backend:
 
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 ;; start the clock that patterns will be played on:
 

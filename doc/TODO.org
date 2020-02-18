@@ -89,7 +89,8 @@ this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide in
 * DONE pattern that automatically calculates sample ~:start~ and ~:end~ from onsets data (in the form of an event stream, which can then be ~:embed~-ed) for synths that play sections of a sound.
 CLOSED: [2019-10-15 Tue 18:21]
 done; see ~psplits~ from the [[https://github.com/defaultxr/bdef][bdef]] library.
-* special key for patterns that lets you specify the beat that an event starts on directly, rather than it being determined by inter-onset times with ~:dur~ or the like.
+* DONE special key for patterns that lets you specify the beat that an event starts on directly, rather than it being determined by inter-onset times with ~:dur~ or the like.
+CLOSED: [2020-02-16 Sun 20:02]
 - would probably be relative to the start of the pattern.
 - probably couldn't be an event special key since context is needed to derive the duration/start time, etc.
 * DONE improve clock.lisp and various backends support by abstracting away time and converting it to each backend's representation when necessary, etc.
@@ -164,5 +165,13 @@ see [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
 * pattern that "curves" the time of another pattern (basically like the ~curve~ parameter for SuperCollider's envelopes does)
 * [[https://github.com/carrierdown/mutateful][mutateful]]-inspired pattern mini-language
 https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
-* curve parameter for ~pdurstutter~/~pstutter~
+* curve parameter for ~pdurstutter~/~pr~
 ** maybe also a way to apply dur curves in general, i.e. so it can be used in ~parp~ as well?
+* option to make changes to patterns affect their pstreams immediately
+** perhaps just make a pstream that is just a proxy to the pattern, auto-updated when the pattern changes?
+* improve ~print-object~ methods
+take into account these variables (and maybe others?):
+- ~*print-readably*~
+- ~*print-escape*~
+- ~*print-pretty*~
+- ~*print-length*~

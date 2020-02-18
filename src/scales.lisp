@@ -1,8 +1,14 @@
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 ;;; NOTES:
 ;; - 'key' is a scale including the root note. i.e. "g major" or the like.
 ;; - http://harmoniccycle.com/hc/music-08-chord-calc.htm
+;; - https://www.reddit.com/r/musictheory/comments/8kycvx/online_music_theory_calculator/
+;; - https://www.reddit.com/r/musictheory/comments/17v5pp/does_anyone_know_of_a_keyscale_calculator_that/
+;; - http://harmoniccycle.com/hc/music-08-chord-calc.htm
+;; - http://openmusictheory.com/scales.html
+;; - https://atactionpark.github.io/
+;; - https://www.solfej.io/chords/c-major - scale and chord finder site
 
 ;;; utility
 

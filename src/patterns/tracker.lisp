@@ -1,15 +1,13 @@
 (in-package #:cl-patterns)
 
-;;; ptracker (FIX)
-;; FIX: allow each row to have keyword arguments
 ;; FIX: make as-pstream method so any functions in the rows will be executed each time.
-;; FIX: use https://github.com/Shinmera/trivial-indent to ensure all forms are correctly indented?
+;;; ptracker
 
 (defpattern ptracker (pattern)
   (header
    rows
    (current-row :state t))
-  :documentation "Creates an event pattern via tracker-inspired notation. HEADER is an argument list mapping the pattern's \"columns\" (keys) to their default values (or to patterns that are used to generate the key's values). ROWS is a list of lists, each sublist specifying the values for that step. Values can be specified on their own (in which case they're matched in order to the columns specified in the header) or by using Lisp's traditional key/value notation.
+  :documentation "Creates an event pattern via tracker-inspired notation. HEADER is a plist mapping the pattern's \"columns\" (keys) to their default values or to patterns that are used to generate the key's values for each output. ROWS is a list of lists, each sublist specifying the values for a step. Values can be specified on their own (in which case they're matched in order to the columns specified in the header) or by using Lisp's traditional key/value notation.
 
 Example:
 
@@ -22,7 +20,7 @@ Example:
 ;;             (-) ;; continue previous note
 ;;             (:bufnum buf-2) ;; trigger an event with a different buffer
 ;;             (-) ;; continue previous note
-;;             (-) ;; same
+;;             (0.5 :bufnum buf-2) ;; trigger an event with rate 0.5 and buffer buf-2
 ;;             ))
 
 See also: `pbind'"
@@ -35,6 +33,8 @@ See also: `pbind'"
                    :rows rows
                    :current-row 0)))
 
+;; FIX: dashes (-) to extend the previous note don't work.
+;; FIX: should the empty list be a rest instead of default note?
 (defmethod next ((ptracker ptracker-pstream))
   (with-slots (header rows current-row) ptracker
     (when (>= current-row (length rows))

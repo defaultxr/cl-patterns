@@ -27,8 +27,6 @@ When the event should play, relative to the start of the pattern.
 ** ~sustain~ / ~legato~
 How long the synth is held before being released. ~sustain~ is an absolute time in beats for the note to be held, while ~legato~ is multiplied by ~dur~ to get the sustain time.
 ** ~timing-offset~
-NOTE: Currently only implemented in the SuperCollider backend.
-
 The timing offset of the event, added onto the time when it would normally occur.
 
 FIX: Not sure if this should be in beats or seconds.

@@ -1,4 +1,4 @@
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 ;; FIX: add bend?
 

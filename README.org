@@ -20,7 +20,7 @@ Make sure you have [[https://www.quicklisp.org/beta/][Quicklisp]] installed and 
 
 #+BEGIN_SRC lisp
   (ql:quickload :cl-patterns)
-  (in-package :cl-patterns)
+  (in-package #:cl-patterns)
 #+END_SRC
 
 Create a pattern like so:

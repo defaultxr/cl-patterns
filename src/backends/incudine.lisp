@@ -1,4 +1,4 @@
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 ;;; helper functions
 
@@ -19,6 +19,7 @@
      (incudine:rt-sample-rate)))
 
 (defun incudine-dsp-name (instrument)
+  "Get the name of an Incudine DSP."
   (etypecase instrument
     (symbol (find instrument (incudine.vug:all-dsp-names) :test #'string-equal))
     (incudine:node (slot-value instrument 'incudine::name))))

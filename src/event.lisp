@@ -1,4 +1,4 @@
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 ;; FIX: make versions of these generic functions that will work with supercollider ugens and put them in supercollider.lisp.
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
@@ -407,7 +407,6 @@ See also: `rate', `midinote', `degree'")
   :define-methods t
   :documentation "MIDI note number of the note (0-127).")
 
-;; FIX: this can return NIL. i.e. (degree (event :midinote 0))
 (define-event-special-key degree ((:freq (midinote-degree (freq-midinote (event-value event :freq))
                                                           :root (event-value event :root)
                                                           :octave (event-value event :octave)

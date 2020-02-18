@@ -5,9 +5,8 @@
 ;; FIX: don't play "expired" events... i.e. if the event should have already ended by the time we get around to playing it, just don't play it. this way, if the user takes too long to select a restart when an error occurs on the clock, the events won't be played all at once.
 ;; FIX: print a warning after the clock has finished "catching up"... or perhaps print a warning each time the sleep amount is 0?
 ;; FIX: make the clock's "beat" slot always completely accurate, so it can be referenced from within patterns or the like... or maybe just make the #'beat function default to the current context?
-;; FIX: trigger warning or error if something is played when the clock is stopped (or when the clock stops?)
 
-(in-package :cl-patterns)
+(in-package #:cl-patterns)
 
 (defclass clock ()
   ((beat :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
@@ -143,7 +142,8 @@ See also: `pattern-tasks'"
   "Remove all tasks from CLOCK.
 
 See also: `clock-tasks'"
-  (mapc (lambda (task) (clock-remove task clock)) (clock-tasks clock)))
+  (dolist (task (clock-tasks clock))
+    (clock-remove task clock)))
 
 (defun clock-process (clock beats)
   "Process any of CLOCK's tasks that occur in the next BEATS beats.
@@ -158,7 +158,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                      ;; FIX: need to make sure tempo-change events are processed first
                      (progn
                        (dolist (event (if (typep item 'event)
-                                          (ensure-list item)
+                                          (list item)
                                           (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
                          (let ((event (event-with-raw-timing event task)))
                            (dolist (event (split-event-by-lists event))
