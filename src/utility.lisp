@@ -348,6 +348,16 @@ A quant takes the form (divisor phase offset) where all provided elements are nu
 
 See also: `next-beat-for-quant', `beat', `play'"))
 
+(defgeneric rest-p (object)
+  (:documentation "Whether or not something is a rest or a rest-representing object (i.e. :rest, :r, or a rest event)."))
+
+(defmethod rest-p ((symbol symbol))
+  (and (find symbol (list :rest :r 'rest 'r))
+       t))
+
+(defmethod rest-p ((number number))
+  nil)
+
 (defgeneric play (object)
   (:documentation "Play an object (typically an event or pattern) according to the current `*event-output-function*'.
 

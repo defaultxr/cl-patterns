@@ -24,6 +24,7 @@
    #:tempo
    #:beat
    #:quant
+   #:rest-p
    #:play
    #:launch
    #:stop
