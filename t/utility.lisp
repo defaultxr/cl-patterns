@@ -92,15 +92,6 @@
              (keys (event :foo 1 :bar 2)))
       "keys doesn't work correctly for events"))
 
-(test sign
-  "Test the `sign' function"
-  (is (= 1 (cl-patterns::sign 3))
-      "sign doesn't work correctly for positive integers")
-  (is (= -1 (cl-patterns::sign -4.2))
-      "sign doesn't work correctly for negative numbers")
-  (is (= 0 (cl-patterns::sign 0.0))
-      "sign doesn't work correctly for zero"))
-
 (test wrap
   "Test the `wrap' function"
   (is (= 3
