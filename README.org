@@ -88,7 +88,7 @@ The ALSA MIDI backend has some functionality complete and should be usable for b
 Don't cut yourself on these. These are the weaker parts of the library; they're still very much WIPs and are even less likely to be correct :^)
 
 - scales/tunings - calculations may be wrong sometimes; sometimes throw errors
-- ~ptracker~ and ~pcycles~ - still need work, APIs may change
+- ~pcycles~ - still needs work, API may change
 - sc-compatibility patterns - hardly anything written for these!
 - multichannel expansion - still somewhat new, might not work with all backends
 

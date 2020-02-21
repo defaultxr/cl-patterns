@@ -82,6 +82,7 @@ Patterns that generate output based on an input function.
 * Domain-specific language patterns
 Patterns that allow you to write in a "pseudo-language" which may be more suited to specific tasks.
 - ~ptracker~ - "Tracker-like" way to specify event patterns. Like ~pbind~ but with parameters as columns instead of rows.
+- ~pt~ - Syntax sugar for ~ptracker~ so you don't have to quote or write ~(list ...)~.
 - ~pcycles~ - TidalCycles-inspired syntax, dividing time up by the elements of a source list.
 
 * UGen patterns
