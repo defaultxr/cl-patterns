@@ -349,7 +349,7 @@ See also: `next-beat-for-quant', `beat', `play'"))
   (and (find symbol (list :rest :r 'rest 'r))
        t))
 
-(defmethod rest-p ((number number))
+(defmethod rest-p ((this t))
   nil)
 
 (defgeneric play (object)
