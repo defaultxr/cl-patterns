@@ -778,7 +778,15 @@
                       (next-upto-n (psym (pseq (list (list :foo1 :foo2)) 1))))
               (next-upto-n (ppar (list (pdef-pattern (pdef :foo1))
                                        (pdef-pattern (pdef :foo2)))))))
-           "psym and ppar don't yield the same outputs when provided the same patterns as inputs"))
+           "psym and ppar don't yield the same outputs when provided the same patterns as inputs")
+  (is (every-event-equal
+       (list
+        (event :foo 0)
+        (event :foo 1)
+        (event :foo 2)
+        (event :foo 3))
+       (next-upto-n (psym (pseq (list (pbind :foo (pseries 0 1 4))) 1))))
+      "psym doesn't allow regular patterns to be used instead of symbols"))
 
 (test pchain
   "Test pchain"

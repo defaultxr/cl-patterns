@@ -2208,16 +2208,21 @@ See also: `pdef', `ppar', `pmeta'")
                    :pattern (as-pstream pattern))))
 
 (defmethod next ((psym psym-pstream))
-  (with-slots (pattern current-pstream) psym
-    (let ((n (next current-pstream)))
-      (if n
-          n
-          (let ((next-pdef (next pattern)))
-            (unless (null next-pdef)
-              (setf current-pstream (as-pstream (if (listp next-pdef)
-                                                    (ppar (mapcar #'pdef next-pdef))
-                                                    (pdef next-pdef))))
-              (next psym)))))))
+  (labels ((maybe-pdef (x)
+             (if-let ((pdef (and (symbolp x)
+                                 (pdef-ref-get x :pattern))))
+               pdef
+               x)))
+    (with-slots (pattern current-pstream) psym
+      (let ((n (next current-pstream)))
+        (if n
+            n
+            (let ((next-pdef (next pattern)))
+              (unless (null next-pdef)
+                (setf current-pstream (as-pstream (if (listp next-pdef)
+                                                      (ppar (mapcar #'maybe-pdef next-pdef))
+                                                      (maybe-pdef next-pdef))))
+                (next psym))))))))
 
 ;;; pchain
 
