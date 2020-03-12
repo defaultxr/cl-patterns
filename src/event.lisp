@@ -14,6 +14,9 @@
    (%beat :initform nil :type number :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
   (:documentation "Class representing a musical event."))
 
+(defmethod print-object ((item event) stream)
+  (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
+
 (defun event (&rest params)
   "Create an event, using the PARAMS as its keys/values."
   (assert (= 0 (mod (length params) 2)))
@@ -244,8 +247,6 @@ See also: `split-event-by-lists', `combine-events'"
   (when (member :beat (keys event))
     (setf (event-value event :beat) value)))
 
-(defmethod print-object ((item event) stream)
-  (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
 (defmethod rest-p ((event event))
   (eql :rest (event-value event :type)))
