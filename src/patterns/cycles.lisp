@@ -34,15 +34,15 @@
                                                (event :value i :dur dur))))))
       (flatten (recurse list (/ 1 (length list)))))))
 
-(defmethod as-pstream ((pattern pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
-  (with-slots (list map) pattern
+(defmethod as-pstream ((pcycles pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
+  (with-slots (list map) pcycles
     (make-instance 'pcycles-pstream
                    :list list
                    :map map
                    :parsed-list (pcycles-parse-list list map))))
 
-(defmethod next ((pattern pcycles-pstream))
-  (with-slots (number parsed-list) pattern
+(defmethod next ((pcycles pcycles-pstream))
+  (with-slots (number parsed-list) pcycles
     (unless (>= number (length parsed-list))
       (elt parsed-list number))))
 

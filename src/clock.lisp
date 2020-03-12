@@ -45,6 +45,24 @@
   (with-slots (timestamp-at-tempo beat-at-tempo) clock
     (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
 
+(defun event-with-raw-timing (event task)
+  "Get an event like EVENT but with the :BEAT-AT-START and :TIMESTAMP-AT-START keys added."
+  (with-slots (clock start-beat) task
+    (let* ((tempo (tempo clock))
+           (quant (quant event))
+           (beat (+ start-beat
+                    (or (event-value event :beat) 0)
+                    (time-dur (or (raw-event-value event :latency) *latency*)
+                              tempo)
+                    (time-dur (or (raw-event-value event :timing-offset) 0)
+                              tempo)
+                    (if (> (length quant) 2)
+                        (nth 2 quant)
+                        0))))
+      (combine-events event
+                      (event :beat-at-start beat
+                             :timestamp-at-start (absolute-beats-to-timestamp beat clock))))))
+
 (defmethod loop-p ((task task))
   (if (slot-boundp task 'loop-p)
       (slot-value task 'loop-p)
