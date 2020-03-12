@@ -207,7 +207,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
             (remove-task ()
               :report "Remove this task from the clock."
               (clock-remove task clock))))))
-    (incf (slot-value clock 'beat) beats)))
+    (setf (slot-value clock 'beat) ebeat)))
 
 ;;; basic clock-loop convenience functionality
 
