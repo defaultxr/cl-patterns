@@ -76,3 +76,6 @@ Racket (Scheme-like)-based environment for the live coding of 3D graphics and ga
 
 ** [[https://overtone.github.io/][Overtone]]
 Audio live coding environment in Clojure using the SuperCollider server as a backend.
+
+** [[https://github.com/defaultxr/tracker-mode][tracker-mode]]
+Tracker-inspired Emacs mode for live codable sequencing.
