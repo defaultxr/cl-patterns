@@ -8,14 +8,14 @@
   "Test ptracker"
   (is (every-event-equal
        (list
-        (event :degree 0 :dur 1/2 :type :rest)
-        (event :degree 1 :foo 3 :dur 1/2)
+        (event :degree 0 :dur 1/2)
+        (event :degree 1 :dur 1/2 :foo 3)
         (event :degree 99 :dur 1/2)
         (event :degree 99 :dur 2)
         (event :degree 4 :dur 4)
         (event :degree 2 :dur 1/2)
         (event :degree 99 :dur 2 :bar 3)
-        (event :degree 7 :dur 1/2 :type :rest))
+        (event :degree 7 :dur 1/2))
        (next-upto-n
         (ptracker
          (list :degree (pseries 0 1 8) :dur 1/2)
@@ -56,7 +56,7 @@
        (list
         (event :dur 1/4 :type :rest)
         (event :dur 1/4 :type :rest)
-        (event :dur 1/4 :type :rest)
+        (event :dur 1/4)
         (event :dur 1/4 :foo 99))
        (next-n
         (ptracker (list :dur 1/4)
