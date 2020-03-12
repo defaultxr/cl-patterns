@@ -20,7 +20,7 @@ Example:
 ;;             (:midinote 70 :dur 1/2) ;; play a note at midinote 70 for 1/2 beat
 ;;             (-) ;; continue previous note for an additional 1/4 beat
 ;;             (600 3/4) ;; play a note with a frequency of 600 for 3/4 beat
-;;             () ;; rest for 1/4 beat
+;;             :r ;; rest for 1/4 beat
 ;;             (750 :foo 3) ;; play a note at frequency 750, dur 1/4, and additional :foo key with value 3
 ;;             ))
 
@@ -72,10 +72,9 @@ See also: `pt', `pcycles', `pbind'"
                                     (parse (1+ index))))))))
           ;; generate the output event for this step
           (let ((ev
-                 (if (or (null row)
-                         (and (listp row)
-                              (null (cdr row))
-                              (rest-p (car row))))
+                 (if (and (listp row)
+                          (null (cdr row))
+                          (rest-p (car row)))
                      (combine-events
                       (apply #'event c-header)
                       (event :type :rest))
@@ -108,10 +107,10 @@ Example:
 
 ;; (pt (:foo 1 :bar (pseries) :dur 1/4)
 ;;     (2) ;; (:foo 2 :bar 0 :dur 1/4)
-;;     () ;; (:foo 1 :bar 1 :dur 1/4 :type :rest)
+;;     () ;; (:foo 1 :bar 1 :dur 1/4)
 ;;     (9 :bar 90) ;; (:foo 9 :bar 90 :dur 1/2)
 ;;     (-) ;; extends the previous note by 1/4 beat
-;;     () ;; (:foo 1 :bar 4 :dur 1/4 :type :rest)
+;;     :r ;; (:foo 1 :bar 4 :dur 1/4 :type :rest)
 ;;     )
 
 See also: `ptracker'"
