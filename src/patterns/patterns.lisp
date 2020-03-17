@@ -1651,11 +1651,6 @@ See also: `pfunc'"
                   (null op))
         (apply #'multi-channel-funcall op nexts)))))
 
-;; show the arguments of the function being called in pnary
-#+swank
-(defmethod swank::compute-enriched-decoded-arglist ((operator-form (eql 'pnary)) argument-forms)
-  (swank::compute-enriched-decoded-arglist 'apply argument-forms))
-
 (defun p+ (&rest numbers)
   "Add NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."
   (apply #'pnary #'+ numbers))

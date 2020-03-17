@@ -17,6 +17,7 @@
   :serial t
   :components ((:file "src/package")
                (:file "src/utility")
+               ;; src/swank-extensions.lisp conditionally loaded at the end of utility.lisp
                (:file "src/conversions")
                (:file "src/scales")
                (:file "src/event")

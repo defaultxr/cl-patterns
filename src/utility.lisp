@@ -454,3 +454,9 @@ Note that this function is meant for use with the MIDI backend; for frequency-to
                           (,@(rest around)
                              (make-method ,form))))
           form))))
+
+;; conditionally load swank-extensions if swank is available
+;; using conditional compilation with #+swank fails if cl-patterns is compiled with swank and then loaded without -- see issue #7.
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (when (featurep :swank)
+    (load (asdf:system-relative-pathname :cl-patterns "src/swank-extensions.lisp"))))
