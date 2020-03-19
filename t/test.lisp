@@ -11,14 +11,17 @@
 
 (in-suite cl-patterns-tests)
 
-(defparameter *previously-enabled-backends* nil
-  "The list of backends that were enabled before the cl-patterns test suite was run.")
-
-(test enable-debug-backend
-  "Enable the debug backend to capture events"
-  (setf *previously-enabled-backends* (enabled-backends))
-  (mapc 'disable-backend *previously-enabled-backends*)
-  (enable-backend :debug))
+(def-fixture with-debug-backend-and-clock (&rest clock-args)
+  "Temporarily set the backend and clock for testing."
+  (let ((previously-enabled-backends (enabled-backends))
+        (*clock* (apply 'make-clock clock-args)))
+    (mapc 'disable-backend (enabled-backends))
+    (enable-backend :debug)
+    (debug-clear-events)
+    (&body)
+    (debug-clear-events)
+    (disable-backend :debug)
+    (mapc 'enable-backend previously-enabled-backends)))
 
 (defun undocumented-symbols (package)
   "Get a list of all the undocumented external symbols in PACKAGE."
