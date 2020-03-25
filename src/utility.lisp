@@ -10,7 +10,6 @@
 
 ;;; string stuff
 
-
 (defun string-keyword (string)
   "Return STRING as a keyword, with all non-letter, non-number, and non-hypen characters removed."
   (make-keyword

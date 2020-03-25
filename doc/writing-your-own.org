@@ -2,7 +2,7 @@
 
 A guide on how to define your own pattern classes. For a tutorial on how to make music with this library, see [[file:tutorial.org][tutorial.org]].
 
-This guide is a work-in-progress and still needs to be written...
+Note that this guide is still a work in progress.
 
 * Style
 

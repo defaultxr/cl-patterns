@@ -2136,14 +2136,12 @@ See also: `pwalk', `pswitch'")
 
 ;;; prun
 ;; FIX: make this work on event patterns too (make DUR a duration multiplier)
-;; FIX: should give a more helpful error or warning message when used outside of a pbind.
-;; FIX: check if this is the exact same as SC's Pstep
 
 (defpattern prun (pattern)
   (pattern
    (dur :default 1)
    (dur-history :state t))
-  :documentation "Run PATTERN independently of when `next' is called on its pstream. Each output of PATTERN is treated as if it lasted DUR beats, during which time it will be continuously yielded by prun. If PATTERN is an event pattern, DUR acts as a duration multiplier instead.
+  :documentation "Run PATTERN \"independently\" of its parent, holding each value for DUR beats. Each of PATTERN's outputs is treated as if it lasted DUR beats, being continuously yielded during that time before moving on to the next output. If PATTERN is an event pattern, DUR acts as a duration multiplier instead.
 
 Example:
 
@@ -2155,6 +2153,8 @@ See also: `beat', `pbeat'")
 
 (defmethod as-pstream ((prun prun))
   (with-slots (pattern dur) prun
+    (unless (parent-pbind prun)
+      (error "~s cannot be used outside of a pbind" prun))
     (make-instance 'prun-pstream
                    :pattern (as-pstream pattern)
                    :dur (pattern-as-pstream dur)
@@ -2424,7 +2424,7 @@ Example:
 ;; => ((EVENT :X 1 :DUR 1) (EVENT :X 2 :DUR 1) ;; from (pdef :foo)
 ;;     (EVENT :Y 0 :DUR 1/2) (EVENT :Y 1 :DUR 1/2) (EVENT :Y 2 :DUR 1/2) (EVENT :TYPE :REST :DUR 1/2)) ;; from (pdef :bar)
 
-See also: `psym', `parp'"
+See also: `psym', `parp', `pdef', `pbind'"
   :defun (defun pmeta (&rest pairs)
            (make-instance 'pmeta :pattern pairs)))
 

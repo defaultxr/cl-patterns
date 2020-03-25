@@ -36,7 +36,7 @@
 (asdf:defsystem #:cl-patterns/debug
   :name "cl-patterns/debug"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp with debug backend."
+  :description "cl-patterns with debug backend."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns)
@@ -46,7 +46,7 @@
 (asdf:defsystem #:cl-patterns/supercollider
   :name "cl-patterns/supercollider"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp with SuperCollider backend."
+  :description "cl-patterns with SuperCollider (cl-collider) backend."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -57,7 +57,7 @@
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp with Incudine backend."
+  :description "cl-patterns with Incudine backend."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -68,7 +68,7 @@
 (asdf:defsystem #:cl-patterns/alsa-midi
   :name "cl-patterns/alsa-midi"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp with ALSA MIDI backend."
+  :description "cl-patterns with ALSA MIDI backend."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -79,7 +79,7 @@
 (asdf:defsystem #:cl-patterns/midifile
   :name "cl-patterns/midifile"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp with MIDI file functionality."
+  :description "cl-patterns with MIDI file functionality."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -89,7 +89,7 @@
 (asdf:defsystem #:cl-patterns/tests
   :name "cl-patterns/tests"
   :author "modula t. <defaultxr@gmail.com>"
-  :description "FiveAM-based tests suite for cl-patterns."
+  :description "FiveAM-based test suite for cl-patterns."
   :license "MIT"
   :depends-on (#:cl-patterns/debug
                #:fiveam

@@ -61,7 +61,7 @@ Patterns that limit the number of, or values of, outputs from a source pattern.
 Patterns that yield information about timing, or alter the timing of a source pattern.
 - ~pbeat~ - Get the current beat of the pattern relative to its start.
 - ~ptime~ - Get the current elapsed time in seconds of the pattern relative to its start.
-- ~prun~ - Pretend to "run" a pattern in the background, yielding what the output would be at the current moment.
+- ~prun~ - "Run" a pattern independently, yielding each output for a specified number of beats.
 - ~pts~ - Timestretch a pattern's total duration to a specified number of beats.
 
 * Referring patterns

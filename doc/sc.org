@@ -84,7 +84,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Penv~
 - ~Ptempo~ - see also: ~(pk :tempo)~.
 - ~Ptime~ - done as ~pbeat~.
-- ~Pstep~ - see also: ~prun~.
+- ~Pstep~ - done as ~prun~.
 * ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
 - ~PSinOsc~
 - ~POsc~
@@ -106,10 +106,11 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Plet~
 - ~Pget~
 - ~Ppatmod~
-- ~Pproto~ - not yet implemented; [FIX: maybe just use a ~pbind~ key like ~:init~ instead?]
+- ~Pproto~ - functionality covered by ~pbind~'s ~:init~ key.
 - ~Pvoss~
 - ~Pfunc~ - done as ~pfunc~.
 - ~Pfuncn~ - functionality covered by ~pfunc~.
 - ~Prout~
 - ~Pbjorklund~ - done as ~pbjorklund~.
 - ~PS~ - done as ~ps~.
+- ~Pspawn~ - functionality covered by ~pmeta~.
