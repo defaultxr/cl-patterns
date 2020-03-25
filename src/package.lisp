@@ -1,6 +1,7 @@
 (defpackage #:cl-patterns
   (:use #:cl
-        #:alexandria)
+        #:alexandria
+        #:mutility)
   (:export
 
    ;;; utility.lisp
@@ -8,16 +9,7 @@
    #:*event*
    #:*clock*
 
-   #:gete
    #:multi-channel-funcall
-   #:keys
-
-   #:random-coin
-   #:random-range
-   #:exponential-random-range
-   #:gauss
-   #:seq
-   #:seq-range
    #:next-beat-for-quant
    #:rerange
 

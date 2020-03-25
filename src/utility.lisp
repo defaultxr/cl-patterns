@@ -40,10 +40,6 @@
               (event-value event key)))
           list))
 
-(defun elt-wrap (list n)
-  "Return the Nth value of LIST, wrapping around if the value is bigger or smaller than the list length."
-  (elt list (mod n (length list))))
-
 (defun normalized-sum (list)
   "Return a copy of LIST normalized so all of its numbers summed together equal 1."
   (mapcar (lambda (x) (/ x (apply #'+ list))) list))
@@ -63,9 +59,11 @@ Example:
   "Get the index of the first element of LIST greater than N."
   (position-if (lambda (num) (> num n)) list))
 
-(defun flatten-1 (list)
-  "Like `alexandria:flatten', but only flattens one layer."
-  (apply #'append (mapcar #'ensure-list list)))
+(defun split-sequence (sequence delimiter)
+  "Split SEQUENCE by DELIMITER."
+  (if-let ((pos (position delimiter sequence)))
+    (cons (subseq sequence 0 pos) (split-sequence (subseq sequence (1+ pos)) delimiter))
+    (cons sequence nil)))
 
 (defun mapcar-longest (function &rest lists)
   "Like `mapcar', but the resulting list is the length of the longest input list instead of the shortest. Indexes into shorter lists are wrapped.
@@ -147,69 +145,20 @@ See also: `alexandria:appendf', `pushnew'."
 
 ;;; math stuff
 
-(defun wrap (number bottom top)
-  "Wraps a number between BOTTOM and TOP, similar to `cl:mod'."
-  (+ (mod (- number bottom) (- top bottom)) bottom))
+(defun near (number &optional (range 1) (of 0))
+  "Test whether NUMBER is within RANGE (bipolar) of OF.
 
-(defun round-by (number &optional (by 1))
-  "Round NUMBER by BY."
-  (* (round (/ number by)) by))
+Examples:
 
-(defun round-by-direction (number &optional (by 1))
-  "Round NUMBER by BY. With positive BY, round up; with negative, round down."
-  (if (= 0 (mod number by))
-      number
-      (let* ((positive (plusp by))
-             (diff (cadr (multiple-value-list (funcall (if positive #'floor #'ceiling) number (abs by))))))
-        (funcall (if positive #'+ #'-) number (funcall (if positive #'- #'+) (abs by) diff)))))
+;; (near 4 1 5) ;; => t
+;; (near 4 1) ;; => nil
+;; (near 0.5) ;; => t
+;; (near 0.5 0.6 1) ;; => t
 
-(defun random-coin (&optional (probability 0.5))
-  "Randomly return true with a probability of PROBABILITY/1."
-  (<= (random 1.0) probability))
+See also: `alexandria:clamp', `wrap'"
+  (<= (abs (- number of))
+      range))
 
-(defun random-range (low &optional high)
-  "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW).
-
-See also: `exponential-random-range', `gauss'"
-  (if high
-      (let ((rval (- high low)))
-        (+ low
-           (random (if (integerp rval)
-                       (1+ rval)
-                       rval))))
-      (random low)))
-
-(defun random-range.new (low &optional high) ;; version 2, with support for ratios - FIX
-  "Return a random number between LOW and HIGH, inclusive. If HIGH is not provided, act the same as (random LOW)."
-  (flet ((rnd (number)
-           (if (typep number 'ratio)
-               (/ (random (1+ (numerator number))) (denominator number))
-               (random number))))
-    (if high
-        (let ((rval (- high low)))
-          (+ low
-             (rnd (if (integerp rval)
-                      (1+ rval)
-                      rval))))
-        (rnd low))))
-
-(defun exponential-random-range (low high) ;; adapted from supercollider/include/plugin_interface/SC_RGen.h
-  "Generate a random number between LOW and HIGH, with exponential distribution.
-
-See also: `random-range', `gauss'"
-  (* low
-     (exp (* (log (/ high
-                     low))
-             (random 1d0)))))
-
-(defun gauss (mean standard-deviation)
-  "Generate a random number from a normal (Gaussian) distribution.
-
-See also: `random-range', `exponential-random-range'"
-  (+ (* (sqrt (* -2 (log (random 1.0))))
-        (sin (random (* 2 pi)))
-        standard-deviation)
-     mean))
 
 (defun seq (&key start end limit step (default :mean))
   "Generate a sequence of numbers as a list.

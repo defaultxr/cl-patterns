@@ -123,6 +123,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/sequence-extensions.lisp][sequence-extensions.lisp]] - additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].
+- [[file:src/sugar.lisp][sugar.lisp]] - additional syntax sugar and utility functions, accessible via the ~cl-patterns/sugar~ subsystem.
 
 *** patterns
 

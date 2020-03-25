@@ -1402,8 +1402,8 @@ See also: `pwhite', `pexprand', `pbrown'")
     (when (remaining-p pgauss 'length)
       (decf-remaining pgauss 'current-repeats-remaining)
       (when-let ((nmean (next mean))
-                            (ndev (next deviation)))
-        (gauss nmean ndev)))))
+                 (ndev (next deviation)))
+        (random-gauss nmean ndev)))))
 
 ;;; pseries
 

@@ -8,10 +8,10 @@
   :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
   :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
   :depends-on (#:alexandria
+               #:mutility
                #:bordeaux-threads
                #:closer-mop
                #:named-readtables
-               #:split-sequence
                #:local-time
                #:dissect)
   :serial t
@@ -32,6 +32,16 @@
                #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or))
                (:file "src/sequence-extensions"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
+
+(asdf:defsystem #:cl-patterns/sugar
+  :name "cl-patterns/sugar"
+  :author "modula t. <defaultxr@gmail.com>"
+  :description "cl-patterns with additional syntax sugar exports."
+  :license "MIT"
+  :version "0.6"
+  :depends-on (#:cl-patterns)
+  :serial t
+  :components ((:file "src/sugar")))
 
 (asdf:defsystem #:cl-patterns/debug
   :name "cl-patterns/debug"
@@ -92,6 +102,7 @@
   :description "FiveAM-based test suite for cl-patterns."
   :license "MIT"
   :depends-on (#:cl-patterns/debug
+               #:cl-patterns/sugar
                #:fiveam
                #:cl-org-mode
                #:cl-ppcre)
