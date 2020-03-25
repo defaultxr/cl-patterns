@@ -1,5 +1,10 @@
 (in-package #:cl-patterns)
 
+;;; global settings
+
+(defvar *incudine-buffer-preview-dsp* :spt
+  "The name of the DSP to use to `play' a buffer.")
+
 ;;; helper functions
 
 (defparameter *incudine-start-timestamp* nil
@@ -107,6 +112,19 @@
 
 (defmethod end ((node incudine:node))
   (incudine:set-control node :gate 0))
+
+(defmethod play ((buffer incudine:buffer))
+  (let* ((dsp *incudine-buffer-preview-dsp*)
+         (dsp-controls (backend-instrument-controls dsp :incudine)))
+    (play (event :backend :incudine
+                 :instrument dsp
+                 (find-if (lambda (x)
+                            (position x (list 'buffer 'bufnum) :test #'string-equal))
+                          dsp-controls)
+                 buffer ;; get the actual buffer number
+                 :dur 16
+                 :quant 0
+                 :latency 0))))
 
 (register-backend :incudine)
 
