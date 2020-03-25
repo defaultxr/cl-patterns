@@ -163,6 +163,30 @@ See also: `clock-tasks'"
   (dolist (task (clock-tasks clock))
     (clock-remove task clock)))
 
+(defgeneric clock-process-event (clock task event type)
+  (:documentation "Process EVENT on CLOCK. TASK is the associated task, and TYPE is the event type."))
+
+(defmethod clock-process-event (clock task event (type (eql :tempo-change)))
+  (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
+    (if (and (numberp (event-value event :tempo))
+             (plusp (event-value event :tempo)))
+        (let* ((backends (backends-for-event event))
+               (timestamps (loop :for backend :in backends
+                              :collect (list (car (backend-timestamps-for-event event task backend)) backend))))
+          (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
+                tempo (event-value event :tempo)
+                beat-at-tempo (raw-event-value event :beat-at-start))
+          (dolist (timestamp timestamps)
+            (apply 'backend-tempo-change-at clock timestamp)))
+        (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event))))
+
+(defmethod clock-process-event (clock task event (type (eql :rest)))
+  nil)
+
+(defmethod clock-process-event (clock task event type)
+  (dolist (backend (backends-for-event event))
+    (backend-play-event event task backend)))
+
 (defun clock-process (clock beats)
   "Process any of CLOCK's tasks that occur in the next BEATS beats.
 
@@ -178,25 +202,8 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                        (dolist (event (if (typep item 'event)
                                           (list item)
                                           (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
-                         (let ((event (event-with-raw-timing event task)))
-                           (dolist (event (split-event-by-lists event))
-                             (case (event-value event :type)
-                               (:tempo-change
-                                (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
-                                  (if (and (numberp (event-value event :tempo))
-                                           (plusp (event-value event :tempo)))
-                                      (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
-                                            tempo (event-value event :tempo)
-                                            beat-at-tempo (raw-event-value event :beat-at-start))
-                                      (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event)))
-                                (dolist (backend (backends-for-event event))
-                                  (backend-play-event event task backend))
-                                nil)
-                               (:rest
-                                nil)
-                               (otherwise
-                                (dolist (backend (backends-for-event event))
-                                  (backend-play-event event task backend)))))))
+                         (dolist (event (split-event-by-lists (event-with-raw-timing event task)))
+                           (clock-process-event clock task event (event-value event :type))))
                        (if (typep item 'event)
                            nil
                            task))
