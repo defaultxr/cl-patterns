@@ -100,6 +100,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 
 ** doc
 
+- [[file:doc/backends.org][backends.org]] - information about cl-patterns backends, including how to write your own.
 - [[file:doc/cookbook.org][cookbook.org]] - a cookbook of ideas and inspiration for your cl-patterns hacking.
 - [[file:doc/features.org][features.org]] - listing of notable features of cl-patterns.
 - [[file:doc/other-libraries.org][other-libraries.org]] - listing of other libraries that have similar goals or may be useful in conjunction with cl-patterns.

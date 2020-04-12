@@ -1,0 +1,129 @@
+#+TITLE: cl-patterns backends
+
+cl-patterns comes by default with several backends. The "primary" backend that usually gets the most development time and testing is the SuperCollider/cl-collider backend, however full functionality is planned for the other included backends as well. If you want to use functionality that seems broken or missing in one of them, don't hesitate to [[https://github.com/defaultxr/cl-patterns/issues][file a bug]] so it's known what should be prioritized in development.
+
+The following is a list of the backends included with cl-patterns, as well as all other known Lisp systems that include backends of their own (or integrate in other ways).
+
+Of course, if you want to control something that cl-patterns doesn't already have a backend for, in theory all you need to do is define a few methods... However, pre-1.0, cl-patterns' API for doing so is not guaranteed to be stable, so do so at your own risk. Information about implementing a backend is included at the end of this document. [[file:../src/backends/supercollider.lisp][The SuperCollider backend]] for an example.
+
+* Backend Implementation Status
+
+The following is a table giving information on the various known backends as well as the status of the implementation of various cl-patterns features. Obviously, the information here might lag a bit behind the actual code.
+
+| feature                  | SC | INC | AMIDI | DEBUG | EMACS | RENOISE | CLP | BODGE | WORM | BDEF | AL |
+| basic sequencing         | Y  | Y   | Y     | Y     | N/A   | N       | N   | N     | N    | Y    |    |
+| standard backend methods | Y  | S   | S     | Y     | N     | N       |     |       |      | Y    |    |
+| clock sync               | N  | N   | N     | N/A   | A     | N       | N/A | N/A   |      | N/A  |    |
+| play/stop/etc            | Y  | S   | N     | N/A   | N/A   |         | N   | S     |      | N/A  |    |
+| backend's own methods    | Y  | N   |       |       |       |         |     |       |      | Y    |    |
+| multichannel expansion   | Y  | S   |       | ?     |       |         | N   |       |      | N/A  |    |
+| pattern import           | N  | N   |       | N/A   |       |         | N/A |       |      | N/A  |    |
+| pattern export           | N  | N   |       |       |       |         | N/A |       |      | N/A  |    |
+| rendering                | N  | N   |       |       |       |         | N   |       |      | N/A  |    |
+| other (backend-specific) |    |     |       |       |       |         |     |       |      |      |    |
+
+** Table Legend
+
+- SC=supercollider
+- INC=incudine
+- AMIDI=alsa-midi
+- CLP=cl-patterns
+- BODGE=cl-bodge
+- BDEF=[[https://github.com/defaultxr/bdef][bdef]]
+- AL=OpenAL
+
+- Y = 75-100% implemented
+- S = 25-75% implemented
+- N = 0-25% implemented
+- N/A = not applicable
+- A = not all aspects of this feature apply but at least some of those that do are implemented.
+- blank = unknown
+
+** Feature Descriptions
+
+*** basic sequencing
+Basic sequencing, in which cl-patterns' own clock triggers events.
+
+*** standard backend methods
+Basic methods like ~enable-backend~, ~start-backend~, etc.
+
+*** clock sync
+Synchronize the backend's own clock with the cl-patterns clock.
+
+*** play/stop/etc
+Allows cl-patterns' ~play~, ~stop~, ~launch~, ~end~, etc, methods to control the backend's objects. For example to ~play~ an Incudine DSP, ~stop~ a SuperCollider node, etc.
+
+*** backend's own methods
+If the backend has its own generics, cl-patterns may define methods on them so you can use them to control its objects. For example, cl-collider's ~free~ has a method to act like ~stop~ when used on a cl-patterns pattern.
+
+*** multichannel expansion
+*** pattern import
+*** pattern export
+*** rendering
+*** other (backend-specific)
+
+* Backends
+
+** SuperCollider
+The SuperCollider backend is the "main" backend that cl-patterns is developed and tested against the most. Any backend-agnostic functionality will most likely be implemented in this one first.
+
+Note that cl-patterns doesn't control SuperCollider directly; instead it does so via [[https://github.com/byulparan/cl-collider][cl-collider]]. I try to keep cl-patterns' functionality consistent with cl-collider and make it easy to use both libraries in tandem. For example, generics like ~play~, ~stop~, etc, should work just as well on cl-collider objects as they do on cl-patterns.
+
+** Incudine
+The Incudine backend is cl-patterns' other main synthesis backend. Incudine is unique in that it is designed from the start to be used with Lisp. It is also unique in that it supports the concept of "virtual ugens" or "VUGs" which make it simpler to write synthesis routines at a lower level than SuperCollider.
+
+At the moment, the Incudine backend may lag a bit behind the SuperCollider one, mostly because I am not as familiar with it yet. However it is very interesting for the reasons listed above and I definitely want to make it as good as the SuperCollider backend!
+
+** alsa-midi
+
+** debug
+
+** emacs
+
+** renoise
+
+** cl-patterns
+
+** bodge
+
+** worm
+
+** bdef
+
+* Protocol (How to Write a Backend)
+
+Note that this is subject to change, and that the information below may not reflect the current state of the code - feel free to ask questions or submit bug reports if you're interested.
+
+** Generic functions
+The following is a list of some of the generic functions defined by cl-patterns. The list is roughly ordered from most to least important for implementing a backend.
+
+# FIX: this list isn't actually fully ordered yet. additionally, it may be good to separate *-backend functions like start-backend from object functions like play, end, etc.
+
+*** clock functions
+- ~peek~
+- ~next~
+- ~events-in-range~
+- ~events-after-p~
+- ~ended-p~
+- ~as-pstream~ - ?
+- ~last-output~ - ?
+*** backend functions
+- ~enable-backend~
+- ~disable-backend~
+- ~start-backend~
+- ~stop-backend~
+- ~backend-task-removed~
+- ~backend-play-event~
+- ~synth-controls~
+*** object functions
+- ~*dictionary-lookup-functions*~ - A list of functions that ~play~, ~stop~, etc check when called with a symbol as their argument. For example, ~(play :foo)~ will check the functions in this list and the first non-nil result will be used as the object to play. You will likely want to include a function that can be added to this list, i.e. a function mapping symbols to playable/stoppable objects.
+- ~play~
+- ~stop~
+- ~launch~ - Defers to ~play~ if undefined for a class.
+- ~end~ - Defers to ~stop~ if undefined for a class.
+- ~tempo~
+- ~beat~
+- ~quant~
+- ~playing-p~ - Allows functions like ~play-or-stop~ and ~play-or-end~ to work when defined.
+- ~loop-p~
+- ~render~
