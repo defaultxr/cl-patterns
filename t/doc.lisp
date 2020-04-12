@@ -31,11 +31,11 @@
   (let ((first (1+ (position #\~ string))))
     (subseq string first (position #\~ string :start first))))
 
-(defun find-missing-keys (header-name keys)
-  "Search for any missing keys from KEYS under a header that contains HEADER-NAME.
+(defun find-missing-keys (node header-name keys)
+  "Search for any missing in NODE under a header that contains HEADER-NAME.
 
 Returns nil if none of the keys are missing, otherwise returns the list of undocumented keys."
-  (let ((wrap-header (find-org-header *special-keys.org* header-name)))
+  (let ((wrap-header (find-org-header node header-name)))
     (loop :for key :in keys
        :if (not (find-org-header wrap-header (string-downcase (symbol-name key))))
        :collect key)))
@@ -67,15 +67,21 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
 
 (test special-keys.org
   "Make sure the special keys are documented"
-  (let ((missing (find-missing-keys "pbind special init keys" (keys cl-patterns::*pbind-special-init-keys*))))
+  (let ((missing (find-missing-keys *special-keys.org*
+                                    "pbind special init keys"
+                                    (keys cl-patterns::*pbind-special-init-keys*))))
     (is-false missing
               "some pbind init keys are not documented: ~a"
               missing))
-  (let ((missing (find-missing-keys "pbind special wrap keys" (keys cl-patterns::*pbind-special-wrap-keys*))))
+  (let ((missing (find-missing-keys *special-keys.org*
+                                    "pbind special wrap keys"
+                                    (keys cl-patterns::*pbind-special-wrap-keys*))))
     (is-false missing
               "some pbind wrap keys are not documented: ~a"
               missing))
-  (let ((missing (find-missing-keys "pbind special process keys" (keys cl-patterns::*pbind-special-process-keys*))))
+  (let ((missing (find-missing-keys *special-keys.org*
+                                    "pbind special process keys"
+                                    (keys cl-patterns::*pbind-special-process-keys*))))
     (is-false missing
               "some pbind process keys are not documented: ~a"
               missing)))
