@@ -59,12 +59,6 @@ Example:
   "Get the index of the first element of LIST greater than N."
   (position-if (lambda (num) (> num n)) list))
 
-(defun split-sequence (sequence delimiter)
-  "Split SEQUENCE by DELIMITER."
-  (if-let ((pos (position delimiter sequence)))
-    (cons (subseq sequence 0 pos) (split-sequence (subseq sequence (1+ pos)) delimiter))
-    (cons sequence nil)))
-
 (defun mapcar-longest (function &rest lists)
   "Like `mapcar', but the resulting list is the length of the longest input list instead of the shortest. Indexes into shorter lists are wrapped.
 
@@ -126,22 +120,6 @@ See also: `alexandria:appendf', `pushnew'."
             (setf (getf plist key) value)
             plist)
           (append plist (list key value)))))
-
-(defgeneric keys (object)
-  (:documentation "Get the keys of OBJECT, whether it be a plist, event, etc."))
-
-(defmethod keys ((object null))
-  nil)
-
-(defmethod keys ((object cons))
-  (labels ((accum (list)
-             (cons (car list)
-                   (when (cddr list)
-                     (accum (cddr list))))))
-    (accum object)))
-
-(defmethod keys ((object hash-table))
-  (hash-table-keys object))
 
 ;;; math stuff
 

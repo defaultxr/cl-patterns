@@ -32,12 +32,6 @@
          (cl-patterns::index-of-greater-than 3 (list 1 2 3 3 4 4)))
       "index-of-greater-than returns incorrect results"))
 
-(test split-sequence
-  "Test the `split-sequence' function"
-  (is (equal (list (list 1 2) (list 2) (list 3))
-             (cl-patterns::split-sequence (list 1 2 :- 2 :- 3) :-))
-      "split-sequence returns incorrect results"))
-
 (test mapcar-longest
   "Test the `mapcar-longest' function"
   (is (equal (list 1 3 3)

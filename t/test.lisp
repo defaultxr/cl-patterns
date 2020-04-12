@@ -2,6 +2,7 @@
   (:use #:cl
         #:cl-patterns
         #:alexandria
+        #:mutility
         #:fiveam))
 
 (in-package #:cl-patterns/tests)
@@ -22,15 +23,6 @@
     (debug-clear-events)
     (disable-backend :debug)
     (mapc 'enable-backend previously-enabled-backends)))
-
-(defun undocumented-symbols (package)
-  "Get a list of all the undocumented external symbols in PACKAGE."
-  (let (symbols)
-    (do-external-symbols (sym package symbols)
-      (unless (position-if (lambda (type)
-                             (documentation sym type))
-                           (list 'function 'variable 'method-combination 'compiler-macro 'setf 'structure 'type))
-        (push sym symbols)))))
 
 (test undocumented-symbols
   "Check for any undocumented exported symbols"
