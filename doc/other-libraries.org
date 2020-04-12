@@ -1,8 +1,11 @@
 #+TITLE: Other Libraries
 
-This document is a list of other libraries that you may find useful in conjunction with cl-patterns, and libraries with similar goals.
+This document is a list of other libraries, tools, projects, etc that either have similar goals, or that you may find useful in conjunction with cl-patterns.
 
 * Common Lisp audio
+
+** [[https://github.com/defaultxr/thundersnow][thundersnow]]
+Lisp/CLIM-based digital audio workstation and live coding laboratory.
 
 ** [[https://github.com/byulparan/cl-collider][cl-collider]]
 The primary backend that cl-patterns was developed against, a Lisp interface to the SuperCollider sound server.
