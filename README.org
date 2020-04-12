@@ -121,6 +121,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:src/conversions.lisp][conversions.lisp]] - functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
 - [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
+- [[file:src/eseq.lisp][eseq.lisp]] - event sequence class and functionality.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/sequence-extensions.lisp][sequence-extensions.lisp]] - additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].

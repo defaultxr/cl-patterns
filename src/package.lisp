@@ -174,6 +174,10 @@
 
    #:pt
 
+   ;;; eseq
+
+   #:eseq
+
    ;;; backend.lisp
 
    #:register-backend

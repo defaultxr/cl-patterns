@@ -5,8 +5,8 @@
   :license "MIT"
   :version "0.6"
   :homepage "https://w.struct.ws/cl-patterns/"
-  :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
   :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
+  :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
   :depends-on (#:alexandria
                #:mutility
                #:bordeaux-threads
@@ -25,6 +25,7 @@
                (:file "src/patterns/bjorklund")
                (:file "src/patterns/cycles")
                (:file "src/patterns/tracker")
+               (:file "src/eseq")
                (:file "src/backend")
                (:file "src/clock")
                ;; implementations don't currently push a symbol to *features* for extensible sequences.
