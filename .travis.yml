@@ -7,7 +7,9 @@ install:
 
 # test with fiveam
 script:
-  - ros -e "(ql:quickload :cl-patterns/tests)
+  # ultralisp is needed to ensure we're using the latest versions of other libraries
+  - ros -e "(ql-dist:install-dist \"http://dist.ultralisp.org/\" :prompt nil)
+            (ql:quickload :cl-patterns/tests)
             (uiop:quit (if (fiveam:run! 'cl-patterns/tests::cl-patterns-tests)
                            0 1))"
 
