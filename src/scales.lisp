@@ -58,14 +58,25 @@ See also: `*abbreviations*'"
 (defparameter *note-names* '((:c :b#) (:c# :db) (:d) (:d# :eb) (:e :fb) (:f :e#) (:f# :gb) (:g) (:g# :ab) (:a) (:a# :bb) (:b :cb))
   "List of note names in the equal temperament 12-tone tuning.")
 
+(defun note-name-and-octave (note)
+  "Given a note name, return a list consisting of its note number and its octave (defaulting to 5 if it's not specified).
+
+See also: `note-number', `note-name'"
+  (let* ((str (string note))
+         (note (remove-if #'digit-char-p str))
+         (octave (remove-if-not #'digit-char-p str)))
+    (list (if (emptyp note) :c (make-keyword note))
+          (if (emptyp octave) 5 (parse-integer octave)))))
+
 (defun note-number (note)
   "Given a note name or note number, return the note number.
 
-See also: `note-name', `note-midinote'"
+See also: `note-name', `note-name-and-octave', `note-midinote'"
   (etypecase note
     (number note)
-    (keyword (position note *note-names* :test #'position))
-    (symbol (note-number (make-keyword note)))))
+    (symbol
+     (destructuring-bind (name octave) (note-name-and-octave note)
+       (+ (position name *note-names* :test #'position) (* 12 (- octave 5)))))))
 
 (defun note-name (note-number)
   "Given a note number, return its note name.

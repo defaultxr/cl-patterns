@@ -3,6 +3,7 @@
 ;; FIX: make versions of these generic functions that will work with supercollider ugens and put them in supercollider.lisp.
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
 ;; FIX: implement more keys and event types (see TODO.org)
+;; FIX: (play (event :octave 2)) doesn't work properly (it still plays the default note)
 
 ;;; event glue
 
@@ -371,7 +372,8 @@ See also: `sustain', `dur'")
 
 ;;; pitch
 
-(define-event-special-key freq ((:midinote (midinote-freq (event-value event :midinote)))
+(define-event-special-key freq ((:note (note-freq (event-value event :note)))
+                                (:midinote (midinote-freq (event-value event :midinote)))
                                 (:degree (degree-freq (event-value event :degree)
                                                       :root (event-value event :root)
                                                       :octave (event-value event :octave)
@@ -383,37 +385,47 @@ See also: `sustain', `dur'")
 
 See also: `rate', `midinote', `degree'")
 
+(define-event-special-key note ((:freq (freq-note (event-value event :freq)))
+                                (:midinote (midinote-note (event-value event :midinote)))
+                                (:degree (degree-note (event-value event :degree)
+                                                      (event-value event :scale)))
+                                (t 0))
+  :remove-keys (:freq :midinote :degree :root :octave)
+  :documentation "Note number relative to the root.")
+
 (define-event-special-key midinote ((:freq (freq-midinote (event-value event :freq)))
+                                    (:note (note-midinote (event-value event :note)))
                                     (:degree (degree-midinote (event-value event :degree)
                                                               :root (event-value event :root)
                                                               :octave (event-value event :octave)
                                                               :scale (event-value event :scale)))
                                     (t 69))
-  :remove-keys (:freq :degree :root :octave)
+  :remove-keys (:freq :note :degree :root :octave)
   :define-methods t
   :documentation "MIDI note number of the note (0-127).")
 
-(define-event-special-key degree ((:freq (midinote-degree (freq-midinote (event-value event :freq))
-                                                          :root (event-value event :root)
-                                                          :octave (event-value event :octave)
-                                                          :scale (event-value event :scale)))
+(define-event-special-key degree ((:freq (freq-degree (event-value event :freq)
+                                                      :root (event-value event :root)
+                                                      :octave (event-value event :octave)
+                                                      :scale (event-value event :scale)))
+                                  (:note (note-degree (event-value event :note)))
                                   (:midinote (midinote-degree (event-value event :midinote)
                                                               :root (event-value event :root)
                                                               :octave (event-value event :octave)
                                                               :scale (event-value event :scale)))
                                   (t 5))
-  :remove-keys (:freq :midinote))
+  :remove-keys (:freq :note :midinote))
 
 (define-event-special-key root ((t 0)) ;; FIX: can we derive this when :freq, :midinote, :degree, etc are available?
-  :remove-keys (:freq :midinote))
+  :remove-keys (:freq :note :midinote))
 
 (define-event-special-key octave ((:freq (freq-octave (raw-event-value event :freq)))
                                   (:midinote (midinote-octave (raw-event-value event :midinote)))
                                   (t 5))
-  :remove-keys (:freq :midinote))
+  :remove-keys (:freq :note :midinote))
 
 (define-event-special-key scale ((t :major))
-  :remove-keys (:freq :midinote)
+  :remove-keys (:freq :note :midinote)
   :define-methods t)
 
 (define-event-special-key base-freq ((:base-note (midinote-freq (event-value event :base-note)))

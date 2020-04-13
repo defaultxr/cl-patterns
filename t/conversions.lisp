@@ -31,7 +31,7 @@
       "midinote-freq conversion is not correct")
   (is (equal
        (loop :for i :from 0 :upto 10
-          :append (make-list 12 :initial-element i))
+             :append (make-list 12 :initial-element i))
        (mapcar #'midinote-octave (iota 132)))
       "midinote-octave conversion is not correct")
   (is (every (lambda (x) (eql x t))
@@ -49,5 +49,8 @@
       "freq-rate conversion is not correct")
   (is (= 2
          (freq-rate 2600 1300))
-      "freq-rate conversion is not correct when base-freq is provided"))
+      "freq-rate conversion is not correct when base-freq is provided")
+  (is (= (degree-freq 0)
+         (midinote-freq (degree-midinote 0)))
+      "degree-freq and degree-midinote are not equivalent"))
 

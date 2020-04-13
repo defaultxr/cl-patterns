@@ -58,9 +58,21 @@
     (position midinote (mapcar (lambda (n) (+ (* octave 12) root n))
                                notes))))
 
-(defun note-midinote (note &key (root 0) (octave 5)) ;; FIX?
-  "Get the midi note number of NOTE, taking into account the ROOT and OCTAVE if provided."
-  (+ root (* octave 12) (note-number note)))
+(defun freq-degree (freq &key root octave (scale :major))
+  "Convert a frequency to a scale degree."
+  (midinote-degree (freq-midinote freq)
+                   :root root
+                   :octave octave
+                   :scale scale))
+
+;; FIX: does having a root argument actually make sense for this?
+(defun note-midinote (note &key (root 0 root-provided-p) (octave 5 octave-provided-p))
+  "Given a note, return its midi note number, taking into account the ROOT and OCTAVE if provided.
+
+See also: `note-number'"
+  (etypecase note
+    (number (+ root (* octave 12) note))
+    (symbol (note-midinote (note-number note)))))
 
 (defun degree-note (degree &optional (scale :major))
   "Get the relative note number in the tuning of SCALE based on the DEGREE provided."
@@ -74,7 +86,7 @@
   "Get the midi note number of DEGREE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
   (note-midinote (degree-note degree scale) :root root :octave octave))
 
-(defun degree-freq (degree &key root octave scale)
+(defun degree-freq (degree &key (root 0) (octave 5) (scale :major))
   "Get the frequency of DEGREE, based on the ROOT, OCTAVE, and SCALE, if provided."
   (midinote-freq (degree-midinote degree :root root :octave octave :scale scale)))
 
