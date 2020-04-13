@@ -7,32 +7,6 @@
 ;; https://github.com/guicho271828/common-lisp-extensions/issues/8
 ;; http://www.sbcl.org/manual/#Extensible-Sequences
 
-;;; pstream
-
-(defmethod sequence:length ((this pstream))
-  (slot-value this 'number)) ;; FIX: this should use the history-length pstream slot instead once it is implemented
-
-(defmethod sequence:elt ((this pstream) index)
-  (pstream-elt this index))
-
-(defmethod (setf sequence:elt) (new-value (this pstream) index)
-  ;; FIX: raise protocol unimplemented error
-  )
-
-(defmethod sequence:adjust-sequence ((this pstream) length &key initial-element initial-contents)
-  ;; FIX: raise protocol unimplemented error?
-  )
-
-(defmethod sequence:make-sequence-like ((this pstream) length &key initial-element initial-contents)
-  ;; FIX: raise protocol unimplemented error?
-  )
-
-(defmethod sequence:emptyp ((this pstream))
-  ;; FIX
-  )
-
-;; FIX: add more (see URL above)
-
 ;;; scale
 
 (defmethod sequence:length ((this scale))
@@ -65,3 +39,33 @@
 
 (defmethod sequence:emptyp ((this chord))
   nil)
+
+;;; pstream
+
+(defmethod sequence:length ((this pstream))
+  (slot-value this 'number)) ;; FIX: this should use the history-length pstream slot instead once it is implemented
+
+(defmethod sequence:elt ((this pstream) index)
+  (pstream-elt this index))
+
+(defmethod (setf sequence:elt) (new-value (this pstream) index)
+  (sequence:protocol-unimplemented 'sequence:elt this))
+
+(defmethod sequence:adjust-sequence ((this pstream) length &key initial-element initial-contents)
+  (declare (ignore initial-element initial-contents))
+  (sequence:protocol-unimplemented 'sequence:adjust-sequence this)) ;; FIX?
+
+(defmethod sequence:make-sequence-like ((this pstream) length &key initial-element initial-contents)
+  (declare (ignore initial-element initial-contents))
+  (sequence:protocol-unimplemented 'sequence:make-sequence-like this)) ;; FIX?
+
+(defmethod sequence:emptyp ((this pstream))
+  (and (ended-p this)
+       (null (elt this 0))))
+
+;; FIX: add more (see URL above)
+
+;;; eseq
+
+(defmethod sequence:length ((eseq eseq))
+  (length (eseq-events eseq)))
