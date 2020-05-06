@@ -238,7 +238,7 @@ See also: `events-after-p'"))
 (defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
-   (source :documentation "The source object (i.e. pattern) that this pstream was created from.")
+   (source :initarg :source :documentation "The source object (i.e. pattern) that this pstream was created from.")
    (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
    (beat :initform 0 :reader beat :documentation "The number of beats that have elapsed since the start of the pstream.")
    (history :initform (list) :documentation "The history of outputs yielded by the pstream.") ;; FIX: remove?
@@ -442,7 +442,7 @@ See also: `pattern-as-pstream'"))
           value))))
 
 (defmethod as-pstream ((pattern pattern))
-  (let ((slots (remove-if (lambda (x) (eql x 'parent)) (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
+  (let ((slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots

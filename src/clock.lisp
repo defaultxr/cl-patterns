@@ -5,6 +5,7 @@
 ;; FIX: don't play "expired" events... i.e. if the event should have already ended by the time we get around to playing it, just don't play it. this way, if the user takes too long to select a restart when an error occurs on the clock, the events won't be played all at once.
 ;; FIX: print a warning after the clock has finished "catching up"... or perhaps print a warning each time the sleep amount is 0?
 ;; FIX: make the clock's "beat" slot always completely accurate, so it can be referenced from within patterns or the like... or maybe just make the #'beat function default to the current context?
+;; FIX: investigate syncing to internal time or time of day instead of local-time? https://github.com/jamieforth/osc/blob/79d25ca4e0a4a04135b6bc56231c6b9bb058f1d4/osc.lisp#L279
 
 (in-package #:cl-patterns)
 

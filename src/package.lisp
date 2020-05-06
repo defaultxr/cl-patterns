@@ -123,6 +123,9 @@
 
    ;;; patterns.lisp
 
+   #:defpattern
+   #:*max-pattern-yield-length*
+
    #:pattern
    #:as-pstream
    #:all-patterns
@@ -139,9 +142,6 @@
    #:parent-pattern
    #:parent-pbind
    #:pstream-count
-
-   #:defpattern
-   #:*max-pattern-yield-length*
 
    #:pbind
    #:pb
@@ -174,7 +174,7 @@
 
    #:pt
 
-   ;;; eseq
+   ;;; eseq.lisp
 
    #:eseq
 

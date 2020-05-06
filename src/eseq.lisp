@@ -2,10 +2,9 @@
 
 ;;;; eseq - event sequence
 ;; effectively just a list of events played in order
-;; this has an `as-pstream' method
-;; but unlike patterns, changes made to the sequence affect the pstream immediately by default
 ;; eseq is much simpler than patterns and its methods make it easier to modify for some situations
-;; for example, eseq might be well-suited to building a piano roll interface around
+;; for example, eseq might be well-suited to building a piano roll interface around...
+;; (see https://github.com/defaultxr/thundersnow for a piano roll implementation)
 
 (defclass eseq (standard-object #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((events :initarg :events :initform (list) :accessor eseq-events :type list :documentation "The actual list of events that the eseq contains.")

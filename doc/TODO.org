@@ -12,9 +12,9 @@ CLOSED: [2018-07-01 Sun 18:01]
 ** DONE readtable/syntax shortcuts
 CLOSED: [2018-07-01 Sun 18:01]
 
-* ~tsubseq~ function for getting a subsequence based on start times of events.
-** ~tsubseq*~ function. same as ~tsubseq~ but it also includes synths that would've already been playing at the start time specified.
-  * i.e. ~(tsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)~ returns ~(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))~
+* ~bsubseq~ - "beat subseq" function for getting a subsequence based on start times of events.
+** ~bsubseq*~ function. same as ~bsubseq~ but it also includes synths that would've already been playing at the start time specified.
+  * i.e. ~(bsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)~ returns ~(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))~
 
 * DONE do "static" things to "dynamic" patterns - i.e. ~(pshift (pseq '(1 2 3)) 1)~ results in ~(3 1 2 3 1 2 3 ...)~ or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
 CLOSED: [2019-10-15 Tue 18:23]
@@ -168,6 +168,7 @@ https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
 * curve parameter for ~pdurstutter~/~pr~
 ** maybe also a way to apply dur curves in general, i.e. so it can be used in ~parp~ as well?
 * option to make changes to patterns affect their pstreams immediately
+** it should be pretty easy to do this for ~eseq~.
 ** perhaps just make a pstream that is just a proxy to the pattern, auto-updated when the pattern changes?
 * improve ~print-object~ methods
 take into account these variables (and maybe others?):
@@ -175,3 +176,4 @@ take into account these variables (and maybe others?):
 - ~*print-escape*~
 - ~*print-pretty*~
 - ~*print-length*~
+* Include Emacs skeletons for making patterns faster
