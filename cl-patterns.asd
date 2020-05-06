@@ -14,24 +14,27 @@
                #:named-readtables
                #:local-time
                #:dissect)
+  :pathname "src/"
   :serial t
-  :components ((:file "src/package")
-               (:file "src/utility")
-               ;; src/swank-extensions.lisp conditionally loaded at the end of utility.lisp
-               (:file "src/conversions")
-               (:file "src/scales")
-               (:file "src/event")
-               (:file "src/patterns/patterns")
-               (:file "src/patterns/bjorklund")
-               (:file "src/patterns/cycles")
-               (:file "src/patterns/tracker")
-               (:file "src/eseq")
-               (:file "src/backend")
-               (:file "src/clock")
+  :components ((:file "package")
+               (:file "utility")
+               ;; swank-extensions.lisp conditionally loaded at the end of utility.lisp
+               (:file "conversions")
+               (:file "scales")
+               (:file "event")
+               (:module patterns
+                :components ((:file "patterns")
+                             (:file "bjorklund")
+                             (:file "cycles")
+                             ;; (:file "metropolis")
+                             (:file "tracker")))
+               (:file "eseq")
+               (:file "backend")
+               (:file "clock")
                ;; implementations don't currently push a symbol to *features* for extensible sequences.
                ;; the following line tests for the sequence package, which should only be available when extensible-sequence functionality is available.
                #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or))
-               (:file "src/sequence-extensions"))
+               (:file "sequence-extensions"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
 (asdf:defsystem #:cl-patterns/sugar
@@ -107,17 +110,19 @@
                #:fiveam
                #:cl-org-mode
                #:cl-ppcre)
-  :components ((:file "t/test")
-               (:file "t/utility")
-               (:file "t/conversions")
-               (:file "t/event")
-               (:file "t/patterns")
-               ;; (:file "t/bjorklund")
-               ;; (:file "t/cycles")
-               ;; (:file "t/backend")
-               (:file "t/tracker")
-               (:file "t/clock")
-               (:file "t/doc"))
+  :pathname "t/"
+  :serial t
+  :components ((:file "test")
+               (:file "utility")
+               (:file "conversions")
+               (:file "event")
+               (:file "patterns")
+               ;; (:file "bjorklund")
+               ;; (:file "cycles")
+               (:file "tracker")
+               ;; (:file "backend")
+               (:file "clock")
+               (:file "doc"))
   :perform (test-op (op c)
                     (uiop:symbol-call :fiveam :run!
                                       (uiop:find-symbol* '#:cl-patterns-tests
