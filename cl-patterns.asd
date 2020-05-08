@@ -18,7 +18,7 @@
   :serial t
   :components ((:file "package")
                (:file "utility")
-               ;; swank-extensions.lisp conditionally loaded at the end of utility.lisp
+               ;; extensions/swank.lisp conditionally loaded at the end of utility.lisp
                (:file "conversions")
                (:file "scales")
                (:file "event")
@@ -34,7 +34,7 @@
                ;; implementations don't currently push a symbol to *features* for extensible sequences.
                ;; the following line tests for the sequence package, which should only be available when extensible-sequence functionality is available.
                #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or))
-               (:file "sequence-extensions"))
+               (:file "extensions/sequence"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
 (asdf:defsystem #:cl-patterns/sugar

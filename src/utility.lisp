@@ -370,4 +370,4 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
 ;; using conditional compilation with #+swank fails if cl-patterns is compiled with swank and then loaded without -- see issue #7.
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (when (featurep :swank)
-    (load (asdf:system-relative-pathname :cl-patterns "src/swank-extensions.lisp"))))
+    (load (asdf:system-relative-pathname :cl-patterns "src/extensions/swank.lisp"))))

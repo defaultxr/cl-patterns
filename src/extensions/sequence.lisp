@@ -1,6 +1,6 @@
 (in-package #:cl-patterns)
 
-;;;; sequence-extensions.lisp
+;;;; sequence.lisp
 ;;; code to implement extensible sequences functionality.
 ;;; at the moment, it is only supported by sbcl and abcl.
 
