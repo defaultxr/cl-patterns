@@ -320,26 +320,11 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
         nil)
       (play object)))
 
-;;; MIDI stuff
 
-(defun midi-truncate-clamp (number &optional (max 127))
-  "Truncate NUMBER and clamp it to the range 0..MAX (default 127)."
-  (declare (number number))
-  (clamp (truncate number) 0 max))
 
-(defun bipolar-1-to-midi (number)
-  "Convert the range -1..1 to 0..127."
-  (clamp (ceiling (* 63.5 (1+ number))) 0 127))
 
-(defun unipolar-1-to-midi (number)
-  "Convert the range 0..1 to 0..127."
-  (clamp (round (* 127 number)) 0 127))
 
-(defun frequency-to-midi (frequency)
-  "Convert FREQUENCY to a MIDI note number (rounding to ensure it's an integer).
 
-Note that this function is meant for use with the MIDI backend; for frequency-to-midinote conversion without rounding, see `freq-midinote' instead."
-  (round (freq-midinote frequency)))
 
 ;;; macros / MOP stuff
 

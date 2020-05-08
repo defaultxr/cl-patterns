@@ -26,11 +26,6 @@
    #:play-or-stop
    #:play-or-end
 
-   #:midi-truncate-clamp
-   #:bipolar-1-to-midi
-   #:unipolar-1-to-midi
-   #:frequency-to-midi
-
    ;;; conversions.lisp
 
    #:amp-db
@@ -54,6 +49,11 @@
    #:rate-freq
    #:midinote-rate
    #:rate-midinote
+
+   #:midi-truncate-clamp
+   #:bipolar-1-to-midi
+   #:unipolar-1-to-midi
+   #:frequency-to-midi
 
    ;;; scales.lisp
 
