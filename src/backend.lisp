@@ -98,6 +98,12 @@ It's suggested to define methods for `backend-convert-object' if the backend req
 
 See also: `backend-task-removed'"))
 
+(defgeneric backend-tempo-change-at (clock timestamp backend)
+  (:documentation "Set the backend's tempo to NEW-TEMPO at the timestamp provided."))
+
+(defmethod backend-tempo-change-at (clock timestamp (backend t))
+  nil)
+
 (defmethod backend-play-event (item task backend)
   (let ((type (event-value item :type))
         (instrument (instrument item)))
