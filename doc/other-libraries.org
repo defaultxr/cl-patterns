@@ -40,17 +40,16 @@ A framework for musical expression in Lisp with a focus on music theory. (Unrela
 ** [[https://common-lisp.net/project/mcclim/][McCLIM]]
 A native Lisp graphical user interface library. Uses Lisp idioms and ideas for the development of user interaction modes. May be useful for visualization of pattern or other musical data, and interaction with the Lisp process.
 
-** [[https://github.com/cbaggers/cepl][CEPL]]
-"Code Evaluate Play Loop". A project that attempts to make programming graphics on the GPU feel native to Lisp.
-
 ** [[https://github.com/borodust/cl-bodge][cl-bodge]]
 "Experimental bodacious game engine written in Common Lisp". A modular and extensible framework for developing games and game-like applications in Lisp.
 
+See also: [[https://github.com/borodust/trivial-gamekit][trivial-gamekit]], a simple library for developing games and applications which acts as a stepping stone to the (not yet stabilized) bodge.
+
+** [[https://github.com/cbaggers/cepl][CEPL]]
+"Code Evaluate Play Loop". A project that attempts to make programming graphics on the GPU feel native to Lisp.
+
 ** [[https://github.com/vydd/sketch][Sketch]]
 Common Lisp environment for the creation of visual art, game prototyping, etc. Similar in operation to the [[https://processing.org/][Processing]] (Java) library.
-
-** [[https://github.com/volkers/vgplot][vgplot]]
-A Common Lisp interface to gnuplot, a command line-driven cross-platform graphing utility.
 
 * Common Lisp extensions
 
@@ -75,7 +74,7 @@ Audio engine, programming language and IDE. Includes the original patterns syste
 Pattern sequencing library written in Haskell. Also uses SuperCollider as a backend. It's the inspiration for the ~pcycles~ pattern included in cl-patterns.
 
 ** [[http://www.pawfal.org/fluxus/][Fluxus]]
-Racket (Scheme-like)-based environment for the live coding of 3D graphics and games. Includes functionality for simple analysis of audio and functions to handle OSC messages.
+Racket (Scheme-like) environment for the live coding of 3D graphics and games. Includes functionality for simple analysis of audio and functions to handle OSC messages.
 
 ** [[https://overtone.github.io/][Overtone]]
 Audio live coding environment in Clojure using the SuperCollider server as a backend.
