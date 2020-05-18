@@ -107,43 +107,51 @@ See also: `backend-task-removed'"))
 (defmethod backend-play-event (item task backend)
   (let ((type (event-value item :type))
         (instrument (instrument item)))
-    (when (and (not (position type (list :rest :tempo-change)))
-               (or (backend-instrument-controls instrument backend)
-                   (backend-node-p instrument backend)))
-      (let ((time (backend-timestamps-for-event item task backend))
-            (params (backend-instrument-args-list instrument item backend)))
-        (if (or (eql type :mono)
-                (backend-node-p instrument backend))
-            (let ((node (backend-control-node-at (car time)
-                                                 (let ((nodes (task-nodes task backend)))
-                                                   (cond (nodes
-                                                          (car nodes))
-                                                         ((backend-node-p instrument backend)
-                                                          (or (backend-proxys-node instrument backend)
-                                                              instrument))
-                                                         (t instrument)))
-                                                 params
-                                                 backend)))
-              (unless (or (backend-node-p instrument backend)
-                          (not (backend-instrument-has-gate-p instrument backend)))
-                (if (< (legato item) 1)
-                    (progn
-                      (backend-control-node-at (cadr time)
-                                               node
-                                               (list :gate 0)
-                                               backend)
-                      (setf (task-nodes task backend) nil))
-                    (setf (task-nodes task backend) (list node)))))
-            (let ((node (backend-control-node-at (car time)
-                                                 instrument
-                                                 params
-                                                 backend)))
-              ;; FIX: should add NODE to the task's backend-resources slot, then free it when it stops
-              (when (backend-instrument-has-gate-p instrument backend)
-                (backend-control-node-at (cadr time)
-                                         node
-                                         (list :gate 0)
-                                         backend))))))))
+    (case type
+      (:rest
+       nil)
+      (:tempo-change
+       (backend-tempo-change-at (slot-value task 'clock)
+                                (car (backend-timestamps-for-event item task backend))
+                                backend))
+      (t
+       (when (and (not (position type (list :rest :tempo-change)))
+                  (or (backend-instrument-controls instrument backend)
+                      (backend-node-p instrument backend)))
+         (let ((time (backend-timestamps-for-event item task backend))
+               (params (backend-instrument-args-list instrument item backend)))
+           (if (or (eql type :mono)
+                   (backend-node-p instrument backend))
+               (let ((node (backend-control-node-at (car time)
+                                                    (let ((nodes (task-nodes task backend)))
+                                                      (cond (nodes
+                                                             (car nodes))
+                                                            ((backend-node-p instrument backend)
+                                                             (or (backend-proxys-node instrument backend)
+                                                                 instrument))
+                                                            (t instrument)))
+                                                    params
+                                                    backend)))
+                 (unless (or (backend-node-p instrument backend)
+                             (not (backend-instrument-has-gate-p instrument backend)))
+                   (if (< (legato item) 1)
+                       (progn
+                         (backend-control-node-at (cadr time)
+                                                  node
+                                                  (list :gate 0)
+                                                  backend)
+                         (setf (task-nodes task backend) nil))
+                       (setf (task-nodes task backend) (list node)))))
+               (let ((node (backend-control-node-at (car time)
+                                                    instrument
+                                                    params
+                                                    backend)))
+                 ;; FIX: should add NODE to the task's backend-resources slot, then free it when it stops
+                 (when (backend-instrument-has-gate-p instrument backend)
+                   (backend-control-node-at (cadr time)
+                                            node
+                                            (list :gate 0)
+                                            backend))))))))))
 
 (defgeneric backend-task-removed (task backend)
   (:documentation "Called when TASK is removed from the clock so BACKEND can free any associated nodes. Typically a backend shouldn't need to define a method for this generic if it already defines methods for the events listed in the docstring for `backend-play-event'.
