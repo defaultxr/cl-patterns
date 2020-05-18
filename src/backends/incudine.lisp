@@ -69,6 +69,12 @@
 (defmethod stop-backend ((backend (eql :incudine)))
   (incudine:rt-stop))
 
+(defmethod backend-tempo-change-at (clock timestamp (backend (eql :incudine)))
+  nil)
+
+(defmethod backend-convert-object ((object incudine:buffer) key (backend (eql :incudine)))
+  (declare (ignore key))
+  object)
 
 (defmethod backend-instrument-controls (instrument (backend (eql :incudine)))
   (incudine.vug::dsp-properties-arguments (incudine.vug::get-dsp-properties (incudine-dsp-name instrument))))
