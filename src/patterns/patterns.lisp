@@ -18,10 +18,10 @@
                    ((typep list 'pattern)
                     (setf (slot-value list 'parent) parent)))))
     (loop :for slot :in (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))
-       :unless (eql slot 'parent) ;; FIX: add tests for this!
-       :do
-         (when (slot-boundp pattern slot)
-           (set-parent (slot-value pattern slot) pattern)))
+          :unless (eql slot 'parent) ;; FIX: add tests for this!
+            :do
+               (when (slot-boundp pattern slot)
+                 (set-parent (slot-value pattern slot) pattern)))
     pattern))
 
 (defparameter *patterns* (list)
@@ -63,15 +63,15 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                "Generate the lambda list for the pattern's creation function."
                (let ((optional-used nil))
                  (loop :for slot :in slots
-                    :append (unless (state-slot-p slot)
-                              (if (optional-slot-p slot)
-                                  (prog1
-                                      (append (if (not optional-used)
-                                                  (list '&optional)
-                                                  (list))
-                                              (list (list (car slot) (getf (cdr slot) :default))))
-                                    (setf optional-used t))
-                                  (list (car slot)))))))
+                       :append (unless (state-slot-p slot)
+                                 (if (optional-slot-p slot)
+                                     (prog1
+                                         (append (if (not optional-used)
+                                                     (list '&optional)
+                                                     (list))
+                                                 (list (list (car slot) (getf (cdr slot) :default))))
+                                       (setf optional-used t))
+                                     (list (car slot)))))))
              (make-defun (pre-init)
                `(defun ,name ,(function-lambda-list slots)
                   ,documentation
@@ -163,7 +163,7 @@ See also: `next', `peek-n', `peek-upto-n'"))
 
 See also: `peek', `peek-upto-n', `next', `next-n'"
   (loop :repeat n
-     :collect (peek pstream)))
+        :collect (peek pstream)))
 
 (defun peek-upto-n (pstream &optional (n *max-pattern-yield-length*))
   "Peek at up to the next N results of a pstream, without advancing it forward in the process.
@@ -171,9 +171,9 @@ See also: `peek', `peek-upto-n', `next', `next-n'"
 See also: `peek', `peek-n', `next', `next-upto-n'"
   (assert (integerp n) (n) "peek-upto-n's N argument must be an integer.")
   (loop :repeat n
-     :for val = (peek pstream)
-     :until (null val)
-     :collect val))
+        :for val := (peek pstream)
+        :until (null val)
+        :collect val))
 
 (defgeneric next (pattern)
   (:documentation "Get the next value of a pstream, function, or other object, advancing the pstream forward in the process.
@@ -197,7 +197,7 @@ See also: `next', `next-upto-n', `peek', `peek-n'"
   (assert (integerp n) (n) "next-n's N argument must be an integer.")
   (let ((pstream (as-pstream pattern)))
     (loop :repeat n
-       :collect (next pstream))))
+          :collect (next pstream))))
 
 (defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
   "Get a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
@@ -206,13 +206,13 @@ See also: `next', `next-n', `peek', `peek-upto-n'"
   (assert (integerp n) (n) "next-upto-n's N argument must be an integer.")
   (let ((pstream (as-pstream pattern)))
     (loop
-       :for number :from 0 :upto n
-       :while (< number n)
-       :for val = (next pstream)
-       :if (null val)
-       :do (loop-finish)
-       :else
-       :collect val)))
+      :for number :from 0 :upto n
+      :while (< number n)
+      :for val := (next pstream)
+      :if (null val)
+        :do (loop-finish)
+      :else
+        :collect val)))
 
 (defgeneric events-in-range (pstream min max)
   (:documentation "Get all the events from PSTREAM whose start beat are MIN or greater, and less than MAX.
@@ -255,19 +255,19 @@ See also: `events-after-p'"))
 (defmethod events-in-range ((pstream pstream) min max)
   (loop :while (and (<= (beat pstream) max)
                     (not (ended-p pstream)))
-     :do (let ((next (next pstream)))
-           (unless (typep next '(or null event))
-             (error "events-in-range can only be used on event streams."))))
+        :do (let ((next (next pstream)))
+              (unless (typep next '(or null event))
+                (error "events-in-range can only be used on event streams."))))
   (unless (typep (pstream-elt-future pstream 0) '(or null event))
     (error "events-in-range can only be used on event streams."))
   (loop :for i :in (slot-value pstream 'history)
-     :if (and (not (null i))
-              (>= (beat i) min)
-              (< (beat i) max))
-     :collect i
-     :if (or (null i)
-             (>= (beat i) max))
-     :do (loop-finish)))
+        :if (and (not (null i))
+                 (>= (beat i) min)
+                 (< (beat i) max))
+          :collect i
+        :if (or (null i)
+                (>= (beat i) max))
+          :do (loop-finish)))
 
 (defgeneric events-after-p (pstream beat)
   (:documentation "Whether or not there are events in PSTREAM after BEAT.
@@ -277,19 +277,19 @@ See also: `events-in-range'"))
 (defmethod events-after-p ((pstream pstream) beat)
   (let ((last-beat 0))
     (loop
-       :for idx :from 0
-       :for event = (pstream-elt-future pstream idx)
-       :for ebeat = (beat event)
-       :if (null event)
-       :do (return-from events-after-p nil)
-       :if (< ebeat last-beat) ;; if :beat goes backwards, the pstream is considered to be ended.
-       :do (progn
-             (warn ":beat key decreased - pstream returning NIL.")
-             (return-from events-after-p nil))
-       :if (>= ebeat beat)
-       :return t
-       :else
-       :do (setf last-beat ebeat))))
+      :for idx :from 0
+      :for event := (pstream-elt-future pstream idx)
+      :for ebeat := (beat event)
+      :if (null event)
+        :do (return-from events-after-p nil)
+      :if (< ebeat last-beat) ;; if :beat goes backwards, the pstream is considered to be ended.
+        :do (progn
+              (warn ":beat key decreased - pstream returning NIL.")
+              (return-from events-after-p nil))
+      :if (>= ebeat beat)
+        :return t
+      :else
+        :do (setf last-beat ebeat))))
 
 (defgeneric last-output (pstream)
   (:documentation "Returns the last output yielded by PSTREAM.
@@ -446,9 +446,9 @@ See also: `pattern-as-pstream'"))
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
-              :if (slot-boundp pattern slot)
-              :append (list (make-keyword slot)
-                            (pattern-as-pstream (slot-value pattern slot)))))))
+                 :if (slot-boundp pattern slot)
+                   :append (list (make-keyword slot)
+                                 (pattern-as-pstream (slot-value pattern slot)))))))
 
 (defmethod as-pstream :around ((pattern pattern))
   (let ((pstream (call-next-method)))
@@ -506,7 +506,7 @@ See also: `pstream-elt'"
                  (>= n (length history))
                  (not (position nil history)))))
       (loop :while (should-advance)
-         :do (next pstream)) ;; FIX: use peek instead (and make sure (play (pbind :freq (pseq (a 440 550 660 770) 1) :dur 1)) sounds correct when this change is made!)
+            :do (next pstream)) ;; FIX: use peek instead (and make sure (play (pbind :freq (pseq (a 440 550 660 770) 1) :dur 1)) sounds correct when this change is made!)
       (if (>= n 0)
           (elt history n)
           (let ((sub-history (subseq history 0 (position nil history))))
@@ -528,7 +528,7 @@ See also: `parent-pattern'"))
 (defmethod parent-pbind ((pattern pattern))
   (let ((par (parent-pattern pattern)))
     (loop :until (or (null par) (typep par 'pbind))
-       :do (setf par (slot-value par 'parent)))
+          :do (setf par (slot-value par 'parent)))
     par))
 
 ;;; pbind
@@ -636,14 +636,14 @@ See also: `pbind', `pdef'"
     (apply #'make-instance
            (intern (concatenate 'string (symbol-name (class-name (class-of pbind))) "-PSTREAM") 'cl-patterns)
            (loop :for slot :in slots
-              :for slot-kw = (make-keyword slot)
-              :for bound = (slot-boundp pbind slot)
-              :if bound
-              :collect slot-kw
-              :if (eql :pairs slot-kw)
-              :collect (as-pstream-pairs (slot-value pbind 'pairs))
-              :if (and bound (not (eql :pairs slot-kw)))
-              :collect (slot-value pbind slot)))))
+                 :for slot-kw := (make-keyword slot)
+                 :for bound := (slot-boundp pbind slot)
+                 :if bound
+                   :collect slot-kw
+                 :if (eql :pairs slot-kw)
+                   :collect (as-pstream-pairs (slot-value pbind 'pairs))
+                 :if (and bound (not (eql :pairs slot-kw)))
+                   :collect (slot-value pbind slot)))))
 
 (defmacro define-pbind-special-init-key (key &body body)
   "Define a special key for pbind that alters the pbind during its initialization, either by embedding a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should embed values into the pbind pairs, or NIL if it should not."
@@ -898,7 +898,7 @@ See also: `prand', `pwrand', `pwxrand'"
       (decf-remaining pattern 'current-repeats-remaining)
       (let ((res (random-elt list)))
         (loop :while (eql res last-result)
-           :do (setf res (random-elt list)))
+              :do (setf res (random-elt list)))
         (setf last-result res)
         res))))
 
@@ -967,7 +967,7 @@ See also: `prand', `pxrand', `pwrand'"
                         (res (nth (index-of-greater-than num cweights) list)))
                    (unless (null (slot-value pattern 'history))
                      (loop :while (eql res (pstream-elt pattern -1))
-                        :do (setf res (get-next))))
+                           :do (setf res (get-next))))
                    res)))
         (get-next)))))
 
@@ -1036,27 +1036,26 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
                      (and (not (null current-repeats-remaining))
                           (not (null current-value))
                           (not (value-remaining-p current-repeats-remaining))))
-       :do
-         (setf current-value (next pattern))
-         (when current-value
-           (setf current-repeats-remaining
-                 (let ((*event* (if (typep current-value 'event)
-                                    (if (null *event*)
-                                        current-value
-                                        (combine-events *event* current-value))
-                                    *event*)))
-                   (if (typep repeats 'function)
-                       (let ((fle (function-lambda-expression repeats)))
-                         (if fle
-                             (if (length= 0 (cadr fle))
-                                 (funcall repeats)
-                                 (funcall repeats current-value))
-                             (handler-case
-                                 (funcall repeats current-value) ;; FIX: just provide the current-value as a key in *event*
-                               #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
-                                        (declare (ignore e))
-                                        (funcall repeats)))))
-                       (next repeats))))))
+          :do (setf current-value (next pattern))
+              (when current-value
+                (setf current-repeats-remaining
+                      (let ((*event* (if (typep current-value 'event)
+                                         (if (null *event*)
+                                             current-value
+                                             (combine-events *event* current-value))
+                                         *event*)))
+                        (if (typep repeats 'function)
+                            (let ((fle (function-lambda-expression repeats)))
+                              (if fle
+                                  (if (length= 0 (cadr fle))
+                                      (funcall repeats)
+                                      (funcall repeats current-value))
+                                  (handler-case
+                                      (funcall repeats current-value) ;; FIX: just provide the current-value as a key in *event*
+                                    #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
+                                             (declare (ignore e))
+                                             (funcall repeats)))))
+                            (next repeats))))))
     (when (value-remaining-p current-repeats-remaining)
       (decf-remaining pr 'current-repeats-remaining)
       current-value)))
@@ -1226,11 +1225,11 @@ See also: `pfunc'")
       (when (eql :reset rem)
         (setf current-pstream (as-pstream pattern)))
       (let ((nv (next current-pstream)))
-        (loop :while (and (null nv) rem) :do
-             (decf-remaining pn 'current-repeats-remaining)
-             (setf rem (remaining-p pn))
-             (setf current-pstream (as-pstream pattern))
-             (setf nv (next current-pstream)))
+        (loop :while (and (null nv) rem)
+              :do (decf-remaining pn 'current-repeats-remaining)
+                  (setf rem (remaining-p pn))
+                  (setf current-pstream (as-pstream pattern))
+                  (setf nv (next current-pstream)))
         (when rem
           nv)))))
 
@@ -2039,15 +2038,14 @@ See also: `pr'")
   (with-slots (n current-value current-repeats-remaining) pattern
     (loop :while (and (not (null current-repeats-remaining))
                       (= 0 current-repeats-remaining))
-       :do
-         (setf current-repeats-remaining (next n))
-         (let ((e (next (slot-value pattern 'pattern))))
-           (when (and (not (null current-repeats-remaining))
-                      (not (= 0 current-repeats-remaining)))
-             (setf current-value (ctypecase e
-                                   (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
-                                   (number (/ e current-repeats-remaining))
-                                   (null nil))))))
+          :do (setf current-repeats-remaining (next n))
+              (let ((e (next (slot-value pattern 'pattern))))
+                (when (and (not (null current-repeats-remaining))
+                           (not (= 0 current-repeats-remaining)))
+                  (setf current-value (ctypecase e
+                                        (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
+                                        (number (/ e current-repeats-remaining))
+                                        (null nil))))))
     (unless (null current-repeats-remaining)
       (decf-remaining pattern 'current-repeats-remaining)
       current-value)))
@@ -2167,11 +2165,10 @@ See also: `beat', `pbeat'")
       (let ((beats (beat (parent-pbind prun)))
             (cdur (reduce #'+ dur-history)))
         (loop :while (and (ok) (<= cdur beats))
-           :do
-             (let ((nxt (next dur)))
-               (appendf dur-history (list nxt))
-               (when nxt
-                 (incf cdur nxt))))
+              :do (let ((nxt (next dur)))
+                    (appendf dur-history (list nxt))
+                    (when nxt
+                      (incf cdur nxt))))
         (when (ok)
           (let* ((clist (cumulative-list dur-history))
                  (idx (or (index-of-greater-than beats clist) 0)))
@@ -2241,14 +2238,14 @@ See also: `pbind''s :embed key"
   (with-slots (patterns) pchain
     (make-instance 'pchain-pstream
                    :patterns (loop :for pattern :in patterns
-                                :collect (as-pstream pattern)))))
+                                   :collect (as-pstream pattern)))))
 
 (defmethod next ((pchain pchain-pstream))
   (with-slots (patterns) pchain
     (let ((c-event (make-default-event)))
       (loop :for pattern :in patterns
-         :do (setf c-event (combine-events c-event (let ((*event* c-event))
-                                                     (next pattern)))))
+            :do (setf c-event (combine-events c-event (let ((*event* c-event))
+                                                        (next pattern)))))
       c-event)))
 
 ;;; pdiff
@@ -2336,11 +2333,11 @@ See also: `pshift'")
   (with-slots (pattern n) pdrop
     (if (minusp n)
         (loop :while (<= n (slot-value pattern 'pstream-offset))
-           :do (when (null (peek pattern))
-                 (return-from next nil)))
+              :do (when (null (peek pattern))
+                    (return-from next nil)))
         (when (null (slot-value pattern 'history))
           (loop :repeat n
-             :do (next pattern))))
+                :do (next pattern))))
     (next pattern)))
 
 ;;; ppar
@@ -2434,9 +2431,9 @@ See also: `psym', `parp', `pdef', `pbind'"
                    :pattern (if (length= 1 pattern)
                                 (car pattern)
                                 (loop :for (key value) :on pattern :by #'cddr
-                                   :append (list key (if (typep value 'pattern)
-                                                         (as-pstream value)
-                                                         value))))
+                                      :append (list key (if (typep value 'pattern)
+                                                            (as-pstream value)
+                                                            value))))
                    :current-pstream nil)))
 
 (defmethod next ((pmeta pmeta-pstream))
@@ -2446,8 +2443,8 @@ See also: `psym', `parp', `pdef', `pbind'"
                  (return-from make-pstream))
                (let (pattern)
                  (doplist (key value plist)
-                     (when (null value)
-                       (return-from make-pstream nil))
+                   (when (null value)
+                     (return-from make-pstream nil))
                    (case key
                      ((:pattern :instrument)
                       (setf pattern (etypecase value
@@ -2473,7 +2470,7 @@ See also: `psym', `parp', `pdef', `pbind'"
       (unless current-pstream
         (setf current-pstream (make-pstream (if (listp pattern)
                                                 (loop :for (key value) :on pattern :by #'cddr
-                                                   :append (list key (next value)))
+                                                      :append (list key (next value)))
                                                 (event-plist (next pattern))))))
       (when current-pstream
         (if-let ((nxt (next current-pstream)))
@@ -2581,18 +2578,18 @@ See also: `ppc', `ppar', `pchain', `pbind''s :embed key"
   (with-slots (patterns) pparchain
     (make-instance 'pparchain-pstream
                    :patterns (loop :for pattern :in patterns
-                                :collect (as-pstream pattern)))))
+                                   :collect (as-pstream pattern)))))
 
 (defmethod next ((pparchain pparchain-pstream))
   (with-slots (patterns) pparchain
     (let ((c-event (make-default-event)))
       (loop :for pattern :in patterns
-         :do (setf c-event (combine-events c-event (let ((*event* (copy-event c-event)))
-                                                     (next pattern))))
-         :if (null c-event)
-         :return nil
-         :else
-         :collect c-event))))
+            :do (setf c-event (combine-events c-event (let ((*event* (copy-event c-event)))
+                                                        (next pattern))))
+            :if (null c-event)
+              :return nil
+            :else
+              :collect c-event))))
 
 ;;; ppc
 
@@ -2616,7 +2613,7 @@ See also: `pparchain'"
                          (ppc-split (subseq pairs (1+ pos))))
                    pairs))))
     `(pparchain ,@(loop :for i :in (ppc-split pairs)
-                     :collect (cons 'pbind i)))))
+                        :collect (cons 'pbind i)))))
 
 ;;; pclump
 
@@ -2654,7 +2651,7 @@ See also: `pclump'")
   (with-slots (pattern) paclump
     (when *event*
       (let ((max (loop :for key :in (keys *event*)
-                    :maximizing (length (ensure-list (event-value *event* key))))))
+                       :maximizing (length (ensure-list (event-value *event* key))))))
         (next-upto-n pattern max)))))
 
 ;;; ps

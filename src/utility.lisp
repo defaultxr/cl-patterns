@@ -68,12 +68,13 @@ Example:
 ;; => (3 4 5)
 
 See also: `multi-channel-funcall'"
-  (loop :for i :from 0 :below (reduce #'max (mapcar #'length lists))
-     :collect (apply function
-                     (mapcar
-                      (lambda (list)
-                        (elt-wrap list i))
-                      lists))))
+  (loop
+    :for i :from 0 :below (reduce #'max (mapcar #'length lists))
+    :collect (apply function
+                    (mapcar
+                     (lambda (list)
+                       (elt-wrap list i))
+                     lists))))
 
 (defun multi-channel-funcall (function &rest args)
   "Call FUNCTION on the provided arguments. If one or more of the arguments is a list, funcall for each element of the list(s). The length of the resulting list will be the same as the longest input list.
@@ -363,7 +364,7 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
           (let ((around (reverse around)))
             `(call-method ,(first around)
                           (,@(rest around)
-                             (make-method ,form))))
+                           (make-method ,form))))
           form))))
 
 ;; conditionally load swank-extensions if swank is available

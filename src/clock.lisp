@@ -25,7 +25,8 @@
   (clock-add (event :type :tempo-change :tempo value) item))
 
 (defmethod tempo ((number number))
-  ;; convenience method to quickly set the tempo of the default clock in bpm
+  ;; convenience method to quickly set the tempo of the default clock
+  ;; i.e. (tempo 110/60) sets *clock*'s tempo to 110 BPM
   (setf (tempo *clock*) number))
 
 (defclass task ()
@@ -47,7 +48,7 @@
     (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
 
 (defun event-with-raw-timing (event task)
-  "Get an event like EVENT but with the :BEAT-AT-START and :TIMESTAMP-AT-START keys added."
+  "Get an event like EVENT but with the :BEAT-AT-START and :TIMESTAMP-AT-START keys added for backends."
   (with-slots (clock start-beat) task
     (let* ((tempo (tempo clock))
            (quant (quant event))
