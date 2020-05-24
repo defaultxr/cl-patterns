@@ -31,9 +31,23 @@
     (list time (+ time (dur-time (sustain event))))))
 
 (defmethod backend-proxys-node (id (backend (eql :supercollider)))
-  (if (typep id 'cl-collider::node)
-      id
-      (gethash id (cl-collider::node-proxy-table cl-collider::*s*))))
+  (let ((proxy-table (cl-collider::node-proxy-table cl-collider::*s*)))
+    (etypecase id
+      (symbol
+       (gethash id proxy-table))
+      (string
+       (find id (hash-table-values proxy-table)
+             :key #'cl-collider::name
+             :test #'string-equal))
+      (integer
+       (find id (hash-table-values proxy-table)
+             :key #'cl-collider::id
+             :test #'=))
+      (cl-collider::node
+       ;; even if we're provided a node object, we still look it up in cl-collider's node-proxy-table.
+       ;; this is because if the node was a proxy, it may have been redefined, which would cause its ID to change
+       ;; thus causing the ID stored in the node object to be invalid.
+       (backend-proxys-node (cl-collider::name id) :supercollider)))))
 
 (defmethod backend-control-node-at (time (node symbol) params (backend (eql :supercollider)))
   (cl-collider:at time
