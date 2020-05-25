@@ -69,10 +69,16 @@
 (defun note-midinote (note &key (root 0 root-provided-p) (octave 5 octave-provided-p))
   "Given a note, return its midi note number, taking into account the ROOT and OCTAVE if provided.
 
-See also: `note-number'"
+See also: `note-freq', `note-number'"
   (etypecase note
     (number (+ root (* octave 12) note))
     (symbol (note-midinote (note-number note)))))
+
+(defun note-freq (note &key (root 0) (octave 5))
+  "Given a note, return its frequency in hertz, taking into account the ROOT and OCTAVE if provided.
+
+See also: `note-midinote', `note-number'"
+  (midinote-freq (note-midinote note :root root :octave octave)))
 
 (defun degree-note (degree &optional (scale :major))
   "Get the relative note number in the tuning of SCALE based on the DEGREE provided."
