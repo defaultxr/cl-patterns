@@ -753,7 +753,10 @@
       "pindex yields incorrect outputs")
   (is (equal (list 99 98 97 99 98 97 99 98 97)
              (next-n (pindex (list 99 98 97) (pseries 0 1) t) 9))
-      "pindex yields incorrect outputs when its WRAP-P is t"))
+      "pindex yields incorrect outputs when WRAP-P is t")
+  (is (equal (list 2 3 4 nil)
+             (next-n (pindex (list 2 3 4) (pseries 0 1) nil) 4))
+      "pindex yields incorrect outputs when WRAP-P is nil"))
 
 (test prun
   "Test prun"

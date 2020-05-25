@@ -2130,7 +2130,7 @@ See also: `pwalk', `pswitch'")
     (let ((list (next list-pat))
           (idx (next index-pat)))
       (when idx
-        (funcall (if wrap-p 'elt-wrap 'elt) list idx)))))
+        (funcall (if wrap-p 'nth-wrap 'nth) idx list)))))
 
 ;;; prun
 ;; FIX: make this work on event patterns too (make DUR a duration multiplier)
