@@ -315,7 +315,9 @@
            (return-from pxrand-test-1 nil))
          (setf prev cur))
        t))
-   "pxrand yielded the same item twice in a row"))
+   "pxrand yielded the same item twice in a row")
+  (signals simple-error (pxrand (list 1 1 1))
+           "pxrand does not raise an error for insufficient differing elements in its input list"))
 
 (test pwrand
   "Test pwrand"
@@ -333,7 +335,9 @@
            (return-from pwxrand-test-1 nil))
          (setf prev cur))
        t))
-   "pwxrand yielded the same item twice in a row"))
+   "pwxrand yielded the same item twice in a row")
+  (signals simple-error (pwxrand (list 1 1 1))
+           "pwxrand does not raise an error for insufficient differing elements in its input list"))
 
 (test pfunc
   "Test pfunc"

@@ -884,7 +884,8 @@ Example:
 ;; ;; => (3 1 2 1)
 
 See also: `prand', `pwrand', `pwxrand'"
-  :defun (assert (> (length (remove-duplicates list)) 1) (list)))
+  :defun (assert (position-if-not (lambda (i) (eql i (car list))) list) (list)
+                 "pxrand's input list must have at least two non-eql elements."))
 
 (defmethod as-pstream ((pattern pxrand))
   (with-slots (list length) pattern
@@ -948,7 +949,8 @@ Example:
 ;; ;; => (1 2 1 2 1 3 1 2 1 2)
 
 See also: `prand', `pxrand', `pwrand'"
-  :defun (assert (> (length (remove-duplicates list)) 1) (list)))
+  :defun (assert (position-if-not (lambda (i) (eql i (car list))) list) (list)
+                 "pwxrand's input list must have at least two non-eql elements."))
 
 (defmethod as-pstream ((pattern pwxrand))
   (with-slots (list weights length) pattern
