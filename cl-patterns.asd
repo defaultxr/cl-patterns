@@ -1,12 +1,13 @@
 (asdf:defsystem #:cl-patterns
   :name "cl-patterns"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp."
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :homepage "https://w.struct.ws/cl-patterns/"
-  :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
   :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
+  :mailto "defaultxr at gmail dot com"
+  :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
   :depends-on (#:alexandria
                #:mutility
                #:bordeaux-threads
@@ -39,8 +40,8 @@
 
 (asdf:defsystem #:cl-patterns/sugar
   :name "cl-patterns/sugar"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "cl-patterns with additional syntax sugar exports."
+  :description "cl-patterns with additional syntax sugar exports"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns)
@@ -49,8 +50,8 @@
 
 (asdf:defsystem #:cl-patterns/debug
   :name "cl-patterns/debug"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "cl-patterns with debug backend."
+  :description "cl-patterns with debug backend"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns)
@@ -59,8 +60,8 @@
 
 (asdf:defsystem #:cl-patterns/supercollider
   :name "cl-patterns/supercollider"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "cl-patterns with SuperCollider (cl-collider) backend."
+  :description "cl-patterns with SuperCollider/cl-collider backend"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -70,8 +71,8 @@
 
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "cl-patterns with Incudine backend."
+  :description "cl-patterns with Incudine backend"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -81,8 +82,8 @@
 
 (asdf:defsystem #:cl-patterns/alsa-midi
   :name "cl-patterns/alsa-midi"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "cl-patterns with ALSA MIDI backend."
+  :description "cl-patterns with ALSA MIDI backend"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -92,8 +93,8 @@
 
 (asdf:defsystem #:cl-patterns/midifile
   :name "cl-patterns/midifile"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "cl-patterns with MIDI file functionality."
+  :description "cl-patterns with MIDI file functionality"
+  :author "modula t."
   :license "MIT"
   :version "0.6"
   :depends-on (#:cl-patterns
@@ -101,13 +102,14 @@
   :serial t
   :components ((:file "src/formats/midifile")))
 (asdf:defsystem #:cl-patterns/tests
-  :name "cl-patterns/tests"
-  :author "modula t. <defaultxr@gmail.com>"
-  :description "FiveAM-based test suite for cl-patterns."
+  :name "cl-patterns tests"
+  :description "FiveAM-based test suite for cl-patterns"
+  :author "modula t."
   :license "MIT"
   :depends-on (#:cl-patterns/debug
                #:cl-patterns/sugar
                #:fiveam
+               #:mutility/test-helpers
                #:cl-org-mode
                #:cl-ppcre)
   :pathname "t/"

@@ -24,6 +24,12 @@
     (disable-backend :debug)
     (mapc 'enable-backend previously-enabled-backends)))
 
+(test system-attributes
+  "Check that the system has all the standard attributes"
+  (let ((missing (system-missing-attributes :cl-patterns)))
+    (is-false missing
+              "The asdf system definition is missing attributes: ~s" missing)))
+
 (test undocumented-symbols
   "Check for any undocumented exported symbols"
   (let ((undocumented (undocumented-symbols :cl-patterns)))
