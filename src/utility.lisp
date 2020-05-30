@@ -344,11 +344,12 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
                    (setf (gethash key ,dict-symbol) value))
                (gethash key ,dict-symbol)))))))
 
-(define-method-combination pattern () ;; same as standard, but :around methods are called in reverse order, from least to most specific.
+(define-method-combination pattern ()
   ((around (:around))
    (before (:before))
    (primary () :required t)
    (after (:after)))
+  "Method combination type for patterns; specifically, the `next' function. Similar to the standard CLOS method combination, except that :around methods are called in reverse order, from the least specific to the most specific."
   (flet ((call-methods (methods)
            (mapcar #'(lambda (method)
                        `(call-method ,method))

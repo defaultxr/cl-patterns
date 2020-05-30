@@ -128,6 +128,7 @@
 
    #:pattern
    #:as-pstream
+   #:pattern-as-pstream
    #:all-patterns
    #:peek
    #:peek-n
@@ -147,10 +148,11 @@
    #:pb
    #:pmono
 
-   ;; NOTE: pattern classes defined with `defpattern' are automatically exported.
+   ;; pattern classes defined with `defpattern' are automatically exported.
 
    #:pf
 
+   #:find-pdef
    #:all-pdefs
    #:pdef-pattern
 

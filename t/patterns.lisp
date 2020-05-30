@@ -25,8 +25,8 @@
   (is (equal (list 0 1 2 3 4 5 6 7)
              (let ((pstr (as-pstream (pbind :foo 1))))
                (loop :for i :upto 7
-                  :collect (slot-value pstr 'cl-patterns::number)
-                  :do (next pstr))))
+                     :collect (slot-value pstr 'cl-patterns::number)
+                     :do (next pstr))))
       "number slot in pstreams is wrong")
   (is (equal (list 0 1 2 3 4 5 6 7)
              (let ((pstr (as-pstream (pbind :foo (pk :number)))))
@@ -46,13 +46,23 @@
 (test peek
   "Test peek functionality"
   (is-false (position nil (let ((pstr (as-pstream (pwhite 0 127))))
-                            (loop :for i :upto 200 :collect (= (peek pstr) (next pstr)))))
+                            (loop :repeat 200 :collect (= (peek pstr) (next pstr)))))
             "peek and next do not return the same values")
   (is (= 0
          (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq (list 1 2 3) 1)))))
            (peek pstr)
            (beat pstr)))
       "beat method is counting peeked outputs"))
+
+(test next
+  "Test next and next-upto-n"
+  (is-true (equal (list (list 0 1) (list 2 3) (list 4) nil)
+                  (let ((pstr (as-pstream (pseries 0 1 5))))
+                    (list (next-upto-n pstr 2)
+                          (next-upto-n pstr 2)
+                          (next-upto-n pstr 2)
+                          (next-upto-n pstr 2))))
+           "next-upto-n gives wrong results"))
 
 (test pbind
   "Test pbind functionality"
@@ -72,11 +82,11 @@
 (test parent ;; FIX: make sure all patterns are given parents
   "Test whether patterns have the correct parent information"
   (is-true (let ((pb (pbind :foo (pseq (list 1 2 3)))))
-             (eql (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
+             (eql (parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
                   pb))
            "pbind subpatterns don't have correct parents for pseq")
   (is-true (let ((pb (pbind :foo (pfunc (lambda () (random 5))))))
-             (eql (cl-patterns::parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
+             (eql (parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
                   pb))
            "pbind subpatterns don't have correct parents for pfunc"))
 

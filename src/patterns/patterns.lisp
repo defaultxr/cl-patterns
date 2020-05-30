@@ -874,7 +874,7 @@ See also: `pxrand', `pwrand', `pwxrand'")
 (defpattern pxrand (pattern)
   (list
    (length :default :inf)
-   (last-result :state t :initform nil)
+   (last-output :state t :initform nil)
    (current-repeats-remaining :state t))
   :documentation "Returns random values from LIST, never repeating equal values twice in a row.
 
@@ -894,13 +894,13 @@ See also: `prand', `pwrand', `pwxrand'"
                    :length (as-pstream length))))
 
 (defmethod next ((pattern pxrand-pstream))
-  (with-slots (list last-result) pattern
+  (with-slots (list last-output) pattern
     (when (remaining-p pattern 'length)
       (decf-remaining pattern 'current-repeats-remaining)
       (let ((res (random-elt list)))
-        (loop :while (eql res last-result)
+        (loop :while (eql res last-output)
               :do (setf res (random-elt list)))
-        (setf last-result res)
+        (setf last-output res)
         res))))
 
 ;;; pwrand
@@ -1090,7 +1090,7 @@ Example:
 ;; ;; redefine the pdef's pattern... note that the redefinition doesn't become audible until the current loop finishes playing:
 ;; (pdef :foo (pbind :degree (pseries 4 -1 4)))
 
-See also: `all-pdefs', `pb', `pmeta', `ps'"
+See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
   :defun (defun pdef (key &optional (pattern nil pattern-supplied-p))
            (when pattern-supplied-p
              (pdef-ref-set key :pattern pattern))
@@ -1098,9 +1098,15 @@ See also: `all-pdefs', `pb', `pmeta', `ps'"
                           :key key)))
 
 (defun find-pdef (key)
-  "Get the pdef with the provided name, or nil if one does not exist."
-  (when (pdef-ref key)
-    (pdef key)))
+  "Get the pdef with the provided name, or nil if one does not exist.
+
+See also: `pdef', `all-pdefs'"
+  (etypecase key
+    (pattern
+     key)
+    (symbol
+     (when (pdef-ref key)
+       (pdef key)))))
 
 (defmethod print-object ((pdef pdef) stream)
   (with-slots (key) pdef
