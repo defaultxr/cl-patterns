@@ -252,6 +252,10 @@ See also: `events-after-p'"))
     (print-unreadable-object (pstream stream :type t)
       (format stream "~s ~s" :number number))))
 
+(defun pstream-p (object)
+  "Return true if OBJECT is a pstream, and NIL otherwise."
+  (typep object 'pstream))
+
 (defmethod events-in-range ((pstream pstream) min max)
   (loop :while (and (<= (beat pstream) max)
                     (not (ended-p pstream)))

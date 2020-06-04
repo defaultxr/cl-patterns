@@ -134,6 +134,13 @@
                   (list 0 1/3 2/3))
            ":beat key of events from subpatterns is altered by the containing pattern next :around method"))
 
+(test pstream-p
+  "Test the `pstream-p' function"
+  (is (pstream-p (as-pstream 2))
+      "pstream-p returns incorrect results for pstreams")
+  (is-false (pstream-p (pseq (list 1)))
+            "pstream-p returns incorrect results for patterns"))
+
 (test pstream-count
   "Test `pstream-count' functionality"
   (is-true (= 0 (pstream-count (as-pstream (pbind :foo 1))))
