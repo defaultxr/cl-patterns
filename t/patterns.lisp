@@ -353,6 +353,9 @@
          (setf prev cur))
        t))
    "pwxrand yielded the same item twice in a row")
+  (is-false
+   (position 0 (next-n (pwxrand (list 0 1 2) (list 0 1 1)) 1000))
+   "pwxrand yielded an item whose weight was 0")
   (signals simple-error (pwxrand (list 1 1 1))
            "pwxrand does not raise an error for insufficient differing elements in its input list"))
 

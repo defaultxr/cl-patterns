@@ -878,7 +878,7 @@ See also: `pxrand', `pwrand', `pwxrand'")
 (defpattern pxrand (pattern)
   (list
    (length :default :inf)
-   (last-output :state t :initform nil)
+   (last-result :state t)
    (current-repeats-remaining :state t))
   :documentation "Returns random values from LIST, never repeating equal values twice in a row.
 
@@ -891,21 +891,20 @@ See also: `prand', `pwrand', `pwxrand'"
   :defun (assert (position-if-not (lambda (i) (eql i (car list))) list) (list)
                  "pxrand's input list must have at least two non-eql elements."))
 
-(defmethod as-pstream ((pattern pxrand))
-  (with-slots (list length) pattern
+(defmethod as-pstream ((pxrand pxrand))
+  (with-slots (list length) pxrand
     (make-instance 'pxrand-pstream
                    :list (next list)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pxrand-pstream))
-  (with-slots (list last-output) pattern
-    (when (remaining-p pattern 'length)
-      (decf-remaining pattern 'current-repeats-remaining)
-      (let ((res (random-elt list)))
-        (loop :while (eql res last-output)
-              :do (setf res (random-elt list)))
-        (setf last-output res)
-        res))))
+(defmethod next ((pxrand pxrand-pstream))
+  (with-slots (list last-result) pxrand
+    (when (remaining-p pxrand 'length)
+      (decf-remaining pxrand 'current-repeats-remaining)
+      (setf last-result (loop :for res := (random-elt list)
+                              :if (or (not (slot-boundp pxrand 'last-result))
+                                      (not (eql res last-result)))
+                                :return res)))))
 
 ;;; pwrand
 
@@ -944,6 +943,7 @@ See also: `prand', `pxrand', `pwxrand'")
   (list
    (weights :default (make-list (length list) :initial-element 1))
    (length :default :inf)
+   (last-result :state t)
    (current-repeats-remaining :state t))
   :documentation "Returns random elements from LIST weighted by respective values from WEIGHTS, never repeating equivalent values twice in a row. This is effectively `pxrand' and `pwrand' combined.
 
@@ -953,6 +953,7 @@ Example:
 ;; ;; => (1 2 1 2 1 3 1 2 1 2)
 
 See also: `prand', `pxrand', `pwrand'"
+  ;; FIX: maybe also take the weights into account to see that it doesn't get stuck?
   :defun (assert (position-if-not (lambda (i) (eql i (car list))) list) (list)
                  "pwxrand's input list must have at least two non-eql elements."))
 
@@ -960,22 +961,18 @@ See also: `prand', `pxrand', `pwrand'"
   (with-slots (list weights length) pattern
     (make-instance 'pwxrand-pstream
                    :list list
-                   :weights weights
+                   :weights (pattern-as-pstream weights)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pwxrand-pstream))
-  (with-slots (list weights) pattern
-    (when (remaining-p pattern 'length)
-      (decf-remaining pattern 'current-repeats-remaining)
-      (labels ((get-next ()
-                 (let* ((cweights (cumulative-list (normalized-sum weights)))
-                        (num (random 1.0))
-                        (res (nth (index-of-greater-than num cweights) list)))
-                   (unless (null (slot-value pattern 'history))
-                     (loop :while (eql res (pstream-elt pattern -1))
-                           :do (setf res (get-next))))
-                   res)))
-        (get-next)))))
+(defmethod next ((pwxrand pwxrand-pstream))
+  (with-slots (list weights last-result) pwxrand
+    (when (remaining-p pwxrand 'length)
+      (decf-remaining pwxrand 'current-repeats-remaining)
+      (let ((cweights (cumulative-list (normalized-sum (next weights)))))
+        (setf last-result (loop :for res := (nth (index-of-greater-than (random 1.0) cweights) list)
+                                :if (or (not (slot-boundp pwxrand 'last-result))
+                                        (not (eql res last-result)))
+                                  :return res))))))
 
 ;;; pfunc
 
