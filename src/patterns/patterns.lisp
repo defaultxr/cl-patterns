@@ -2145,19 +2145,23 @@ See also: `pwalk', `pswitch'")
         (funcall (if wrap-p 'nth-wrap 'nth) idx list)))))
 
 ;;; prun
-;; FIX: make this work on event patterns too (make DUR a duration multiplier)
 
 (defpattern prun (pattern)
   (pattern
    (dur :default 1)
-   (dur-history :state t))
-  :documentation "Run PATTERN \"independently\" of its parent, holding each value for DUR beats. Each of PATTERN's outputs is treated as if it lasted DUR beats, being continuously yielded during that time before moving on to the next output. If PATTERN is an event pattern, DUR acts as a duration multiplier instead.
+   (current-dur :state t))
+  :documentation "Run PATTERN \"independently\" of its parent, holding each value for DUR beats. Each of PATTERN's outputs is treated as if it lasted DUR beats, being continuously yielded during that time before moving on to the next output.
 
 Example:
 
-;; (next-upto-n (pbind :foo (pseq '(1 2 3 4 5)) :bar (prun (pseq '(4 5 6 7 8)) (pseq '(1 2 0.5 0.5 1)))))
-;;
-;; => ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 4 :BAR 6) (EVENT :FOO 5 :BAR 8))
+;; (next-upto-n (pbind :foo (pseq '(1 2 3 4 5))
+;;                     :bar (prun (pseq '(4 5 6 7 8))
+;;                                (pseq '(1 2 0.5 0.5 1)))))
+;; ;=> ((EVENT :FOO 1 :BAR 4)
+;;      (EVENT :FOO 2 :BAR 5)
+;;      (EVENT :FOO 3 :BAR 5)
+;;      (EVENT :FOO 4 :BAR 6)
+;;      (EVENT :FOO 5 :BAR 8))
 
 See also: `beat', `pbeat'")
 
@@ -2168,23 +2172,22 @@ See also: `beat', `pbeat'")
     (make-instance 'prun-pstream
                    :pattern (as-pstream pattern)
                    :dur (pattern-as-pstream dur)
-                   :dur-history nil)))
+                   :current-dur 0)))
 
 (defmethod next ((prun prun-pstream))
-  (with-slots (pattern dur dur-history) prun
-    (flet ((ok ()
-             (not (position nil dur-history))))
-      (let ((beats (beat (parent-pbind prun)))
-            (cdur (reduce #'+ dur-history)))
-        (loop :while (and (ok) (<= cdur beats))
-              :do (let ((nxt (next dur)))
-                    (appendf dur-history (list nxt))
-                    (when nxt
-                      (incf cdur nxt))))
-        (when (ok)
-          (let* ((clist (cumulative-list dur-history))
-                 (idx (or (index-of-greater-than beats clist) 0)))
-            (pstream-elt-future pattern idx)))))))
+  (with-slots (pattern dur current-dur dur-history number) prun
+    (let ((beats (beat (parent-pbind prun))))
+      (flet ((next-dur ()
+               (when-let ((nxt (next dur)))
+                 (next pattern)
+                 (incf current-dur nxt))))
+        (when (= number 0)
+          (next-dur))
+        (loop :while (and (or (not (pstream-p dur))
+                              (not (ended-p dur)))
+                          (<= current-dur beats))
+              :do (next-dur))))
+    (pstream-elt pattern -1)))
 
 ;;; psym
 

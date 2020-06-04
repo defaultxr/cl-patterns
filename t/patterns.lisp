@@ -789,8 +789,18 @@
                   (event :foo 5 :bar 8))
             (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1)
                                 :bar (prun (pseq (list 4 5 6 7 8) 1)
-                                           (pseq (list 1 2 0.5 0.5 1) 1))))) ;; FIX: if the list is quoted instead of generated, it creates garbage..
-           "prun yields incorrect outputs"))
+                                           (pseq (list 1 2 0.5 0.5 1) 1)))))
+           "prun yields incorrect outputs")
+  (is-true (every-event-equal
+            (list (event :foo 1 :bar 4)
+                  (event :foo 2 :bar 4)
+                  (event :foo 3 :bar 5)
+                  (event :foo 4 :bar 5)
+                  (event :foo 5 :bar 6))
+            (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1)
+                                :bar (prun (pseq (list 4 5 6 7 8) 1)
+                                           2))))
+           "prun doesn't support numbers as its DUR"))
 
 (test psym ;; FIX: add more
   "Test psym"
