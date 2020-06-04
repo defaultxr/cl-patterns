@@ -327,7 +327,7 @@
   (is-true
    (block pxrand-test-1
      (let ((prev))
-       (dolist (cur (next-n (pxrand (list 1 2)) 10000))
+       (dolist (cur (next-n (pxrand (list 1 2)) 1000))
          (when (eql cur prev)
            (return-from pxrand-test-1 nil))
          (setf prev cur))
@@ -347,7 +347,7 @@
   (is-true
    (block pwxrand-test-1
      (let ((prev))
-       (dolist (cur (next-n (pwxrand (list 1 2)) 10000))
+       (dolist (cur (next-n (pwxrand (list 1 2)) 1000))
          (when (eql cur prev)
            (return-from pwxrand-test-1 nil))
          (setf prev cur))
