@@ -369,20 +369,23 @@ See also: `last-output'"))
       (let ((nxt (next pstream)))
         (prog1
             nxt
-          (when (typep nxt 'event)
+          (when (event-p nxt)
             (decf (slot-value pstream 'beat) (event-value nxt :delta)))
           (setf pstream-offset (1- c-offset)))))))
 
 (defmethod next :around ((pstream pstream))
-  (labels ((pattern-embed (pattern embed)
-             (assert (typep pattern 'pstream) (pattern))
-             (let ((pstr (as-pstream embed)))
-               (setf (slot-value pstr 'start-beat) (beat pattern))
-               (push pstr (slot-value pattern 'pattern-stack))))
-           (get-value-from-stack (pattern)
+  (labels ((get-value-from-stack (pattern)
              (if (null (slot-value pattern 'pattern-stack))
                  (prog1
-                     (get-value pattern)
+                     (let ((res (call-next-method)))
+                       (typecase res
+                         (pattern
+                          ;; if `next' returns a pattern, we push it to the pattern stack as a pstream
+                          (let ((pstr (as-pstream res)))
+                            (setf (slot-value pstr 'start-beat) (beat pattern))
+                            (push pstr (slot-value pattern 'pattern-stack)))
+                          (get-value-from-stack pattern))
+                         (t res)))
                    (incf (slot-value pattern 'number)))
                  (let* ((popped (pop (slot-value pattern 'pattern-stack)))
                         (nv (next popped)))
@@ -390,21 +393,14 @@ See also: `last-output'"))
                        (get-value-from-stack pattern)
                        (progn
                          (push popped (slot-value pattern 'pattern-stack))
-                         nv)))))
-           (get-value (pattern)
-             (let ((res (call-next-method)))
-               (typecase res
-                 (pattern
-                  (pattern-embed pattern res)
-                  (get-value-from-stack pattern))
-                 (t res)))))
+                         nv))))))
     (with-slots (pstream-offset) pstream
       (if (minusp pstream-offset)
           (prog1
               (pstream-elt pstream pstream-offset)
             (incf pstream-offset))
           (let ((result (get-value-from-stack pstream)))
-            (when (typep result 'event)
+            (when (event-p result)
               (setf result (copy-event result))
               (when (and (null (beat result))
                          (null (slot-value pstream 'parent)))
@@ -482,7 +478,7 @@ Example:
 
 See also: `pstream-elt-future', `phistory'"
   (assert (integerp n) (n))
-  (unless (typep pstream 'pstream)
+  (unless (pstream-p pstream)
     (return-from pstream-elt (pstream-elt (as-pstream pstream) n)))
   (with-slots (history) pstream
     (if (>= n (length history))
@@ -502,7 +498,7 @@ Example:
 
 See also: `pstream-elt'"
   (assert (integerp n) (n))
-  (unless (typep pstream 'pstream)
+  (unless (pstream-p pstream)
     (return-from pstream-elt-future (pstream-elt-future (as-pstream pstream) n)))
   (with-slots (history) pstream
     (flet ((should-advance ()
@@ -705,7 +701,7 @@ See also: `pbind', `pdef'"
       pattern))
 
 (defmacro define-pbind-special-process-key (key &body body)
-  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return a list or event if the key should embed values into the event stream, or NIL if it should not."
+  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return an event if the key should embed values into the event stream, or NIL if the pstream should end."
   (let ((keyname (make-keyword key)))
     `(setf (getf *pbind-special-process-keys* ,keyname)
            (lambda (value)
@@ -714,24 +710,26 @@ See also: `pbind', `pdef'"
 (define-pbind-special-process-key embed
   value)
 
-(defmethod next ((pattern pbind-pstream))
-  (labels ((pbind-accumulator (pairs)
-             (let ((cadr (cadr pairs)))
-               (when (and (typep cadr 'pstream)
-                          (null (slot-value cadr 'start-beat)))
-                 (setf (slot-value cadr 'start-beat) (beat pattern)))
-               (let ((next-cadr (next cadr)))
-                 (unless (null next-cadr)
-                   (if (position (car pairs) (keys *pbind-special-process-keys*))
-                       (setf *event* (combine-events *event*
-                                                     (funcall (getf *pbind-special-process-keys* (car pairs)) next-cadr)))
-                       (setf (event-value *event* (ensure-symbol (car pairs) 'cl-patterns)) next-cadr))
-                   (if (not (null (cddr pairs)))
-                       (pbind-accumulator (cddr pairs))
-                       *event*))))))
+(defmethod next ((pbind pbind-pstream))
+  (labels ((accumulator (pairs)
+             (let ((key (car pairs))
+                   (val (cadr pairs)))
+               (when (and (pstream-p val)
+                          (null (slot-value val 'start-beat)))
+                 (setf (slot-value val 'start-beat) (beat pbind)))
+               (when-let ((next-val (next val)))
+                 (if (position key (keys *pbind-special-process-keys*))
+                     (setf *event* (combine-events *event*
+                                                   (funcall (getf *pbind-special-process-keys* key) next-val)))
+                     (setf (event-value *event* key) next-val))
+                 (if-let ((cddr (cddr pairs)))
+                   (accumulator cddr)
+                   *event*)))))
     (let ((*event* (make-default-event)))
-      (setf (slot-value *event* '%beat) (+ (or (slot-value pattern 'start-beat) 0) (beat pattern)))
-      (pbind-accumulator (slot-value pattern 'pairs)))))
+      (setf (slot-value *event* '%beat) (+ (or (slot-value pbind 'start-beat) 0) (beat pbind)))
+      (if-let ((pairs (slot-value pbind 'pairs)))
+        (accumulator pairs)
+        *event*))))
 
 (defmethod as-pstream ((item pbind-pstream))
   item)
@@ -1042,7 +1040,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
           :do (setf current-value (next pattern))
               (when current-value
                 (setf current-repeats-remaining
-                      (let ((*event* (if (typep current-value 'event)
+                      (let ((*event* (if (event-p current-value)
                                          (if (null *event*)
                                              current-value
                                              (combine-events *event* current-value))
@@ -1651,7 +1649,7 @@ See also: `pfunc'"
 
 (defmethod next ((pattern pnary-pstream))
   (with-slots (operator patterns) pattern
-    (let ((op (if (typep operator 'pstream)
+    (let ((op (if (pstream-p operator)
                   (next operator)
                   operator))
           (nexts (mapcar #'next patterns)))
@@ -2190,7 +2188,6 @@ See also: `beat', `pbeat'")
 
 (defpattern psym (pattern)
   (pattern
-   ;; (dict :default nil) ;; FIX: implement this
    (current-pstream :state t :initform nil))
   :documentation "Use a pattern of symbols to embed `pdef's. PATTERN is the source pattern that yields symbols naming the pdef to embed.
 

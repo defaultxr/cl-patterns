@@ -161,7 +161,7 @@ See also: `backend-play-event'"))
 (defmethod backend-task-removed (task backend)
   (let ((item (slot-value task 'item))
         (nodes (task-nodes task backend)))
-    (if (typep item 'event)
+    (if (event-p item)
         (mapc 'stop nodes) ;; FIX: this doesn't work because the preview synth doesn't have a gate argument, and non-gated synths aren't kept in task's backend-resources slot.
         (let ((last-output (last-output item)))
           (dolist (node nodes)

@@ -197,19 +197,19 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
          (ebeat (+ sbeat beats)))
     (labels ((clock-process-task (task &optional (times 0))
                (with-slots (item start-beat) task
-                 (if (or (typep item 'event)
+                 (if (or (event-p item)
                          (events-after-p item (- sbeat start-beat)))
                      ;; FIX: need to make sure tempo-change events are processed first
                      (progn
-                       (dolist (event (if (typep item 'event)
+                       (dolist (event (if (event-p item)
                                           (list item)
                                           (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
                          (dolist (event (split-event-by-lists (event-with-raw-timing event task)))
                            (clock-process-event clock task event (event-value event :type))))
-                       (if (typep item 'event)
+                       (if (event-p item)
                            nil
                            task))
-                     (unless (typep item 'event)
+                     (unless (event-p item)
                        (if (loop-p task)
                            (let ((last-output (last-output item)))
                              (setf item (as-pstream (pdef (slot-value item 'key)))) ;; FIX: should this just call a "reset" method or the like?
