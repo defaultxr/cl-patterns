@@ -111,7 +111,40 @@
   (is-true (event-equal
             (event :freq 450 :qux 69 :baz 3)
             (combine-events (event :freq 450) (event :qux 69) (event :baz 3)))
-           "combine-events doesn't work correctly on three events"))
+           "combine-events doesn't work correctly on three events")
+  (is-true (event-equal
+            (event :freq 200)
+            (combine-events (event :freq 200) (event)))
+           "combine-events doesn't work correctly for empty second event")
+  (is-true (event-equal
+            (event :qux 69)
+            (combine-events (event) (event :qux 69)))
+           "combine-events doesn't work correctly for empty first event")
+  (is-true (null
+            (combine-events nil (event :qux 69)))
+           "combine-events doesn't work correctly for nil first event")
+  (is-true (null
+            (combine-events (event :foo 1) nil))
+           "combine-events doesn't work correctly for nil second event")
+  (is (event-equal (event)
+                   (copy-event (event)))
+      "copy-event doesn't copy an empty event")
+  (is (eql 2
+           (let ((ev1 (event))
+                 (ev2 (event))
+                 (ev3 (event)))
+             (setf (slot-value ev1 'cl-patterns::%beat) 1
+                   (slot-value ev2 'cl-patterns::%beat) 2)
+             (slot-value (combine-events ev1 ev2 ev3) 'cl-patterns::%beat)))
+      "combine-events doesn't propagate the %beat slot")
+  (is (eql 2
+           (let ((ev1 (event))
+                 (ev2 (event :beat 2))
+                 (ev3 (event)))
+             (setf (slot-value ev1 'cl-patterns::%beat) 1
+                   (slot-value ev3 'cl-patterns::%beat) 3)
+             (beat (combine-events ev1 ev2 ev3))))
+      "combine-events doesn't prioritize the :beat key over the %beat slot"))
 
 (test split-event-by-lists
   "Test split-event-by-lists"

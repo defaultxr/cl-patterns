@@ -152,14 +152,16 @@ See also: `every-event-equal'"
   "Returns a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
 
 See also: `copy-event', `split-event-by-lists', `combine-events-via-lists'"
-  (let ((result (loop :for ev :in events
-                   :if (null ev)
-                   :return nil
-                   :append (loop :for key :in (keys ev)
-                              :append (list key (event-value ev key))))))
-    (when (and result
-               (null (position-if #'null result)))
-      (apply #'event result))))
+  (unless (position nil events)
+    (let ((ne (event)))
+      (dolist (ev events ne)
+        (dolist (key (keys ev))
+          (if-let ((val (event-value ev key)))
+            (setf (event-value ne key) val)
+            (return-from combine-events nil)))
+        (unless (raw-event-value ne :beat)
+          (when-let ((ibeat (slot-value ev '%beat)))
+            (setf (slot-value ne '%beat) ibeat)))))))
 
 (defun copy-event (event)
   "Return a new event that is a copy of EVENT.
