@@ -543,7 +543,7 @@ Example:
 ;; => ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) NIL)
 
 See also: `pmono', `pb'"
-  (assert (evenp (length pairs)) (pairs))
+  (assert (evenp (length pairs)) (pairs) "pbind's input must be provided as a list of key/value pairs.")
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
   (let* ((res-pairs (list))
@@ -1174,13 +1174,8 @@ See also: `pfunc'")
               (next current-pstream))
             nv)))))
 
-;;; plazyn
 
-(defun plazyn (func &optional (repeats :inf))
-  "Deprecated alias for `plazy'."
-  (apply #'plazy func (list repeats)))
 
-(export 'plazyn)
 
 ;;; pshift
 
