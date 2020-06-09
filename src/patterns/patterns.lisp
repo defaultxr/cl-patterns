@@ -166,18 +166,25 @@ See also: `next', `peek-n', `peek-upto-n'"))
   "Peek at the next N results of a pstream, without advancing it forward in the process.
 
 See also: `peek', `peek-upto-n', `next', `next-n'"
-  (loop :repeat n
-        :collect (peek pstream)))
+  (assert (integerp n) (n) "peek-n's N argument must be an integer.")
+  (unless (pstream-p pstream)
+    (return-from peek-n (peek-n (as-pstream pstream) n)))
+  (with-slots (number future-number) pstream
+    (loop :for i :from 0 :below n
+          :collect (pstream-elt-future pstream (+ number (- future-number) i)))))
 
 (defun peek-upto-n (pstream &optional (n *max-pattern-yield-length*))
   "Peek at up to the next N results of a pstream, without advancing it forward in the process.
 
 See also: `peek', `peek-n', `next', `next-upto-n'"
   (assert (integerp n) (n) "peek-upto-n's N argument must be an integer.")
-  (loop :repeat n
-        :for val := (peek pstream)
-        :until (null val)
-        :collect val))
+  (unless (pstream-p pstream)
+    (return-from peek-upto-n (peek-upto-n (as-pstream pstream) n)))
+  (with-slots (number future-number) pstream
+    (loop :for i :from 0 :below n
+          :for res := (pstream-elt-future pstream (+ number (- future-number) i))
+          :until (null res)
+          :collect res)))
 
 (defgeneric next (pattern)
   (:documentation "Get the next value of a pstream, function, or other object, advancing the pstream forward in the process.
@@ -242,12 +249,12 @@ See also: `next', `next-n', `peek', `peek-upto-n'"
   ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
    (source :initarg :source :documentation "The source object (i.e. pattern) that this pstream was created from.")
-   (pstream-count :initarg :pstream-count :reader pstream-count :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
-   (beat :initform 0 :reader beat :documentation "The number of beats that have elapsed since the start of the pstream.")
-   (history :initform (list) :documentation "The history of outputs yielded by the pstream.") ;; FIX: remove?
-   (history-length :initform 0 :documentation "The number of items in this pstream's history (differs from the number slot in that all outputs are immediately included in its count).") ;; FIX: implement this and use it in sequence-extensions
+   (pstream-count :initarg :pstream-count :reader pstream-count :type integer :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
+   (beat :initform 0 :reader beat :type number :documentation "The number of beats that have elapsed since the start of the pstream.")
+   (history :type vector :documentation "The history of outputs yielded by the pstream.")
+   (history-number :initform 0 :documentation "The number of items in this pstream's history. Differs from the number slot in that all outputs are immediately included in its count.")
    (start-beat :initarg :start-beat :initform nil :documentation "The beat number of the parent pstream when this pstream started.")
-   (pstream-offset :initform 0 :documentation "The current offset in the pstream's history that `next' should read from. For example, if `peek' is used on the pstream once, this would be -1."))
+   (future-number :initform 0 :documentation "The number of peeks into the future that have been made in the pstream. For example, if `peek' is used once, this would be 1. If `next' is called after that, future-number decreases back to 0."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
 (defmethod print-object ((pstream pstream) stream)
@@ -265,10 +272,8 @@ See also: `next', `next-n', `peek', `peek-upto-n'"
         :do (let ((next (next pstream)))
               (unless (typep next '(or null event))
                 (error "events-in-range can only be used on event streams."))))
-  (unless (typep (pstream-elt-future pstream 0) '(or null event))
-    (error "events-in-range can only be used on event streams."))
-  (loop :for i :in (slot-value pstream 'history)
-        :if (and (not (null i))
+  (loop :for i :across (slot-value pstream 'history)
+        :if (and i
                  (>= (beat i) min)
                  (< (beat i) max))
           :collect i
@@ -288,8 +293,8 @@ Example:
 See also: `ended-p'"))
 
 (defmethod last-output ((pstream pstream))
-  (with-slots (number pstream-offset) pstream
-    (let ((idx (+ number pstream-offset)))
+  (with-slots (number future-number) pstream
+    (let ((idx (- number future-number)))
       (when (plusp idx)
         (pstream-elt pstream (- idx (if (ended-p pstream) 2 1)))))))
 
@@ -309,8 +314,8 @@ Example:
 See also: `last-output'"))
 
 (defmethod ended-p ((pstream pstream))
-  (with-slots (number pstream-offset) pstream
-    (and (not (= 0 (+ number pstream-offset)))
+  (with-slots (number future-number) pstream
+    (and (not (= 0 (- number future-number)))
          (null (pstream-elt pstream -1)))))
 
 (defun value-remaining-p (value)
@@ -344,15 +349,11 @@ See also: `last-output'"))
     (decf (slot-value pattern key))))
 
 (defmethod peek ((pstream pstream))
-  (with-slots (pstream-offset) pstream
-    (let ((c-offset pstream-offset))
-      (setf pstream-offset 0)
-      (let ((nxt (next pstream)))
-        (prog1
-            nxt
-          (when (event-p nxt)
-            (decf (slot-value pstream 'beat) (event-value nxt :delta)))
-          (setf pstream-offset (1- c-offset)))))))
+  (with-slots (number future-number) pstream
+    (pstream-elt-future pstream (- number future-number))))
+
+(defmethod peek ((pattern pattern))
+  (next (as-pstream pattern)))
 
 (defmethod next :around ((pstream pstream))
   (labels ((get-value-from-stack (pattern)
@@ -375,19 +376,20 @@ See also: `last-output'"))
                        (progn
                          (push popped (slot-value pattern 'pattern-stack))
                          nv))))))
-    (with-slots (pstream-offset) pstream
-      (if (minusp pstream-offset)
+    (with-slots (number history history-number future-number) pstream
+      (if (plusp future-number)
           (prog1
-              (pstream-elt pstream pstream-offset)
-            (incf pstream-offset))
+              (elt history (- number future-number))
+            (decf future-number))
           (let ((result (get-value-from-stack pstream)))
             (when (event-p result)
               (setf result (copy-event result))
-              (when (and (null (beat result))
+              (when (and (null (raw-event-value result :beat))
                          (null (slot-value pstream 'parent)))
                 (setf (beat result) (beat pstream)))
               (incf (slot-value pstream 'beat) (event-value result :delta)))
-            (appendf (slot-value pstream 'history) (list result)) ;; FIX: don't append, push.
+            (setf (elt history (mod history-number (length (slot-value pstream 'history)))) result)
+            (incf history-number)
             result)))))
 
 (defgeneric as-pstream (thing)
@@ -433,9 +435,17 @@ See also: `pattern-as-pstream'"))
 
 (defmethod as-pstream :around ((pattern pattern))
   (let ((pstream (call-next-method)))
-    (setf (slot-value pstream 'pstream-count) (slot-value pattern 'pstream-count))
     (incf (slot-value pattern 'pstream-count))
-    (setf (slot-value pstream 'source) pattern)
+    pstream))
+
+(defmethod as-pstream :around ((object t))
+  (let ((pstream (call-next-method)))
+    (with-slots (pstream-count source history) pstream
+      (setf pstream-count (if (slot-exists-p object 'pstream-count)
+                              (slot-value object 'pstream-count)
+                              0)
+            source object
+            history (make-array *max-pattern-yield-length* :initial-element nil)))
     (set-parents pstream)
     pstream))
 
@@ -444,54 +454,93 @@ See also: `pattern-as-pstream'"))
 
 (define-condition pstream-out-of-range () ((index :initarg :index :reader pstream-elt-index))
   (:report (lambda (condition stream)
-             (format stream "The pstream has insufficient history to index to element ~d." (pstream-elt-index condition)))))
+             (format stream "The index ~d falls outside the scope of the pstream's history." (pstream-elt-index condition)))))
 
 (defun pstream-elt (pstream n)
-  "Return the Nth element from PSTREAM's history. Does not automatically advance PSTREAM if N is out of range.
+  "Get the Nth item in PSTREAM's history. For negative N, get the -Nth most recent item.
 
 Example:
 
 ;; (let ((pstream (as-pstream (pseq '(1 2 3)))))
-;;   (next-upto-n pstream)
-;;   (pstream-elt pstream 2))
-;;
-;; => 3
+;;   (next pstream) ;=> 1
+;;   (pstream-elt pstream 0) ;=> 1 ;; first item in the pstream's history
+;;   (next pstream) ;=> 2
+;;   (pstream-elt pstream 1) ;=> 2 ;; second item in the pstream's history
+;;   (pstream-elt pstream -1)) ;=> 2 ;; most recent item in the pstream's history
 
 See also: `pstream-elt-future', `phistory'"
   (assert (integerp n) (n))
-  (unless (pstream-p pstream)
+  (unless (typep pstream 'pstream)
     (return-from pstream-elt (pstream-elt (as-pstream pstream) n)))
+  (with-slots (history history-number) pstream
+    (let ((real-index (if (minusp n)
+                          (+ history-number n)
+                          n)))
+      (if (and (>= real-index 0)
+               (< real-index (length history))
+               (< real-index history-number))
+          (elt history real-index)
+          (error 'pstream-out-of-range :index n)))))
+
+(defun pstream-history-advance-by (pstream index) ;; FIX: add tests for this
+  "Convert a history index (i.e. a positive number provided to `pstream-elt-future') to the amount that the history must be advanced by.
+
+If the provided index is before the earliest item in history, the result will be a negative number denoting how far beyond the earliest history the index is.
+If the provided index is within the current history, the result will be zero.
+If the provided index is in the future, the result will be a positive number denoting how far in the future it is.
+
+See also: `pstream-elt-index-to-history-index'"
+  (assert (>= index 0) (index))
+  (with-slots (history history-number) pstream
+    (let ((history-length (length history)))
+      (if (< index (- history-number history-length))
+          (- history-number history-length)
+          (if (>= index history-number)
+              (- index (1- history-number))
+              0)))))
+
+(defun pstream-elt-index-to-history-index (pstream index)
+  "Given INDEX, an absolute index into PSTREAM's history, return the actual index into the current recorded history of the pstream.
+
+See also: `pstream-history-advance-by'"
+  (assert (>= index 0) (index))
   (with-slots (history) pstream
-    (if (>= n (length history))
-        (error 'pstream-out-of-range :index n)
-        (elt-wrap history n))))
+    (mod index (length history))))
 
 (defun pstream-elt-future (pstream n)
-  "Return the Nth element from PSTREAM's history, automatically advancing PSTREAM as necessary if the Nth element has not yet occurred.
-
-When N is negative, only the first nil in PSTREAM's history is included (such that an N of -1 is nil, while an N of -2 is the last non-nil output). Be careful when using negative numbers for N, because infinite-length patterns will cause this function to hang indefinitely.
+  "Get the element N away from the most recent in PSTREAM's history. Unlike `pstream-elt', this function will automatically peek into the future for any positive N.
 
 Example:
 
-;; (pstream-elt-future (as-pstream (pbind :foo (pseq '(1 2 3) 1))) -1)
-;;
-;; => (EVENT :FOO 3)
+;; (let ((pstream (as-pstream (pseq '(1 2 3)))))
+;;   (pstream-elt-future pstream 0) ;=> 1
+;;   (next pstream) ;=> 1
+;;   (pstream-elt-future pstream 1) ;=> 2
+;;   (next pstream)) ;=> 2
 
-See also: `pstream-elt'"
+See also: `pstream-elt', `phistory'"
   (assert (integerp n) (n))
   (unless (pstream-p pstream)
     (return-from pstream-elt-future (pstream-elt-future (as-pstream pstream) n)))
-  (with-slots (history) pstream
-    (flet ((should-advance ()
-             (if (>= n 0)
-                 (>= n (length history))
-                 (not (position nil history)))))
-      (loop :while (should-advance)
-            :do (next pstream)) ;; FIX: use peek instead (and make sure (play (pbind :freq (pseq (a 440 550 660 770) 1) :dur 1)) sounds correct when this change is made!)
-      (if (>= n 0)
-          (elt history n)
-          (let ((sub-history (subseq history 0 (position nil history))))
-            (elt sub-history (+ n (length sub-history))))))))
+  (when (minusp n)
+    (return-from pstream-elt-future (pstream-elt pstream n)))
+  (with-slots (history history-number future-number) pstream
+    (let ((advance-by (pstream-history-advance-by pstream n)))
+      (when (or (minusp advance-by)
+                (> (+ future-number advance-by) (length history)))
+        ;; the future and history are recorded to the same array.
+        ;; since the array is of finite size, requesting more from the future than history is able to hold would result in the oldest elements of the future being overwritten with the newest, thus severing the timeline...
+        ;; (error "Peeking further would render the future inaccessible to the present")
+        (error 'pstream-out-of-range :index n))
+      (let ((prev-future-number future-number))
+        (setf future-number 0) ;; temporarily set it to 0 so the `next' method runs normally
+        (loop :repeat advance-by
+              :for next := (next pstream)
+              :if (event-p next)
+                :do (decf (slot-value pstream 'beat) (event-value next :delta)))
+        (setf future-number (+ prev-future-number advance-by))))
+    (let ((real-index (pstream-elt-index-to-history-index pstream n)))
+      (elt history real-index))))
 
 (defgeneric parent-pattern (pattern)
   (:documentation "Get the containing pattern of PATTERN, or NIL if there isn't one.
@@ -2246,7 +2295,7 @@ See also: `pdelta'")
 
 (defmethod next ((pdiff pdiff-pstream))
   (with-slots (pattern) pdiff
-    (when (null (slot-value pattern 'history))
+    (when (zerop (slot-value pattern 'history-number))
       (next pattern))
     (when-let ((last (pstream-elt pattern -1))
                (next (next pattern)))
@@ -2282,8 +2331,8 @@ See also: `pdiff', `pbind''s :beat key")
                    :cycle (next cycle))))
 
 (defmethod next ((pdelta pdelta-pstream))
-  (with-slots (pattern cycle history) pdelta
-    (when (null history)
+  (with-slots (pattern cycle history-number) pdelta
+    (when (zerop history-number)
       (next pattern))
     (when-let ((lv (or (pstream-elt pattern -1) 0))
                (cv (next pattern)))
@@ -2306,20 +2355,20 @@ Example:
 See also: `pshift'")
 
 (defmethod as-pstream ((pdrop pdrop))
+  ;; FIX: check that n is not bigger or smaller than history allows
   (with-slots (pattern n) pdrop
     (make-instance 'pdrop-pstream
                    :pattern (as-pstream pattern)
                    :n n)))
 
 (defmethod next ((pdrop pdrop-pstream))
-  (with-slots (pattern n) pdrop
+  (with-slots (pattern n number) pdrop
     (if (minusp n)
-        (loop :while (<= n (slot-value pattern 'pstream-offset))
-              :do (when (null (peek pattern))
-                    (return-from next nil)))
-        (when (null (slot-value pattern 'history))
-          (loop :repeat n
-                :do (next pattern))))
+        (unless (pstream-elt-future pattern (- number n))
+          (return-from next nil))
+        (when (zerop (slot-value pattern 'history-number))
+          (dotimes (i n)
+            (next pattern))))
     (next pattern)))
 
 ;;; ppar
@@ -2342,10 +2391,10 @@ Example:
 See also: `psym'")
 
 (defmethod next ((ppar ppar-pstream))
-  (with-slots (list pstreams history) ppar
+  (with-slots (list pstreams history-number) ppar
     (labels ((next-in-pstreams ()
                (when-let ((res (remove-if (lambda (pstream)
-                                            (and (not (null (slot-value pstream 'history)))
+                                            (and (not (zerop (slot-value pstream 'history-number)))
                                                  (null (pstream-elt pstream -1))))
                                           pstreams)))
                  (most-x res #'< #'beat)))
@@ -2355,7 +2404,7 @@ See also: `psym'")
                    (when (null next-list)
                      (return-from maybe-reset-pstreams nil))
                    (setf pstreams (mapcar #'as-pstream next-list))))))
-      (when (null history)
+      (when (zerop history-number)
         (maybe-reset-pstreams))
       (let ((nxt (next (next-in-pstreams))))
         (if (null nxt)

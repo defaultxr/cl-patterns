@@ -257,14 +257,13 @@
                  (as-pstream (pseq (list 1 2 3) (lambda () (print 3))))
                  (get-output-stream-string s)))
       "pseq's REPEATS argument is evaluated before `next' is called")
-  (is (equal (list 1 2 3 1 2 3 1 2 3 1 2 3 NIL) ;; FIX: do this for other patterns as well.
-             (let* ((foo 1)
-                    (bar (as-pstream (pseq (list 1 2 3) (pfunc (lambda () foo))))))
-               (next-n bar 10) ;=> (1 2 3 1 2 3 1 2 3 1)
-               (setf foo 0)
-               (next-n bar 3) ;=> (2 3 NIL)
-               (slot-value bar 'cl-patterns::history) ;=> (1 2 3 1 2 3 1 2 3 1 2 3 NIL)
-               ))
+  (is (equalp #(1 2 3 1 2 3 1 2 3 1 2 3 NIL) ;; FIX: do this for other patterns as well.
+              (let* ((foo 1)
+                     (bar (as-pstream (pseq (list 1 2 3) (pfunc (lambda () foo))))))
+                (next-n bar 10) ;=> (1 2 3 1 2 3 1 2 3 1)
+                (setf foo 0)
+                (next-n bar 3) ;=> (2 3 NIL)
+                (subseq (slot-value bar 'cl-patterns::history) 0 13)))
       "pseq returns incorrect results when its REPEATS is used as a gate")
   (is (equal
        (list 6 7 5 6 7 5)
