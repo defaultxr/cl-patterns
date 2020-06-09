@@ -103,7 +103,6 @@ The following is a list of some of the generic functions defined by cl-patterns.
 - ~peek~
 - ~next~
 - ~events-in-range~
-- ~events-after-p~
 - ~ended-p~
 - ~as-pstream~ - ?
 - ~last-output~ - ?

@@ -53,7 +53,7 @@
     (let* ((tempo (tempo clock))
            (quant (quant event))
            (beat (+ start-beat
-                    (or (event-value event :beat) 0)
+                    (or (beat event) 0)
                     (time-dur (or (raw-event-value event :latency) *latency*)
                               tempo)
                     (time-dur (or (raw-event-value event :timing-offset) 0)
@@ -198,7 +198,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
     (labels ((clock-process-task (task &optional (times 0))
                (with-slots (item start-beat) task
                  (if (or (event-p item)
-                         (events-after-p item (- sbeat start-beat)))
+                         (not (ended-p item)))
                      ;; FIX: need to make sure tempo-change events are processed first
                      (progn
                        (dolist (event (if (event-p item)

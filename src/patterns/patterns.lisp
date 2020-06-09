@@ -214,10 +214,9 @@ See also: `next', `next-n', `peek', `peek-upto-n'"
       :else
         :collect val)))
 
-(defgeneric events-in-range (pstream min max)
-  (:documentation "Get all the events from PSTREAM whose start beat are MIN or greater, and less than MAX.
 
-See also: `events-after-p'"))
+(defgeneric events-in-range (pstream min max)
+  (:documentation "Get all the events from PSTREAM whose start beat are MIN or greater, and less than MAX."))
 
 (defmethod events-in-range ((pattern pattern) min max)
   (events-in-range (as-pstream pattern) min max))
@@ -272,28 +271,6 @@ See also: `events-after-p'"))
         :if (or (null i)
                 (>= (beat i) max))
           :do (loop-finish)))
-
-(defgeneric events-after-p (pstream beat)
-  (:documentation "Whether or not there are events in PSTREAM after BEAT.
-
-See also: `events-in-range'"))
-
-(defmethod events-after-p ((pstream pstream) beat)
-  (let ((last-beat 0))
-    (loop
-      :for idx :from 0
-      :for event := (pstream-elt-future pstream idx)
-      :for ebeat := (beat event)
-      :if (null event)
-        :do (return-from events-after-p nil)
-      :if (< ebeat last-beat) ;; if :beat goes backwards, the pstream is considered to be ended.
-        :do (progn
-              (warn ":beat key decreased - pstream returning NIL.")
-              (return-from events-after-p nil))
-      :if (>= ebeat beat)
-        :return t
-      :else
-        :do (setf last-beat ebeat))))
 
 (defgeneric last-output (pstream)
   (:documentation "Returns the last output yielded by PSTREAM.
