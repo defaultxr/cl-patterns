@@ -131,6 +131,10 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
    (metadata :initarg :metadata :initform (make-hash-table) :type hash-table :documentation "Hash table of additional data associated with the pattern, accessible with the `pattern-metadata' function."))
   (:documentation "Abstract pattern superclass."))
 
+(defun pattern-p (object)
+  "Return true if OBJECT is a pattern, and NIL otherwise."
+  (typep object 'pattern))
+
 (defun all-patterns ()
   "Get a list of all defined patterns.
 
@@ -546,8 +550,8 @@ See also: `pmono', `pb'"
          (pattern-chain (list))
          (pattern (make-instance 'pbind)))
     (doplist (key value pairs)
-        (when (typep value 'pattern)
-          (setf (slot-value value 'parent) pattern))
+      (when (pattern-p value)
+        (setf (slot-value value 'parent) pattern))
       (cond ((position key *pbind-special-init-keys*)
              (when-let ((result (funcall (getf *pbind-special-init-keys* key) value pattern)))
                (appendf res-pairs result)))

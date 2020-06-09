@@ -127,6 +127,7 @@
    #:*max-pattern-yield-length*
 
    #:pattern
+   #:pattern-p
    #:pstream-p
    #:as-pstream
    #:pattern-as-pstream
