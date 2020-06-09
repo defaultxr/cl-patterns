@@ -95,7 +95,12 @@ CLOSED: [2020-02-16 Sun 20:02]
 - probably couldn't be an event special key since context is needed to derive the duration/start time, etc.
 * DONE improve clock.lisp and various backends support by abstracting away time and converting it to each backend's representation when necessary, etc.
 CLOSED: [2018-07-01 Sun 18:02]
-** TODO abstract away envelopes, buffers, buses so they work consistently regardless of the backend
+** abstract away stuff so they work consistently regardless of backend:
+*** envelopes
+*** DONE buffers
+CLOSED: [2020-06-09 Tue 12:45]
+see the [[https://github.com/defaultxr/bdef][bdef]] library
+*** buses
 * DONE make sure multiple backends can be used simultaneously
 CLOSED: [2018-07-01 Sun 18:02]
 * generalize the library
@@ -118,6 +123,7 @@ done as ~pseries*~ and ~pgeom*~
 ** ~legato~ and ~sustain~ would have limited effect. perhaps if ~legato~ is < 1, received triggers start a note and end a note, whereas if ~legato~ is >= 1, triggers start a note, or if a note is already playing, both stop it and start the next one.
 * l-systems
 * tempo change curves
+- can tempo be represented as a key in patterns instead of a slot in the clock? or maybe as a pattern that is always playing, and can be referred to with ~(ptempo)~ or the like? that way we get curves, etc for free
 * ~pblend~ to blend between two patterns
 * export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime
 ** then make ~render~ or ~record~ functions
@@ -127,11 +133,11 @@ see [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
 * make sure communicating with pure data via OSC works
 * make sure our clock works with the cl-collider TempoClock so they can be used together/synced etc.
 ** same with [[https://github.com/byulparan/sc-extensions][sc-extensions]]
-* make a quickproject-like feature (perhaps by using quickproject) to quickly generate a cl-patterns project
+* provide a quickproject template to quickly generate a cl-patterns project
 * test on ccl and other implementations
 * cl-patterns "patterns-as-audio" backend
 * allow the clock to be stopped and resumed (i.e. for it to be slave to an external clock)
-** would need to get rid of ~local-time~ stuff for this to work
+** might need to get rid of ~local-time~ stuff for this to work
 * functions to get output range of patterns, so something like ~range~ could be used on them to easily set numeric output ranges.
 * additional event types:
 | type  | description                                                      |
@@ -177,5 +183,6 @@ take into account these variables (and maybe others?):
 - ~*print-escape*~
 - ~*print-pretty*~
 - ~*print-length*~
+...also look into ~make-load-form~ ?
 * Include Emacs skeletons and other functionality for writing patterns faster
 * Subsystem for [[https://github.com/alex-gutev/generic-cl][generic-cl]] methods to make working with patterns even easier!
