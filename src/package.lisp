@@ -39,8 +39,13 @@
    #:freq-octave
    #:midinote-octave
    #:midinote-degree
+   #:freq-degree
    #:note-midinote
+   #:midinote-note
+   #:note-freq
+   #:freq-note
    #:degree-note
+   #:note-degree
    #:degree-midinote
    #:degree-freq
    #:ratio-midi
