@@ -603,11 +603,6 @@ See also: `pbind', `pdef'"
   (print-unreadable-object (pbind stream :type t)
     (format stream "~{~s ~s~^ ~}" (slot-value pbind 'pairs))))
 
-(defun as-pstream-pairs (pairs)
-  (let (results)
-    (doplist (key value pairs results)
-        (appendf results (list key (pattern-as-pstream value))))))
-
 (defmethod as-pstream ((pbind pbind))
   (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pbind)))))
     (apply #'make-instance
@@ -618,7 +613,7 @@ See also: `pbind', `pdef'"
                  :if bound
                    :collect slot-kw
                  :if (eql :pairs slot-kw)
-                   :collect (as-pstream-pairs (slot-value pbind 'pairs))
+                   :collect (mapcar 'pattern-as-pstream (slot-value pbind 'pairs))
                  :if (and bound (not (eql :pairs slot-kw)))
                    :collect (slot-value pbind slot)))))
 
