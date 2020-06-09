@@ -1892,7 +1892,7 @@ See also: `pfindur'")
    dur
    (tolerance :default 0)
    (current-dur :state t)
-   (current-elapsed :state t :initform 0))
+   (elapsed-dur :state t :initform 0))
   :documentation "pfindur yields events from PATTERN until their total duration is within TOLERANCE of DUR, or greater than DUR. Any events that would end beyond DUR are cut short. If PATTERN outputs numbers, their total sum is limited instead.
 
 Example:
@@ -1919,26 +1919,26 @@ See also: `pfin', `psync'")
            (if (event-p ev)
                (event-value ev :delta)
                ev)))
-    (with-slots (pattern dur tolerance current-dur current-elapsed) pfindur
+    (with-slots (pattern dur tolerance current-dur elapsed-dur) pfindur
       (when-let ((n-event (next pattern)))
         (unless (slot-boundp pfindur 'current-dur)
           (setf current-dur (next dur)))
         (when current-dur
           (if (eql :inf current-dur)
               n-event
-              (let ((new-elapsed (+ (get-delta n-event) current-elapsed)))
+              (let ((new-elapsed (+ (get-delta n-event) elapsed-dur)))
                 (prog1
                     (if (> (if (= 0 tolerance)
                                new-elapsed
                                (round-by-direction new-elapsed tolerance))
                            current-dur)
-                        (let ((tdur (- current-dur current-elapsed)))
+                        (let ((tdur (- current-dur elapsed-dur)))
                           (when (plusp tdur)
                             (if (event-p n-event)
                                 (combine-events n-event (event :dur tdur))
                                 tdur)))
                         n-event)
-                  (incf current-elapsed (get-delta n-event))))))))))
+                  (incf elapsed-dur (get-delta n-event))))))))))
 
 ;;; psync
 
@@ -1946,7 +1946,8 @@ See also: `pfin', `psync'")
   (pattern
    sync-quant
    (maxdur :default nil)
-   (tolerance :default 0.001))
+   (tolerance :default 0.001)
+   (elapsed-dur :state t :initform 0))
   :documentation "psync yields events from PATTERN until their total duration is within TOLERANCE of MAXDUR, cutting off any events that would extend past MAXDUR. If PATTERN ends before MAXDUR, a rest is added to the pstream to round its duration up to the nearest multiple of SYNC-QUANT.
 
 Example:
@@ -1970,19 +1971,20 @@ See also: `pfindur'")
                    :tolerance (next tolerance))))
 
 (defmethod next ((psync psync-pstream)) ;; FIX: implement tolerance
-  (with-slots (pattern sync-quant maxdur tolerance history) psync
-    (let* ((n-event (next pattern))
-           (elapsed-dur (reduce #'+ (mapcar #'event-value (remove-if #'null history) (circular-list :delta))))
-           (delta (- (round-by-direction elapsed-dur sync-quant) elapsed-dur)))
-      (if (null n-event)
-          (when (plusp delta)
-            (event :type :rest :dur delta))
-          (when (or (null maxdur)
-                    (not (>= elapsed-dur maxdur)))
-            (if (and (not (null maxdur))
-                     (> (+ elapsed-dur (event-value n-event :dur)) maxdur))
-                (combine-events n-event (event :dur (- maxdur elapsed-dur)))
-                n-event))))))
+  (with-slots (pattern sync-quant maxdur tolerance elapsed-dur) psync
+    (let ((n-event (next pattern))
+          (delta (- (round-by-direction elapsed-dur sync-quant) elapsed-dur)))
+      (when-let ((res-event (if (null n-event)
+                                (when (plusp delta)
+                                  (event :type :rest :dur delta))
+                                (when (or (null maxdur)
+                                          (not (>= elapsed-dur maxdur)))
+                                  (if (and (not (null maxdur))
+                                           (> (+ elapsed-dur (event-value n-event :dur)) maxdur))
+                                      (combine-events n-event (event :dur (- maxdur elapsed-dur)))
+                                      n-event)))))
+        (incf elapsed-dur (event-value res-event :dur))
+        res-event))))
 
 ;;; pdurstutter
 ;; FIX: make a version where events skipped with 0 are turned to rests instead (to keep the correct dur)
