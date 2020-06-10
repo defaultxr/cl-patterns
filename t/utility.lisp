@@ -8,12 +8,6 @@
              (cl-patterns::gete (next-upto-n (pbind :foo (pseries))) :foo))
       "gete returns incorrect results"))
 
-(test string-keyword
-  "Test the `string-keyword' function"
-  (is (eql :foo
-           (cl-patterns::string-keyword "foo"))
-      "string-keyword doesn't convert strings to keywords correctly"))
-
 (test normalized-sum
   "Test the `normalized-sum' function"
   (is (= 1

@@ -35,7 +35,7 @@ See also: `*abbreviations*'"
     (return-from generate-aliases
       (generate-aliases (symbol-name name))))
   (remove-duplicates
-   (mapcar #'string-keyword
+   (mapcar #'friendly-symbol
            (let* (res
                   (name (string-upcase name))
                   (abbrs-found (remove-if-not
@@ -126,7 +126,7 @@ See also: `note-number', `note-midinote'"
   "Define a musical tuning.
 
 See also: `tuning', `define-scale', `define-chord'"
-  (let ((key (string-keyword name))
+  (let ((key (friendly-symbol name))
         (tuning (make-instance 'tuning
                                :name name
                                :pitches pitches
@@ -160,7 +160,7 @@ See also: `tuning', `define-scale', `define-chord'"
           tuning))))
 
 (defmethod tuning ((object string))
-  (tuning (string-keyword object)))
+  (tuning (friendly-symbol object)))
 
 (defmethod tuning ((object tuning))
   object)
@@ -240,7 +240,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
   "Define a musical scale.
 
 See also: `scale', `define-tuning', `define-chord'"
-  (let ((key (string-keyword name))
+  (let ((key (friendly-symbol name))
         (scale (make-instance 'scale
                               :name name
                               :notes notes
@@ -276,7 +276,7 @@ See also: `scale', `define-tuning', `define-chord'"
           scale))))
 
 (defmethod scale ((object string))
-  (scale (string-keyword object)))
+  (scale (friendly-symbol object)))
 
 (defmethod scale ((object scale))
   object)
@@ -330,7 +330,7 @@ See also: `scale', `define-tuning', `define-chord'"
   "Define a musical chord.
 
 See also: `scale', `define-tuning', `define-scale'"
-  (let ((key (string-keyword name))
+  (let ((key (friendly-symbol name))
         (chord (make-instance 'chord
                               :name name
                               :scale scale
@@ -366,7 +366,7 @@ See also: `scale', `define-tuning', `define-scale'"
           chord))))
 
 (defmethod chord ((object string))
-  (chord (string-keyword object)))
+  (chord (friendly-symbol object)))
 
 (defmethod chord ((object chord))
   object)
@@ -386,8 +386,8 @@ See also: `scale', `define-tuning', `define-scale'"
             chord
             name
             (loop :for i :in (keys *chords*)
-               :if (eql (getf *chords* i) (string-keyword (chord-name chord)))
-               :collect i)
+                  :if (eql (getf *chords* i) (friendly-symbol (chord-name chord)))
+                    :collect i)
             scale
             (scale-notes (scale scale))
             (chord-notes chord)

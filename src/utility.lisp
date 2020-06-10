@@ -10,18 +10,6 @@
 
 ;;; string stuff
 
-(defun string-keyword (string)
-  "Return STRING as a keyword, with all non-letter, non-number, and non-hypen characters removed."
-  (make-keyword
-   (string-upcase
-    (remove-if-not
-     (lambda (letter)
-       (or (digit-char-p letter)
-           (alpha-char-p letter)
-           (char= #\- letter)))
-     (substitute #\- #\_
-                 (substitute #\- #\space string))))))
-
 (defun string-replace (string old new)
   "Find the first instance of OLD in STRING and replace it with NEW. Return the new string, or if OLD was not found, return STRING unchanged. Returns the position that OLD was found as a second value, or nil if it was not found."
   (let ((pos (search old string)))
