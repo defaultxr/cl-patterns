@@ -2420,17 +2420,20 @@ See also: `psym'")
 
 (defpattern pmeta (pattern)
   (pattern
-   (current-pstream :state t))
+   (current-pstream :state t :initform nil))
   :documentation "Meta-control patterns using the events output by PATTERN. In other words, instead of triggering synths directly, the events output by PATTERN are used to embed patterns into the pmeta's pstream.
 
 The following keys are supported:
 
 - :pattern or :instrument - name of the source pattern for this \"step\".
 - :dur - set the duration of the embedded pattern (defaults to :inf, which causes the pattern to play to its end).
+- :findur - limit the duration of the embedded pattern.
 - :sync - sync the duration of the embedded pattern to a multiple of the provided value, similar to `psync'
 - :stretch - multiply the duration of each of the source pattern's events.
 - :ts or :fit - timestretch a pattern so its total duration is the number specified, a la `pts'.
 - :r or :repeat - repeat each event the number of times returned by the function when the event is applied to it, similar to `pr'.
+- :inject - inject key/value pairs from the output of this value into the source pattern.
+- :step-inject or :sinject - inject one output from this value per step.
 
 The following keys are planned for future implementation:
 
@@ -2439,7 +2442,6 @@ The following keys are planned for future implementation:
 - :start-nth or :end-nth - adjust the start or end points of the source pattern by skipping the first or last N events.
 - :filter or :remove-if-not - skip all events from the source pattern that return nil when applied to the specified function or pattern.
 - :mapcar or :nary - process each event from the source pattern with a function or another pattern.
-- :inject - inject key/value pairs from the output of this value into the source pattern.
 
 See doc/special-keys.org for more information on these keys.
 
@@ -2453,54 +2455,66 @@ Example:
 
 See also: `psym', `parp', `pdef', `pbind'"
   :defun (defun pmeta (&rest pairs)
-           (make-instance 'pmeta :pattern pairs)))
+           (make-instance 'pmeta :pattern (if (length= 1 pairs)
+                                              (car pairs)
+                                              pairs))))
 
 (defmethod as-pstream ((pmeta pmeta))
   (with-slots (pattern) pmeta
     (make-instance 'pmeta-pstream
-                   :pattern (if (length= 1 pattern)
-                                (car pattern)
+                   :pattern (if (listp pattern)
                                 (loop :for (key value) :on pattern :by #'cddr
-                                      :append (list key (if (typep value 'pattern)
-                                                            (as-pstream value)
-                                                            value))))
-                   :current-pstream nil)))
+                                      :if (member key (list :inject))
+                                        :append (list key value)
+                                      :else
+                                        :append (list key (pattern-as-pstream value)))
+                                (as-pstream pattern)))))
 
 (defmethod next ((pmeta pmeta-pstream))
   (with-slots (pattern current-pstream) pmeta
     (labels ((make-pstream (plist)
                (unless plist
                  (return-from make-pstream))
-               (let (pattern)
+               (let (res-pattern)
                  (doplist (key value plist)
                    (when (null value)
                      (return-from make-pstream nil))
                    (case key
                      ((:pattern :instrument)
-                      (setf pattern (etypecase value
-                                      (symbol
-                                       (pdef value))
-                                      (pattern
-                                       value))))
+                      (setf res-pattern (etypecase value
+                                          (symbol
+                                           (pdef value))
+                                          (pattern
+                                           value))))
                      ((:dur)
                       (unless (eql value :inf)
-                        (setf pattern (psync pattern value value))))
+                        (setf res-pattern (psync res-pattern value value))))
+                     ((:findur)
+                      (unless (eql value :inf)
+                        (setf res-pattern (pfindur res-pattern value))))
                      ((:sync)
                       (unless (eql value :inf)
-                        (setf pattern (apply #'psync pattern (ensure-list value)))))
+                        (setf res-pattern (apply #'psync res-pattern (ensure-list value)))))
                      ((:stretch)
-                      (setf pattern (pchain pattern (pbind :dur (p* value (pk :dur))))))
+                      (setf res-pattern (pchain res-pattern (pbind :dur (p* value (pk :dur))))))
                      ((:fit :ts)
-                      (setf pattern (pts pattern value)))
+                      (setf res-pattern (pts res-pattern value)))
                      ((:r :repeat)
-                      (setf pattern (pr pattern value)))))
-                 (let ((pstream (as-pstream pattern)))
+                      (setf res-pattern (pr res-pattern value)))
+                     ((:inject)
+                      (setf res-pattern (pchain res-pattern (as-pstream value))))
+                     ((:step-inject :sinject)
+                      (setf res-pattern (pchain res-pattern (pn (next value)))))))
+                 (let ((pstream (as-pstream res-pattern)))
                    (setf (slot-value pstream 'parent) pmeta)
                    pstream))))
       (unless current-pstream
         (setf current-pstream (make-pstream (if (listp pattern)
                                                 (loop :for (key value) :on pattern :by #'cddr
-                                                      :append (list key (next value)))
+                                                      :if (pstream-p value)
+                                                        :append (list key (next value))
+                                                      :else
+                                                        :append (list key value))
                                                 (event-plist (next pattern))))))
       (when current-pstream
         (if-let ((nxt (next current-pstream)))
