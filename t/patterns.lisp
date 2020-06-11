@@ -33,15 +33,23 @@
                (mapcar (lambda (e) (event-value e :foo)) (next-upto-n pstr 8))))
       "pstream's number is not accessible with pk"))
 
-(test next
-  "Test next and next-upto-n"
-  (is-true (equal (list (list 0 1) (list 2 3) (list 4) nil)
-                  (let ((pstr (as-pstream (pseries 0 1 5))))
-                    (list (next-upto-n pstr 2)
-                          (next-upto-n pstr 2)
-                          (next-upto-n pstr 2)
-                          (next-upto-n pstr 2))))
-           "next-upto-n gives wrong results"))
+(test last-output
+  "Test `last-output' function"
+  (let ((pstr (as-pstream (pbind :x (pseq (list 1 2) 1)))))
+    (is-false (cl-patterns::last-output pstr)
+              "last-output doesn't return nil on pstreams not yet started")
+    (next pstr)
+    (is (event-equal (event :x 1)
+                     (cl-patterns::last-output pstr))
+        "last-output doesn't return the first output of a pstream")
+    (next pstr)
+    (is (event-equal (event :x 2)
+                     (cl-patterns::last-output pstr))
+        "last-output doesn't return the second output of a pstream")
+    (next pstr)
+    (is (event-equal (event :x 2)
+                     (cl-patterns::last-output pstr))
+        "last-output doesn't return the second output of a pstream")))
 
 (test peek
   "Test peek functionality"
@@ -52,7 +60,13 @@
          (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq (list 1 2 3) 1)))))
            (peek pstr)
            (beat pstr)))
-      "beat method is counting peeked outputs"))
+      "beat method is counting peeked outputs")
+  (is (equal (list 1 2 nil)
+             (peek-n (pseq (list 1 2) 1) 3))
+      "peek-n does not return correct results")
+  (is (equal (list 1 2)
+             (peek-upto-n (pseq (list 1 2) 1) 3))
+      "peek-upto-n does not return correct results"))
 
 (test next
   "Test next and next-upto-n"
@@ -77,7 +91,10 @@
     (is (= num
            (length (next-upto-n (pbind :foo 1 :bar 2))))
         "pbind doesn't yield the correct number of events by default for a *max-pattern-yield-length* of ~a"
-        num)))
+        num))
+  (is (every-event-equal (list (event) (event) (event))
+                         (next-n (pbind) 3))
+      "empty pbinds don't yield empty events"))
 
 (test parent ;; FIX: make sure all patterns are given parents
   "Test whether patterns have the correct parent information"
@@ -115,7 +132,7 @@
              (event :beat 3 :x 0)
              (event :beat 5 :x 1))
             (next-upto-n (pbind :beat 2
-                                :embed (pbind :beat (p+ (pk :beat) (pseq '(1 3) 1))
+                                :embed (pbind :beat (p+ (pk :beat) (pseq (list 1 3) 1))
                                               :x (pseries)))))
            ":beat key is not accessible in embedded patterns")
   (is-true (equal (list 0 1/2 1 3/2 2 5/2 3 7/2)
@@ -229,7 +246,44 @@
       "pstream-elt 0 does not return the first item in the pstream")
   (signals cl-patterns::pstream-out-of-range
     (pstream-elt (as-pstream (pseq '(1 2 99) 1)) 2)
-    "pstream-elt doesn't give a pstream-out-of-range error when called for an index not yet generated"))
+    "pstream-elt doesn't signal a pstream-out-of-range error when called for an index not yet generated")
+  (let* ((*max-pattern-yield-length* 4)
+         (pstr (as-pstream (pseq (list 0 1 2 3)))))
+    (dotimes (n 8)
+      (signals cl-patterns::pstream-out-of-range
+        (pstream-elt pstr n)
+        "pstream-elt doesn't signal a pstream-out-of-range error when called for an index not yet generated")
+      (next pstr)
+      (is-true (pstream-elt pstr n)
+               "pstream-elt doesn't return the value for a positive index")
+      (is-true (pstream-elt pstr -1)
+               "pstream-elt doesn't return the last output for an index of -1"))
+    (signals cl-patterns::pstream-out-of-range
+      (pstream-elt pstr -5)
+      "pstream-elt doesn't signal a pstream-out-of-range error when called for a negative index older than the oldest")
+    (is-true (pstream-elt pstr -4)
+             "pstream-elt doesn't return the oldest output for the oldest negative index")))
+
+(test pstream-elt-future
+  "Test the behavior of the `pstream-elt-future' function"
+  (let ((pstr (as-pstream (pseq (list 1 2 99) 1))))
+    (is (= 1 (pstream-elt-future pstr 0))
+        "pstream-elt-future doesn't return the first output")
+    (next pstr)
+    (is (= 1
+           (pstream-elt-future pstr 0))
+        "pstream-elt-future 0 doesn't return the first output if it has been generated")
+    (is (= 2
+           (pstream-elt-future pstr 1))
+        "pstream-elt-future 1 doesn't return the next output from the pstream")
+    (is (= 99
+           (pstream-elt-future pstr 2))
+        "pstream-elt-future 2 doesn't return the third output")
+    (is (equal (list 1 1)
+               (let ((pstr (as-pstream (pseq (list 1 2 99) 1))))
+                 (list (pstream-elt-future pstr 0)
+                       (next pstr))))
+        "getting future outputs with pstream-elt-future affects outputs from `next'")))
 
 (test special-wrap-keys ;; FIX: should work for all filter patterns
   "Test behavior of wrap keys"
@@ -658,7 +712,13 @@
   "Test pscratch"
   (is (equal (list 0 1 2 3 0 1 2 3 0 1 2 3)
              (next-n (pscratch (pseries 0 1) (pseq (list 1 1 1 -3) :inf)) 12))
-      "pscratch yields incorrect outputs when using patterns as source and step"))
+      "pscratch yields incorrect outputs when using patterns as source and step")
+  (is (equal (list 0 0 0 0)
+             (next-n (pscratch (pseries 0 1) (pseq (list 0) :inf)) 4))
+      "pscratch yields incorrect outputs when step stays 0")
+  (is (equal (list 0 0 1 1 2)
+             (next-n (pscratch (pseries 0 1) (pseq (list 0 1) :inf)) 5))
+      "pscratch yields incorrect outputs for steps of 0 and 1"))
 
 (test pif
   "Test pif"
