@@ -456,6 +456,14 @@ See also: `pattern-as-pstream'"))
   (:report (lambda (condition stream)
              (format stream "The index ~d falls outside the scope of the pstream's history." (pstream-elt-index condition)))))
 
+(defun pstream-elt-index-to-history-index (pstream index)
+  "Given INDEX, an absolute index into PSTREAM's history, return the actual index into the current recorded history of the pstream.
+
+See also: `pstream-history-advance-by'"
+  (assert (>= index 0) (index))
+  (with-slots (history) pstream
+    (mod index (length history))))
+
 (defun pstream-elt (pstream n)
   "Get the Nth item in PSTREAM's history. For negative N, get the -Nth most recent item.
 
@@ -470,16 +478,15 @@ Example:
 
 See also: `pstream-elt-future', `phistory'"
   (assert (integerp n) (n))
-  (unless (typep pstream 'pstream)
+  (unless (pstream-p pstream)
     (return-from pstream-elt (pstream-elt (as-pstream pstream) n)))
   (with-slots (history history-number) pstream
     (let ((real-index (if (minusp n)
                           (+ history-number n)
                           n)))
-      (if (and (>= real-index 0)
-               (< real-index (length history))
+      (if (and (>= real-index (max 0 (- history-number (length history))))
                (< real-index history-number))
-          (elt history real-index)
+          (elt history (pstream-elt-index-to-history-index pstream real-index))
           (error 'pstream-out-of-range :index n)))))
 
 (defun pstream-history-advance-by (pstream index) ;; FIX: add tests for this
@@ -498,14 +505,6 @@ See also: `pstream-elt-index-to-history-index'"
           (if (>= index history-number)
               (- index (1- history-number))
               0)))))
-
-(defun pstream-elt-index-to-history-index (pstream index)
-  "Given INDEX, an absolute index into PSTREAM's history, return the actual index into the current recorded history of the pstream.
-
-See also: `pstream-history-advance-by'"
-  (assert (>= index 0) (index))
-  (with-slots (history) pstream
-    (mod index (length history))))
 
 (defun pstream-elt-future (pstream n)
   "Get the element N away from the most recent in PSTREAM's history. Unlike `pstream-elt', this function will automatically peek into the future for any positive N.
