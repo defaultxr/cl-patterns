@@ -357,25 +357,25 @@ See also: `last-output'"))
 
 (defmethod next :around ((pstream pstream))
   (labels ((get-value-from-stack (pattern)
-             (if (null (slot-value pattern 'pattern-stack))
-                 (prog1
-                     (let ((res (call-next-method)))
-                       (typecase res
-                         (pattern
-                          ;; if `next' returns a pattern, we push it to the pattern stack as a pstream
-                          (let ((pstr (as-pstream res)))
-                            (setf (slot-value pstr 'start-beat) (beat pattern))
-                            (push pstr (slot-value pattern 'pattern-stack)))
-                          (get-value-from-stack pattern))
-                         (t res)))
-                   (incf (slot-value pattern 'number)))
-                 (let* ((popped (pop (slot-value pattern 'pattern-stack)))
-                        (nv (next popped)))
-                   (if (null nv)
-                       (get-value-from-stack pattern)
+             (with-slots (number pattern-stack) pattern
+               (if pattern-stack
+                   (let ((popped (pop pattern-stack)))
+                     (if-let ((nv (next popped)))
                        (progn
-                         (push popped (slot-value pattern 'pattern-stack))
-                         nv))))))
+                         (push popped pattern-stack)
+                         nv)
+                       (get-value-from-stack pattern)))
+                   (prog1
+                       (let ((res (call-next-method)))
+                         (typecase res
+                           (pattern
+                            ;; if `next' returns a pattern, we push it to the pattern stack as a pstream
+                            (let ((pstr (as-pstream res)))
+                              (setf (slot-value pstr 'start-beat) (beat pattern))
+                              (push pstr pattern-stack))
+                            (get-value-from-stack pattern))
+                           (t res)))
+                     (incf number))))))
     (with-slots (number history history-number future-number) pstream
       (if (plusp future-number)
           (prog1
