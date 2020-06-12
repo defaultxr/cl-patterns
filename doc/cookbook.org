@@ -54,3 +54,34 @@ Ideas for things to use the ~comments~ field for:
 
 - Divide the splits up by the part of the song they fall into, to allow a remix to run different "algorithms" for each.
 - Analyze the pitch of each split, then use it to create a makeshift "autotune".
+
+* Amen break
+
+It should be fairly easy to write the Amen break based on textual notation. For example, the page [[https://www.elephantdrums.co.uk/blog/guides-and-resources/amen-break-drum-groove/][here]] provides drum tabs. There's no reason a computer couldn't read these as easily as a human can. Fortunately, the ~pcycles~ pattern accepts strings as input and reads the same notation as the provided tabs.
+
+#+BEGIN_SRC lisp
+  (tempo 136/60) ;; the Amen break is 136 BPM
+
+  (pb :hat
+    :instrument :hat
+    :dur 1/2 ;; play the hihat every 1/2 beat
+    :pfindur 4 ;; limit the pattern to 4 beats in length (it loops automatically)
+    :quant 4 ;; ensure that the pattern starts on a beat that is divisible by 4
+    )
+
+  (pb :snare
+    :embed (pcycles "----o--o-o--o--o") ;; using the snare tab from the page linked above
+    :instrument :snare
+    :dur 1/4
+    :quant 4)
+
+  (pb :kick
+    :embed (pcycles "o-o-------oo----")
+    :instrument :kick
+    :dur 1/4
+    :quant 4)
+
+  ;; play the patterns we've defined:
+  (play (list :hat :snare :kick))
+#+END_SRC
+
