@@ -40,10 +40,12 @@ A framework for musical expression in Lisp with a focus on music theory. (Unrela
 ** [[https://common-lisp.net/project/mcclim/][McCLIM]]
 A native Lisp graphical user interface library. Uses Lisp idioms and ideas for the development of user interaction modes. May be useful for visualization of pattern or other musical data, and interaction with the Lisp process.
 
+** [[https://github.com/borodust/trivial-gamekit][trivial-gamekit]]
+
+A library for getting into gamedev with Common Lisp; a very simple interface to graphics, audio, and input. Acts as a stepping stone to (the not yet stabilized) cl-bodge.
+
 ** [[https://github.com/borodust/cl-bodge][cl-bodge]]
 "Experimental bodacious game engine written in Common Lisp". A modular and extensible framework for developing games and game-like applications in Lisp.
-
-See also: [[https://github.com/borodust/trivial-gamekit][trivial-gamekit]], a simple library for developing games and applications which acts as a stepping stone to the (not yet stabilized) bodge.
 
 ** [[https://github.com/cbaggers/cepl][CEPL]]
 "Code Evaluate Play Loop". A project that attempts to make programming graphics on the GPU feel native to Lisp.
