@@ -33,40 +33,6 @@
                (mapcar (lambda (e) (event-value e :foo)) (next-upto-n pstr 8))))
       "pstream's number is not accessible with pk"))
 
-(test last-output
-  "Test `last-output' function"
-  (let ((pstr (as-pstream (pbind :x (pseq (list 1 2) 1)))))
-    (is-false (cl-patterns::last-output pstr)
-              "last-output doesn't return nil on pstreams not yet started")
-    (next pstr)
-    (is (event-equal (event :x 1)
-                     (cl-patterns::last-output pstr))
-        "last-output doesn't return the first output of a pstream")
-    (next pstr)
-    (is (event-equal (event :x 2)
-                     (cl-patterns::last-output pstr))
-        "last-output doesn't return the second output of a pstream")
-    (next pstr)
-    (is (event-equal (event :x 2)
-                     (cl-patterns::last-output pstr))
-        "last-output doesn't return the second output of a pstream")))
-
-(test peek
-  "Test peek functionality"
-  (is-false (position nil (let ((pstr (as-pstream (pwhite 0 127))))
-                            (loop :repeat 200 :collect (= (peek pstr) (next pstr)))))
-            "peek and next do not return the same values")
-  (is (= 0
-         (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq (list 1 2 3) 1)))))
-           (peek pstr)
-           (beat pstr)))
-      "beat method is counting peeked outputs")
-  (is (equal (list 1 2 nil)
-             (peek-n (pseq (list 1 2) 1) 3))
-      "peek-n does not return correct results")
-  (is (equal (list 1 2)
-             (peek-upto-n (pseq (list 1 2) 1) 3))
-      "peek-upto-n does not return correct results"))
 
 (test next
   "Test next and next-upto-n"
@@ -283,7 +249,45 @@
                (let ((pstr (as-pstream (pseq (list 1 2 99) 1))))
                  (list (pstream-elt-future pstr 0)
                        (next pstr))))
-        "getting future outputs with pstream-elt-future affects outputs from `next'")))
+        "getting future outputs with pstream-elt-future affects outputs from `next'")
+    (is-false (position nil (let ((pstr (as-pstream (pwhite 0 127))))
+                              (loop :repeat 200 :collect (= (peek pstr) (next pstr)))))
+              "peek and next do not return the same values")
+    (is (= 0
+           (let ((pstr (as-pstream (pbind :dur 1/3 :foo (pseq (list 1 2 3) 1)))))
+             (peek pstr)
+             (beat pstr)))
+        "beat method is counting peeked outputs")
+    (is (equal (list 1 2 nil)
+               (peek-n (pseq (list 1 2) 1) 3))
+        "peek-n does not return correct results")
+    (is (equal (list 1 2)
+               (peek-upto-n (pseq (list 1 2) 1) 3))
+        "peek-upto-n does not return correct results")
+    (let ((pstr (as-pstream (pbind :dur (pn 1 4)))))
+      (is (equal (list 0 1 0 1 2 3 4)
+                 (print (mapcar #'beat (print (append (peek-n pstr 2)
+                                                      (next-n pstr 4)
+                                                      (list pstr))))))
+          "event and pstream beats are broken by peeking"))))
+
+(test last-output
+  "Test `last-output' function"
+  (let ((pstr (as-pstream (pbind :x (pseq (list 1 2) 1)))))
+    (is-false (cl-patterns::last-output pstr)
+              "last-output doesn't return nil on pstreams not yet started")
+    (next pstr)
+    (is (event-equal (event :x 1)
+                     (cl-patterns::last-output pstr))
+        "last-output doesn't return the first output of a pstream")
+    (next pstr)
+    (is (event-equal (event :x 2)
+                     (cl-patterns::last-output pstr))
+        "last-output doesn't return the second output of a pstream")
+    (next pstr)
+    (is (event-equal (event :x 2)
+                     (cl-patterns::last-output pstr))
+        "last-output doesn't return the second output of a pstream")))
 
 (test special-wrap-keys ;; FIX: should work for all filter patterns
   "Test behavior of wrap keys"
@@ -1026,5 +1030,5 @@
   (is (equal (list (list 0 1 2 3) (list 4 5 6 7) (list 8 9 10 11))
              (let ((pat (ps (pseries))))
                (loop :repeat 3
-                  :collect (next-upto-n pat 4))))
+                     :collect (next-upto-n pat 4))))
       "ps fails to resume the pstream on subsequent calls to as-pstream"))
