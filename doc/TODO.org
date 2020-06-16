@@ -186,3 +186,6 @@ take into account these variables (and maybe others?):
 ...also look into ~make-load-form~ ?
 * Include Emacs skeletons and other functionality for writing patterns faster
 * Subsystem for [[https://github.com/alex-gutev/generic-cl][generic-cl]] methods to make working with patterns even easier!
+* [[https://web.archive.org/web/20100110004824/http://www.pawfal.org/index.php?page=BetaBlocker][betablocker]]-inspired pattern (perhaps related to ~pfsm~ or ~pdfsm~ or the like?)
+* more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
+** ~ipstream~
