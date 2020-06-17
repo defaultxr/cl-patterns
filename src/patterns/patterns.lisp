@@ -254,7 +254,8 @@ See also: `next', `next-n', `peek', `peek-upto-n'"
    (history :type vector :documentation "The history of outputs yielded by the pstream.")
    (history-number :initform 0 :documentation "The number of items in this pstream's history. Differs from the number slot in that all outputs are immediately included in its count.")
    (start-beat :initarg :start-beat :initform nil :documentation "The beat number of the parent pstream when this pstream started.")
-   (future-number :initform 0 :documentation "The number of peeks into the future that have been made in the pstream. For example, if `peek' is used once, this would be 1. If `next' is called after that, future-number decreases back to 0."))
+   (future-number :initform 0 :documentation "The number of peeks into the future that have been made in the pstream. For example, if `peek' is used once, this would be 1. If `next' is called after that, future-number decreases back to 0.")
+   (future-beat :initform 0 :documentation "The current beat including all future outputs (the `beat' slot does not include peeked outputs)."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
 
 (defmethod print-object ((pstream pstream) stream)
@@ -378,16 +379,19 @@ See also: `last-output'"))
                      (incf number))))))
     (with-slots (number history history-number future-number) pstream
       (if (plusp future-number)
-          (prog1
-              (elt history (- number future-number))
-            (decf future-number))
+          (let ((result (elt history (- number future-number))))
+            (decf future-number)
+            (when (event-p result)
+              (incf (slot-value pstream 'beat) (event-value result :delta)))
+            result)
           (let ((result (get-value-from-stack pstream)))
             (when (event-p result)
               (setf result (copy-event result))
               (when (and (null (raw-event-value result :beat))
                          (null (slot-value pstream 'parent)))
-                (setf (beat result) (beat pstream)))
-              (incf (slot-value pstream 'beat) (event-value result :delta)))
+                (setf (beat result) (slot-value pstream 'future-beat)))
+              (incf (slot-value pstream 'beat) (event-value result :delta))
+              (incf (slot-value pstream 'future-beat) (event-value result :delta)))
             (setf (elt history (mod history-number (length (slot-value pstream 'history)))) result)
             (incf history-number)
             result)))))
@@ -529,7 +533,6 @@ See also: `pstream-elt', `phistory'"
                 (> (+ future-number advance-by) (length history)))
         ;; the future and history are recorded to the same array.
         ;; since the array is of finite size, requesting more from the future than history is able to hold would result in the oldest elements of the future being overwritten with the newest, thus severing the timeline...
-        ;; (error "Peeking further would render the future inaccessible to the present")
         (error 'pstream-out-of-range :index n))
       (let ((prev-future-number future-number))
         (setf future-number 0) ;; temporarily set it to 0 so the `next' method runs normally

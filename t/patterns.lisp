@@ -265,10 +265,16 @@
                (peek-upto-n (pseq (list 1 2) 1) 3))
         "peek-upto-n does not return correct results")
     (let ((pstr (as-pstream (pbind :dur (pn 1 4)))))
+      (is (equal (list 0 1 2 3)
+                 (loop :for n :below 4
+                       :collect (slot-value pstr 'cl-patterns::future-beat)
+                       :do (pstream-elt-future pstr n)))
+          "future-beat is not correct for peeked pstreams"))
+    (let ((pstr (as-pstream (pbind :dur (pn 1 4)))))
       (is (equal (list 0 1 0 1 2 3 4)
-                 (print (mapcar #'beat (print (append (peek-n pstr 2)
-                                                      (next-n pstr 4)
-                                                      (list pstr))))))
+                 (mapcar #'beat (append (peek-n pstr 2)
+                                        (next-n pstr 4)
+                                        (list pstr))))
           "event and pstream beats are broken by peeking"))))
 
 (test last-output
