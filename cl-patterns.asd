@@ -122,6 +122,7 @@
                ;; (:file "bjorklund")
                ;; (:file "cycles")
                (:file "tracker")
+               (:file "eseq")
                ;; (:file "backend")
                (:file "clock")
                (:file "doc"))

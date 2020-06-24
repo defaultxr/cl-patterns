@@ -93,12 +93,16 @@ See also: `eseq-add'"))
 (defmethod eseq-remove ((eseq eseq) (events list))
   (mapc #'eseq-remove eseq events))
 
-(defmethod bsubseq ((eseq eseq) start-beat &optional end-beat)
+(defmethod bsubseq ((list list) start-beat &optional end-beat)
   (remove-if-not (lambda (ev)
                    (let ((beat (beat ev)))
                      (and (<= start-beat beat)
-                          (< beat end-beat))))
-                 (eseq-events eseq)))
+                          (or (not end-beat)
+                              (< beat end-beat)))))
+                 list))
+
+(defmethod bsubseq ((eseq eseq) start-beat &optional end-beat)
+  (bsubseq (eseq-events eseq) start-beat end-beat))
 
 (defun last-dur (eseq)
   "Get the beat position of the ending of the last event in the ESEQ."
@@ -124,10 +128,26 @@ See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
   (eseq (next-upto-n pattern) :source pattern))
 
 (defclass eseq-pstream (eseq pstream)
-  ((direct-p :initarg :direct-p :documentation "")))
+  ((direct-p :initarg :direct-p :initform nil :documentation "Whether changes to the source eseq should affect this pstream immediately.")))
 
 (defmethod as-pstream ((eseq eseq))
   (with-slots (events) eseq
     (make-instance 'eseq-pstream
                    :events (copy-list events)
                    :source eseq)))
+
+(defmethod next ((eseq eseq-pstream))
+  (with-slots (number beat events source direct-p) eseq
+    (if direct-p
+        (progn
+          (when (zerop number)
+            (warn "direct-p is not yet implemented."))
+          (when (< number 4)
+            (event :dur 1)))
+        (when-let* ((n-events (bsubseq events beat))
+                    (next (car n-events)))
+          (let* ((after (cadr n-events))
+                 (after-beat (if after
+                                 (beat after)
+                                 (dur eseq))))
+            (combine-events next (event :delta (- after-beat (beat next)))))))))
