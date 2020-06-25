@@ -150,6 +150,7 @@
    #:parent-pattern
    #:parent-pbind
    #:pstream-count
+   #:bsubseq
 
    #:pbind
    #:pb

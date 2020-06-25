@@ -225,6 +225,10 @@ See also: `next', `next-n', `peek', `peek-upto-n'"
       :else
         :collect val)))
 
+(defgeneric bsubseq (object start-beat &optional end-beat)
+  (:documentation "\"Beat subseq\" - get a list of all events from OBJECT whose `beat' is START-BEAT or above, and below END-BEAT.
+
+See also: `bsubseq*', `events-in-range'"))
 
 (defgeneric events-in-range (pstream min max)
   (:documentation "Get all the events from PSTREAM whose start beat are MIN or greater, and less than MAX."))
