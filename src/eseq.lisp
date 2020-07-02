@@ -128,15 +128,17 @@ See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
   (eseq (next-upto-n pattern) :source pattern))
 
 (defclass eseq-pstream (eseq pstream)
-  ((direct-p :initarg :direct-p :initform nil :documentation "Whether changes to the source eseq should affect this pstream immediately.")))
+  ((events-remaining :initarg :events-remaining :initform nil :documentation "The list of events left to be played in the pstream.")
+   (direct-p :initarg :direct-p :initform nil :documentation "Whether changes to the source eseq should affect this pstream immediately.")))
 
 (defmethod as-pstream ((eseq eseq))
   (with-slots (events) eseq
     (make-instance 'eseq-pstream
-                   :events (copy-list events)
+                   :events events
+                   :events-remaining (copy-list events)
                    :source eseq)))
 
-(defmethod next ((eseq eseq-pstream))
+(defmethod next.events-ordered ((eseq eseq-pstream))
   (with-slots (number beat events source direct-p) eseq
     (if direct-p
         (progn
@@ -151,3 +153,27 @@ See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
                                  (beat after)
                                  (dur eseq))))
             (combine-events next (event :delta (- after-beat (beat next)))))))))
+
+(defmethod next ((eseq eseq-pstream)) ;; if events are not necessarily ordered
+  (flet ((first-event (events)
+           (most-x events #'< #'beat)))
+    (with-slots (number beat events source events-remaining direct-p) eseq
+      (if direct-p
+          (progn
+            (when (zerop number)
+              (warn "direct-p is not yet implemented."))
+            (when (< number 4)
+              (event :dur 1)))
+          (when-let* ((next (first-event events-remaining))
+                      (delta (- (beat next) (beat eseq))))
+            (if (plusp delta)
+                (event :type :rest :delta delta)
+                (progn
+                  (removef events-remaining next :test #'eq)
+                  (let ((after (first-event events-remaining)))
+                    (combine-events next (event :delta (- (if after
+                                                              (beat after)
+                                                              (dur eseq))
+                                                          (beat next))))))))))))
+
+
