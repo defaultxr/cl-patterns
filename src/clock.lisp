@@ -21,6 +21,15 @@
 (defmethod beat ((clock clock))
   (slot-value clock 'beat))
 
+(defmethod real-beat ((clock clock))
+  "Get the \"real beat\" of the clock; i.e. compute what the beat number should actually be at this instant in time (whereas the beat slot for the clock is quantized to the clock's granularity).
+
+Note that this function will likely be removed in the future with improvements to the clock, so you should expect to eventually have to update code depending on it.
+
+See also: `beat'"
+  (with-slots (tempo timestamp-at-tempo beat-at-tempo) clock
+    (+ beat-at-tempo (* tempo (local-time:timestamp-difference (local-time:now) timestamp-at-tempo)))))
+
 (defmethod (setf tempo) (value (item clock))
   (clock-add (event :type :tempo-change :tempo value) item))
 
