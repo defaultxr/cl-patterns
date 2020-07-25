@@ -1985,7 +1985,7 @@ See also: `pfin', `psync'")
                 (prog1
                     (if (> (if (= 0 tolerance)
                                new-elapsed
-                               (round-by-direction new-elapsed tolerance))
+                               (round-by new-elapsed tolerance)) ;; FIX: need to implement and test TOLERANCE
                            current-dur)
                         (let ((tdur (- current-dur elapsed-dur)))
                           (when (plusp tdur)
@@ -2028,7 +2028,7 @@ See also: `pfindur'")
 (defmethod next ((psync psync-pstream)) ;; FIX: implement tolerance
   (with-slots (pattern sync-quant maxdur tolerance elapsed-dur) psync
     (let ((n-event (next pattern))
-          (delta (- (round-by-direction elapsed-dur sync-quant) elapsed-dur)))
+          (delta (- (ceiling-by elapsed-dur sync-quant) elapsed-dur)))
       (when-let ((res-event (if (null n-event)
                                 (when (plusp delta)
                                   (event :type :rest :dur delta))
@@ -2343,7 +2343,7 @@ See also: `pdiff', `pbind''s :beat key")
     (when-let ((lv (or (pstream-elt pattern -1) 0))
                (cv (next pattern)))
       (- cv
-         (- lv (round-by-direction (- lv cv) cycle))))))
+         (- lv (ceiling-by (- lv cv) cycle))))))
 
 ;;; pdrop
 

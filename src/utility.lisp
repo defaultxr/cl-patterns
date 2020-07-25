@@ -185,11 +185,11 @@ See also: `seq'"
   "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT."
   (destructuring-bind (quant &optional (phase 0) (offset 0)) (ensure-list quant)
     (declare (ignore offset))
-    (let ((sign (signum direction)))
+    (let ((direction (if (minusp direction) -1 1)))
       (labels ((find-next (quant phase cb try)
                  (let ((res (+ phase
-                               (+ (* sign try)
-                                  (round-by-direction beat (* sign quant))))))
+                                (+ (* direction try)
+                                   (funcall (if (minusp direction) #'floor-by #'ceiling-by) beat quant)))))
                    (if (funcall (if (plusp direction) #'>= #'<=) res cb)
                        res
                        (find-next quant phase cb (1+ try))))))

@@ -113,8 +113,8 @@ See also: `eseq-add'"))
 (defmethod dur ((eseq eseq))
   (if (slot-boundp eseq 'dur)
       (slot-value eseq 'dur)
-      (round-by-direction (last-dur eseq)
-                          (car (quant eseq)))))
+      (ceiling-by (last-dur eseq)
+                  (car (quant eseq)))))
 
 (defgeneric as-eseq (object)
   (:documentation "Convert OBJECT to an `eseq'.
