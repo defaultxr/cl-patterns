@@ -1318,7 +1318,19 @@ Example:
 ;; (next-upto-n (pwhite 0 10 16))
 ;; => (7 2 4 5 7 10 4 8 10 2 3 5 9 2 5 4)
 
-See also: `pexprand', `pbrown', `pgauss', `prand'")
+See also: `pexprand', `pbrown', `pgauss', `prand'"
+  ;; if only one argument is provided, we use it as the "hi" value
+  :defun (defun pwhite (&optional (lo 0 lo-provided-p) (hi 1 hi-provided-p) (length :inf))
+           (make-instance 'pwhite
+                          :lo (if hi-provided-p
+                                  lo
+                                  0)
+                          :hi (if hi-provided-p
+                                  hi
+                                  (if lo-provided-p
+                                      lo
+                                      1))
+                          :length length)))
 
 (defmethod as-pstream ((pattern pwhite))
   (with-slots (lo hi length) pattern
@@ -1351,7 +1363,20 @@ Example:
 ;; (next-upto-n (pbrown 0 10 1 10))
 ;; => (2 3 3 3 4 3 4 5 6 5)
 
-See also: `pwhite', `pexprand', `pgauss'")
+See also: `pwhite', `pexprand', `pgauss'"
+  ;; if only one argument is provided, we use it as the "hi" value
+  :defun (defun pbrown (&optional (lo 0 lo-provided-p) (hi 1 hi-provided-p) (step 0.125) (length :inf))
+           (make-instance 'pbrown
+                          :lo (if hi-provided-p
+                                  lo
+                                  0)
+                          :hi (if hi-provided-p
+                                  hi
+                                  (if lo-provided-p
+                                      lo
+                                      1))
+                          :step step
+                          :length length)))
 
 (defmethod as-pstream ((pattern pbrown))
   (with-slots (lo hi step length) pattern
