@@ -2,7 +2,6 @@
 
 ;; NOTES:
 ;; FIX: take each pattern's name out of its docstring, and make sure the first sentence in each docstring is a good concise description of the functionality.
-;; FIX: don't append stuff to the end of lists; https://stackoverflow.com/questions/6439972/what-is-the-cons-to-add-an-item-to-the-end-of-the-list
 
 ;;; pattern glue
 
@@ -49,10 +48,10 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                "Convert a slot into something appropriate for defclass to handle."
                (let ((name (car slot))
                      (rest (cdr slot)))
-                 (setf rest (remove-from-plist rest :default :state))
-                 (unless (position :initarg (keys rest))
-                   (appendf rest (list :initarg (make-keyword name))))
-                 (append (list name) rest)))
+                 (append (list name)
+                         (remove-from-plist rest :default :state)
+                         (unless (position :initarg (keys rest))
+                           (list :initarg (make-keyword name))))))
              (optional-slot-p (slot)
                "Whether the slot is optional or not. A slot is optional if a default is provided."
                (position :default (keys (cdr slot))))

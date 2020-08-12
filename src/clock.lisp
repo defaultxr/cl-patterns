@@ -271,23 +271,23 @@ To run the clock in a new thread, you can call `start-clock-loop'.
 See also: `start-clock-loop', `clock-process'"
   (unwind-protect
        (loop
-          (if *performance-mode*
-              (handler-bind
-                  ((error (lambda (e)
-                            (bt:with-lock-held (*performance-errors-lock*)
-                              (let ((restart (if (member *performance-mode* (list 'remove-task 'skip-event))
-                                                 *performance-mode*
-                                                 'remove-task)))
-                                (warn "Task had error ~s; invoked ~s restart, with state recorded as index ~s in ~s." e restart (length *performance-errors*) '*performance-errors*)
-                                (appendf *performance-errors* (list (list :error e :stack (dissect:stack))))
-                                (invoke-restart restart))))))
-                (clock-process clock granularity))
-              (clock-process clock granularity))
-          (sleep (max 0
-                      (- (local-time:timestamp-difference
-                          (absolute-beats-to-timestamp (slot-value clock 'beat) clock)
-                          (local-time:now))
-                         (/ *latency* 2)))))
+         (if *performance-mode*
+             (handler-bind
+                 ((error (lambda (e)
+                           (bt:with-lock-held (*performance-errors-lock*)
+                             (let ((restart (if (member *performance-mode* (list 'remove-task 'skip-event))
+                                                *performance-mode*
+                                                'remove-task)))
+                               (warn "Task had error ~s; invoked ~s restart, with state recorded ~s." e restart '*performance-errors*)
+                               (push (list (list :error e :stack (dissect:stack))) *performance-errors*)
+                               (invoke-restart restart))))))
+               (clock-process clock granularity))
+             (clock-process clock granularity))
+         (sleep (max 0
+                     (- (local-time:timestamp-difference
+                         (absolute-beats-to-timestamp (slot-value clock 'beat) clock)
+                         (local-time:now))
+                        (/ *latency* 2)))))
     (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))
 
 (defun start-clock-loop (&key tempo force)
