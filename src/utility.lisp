@@ -169,15 +169,15 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
-(defun next-beat-for-quant (quant beat &optional (direction 1))
+(defun next-beat-for-quant (&optional (quant 1) (beat (beat *clock*)) (direction 1))
   "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT."
   (destructuring-bind (quant &optional (phase 0) (offset 0)) (ensure-list quant)
     (declare (ignore offset))
     (let ((direction (if (minusp direction) -1 1)))
       (labels ((find-next (quant phase cb try)
                  (let ((res (+ phase
-                                (+ (* direction try)
-                                   (funcall (if (minusp direction) #'floor-by #'ceiling-by) beat quant)))))
+                               (+ (* direction try)
+                                  (funcall (if (minusp direction) #'floor-by #'ceiling-by) beat quant)))))
                    (if (funcall (if (plusp direction) #'>= #'<=) res cb)
                        res
                        (find-next quant phase cb (1+ try))))))
