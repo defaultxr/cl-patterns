@@ -802,7 +802,15 @@
   (is-true (equal
             (list 5 5 5 1)
             (gete (next-upto-n (psync (pbind :dur (pseq (list 5) 5)) 4 16)) :dur))
-           "psync fails to limit its source pattern to MAXDUR"))
+           "psync fails to limit its source pattern to MAXDUR")
+  (is-true (every-event-equal
+            (list (event :dur 2) (event :dur 2))
+            (next-upto-n (psync (pbind :dur 2) 5 5 1)))
+           "psync's TOLERANCE argument doesn't work properly")
+  (is-true (every-event-equal
+            (list (event :dur 2) (event :dur 2) (event :dur 1))
+            (next-upto-n (psync (pbind :dur 2) 5 5 0.5)))
+           "psync with TOLERANCE doesn't cut off events after MAXDUR"))
 
 (test pdurstutter
   "Test pdurstutter"

@@ -2065,7 +2065,7 @@ See also: `pfindur'")
                    :maxdur (next maxdur)
                    :tolerance (next tolerance))))
 
-(defmethod next ((psync psync-pstream)) ;; FIX: implement tolerance
+(defmethod next ((psync psync-pstream))
   (with-slots (pattern sync-quant maxdur tolerance elapsed-dur) psync
     (let ((n-event (next pattern))
           (delta (- (ceiling-by elapsed-dur sync-quant) elapsed-dur)))
@@ -2073,7 +2073,7 @@ See also: `pfindur'")
                                 (when (plusp delta)
                                   (event :type :rest :dur delta))
                                 (when (or (null maxdur)
-                                          (not (>= elapsed-dur maxdur)))
+                                          (not (>= elapsed-dur (- maxdur tolerance))))
                                   (if (and (not (null maxdur))
                                            (> (+ elapsed-dur (event-value n-event :dur)) maxdur))
                                       (combine-events n-event (event :dur (- maxdur elapsed-dur)))
