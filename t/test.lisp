@@ -34,5 +34,10 @@
   "Check for any undocumented exported symbols"
   (let ((undocumented (undocumented-symbols :cl-patterns)))
     (is-false undocumented
-              "some exported symbols do not have docstrings: ~s"
-              undocumented)))
+              "some exported symbols do not have docstrings: ~s" undocumented)))
+
+(test docstrings-broken-links
+  "Check for any broken links in docstrings of exported symbols"
+  (let ((symbols (docstrings-with-broken-links :cl-patterns)))
+    (is-false symbols
+              "some exported symbols have docstrings that contain broken links: ~s" symbols)))

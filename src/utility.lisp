@@ -256,7 +256,7 @@ See also: `next-beat-for-quant', `beat', `play'"))
   nil)
 
 (defgeneric play (object)
-  (:documentation "Play an object (typically an event or pattern) according to the current `*event-output-function*'.
+  (:documentation "Play an object (typically an event or pattern).
 
 See also: `launch', `stop'"))
 
