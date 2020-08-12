@@ -181,7 +181,7 @@ See also: `clock-tasks'"
   (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
     (if (and (numberp (event-value event :tempo))
              (plusp (event-value event :tempo)))
-        (let* ((backends (backends-for-event event))
+        (let* ((backends (event-backends event))
                (timestamps (loop :for backend :in backends
                               :collect (list (car (backend-timestamps-for-event event task backend)) backend))))
           (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
@@ -195,7 +195,7 @@ See also: `clock-tasks'"
   nil)
 
 (defmethod clock-process-event (clock task event type)
-  (dolist (backend (backends-for-event event))
+  (dolist (backend (event-backends event))
     (backend-play-event event task backend)))
 
 (defun clock-process (clock beats)

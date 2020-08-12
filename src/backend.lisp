@@ -36,7 +36,7 @@ See also: `play', `launch', `end', `stop'")
                                                                     (slot-value task 'backend-resources))))
       (setf (slot-value task 'backend-resources) (ensure-list value))))
 
-(defun backends-for-event (event)
+(defun event-backends (event)
   "Get a list of backends that EVENT should be played on, either via the event's :backend key or via the `enabled-backends'."
   (or (ensure-list (or (event-value event :backends)
                        (event-value event :backend)))
