@@ -41,12 +41,6 @@
              (cl-patterns::multi-channel-funcall #'+ 2 1))
       "multi-channel-funcall doesn't return a lone value when all its inputs are lone values"))
 
-(test most-x
-  "Test the `most-x' function"
-  (is (equal (list 1 2 3)
-             (cl-patterns::most-x (list (list 1) (list 1 2 3) (list 1 2)) #'> #'length))
-      "most-x returns incorrect results"))
-
 (test plist-set
   "Test the `plist-set' function"
   (is (equal (list :foo :bar :baz :qux)

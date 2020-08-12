@@ -77,21 +77,9 @@ See also: `mapcar-longest', `split-event-by-lists'"
     (apply #'mapcar-longest function (mapcar #'ensure-list args))
     (apply #'funcall function args)))
 
-(defun most-x (list predicate key) ;; from https://stackoverflow.com/questions/30273802/how-would-i-get-the-min-max-of-a-list-using-a-key
-  "Get the most PREDICATE item in LIST by comparing whether PREDICATE is true for the values returned by KEY applied to each element of LIST.
-
-Example:
-
-;; get the smallest item in the list:
-;; (most-x (list 1 2 3) '< 'identity)"
-  (when list
-    (let* ((m0 (first list))
-           (m1 (funcall key m0)))
-      (mapc (lambda (e0 &aux (e1 (funcall key e0)))
-              (when (funcall predicate e1 m1)
-                (psetf m0 e0 m1 e1)))
-            list)
-      m0)))
+(defun most-x (list predicate key)
+  "Deprecated; please use `mutility:most' instead."
+  (most predicate list :key key))
 
 (defmacro endpushnew (place thing)
   "Append THING to the end of PLACE if it doesn't already exist.

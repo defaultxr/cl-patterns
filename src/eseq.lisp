@@ -156,7 +156,7 @@ See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
 
 (defmethod next ((eseq eseq-pstream)) ;; if events are not necessarily ordered
   (flet ((first-event (events)
-           (most-x events #'< #'beat)))
+           (most #'< events :key #'beat)))
     (with-slots (number beat events source events-remaining direct-p) eseq
       (if direct-p
           (progn
