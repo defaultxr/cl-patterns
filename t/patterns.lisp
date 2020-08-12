@@ -499,10 +499,6 @@
                (next-upto-n (plazy (lambda () (random 20)) 14)))
       "plazy yields the wrong number of outputs when REPEATS is provided"))
 
-(test pcycles
-  ;; FIX
-  )
-
 (test pshift
   ;; FIX
   )

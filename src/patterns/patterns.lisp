@@ -646,7 +646,9 @@ See also: `pmono', `pb'"
 (defmethod print-object ((pbind pbind) stream)
   (format stream "(~s~{ ~s ~s~})" 'pbind (slot-value pbind 'pairs)))
 
-(defmacro pb (key &body pairs) ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
+;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
+;; FIX: allow keys to be lists, in which case results are destructured, i.e. (pb (list :foo :bar) (pcycles (a 1!4))) results in four (EVENT :FOO 1 :DUR 1/4)
+(defmacro pb (key &body pairs)
   "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. KEY is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
 
 See also: `pbind', `pdef'"
@@ -2172,6 +2174,7 @@ See also: `pbeat', `prun', `beat'")
 
 ;;; pindex
 ;; TODO: alternate version that only calls #'next on index-pat each time the pattern-as-pstream of list-pat has ended.
+;; TODO: pindex1 that only embeds 1 element from subpatterns, a la SuperCollider's Pswitch1.
 
 (defpattern pindex (pattern)
   (list-pat

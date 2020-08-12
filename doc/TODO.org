@@ -189,3 +189,4 @@ take into account these variables (and maybe others?):
 * [[https://web.archive.org/web/20100110004824/http://www.pawfal.org/index.php?page=BetaBlocker][betablocker]]-inspired pattern (perhaps related to ~pfsm~ or ~pdfsm~ or the like?)
 * more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
 ** ~ipstream~
+* ~pswing~ pattern to apply swing to an input pattern

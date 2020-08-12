@@ -24,7 +24,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pindex~ - done as ~pindex~.
 - ~Place~ - done as ~place~.
 - ~Ppatlace~ - done as ~ppatlace~.
-- ~Pswitch~
+- ~Pswitch~ - functionality covered by ~pindex~.
 * filter patterns
 - ~Pavaroh~
 - ~Pbus~
@@ -78,6 +78,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pmeanrand~
 - ~Ppoisson~
 - ~Pprob~
+- ~Plorenz~
 - ~Paccum~
 * timing patterns
 - ~Pseg~

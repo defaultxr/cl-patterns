@@ -2,7 +2,7 @@
 #+DESCRIPTION: Index of cl-patterns pattern classes
 #+OPTIONS: num:nil
 
-* list patterns
+* List patterns
 Patterns that generate output based on an input list.
 - ~pseq~ - Simply yields each element of its input list in order.
 - ~pser~ - Like ~pseq~, but instead of yielding the whole list N times, yields a total of N outputs.
