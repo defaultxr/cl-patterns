@@ -58,11 +58,16 @@ See also: `beat'"
 
 (defun event-with-raw-timing (event task)
   "Get an event like EVENT but with the :BEAT-AT-START and :TIMESTAMP-AT-START keys added for backends."
-  (with-slots (clock start-beat) task
+  (with-slots (item clock start-beat) task
     (let* ((tempo (tempo clock))
            (quant (quant event))
-           (beat (+ start-beat
-                    (or (beat event) 0)
+           (e-beat (beat event))
+           (beat (+ (if (event-p item)
+                        (if e-beat
+                            e-beat
+                            (next-beat-for-quant (quant event) (beat *clock*)))
+                        (+ (slot-value item 'start-beat)
+                           e-beat))
                     (time-dur (or (raw-event-value event :latency) *latency*)
                               tempo)
                     (time-dur (or (raw-event-value event :timing-offset) 0)
@@ -130,11 +135,11 @@ See also: `clock-loop', `clock-process'"
 
 See also: `clock-remove', `play'"
   (when (null clock)
-    (error "cl-patterns clock is NIL; perhaps try (defparameter *clock* (make-clock)) or (start-clock-loop)"))
+    (error "cl-patterns clock is NIL; perhaps try (start-clock-loop) or (defparameter *clock* (make-clock))"))
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
       (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (quant item) (slot-value clock 'beat)))))
-        (setf tasks (append tasks (list task)))
+        (push task tasks)
         task))))
 
 (defun clock-remove (task &optional (clock *clock*)) ;; FIX: can we just add "remove" events to the clock so that removals are automatically synchronized/happen at the right time?
@@ -183,7 +188,7 @@ See also: `clock-tasks'"
              (plusp (event-value event :tempo)))
         (let* ((backends (event-backends event))
                (timestamps (loop :for backend :in backends
-                              :collect (list (car (backend-timestamps-for-event event task backend)) backend))))
+                                 :collect (list (car (backend-timestamps-for-event event task backend)) backend))))
           (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
                 tempo (event-value event :tempo)
                 beat-at-tempo (raw-event-value event :beat-at-start))
@@ -205,14 +210,15 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
   (let* ((sbeat (slot-value clock 'beat))
          (ebeat (+ sbeat beats)))
     (labels ((clock-process-task (task &optional (times 0))
-               (with-slots (item start-beat) task
+               (with-slots (item) task
                  (if (or (event-p item)
                          (not (ended-p item)))
                      ;; FIX: need to make sure tempo-change events are processed first
                      (progn
                        (dolist (event (if (event-p item)
                                           (list item)
-                                          (events-in-range item (- sbeat start-beat) (- ebeat start-beat))))
+                                          (let ((start-beat (slot-value item 'start-beat)))
+                                            (events-in-range item (- sbeat start-beat) (- ebeat start-beat)))))
                          (dolist (event (split-event-by-lists (event-with-raw-timing event task)))
                            (clock-process-event clock task event (event-value event :type))))
                        (if (event-p item)
@@ -220,12 +226,13 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                            task))
                      (unless (event-p item)
                        (if (loop-p task)
-                           (let ((last-output (last-output item)))
+                           (let ((last-output (last-output item))
+                                 (prev-start-beat (slot-value item 'start-beat)))
                              (setf item (as-pstream (pdef (slot-value item 'key)))) ;; FIX: should this just call a "reset" method or the like?
-                             ;; FIX: add loop-quant for specifying a quant for when the loop is allowed to start playing next
-                             (setf start-beat (+ start-beat
-                                                 (or (beat last-output) 0)
-                                                 (or (dur last-output) 0)))
+                             ;; FIX: add loop-quant for specifying a quant for when the loop is allowed to start playing next?
+                             (setf (slot-value item 'start-beat) (+ prev-start-beat
+                                                                    (or (beat last-output) 0)
+                                                                    (or (dur last-output) 0)))
                              (if (>= times 32)
                                  (progn
                                    (warn "Task ~s yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
@@ -304,7 +311,11 @@ See also: `clock-loop'"
   (clock-add event))
 
 (defmethod play ((pattern pattern))
-  (clock-add (as-pstream pattern) *clock*))
+  (let ((pstr (as-pstream pattern)))
+    (with-slots (start-beat) pstr
+      (unless start-beat
+        (setf start-beat (next-beat-for-quant (quant pstr) (beat *clock*)))))
+    (clock-add pstr *clock*)))
 
 (defmethod play ((pdef pdef))
   (with-slots (key) pdef
