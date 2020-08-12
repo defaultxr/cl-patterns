@@ -41,7 +41,6 @@ Patterns whose outputs are the results of math operations on other patterns.
 Patterns that repeat or skip outputs from a source pattern.
 - ~pr~ - Repeats (or skips) each output from its source pattern a specified number of times.
 - ~pn~ - Loops its source pattern a specified number of times.
-- ~pstutter~ - Repeats or skips each output from its source pattern a specified number of times. DEPRECATED; use ~pr~ instead as its features are a superset of ~pstutter~'s.
 - ~pdurstutter~ - Repeats each element from its source pattern a specified number of times, dividing that element (or the duration of it if the element is an event) by that number.
 - ~pdrop~ - Drop the first or last N outputs from a source pattern.
 
