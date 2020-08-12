@@ -1099,13 +1099,19 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 ;; (pdef-ref-get KEY :task) returns the task associated with (pdef KEY).
 ;; (pdef-ref-set KEY :pattern PAT) sets the pattern for (pdef KEY) to PAT.
 
+(defun pdef-ensure-key (key)
+  "Ensure KEY is a proper pdef key."
+  (etypecase key
+    (symbol key)
+    (string (intern (string-upcase key) :keyword))))
+
 (defun pdef-ref-get (pdef-key key)
   "Get PDEF-KEY's KEY value from its plist."
-  (getf (pdef-ref pdef-key) (make-keyword key)))
+  (getf (pdef-ref pdef-key) (pdef-ensure-key key)))
 
 (defun pdef-ref-set (pdef-key key pattern)
   "Set PDEF-KEY's KEY in its plist to PATTERN."
-  (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (make-keyword key) pattern)))
+  (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (pdef-ensure-key key) pattern)))
 
 (defpattern pdef (pattern)
   ((key :reader pdef-key)
@@ -1149,18 +1155,26 @@ See also: `pdef', `all-pdefs'"
 
 (create-global-dictionary pdef)
 
-(defun all-pdefs ()
-  "Get a list of all pdefs.
+(defun all-pdefs (&optional package)
+  "Get a list of all pdefs. With PACKAGE, get all pdefs whose key is in that package.
 
 See also: `all-patterns'"
-  (keys *pdef-dictionary*))
+  (let ((res (keys *pdef-dictionary*)))
+    (if package
+        (let ((package (etypecase package
+                         (package package)
+                         (symbol (find-package package)))))
+          (remove-if-not
+           (lambda (sym)
+             (eql (symbol-package sym) package))
+           res))
+        res)))
 
 (defun ensure-pdef (object)
   "Attempt to ensure OBJECT is a pdef."
   (etypecase object
     (pdef object)
-    (symbol (pdef object))
-    (string (ensure-pdef (make-keyword object)))))
+    ((or symbol string) (pdef (pdef-ensure-key object)))))
 
 (defun pdef-pattern (pdef)
   "Get the pattern that PDEF points to."
