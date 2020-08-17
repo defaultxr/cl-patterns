@@ -127,7 +127,7 @@ See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
 (defmethod as-eseq ((pattern pattern))
   (eseq (next-upto-n pattern) :source pattern))
 
-(defclass eseq-pstream (eseq pstream)
+(defclass eseq-pstream (pstream eseq)
   ((events-remaining :initarg :events-remaining :initform nil :documentation "The list of events left to be played in the pstream.")
    (direct-p :initarg :direct-p :initform nil :documentation "Whether changes to the source eseq should affect this pstream immediately.")))
 
