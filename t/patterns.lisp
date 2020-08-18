@@ -1035,6 +1035,18 @@
             (next-upto-n (pbind :foo (pseq (list (list 1) (list 1 2) (list 1 2 3)) 1) :bar (paclump (pseries)))))
            "paclump yields incorrect output"))
 
+(test paccum
+  "Test paccum"
+  (is (equal (list 0 1 2 3 4 5 6 7 8 9 10 9 10 9 10)
+             (next-upto-n (paccum #'+ 0 1 :inf :lo 0 :hi 10 :bound-by #'fold) 15))
+      "paccum yields incorrect output")
+  (is (equal (list 0 2 4 6 8 0 2 4 6 8 0 2 4 6 8)
+             (next-upto-n (paccum #'+ 0 2 :inf :lo 0 :hi 10 :bound-by #'wrap) 15))
+      "paccum yields incorrect output for wrapped bounding")
+  (is (equal (list 1 2 4 8 16 32 64 72 56 88)
+             (next-upto-n (paccum #'* 1 2 :inf :lo 0 :hi 100 :bound-by 'fold) 10))
+      "paccum yields incorrect output for #'* as OPERATOR"))
+
 (test ps
   "Test ps"
   (is (equal (list (list 0 1 2 3) (list 4 5 6 7) (list 8 9 10 11))

@@ -78,6 +78,7 @@ Patterns that generate output based on an input function.
 - ~pnary~ - N-ary function pattern for applying a function to each of its arguments' outputs.
 - ~plazy~ - Lazily generate a pattern in place of this one by using the result of the input function.
 - ~pif~ - "If" expression. If the source pattern returns a true value, yield the next output from the "then" pattern; otherwise, yield the next output from the "else" pattern.
+- ~paccum~ - Numeric accumulator. Yields the value of applying its input function to a step parameter and the previous output.
 
 * Mini-language patterns
 Patterns that allow you to write in a "pseudo-language" which may be more suited to specific tasks.

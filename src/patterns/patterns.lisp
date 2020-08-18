@@ -2634,7 +2634,7 @@ Example:
 ;;
 ;; ;=> (0 1 2 3 2 1 0 1 2 3)
 
-See also: `pindex', `pbrown'") ;; FIX: also `paccum' when it's completed
+See also: `pindex', `pbrown', `paccum'")
 
 (defmethod as-pstream ((pwalk pwalk))
   (with-slots (list step-pattern direction-pattern start-pos) pwalk
@@ -2760,6 +2760,71 @@ See also: `pclump'")
       (let ((max (loop :for key :in (keys *event*)
                        :maximizing (length (ensure-list (event-value *event* key))))))
         (next-upto-n pattern max)))))
+
+;;; paccum
+;; https://pcm.peabody.jhu.edu/~gwright3/stdmp2/docs/SuperCollider_Book/code/Ch%2020%20dewdrop%20and%20chucklib/dewdrop_lib/ddwPatterns/Help/Paccum.html
+
+(defpattern paccum (pattern)
+  ((operator :default #'+)
+   (start :default 0)
+   (step :default 1)
+   (length :default :inf)
+   (lo :default nil)
+   (hi :default nil)
+   (bound-by :default nil)
+   (current-value :state t))
+  :documentation "Numeric accumulator. Each output and STEP is used as the input for OPERATOR to generate the next output. When LO, HI, and BOUND-BY are provided, outputs that fall outside the range LO..HI are wrapped back inside with the BOUND-BY function; the value is provided as its first argument, and LO and HI are provided as its second and third.
+
+Based on the pattern originally from the ddwPatterns SuperCollider library.
+
+Example:
+
+;; (next-upto-n (paccum #'+ 0 1) 5) ;; same as (pseries 0 1)
+;; ;=> (0 1 2 3 4)
+
+;; (next-upto-n (paccum #'+ 0 1 :inf :lo 0 :hi 3 :bound-by #'wrap) 9) ;; same as above, wrapping between 0 and 3.
+;; ;=> (0 1 2 0 1 2 0 1 2)
+
+See also: `pseries', `pgeom', `pwalk'"
+  :defun
+  (defun paccum (&optional (operator #'+) (start 0) (step 1) (length :inf) &key lo hi bound-by)
+    (make-instance 'paccum
+                   :operator operator
+                   :start start
+                   :step step
+                   :length length
+                   :lo lo
+                   :hi hi
+                   :bound-by bound-by)))
+
+(defmethod as-pstream ((paccum paccum))
+  (with-slots (operator start step length lo hi bound-by) paccum
+    (make-instance 'paccum-pstream
+                   :operator (pattern-as-pstream operator)
+                   :start (pattern-as-pstream start)
+                   :step (pattern-as-pstream step)
+                   :length (as-pstream length)
+                   :lo (pattern-as-pstream lo)
+                   :hi (pattern-as-pstream hi)
+                   :bound-by (pattern-as-pstream bound-by))))
+
+(defmethod next ((paccum paccum-pstream))
+  (with-slots (operator start step length lo hi bound-by current-value) paccum
+    (setf current-value (if (slot-boundp paccum 'current-value)
+                            (when-let ((res (funcall (if (pstream-p operator)
+                                                         (next operator)
+                                                         operator)
+                                                     current-value
+                                                     (next step))))
+                              (if bound-by
+                                  (when-let ((func (if (pstream-p bound-by)
+                                                       (next bound-by)
+                                                       bound-by))
+                                             (lo (next lo))
+                                             (hi (next hi)))
+                                    (funcall func res lo hi))
+                                  res))
+                            (next start)))))
 
 ;;; ps
 

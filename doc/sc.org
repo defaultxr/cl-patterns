@@ -79,7 +79,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Ppoisson~
 - ~Pprob~
 - ~Plorenz~
-- ~Paccum~
+- ~Paccum~ - done as ~paccum~.
 * timing patterns
 - ~Pseg~
 - ~Penv~
