@@ -1580,7 +1580,7 @@ See also: `pseries', `paccum'")
 
 ;;; pgeom*
 
-(defun pgeom* (&optional (start 0) (end 1) (length 16))
+(defun pgeom* (&optional (start 0.01) (end 1) (length 16))
   "Syntax sugar to generate a `pgeom' whose values go from START to END exponentially over LENGTH steps. LENGTH cannot be infinite since delta calculation requires dividing by it.
 
 Based on the Pgeom extension from the ddwPatterns SuperCollider library.
