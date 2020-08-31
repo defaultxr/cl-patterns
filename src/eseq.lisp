@@ -7,7 +7,7 @@
 ;; (see https://github.com/defaultxr/thundersnow for a piano roll implementation)
 ;; FIX: need some way to keep events sorted when their beat is changed. should they notify the eseq?
 
-(defclass eseq (standard-object #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
+(defclass eseq (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((events :initarg :events :initform (list) :accessor eseq-events :type list :documentation "The actual list of events that the eseq contains. Don't add events to this directly, as eseq expects them to be in order by beat. Instead use the `eseq-add' function.")
    (dur :initarg :dur :type (or null number) :documentation "The duration of the eseq. If the slot is unbound, defaults to `last-dur' rounded up to the next multiple of the eseq's `quant'.")
    (quant :initarg :quant :documentation "A list of numbers representing when the eseq's pstream can start playing. See the quant key of `pattern' for more information.")

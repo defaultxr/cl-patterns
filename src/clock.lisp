@@ -317,9 +317,6 @@ See also: `clock-loop'"
         (setf start-beat (next-beat-for-quant (quant pstr) (beat *clock*)))))
     (clock-add pstr *clock*)))
 
-(defmethod play ((eseq eseq))
-  (clock-add (as-pstream eseq) *clock*))
-
 (defmethod play ((pdef pdef))
   (with-slots (key) pdef
     ;; if there is already a task playing this pdef, we do nothing.
