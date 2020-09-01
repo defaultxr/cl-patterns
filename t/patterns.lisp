@@ -639,8 +639,22 @@
           res end len))))
 
 (test ptrace
-  ;; FIX
-  )
+  "Test ptrace"
+  (let ((*standard-output* (make-string-output-stream)))
+    (is (every-event-equal
+         (list (event :foo 0) (event :foo 1) (event :foo 2))
+         (next-upto-n (ptrace (pbind :foo (pseries))) 3))
+        "ptrace doesn't correctly pass TRACE's output events"))
+  (let ((s (make-string-output-stream)))
+    (next-upto-n (ptrace (pseq (list 1 2 3) 1) "foo" s))
+    (is (string= (format nil "foo 1~%foo 2~%foo 3~%foo NIL~%")
+                 (get-output-stream-string s))
+        "ptrace doesn't print the correct trace output to its STREAM"))
+  (let ((s (make-string-output-stream)))
+    (next-upto-n (pbind :bar (pseries) :baz (pseries 4) :- (ptrace (list :bar :baz) "foo" s)) 4)
+    (is (string= (format nil "foo :BAR: 0 :BAZ: 4~%foo :BAR: 1 :BAZ: 5~%foo :BAR: 2 :BAZ: 6~%foo :BAR: 3 :BAZ: 7~%")
+                 (get-output-stream-string s))
+        "ptrace doesn't print the correct trace output to its STREAM when tracing keys in *event*")))
 
 (test place
   "Test place"

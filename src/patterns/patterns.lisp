@@ -719,9 +719,8 @@ See also: `pbind', `pdef'"
   (if value
       (if (eql t value)
           (ptrace pattern)
-          (etypecase value
-            (pattern (ptrace value))
-            (symbol (ptrace pattern value))))
+          (pchain pattern
+                  (pbind :- (ptrace value))))
       pattern))
 
 (define-pbind-special-wrap-key pmeta
@@ -1601,28 +1600,40 @@ See also: `pgeom', `pseries', `pseries*'"
 ;;; ptrace
 
 (defpattern ptrace (pattern)
-  (pattern
-   (key :default nil)
-   (stream :default t)
-   (prefix :default ""))
-  :documentation "Print the PREFIX and the value of KEY to STREAM for each event yielded by PATTERN. If KEY is not provided, print the whole event or value. Yields everything from the source pattern unaffected.")
+  ((trace :default t)
+   (prefix :default nil)
+   (stream :default t))
+  :documentation "Print the PREFIX and each output of TRACE to STREAM. If TRACE is t, print `*event*'. If TRACE is a different symbol, print the value of that symbol in `*event*'. If TRACE is a pattern, ptrace yields its output unaffected. Otherwise, it yields t.
+
+See also: `debug-recent-events'")
 
 (defmethod as-pstream ((ptrace ptrace))
-  (with-slots (pattern key stream prefix) ptrace
+  (with-slots (trace prefix stream) ptrace
     (make-instance 'ptrace-pstream
-                   :pattern (as-pstream pattern)
-                   :key (pattern-as-pstream key)
-                   :stream stream
-                   :prefix (pattern-as-pstream prefix))))
+                   :trace (pattern-as-pstream trace)
+                   :prefix (pattern-as-pstream prefix)
+                   :stream (pattern-as-pstream stream))))
 
 (defmethod next ((ptrace ptrace-pstream))
-  (with-slots (pattern key stream prefix) ptrace
-    (let* ((n (next pattern))
-           (result (if (null key)
-                       n
-                       (event-value n key))))
-      (format stream "~a~a~%" prefix result)
-      n)))
+  (with-slots (trace prefix stream) ptrace
+    (let ((prefix (next prefix))
+          (stream (next stream)))
+      (if (eql trace t)
+          (progn
+            (format stream "~&~:[~;~a ~]~s~%" prefix *event*)
+            t)
+          (typecase trace
+            ((or list symbol)
+             (progn
+               (format stream "~&~:[~;~a ~]~{~{~s: ~s~}~#[~:; ~]~}~%" prefix
+                       (mapcar (lambda (symbol)
+                                 (list symbol (event-value *event* symbol)))
+                               (ensure-list trace)))
+               t))
+            (pattern
+             (let ((res (next trace)))
+               (format stream "~&~:[~;~a ~]~s~%" prefix res)
+               res)))))))
 
 ;;; place
 
