@@ -162,10 +162,10 @@
 (test t-pstream
   "Test functionality of non-patterns as pstreams"
   (is (= 1
-         (length (next-upto-n 69)))
+         (length (next-upto-n (as-pstream 69))))
       "pstreams made from numbers are yielding the wrong number of outputs")
   (is (= 1
-         (length (next-upto-n (lambda () (random 420)))))
+         (length (next-upto-n (as-pstream (lambda () (random 420))))))
       "pstreams made from functions are yielding the wrong number of outputs")
   (is (= 3
          (length (next-upto-n (pseq (list 1 2 3) 1))))

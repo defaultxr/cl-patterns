@@ -202,7 +202,7 @@ See also: `next-n', `next-upto-n', `peek'")
 
 See also: `next', `next-upto-n', `peek', `peek-n'"
   (assert (integerp n) (n) "next-n's N argument must be an integer.")
-  (let ((pstream (as-pstream pattern)))
+  (let ((pstream (pattern-as-pstream pattern)))
     (loop :repeat n
           :collect (next pstream))))
 
@@ -211,7 +211,7 @@ See also: `next', `next-upto-n', `peek', `peek-n'"
 
 See also: `next', `next-n', `peek', `peek-upto-n'"
   (assert (integerp n) (n) "next-upto-n's N argument must be an integer.")
-  (let ((pstream (as-pstream pattern)))
+  (let ((pstream (pattern-as-pstream pattern)))
     (loop
       :for number :from 0 :upto n
       :while (< number n)
