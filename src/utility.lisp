@@ -80,9 +80,10 @@ See also: `mapcar-longest', `split-event-by-lists'"
 (defmacro endpushnew (place thing)
   "Append THING to the end of PLACE if it doesn't already exist.
 
+This macro is deprecated and will be removed in the future; use `mutility:affixnew' instead.
+
 See also: `alexandria:appendf', `pushnew'."
-  `(unless (position ,thing ,place)
-     (appendf ,place (list ,thing))))
+  (affixnew place thing))
 
 (defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
   "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
