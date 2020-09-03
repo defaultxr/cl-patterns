@@ -121,6 +121,9 @@ See also: `eseq-add'"))
 
 See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
 
+(defmethod as-eseq ((symbol symbol))
+  (as-eseq (find-pdef symbol t)))
+
 (defmethod as-eseq ((pstream pstream))
   (eseq (next-upto-n pstream) :source pstream))
 
