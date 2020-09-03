@@ -192,6 +192,7 @@
    #:eseq-length
    #:eseq-add
    #:eseq-remove
+   #:as-eseq
 
    ;;; backend.lisp
 
