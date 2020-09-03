@@ -1130,16 +1130,18 @@ See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
            (make-instance 'pdef
                           :key key)))
 
-(defun find-pdef (key)
-  "Get the pdef with the provided name, or nil if one does not exist.
+(defun find-pdef (key &optional (errorp nil))
+  "Get the pdef named KEY. If one by that name doesn't exist, return nil, or raise an error if ERRORP is true.
 
 See also: `pdef', `all-pdefs'"
   (etypecase key
     (pattern
      key)
     (symbol
-     (when (pdef-ref key)
-       (pdef key)))))
+     (if (pdef-ref key)
+         (pdef key)
+         (when errorp
+           (error "Could not find a pdef named ~s." key))))))
 
 (defmethod print-object ((pdef pdef) stream)
   (with-slots (key) pdef
