@@ -77,10 +77,6 @@ See also: `mapcar-longest', `split-event-by-lists'"
     (apply #'mapcar-longest function (mapcar #'ensure-list args))
     (apply #'funcall function args)))
 
-(defun most-x (list predicate key)
-  "Deprecated; please use `mutility:most' instead."
-  (most predicate list :key key))
-
 (defmacro endpushnew (place thing)
   "Append THING to the end of PLACE if it doesn't already exist.
 
