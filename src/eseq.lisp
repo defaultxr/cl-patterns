@@ -119,7 +119,7 @@ See also: `eseq-add'"))
 (defgeneric as-eseq (object)
   (:documentation "Convert OBJECT to an `eseq'.
 
-See also: `as-pattern', `as-pstream', `as-score'")) ;; FIX: as-score?
+See also: `as-pstream'")) ;; FIX: add as-score when finished
 
 (defmethod as-eseq ((symbol symbol))
   (as-eseq (find-pdef symbol t)))
