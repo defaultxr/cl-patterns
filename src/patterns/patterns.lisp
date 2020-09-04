@@ -1622,19 +1622,19 @@ See also: `debug-recent-events'")
           (stream (next stream)))
       (if (eql trace t)
           (progn
-            (format stream "~&~:[~;~a ~]~s~%" prefix *event*)
+            (format stream "~&~@[~a ~]~s~%" prefix *event*)
             t)
           (typecase trace
             ((or list symbol)
              (progn
-               (format stream "~&~:[~;~a ~]~{~{~s: ~s~}~#[~:; ~]~}~%" prefix
+               (format stream "~&~@[~a ~]~{~{~s: ~s~}~#[~:; ~]~}~%" prefix
                        (mapcar (lambda (symbol)
                                  (list symbol (event-value *event* symbol)))
                                (ensure-list trace)))
                t))
             (pattern
              (let ((res (next trace)))
-               (format stream "~&~:[~;~a ~]~s~%" prefix res)
+               (format stream "~&~@[~a ~]~s~%" prefix res)
                res)))))))
 
 ;;; place
