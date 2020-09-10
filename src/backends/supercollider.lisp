@@ -84,7 +84,7 @@
   "Get the object representing the `cl-collider:proxy' with the given name."
   (backend-proxys-node id :supercollider))
 
-(endpushnew *dictionary-lookup-functions* 'cl-collider-proxy)
+(affixnew *dictionary-lookup-functions* 'cl-collider-proxy)
 
 (defmethod play ((object cl-collider::node))
   t)
