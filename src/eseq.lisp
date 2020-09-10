@@ -62,16 +62,17 @@
   (length (eseq-events eseq)))
 
 (defgeneric eseq-add (eseq event)
-  (:documentation "Add EVENT to ESEQ.
+  (:documentation "Add EVENT to ESEQ. If EVENT doesn't have a `beat', it is placed after the last event in ESEQ.
 
 See also: `eseq-remove'"))
 
 (defmethod eseq-add ((eseq eseq) (event event))
   (with-slots (events) eseq
+    (unless (beat event)
+      (setf (beat event) (last-dur eseq)))
     (let ((n-beat (beat event)))
       (setf events (insert-if (lambda (ev)
-                                (when n-beat
-                                  (>= (beat ev) n-beat)))
+                                (>= (beat ev) n-beat))
                               events event)))))
 
 (defmethod eseq-add ((eseq eseq) (events list))
