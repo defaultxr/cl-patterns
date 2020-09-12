@@ -2344,7 +2344,7 @@ See also: `pbind''s :embed key"
   (with-slots (patterns) pchain
     (make-instance 'pchain-pstream
                    :patterns (loop :for pattern :in patterns
-                                   :collect (as-pstream pattern)))))
+                                   :collect (pattern-as-pstream pattern)))))
 
 (defmethod next ((pchain pchain-pstream))
   (with-slots (patterns) pchain
