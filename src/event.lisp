@@ -337,8 +337,7 @@ Additionally, because :define-methods is true, we can also do the following:
 
 See also: `dur', `sustain'")
 
-(define-event-special-key dur ((:delta (raw-event-value event :delta))
-                               (t 1))
+(define-event-special-key dur ((t 1))
   :remove-keys nil
   :define-methods t
   :documentation "The total duration of the note, in beats.
