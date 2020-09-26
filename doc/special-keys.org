@@ -114,6 +114,9 @@ Unlike other wrap keys or init keys, this key is always processed last regardles
 ** ~pmeta~
 Results in ~(pmeta (pbind ...))~
 
+** ~pparchain~
+Results in ~(pparchain (pbind ...) value)~
+
 * pbind special process keys
 
 pbind's last type of special keys are the process keys. Unlike the init and wrap keys, the values associated with these keys are processed for each output yielded by the pbind instead of only once during its initialization. Typically these are used to alter the outputs yielded. For example, this pbind:

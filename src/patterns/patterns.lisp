@@ -729,6 +729,9 @@ See also: `pbind', `pdef'"
       (pmeta pattern)
       pattern))
 
+(define-pbind-special-wrap-key pparchain
+  (pparchain pattern value))
+
 (defmacro define-pbind-special-process-key (key &body body)
   "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return an event if the key should embed values into the event stream, or NIL if the pstream should end."
   (let ((keyname (make-keyword key)))
