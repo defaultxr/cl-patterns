@@ -13,13 +13,17 @@
   "A list of all events received by the debug backend, with the most recent events first.")
 
 (defun debug-recent-events (&optional (n 10))
-  "Get the N most recent events that the debug backend received."
+  "Get the N most recent events recorded to the debug backend. You will of course need to enable the debug backend first in order to record events with it.
+
+See also: `debug-clear-events', `ptrace'"
   (loop :for i :in *debug-backend-events*
-     :repeat n
-     :collect i))
+        :repeat n
+        :collect i))
 
 (defun debug-clear-events ()
-  "Clear the log of events captured by the cl-patterns debug backend."
+  "Clear the log of events captured by the cl-patterns debug backend.
+
+See also: `debug-recent-events'"
   (setf *debug-backend-events* (list)))
 
 (defparameter *debug-print-events* nil
