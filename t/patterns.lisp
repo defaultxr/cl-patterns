@@ -782,7 +782,20 @@
             (next-n (parp (pbind :freq (pseq (list 200 300 400) 1))
                           (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
                     7))
-           "parp yields incorrect outputs when the arpeggiator pattern references values from the base pattern via pk"))
+           "parp yields incorrect outputs when the arpeggiator pattern references values from the base pattern via pk")
+  (is-true (every-event-equal
+            (list (event :x 1 :y 3 :z 5)
+                  (event :x 1 :y 3 :z 6)
+                  (event :x 1 :y 4 :z 5)
+                  (event :x 1 :y 4 :z 6)
+                  (event :x 2 :y 3 :z 5)
+                  (event :x 2 :y 3 :z 6)
+                  (event :x 2 :y 4 :z 5)
+                  (event :x 2 :y 4 :z 6))
+            (next-upto-n (parp (pbind :x (pseq (list 1 2) 1))
+                               (parp (pbind :y (pseq (list 3 4) 1))
+                                     (pbind :z (pseq (list 5 6) 1))))))
+           "triply-nested parp yields incorrect outputs"))
 
 (test pfin
   "Test pfin"

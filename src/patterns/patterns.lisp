@@ -1975,15 +1975,15 @@ See also: `psym', `pmeta'")
 
 (defmethod next ((parp parp-pstream))
   (with-slots (pattern arpeggiator current-pattern-event current-arpeggiator-stream) parp
-    (unless (null current-pattern-event)
-      (let ((nxt (let ((*event* (combine-events current-pattern-event)))
+    (when current-pattern-event
+      (let ((nxt (let ((*event* (combine-events (make-default-event)
+                                                current-pattern-event)))
                    (next current-arpeggiator-stream))))
-        (if (null nxt)
+        (or nxt
             (progn
               (setf current-pattern-event (next pattern)
                     current-arpeggiator-stream (as-pstream arpeggiator))
-              (next parp))
-            nxt)))))
+              (next parp)))))))
 
 ;;; pfin
 
