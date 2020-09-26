@@ -64,6 +64,14 @@ See also: `multi-channel-funcall'"
                        (elt-wrap list i))
                      lists))))
 
+(defgeneric last-dur (object)
+  (:documentation "Get the beat position of the ending of the last event in the ESEQ."))
+
+(defmethod last-dur ((list list))
+  (if (car list)
+      (reduce #'max list :key (lambda (ev) (+ (beat ev) (event-value ev :dur))))
+      0))
+
 (defun multi-channel-funcall (function &rest args)
   "Call FUNCTION on the provided arguments. If one or more of the arguments is a list, funcall for each element of the list(s). The length of the resulting list will be the same as the longest input list.
 

@@ -105,11 +105,8 @@ See also: `eseq-add'"))
 (defmethod bsubseq ((eseq eseq) start-beat &optional end-beat)
   (bsubseq (eseq-events eseq) start-beat end-beat))
 
-(defun last-dur (eseq)
-  "Get the beat position of the ending of the last event in the ESEQ."
-  (if-let ((events (eseq-events eseq)))
-    (reduce #'max events :key (lambda (ev) (+ (beat ev) (event-value ev :dur))))
-    0))
+(defmethod last-dur ((eseq eseq))
+  (last-dur (eseq-events eseq)))
 
 (defmethod dur ((eseq eseq))
   (if (slot-boundp eseq 'dur)
@@ -123,6 +120,12 @@ See also: `as-pstream'")) ;; FIX: add as-score when finished
 
 (defmethod as-eseq ((symbol symbol))
   (as-eseq (find-pdef symbol t)))
+
+(defmethod as-eseq ((list list))
+  (eseq list :source list))
+
+(defmethod as-eseq ((event event))
+  (eseq (list event) :source event))
 
 (defmethod as-eseq ((pstream pstream))
   (eseq (next-upto-n pstream) :source pstream))

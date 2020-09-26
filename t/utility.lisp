@@ -35,6 +35,11 @@
              (cl-patterns::mapcar-longest #'+ (list 0 1) (list 0 1 2 3 4 5)))
       "mapcar-longest doesn't wrap indexes of the shorter lists correctly"))
 
+(test last-dur
+  "Test the `last-dur' function"
+  (is (= 4 (cl-patterns::last-dur (list (event :dur 3 :beat 1) (event :dur 2 :beat 0))))
+      "last-dur returns incorrect results"))
+
 (test multi-channel-funcall
   "Test the `multi-channel-funcall' function"
   (is (equal 3
