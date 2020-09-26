@@ -38,6 +38,9 @@ See also: `beat'"
   ;; i.e. (tempo 110/60) sets *clock*'s tempo to 110 BPM
   (setf (tempo *clock*) number))
 
+(defmethod tempo ((symbol symbol))
+  (tempo (lookup-object-for-symbol symbol)))
+
 (defclass task ()
   ((item :initarg :item :initform nil :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
    (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
