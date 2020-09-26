@@ -3,6 +3,7 @@
 ;;; pattern glue
 
 (defun make-default-event ()
+  "Get `*event*' if it's not nil, or get a fresh empty event."
   (or *event* (event)))
 
 (defun set-parents (pattern)
@@ -132,7 +133,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
   (typep object 'pattern))
 
 (defun all-patterns ()
-  "Get a list of all defined patterns.
+  "Get a list of the names of all defined pattern classes.
 
 See also: `all-pdefs'"
   *patterns*)
@@ -2844,23 +2845,23 @@ See also: `pseries', `pgeom', `pwalk'"
 (defpattern ps (pattern)
   (pattern
    pstream)
-  :documentation "Defines a pattern whose pstream will be preserved to subsequent calls to `as-pstream'. To reset the pstream, simply re-evaluate the ps definition.
+  :documentation "Preserve pstream state across subsequent calls to `as-pstream'. To reset the pstream, simply re-evaluate the ps definition.
 
 Based on the pattern originally from the miSCellaneous SuperCollider library.
 
 Example:
 
-;; (defparameter pst (ps (pseries)))
+;; (defparameter *pst* (ps (pseries)))
 ;;
-;; (next-upto-n pst 4)
+;; (next-upto-n *pst* 4)
 ;; ;=> (0 1 2 3)
 ;;
-;; (next-upto-n pst 4)
+;; (next-upto-n *pst* 4)
 ;; ;=> (4 5 6 7)
 ;;
-;; (defparameter pst (ps (pseries)))
+;; (defparameter *pst* (ps (pseries)))
 ;;
-;; (next-upto-n pst 4)
+;; (next-upto-n *pst* 4)
 ;; ;=> (0 1 2 3)
 
 See also: `pdef'"
