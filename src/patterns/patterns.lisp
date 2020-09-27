@@ -2045,9 +2045,13 @@ See also: `pfin', `psync'")
 
 (defmethod next ((pfindur pfindur-pstream))
   (flet ((get-delta (ev)
-           (if (event-p ev)
-               (event-value ev :delta)
-               ev)))
+           (typecase ev
+             (event
+              (event-value ev :delta))
+             (list
+              (reduce 'max (mapcar #'delta ev)))
+             (t
+              ev))))
     (with-slots (pattern dur tolerance current-dur elapsed-dur) pfindur
       (when-let ((n-event (next pattern)))
         (unless (slot-boundp pfindur 'current-dur)
