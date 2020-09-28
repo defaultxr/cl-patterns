@@ -144,6 +144,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 *** formats
 
 - [[file:src/formats/midifile.lisp][midifile.lisp]] - functionality to interact with MIDI files (load the ~cl-patterns/midifile~ system to use this).
+- [[file:src/formats/supercollider-score.lisp][supercollider-score.lisp]] - functionality to interact with [[http://doc.sccode.org/Classes/Score.html][SuperCollider Score]] files (load the ~cl-patterns/supercollider/score~ system to use this).
 
 *** extensions
 

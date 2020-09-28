@@ -6,6 +6,8 @@
 
    ;;; utility.lisp
 
+   #:*cl-patterns-temporary-directory*
+
    #:*event*
    #:*clock*
 
@@ -25,6 +27,7 @@
    #:loop-p
    #:play-or-stop
    #:play-or-end
+   #:render
 
    ;;; conversions.lisp
 

@@ -67,7 +67,8 @@
   :depends-on (#:cl-patterns
                #:cl-collider)
   :serial t
-  :components ((:file "src/backends/supercollider")))
+  :components ((:file "src/backends/supercollider")
+               (:file "src/formats/supercollider-score")))
 
 (asdf:defsystem #:cl-patterns/incudine
   :name "cl-patterns/incudine"

@@ -1,5 +1,11 @@
 (in-package #:cl-patterns)
 
+;;; customizable settings
+
+(defvar *cl-patterns-temporary-directory*
+  (merge-pathnames "cl-patterns/" (uiop:temporary-directory))
+  "The default directory to store `render'ed files in.")
+
 ;;; special variables
 
 (defvar *event* nil
@@ -302,11 +308,60 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
         nil)
       (play object)))
 
+(defgeneric render (object output &key tempo max-pattern-yield-length max-output-duration &allow-other-keys)
+  (:documentation "Render a pattern or other object as audio or other format. OUTPUT is what the pattern should be rendered as. It accepts the following values:
 
+- A string - Output file name (file format is determined by the file extension).
+- :buffer - Render to a buffer in the relevant backend (determined by parameters of OBJECT, i.e. instrument or backend keys of events).
+- :bdef - Render to a buffer handled by `bdef:bdef' if the bdef library is loaded. Falls back to :buffer if bdef is not loaded.
+- :file - Render to a file in the `*cl-patterns-temporary-directory*'.
+- :score - Render as a SuperCollider score in memory. Only works if the cl-patterns/supercollider/score system is loaded. Can also be rendered to a file if a .osc filename is provided and :supercollider is provided for BACKEND.
+- :pstream - Make a pstream from the pattern and grab outputs to it. Effectively defers to `next-upto-n'.
+- :eseq - Make an `eseq' from the pattern. Effectively defers to `as-eseq'.
+- Any backend name - Render as a buffer in that backend.
 
+The following additional keyword arguments are also supported, depending on the output type:
 
+- BACKEND - The name of the backend to use to render. Defaults to the first enabled backend.
+- TEMPO - The tempo of the result in beats per second. Defaults to `*clock*''s current tempo.
+- MAX-PATTERN-YIELD-LENGTH - Maximum number of outputs to grab from the source pattern. Must be an integer (cannot be :inf). See also: `*max-pattern-yield-length*'.
+- MAX-OUTPUT-DURATION - The maximum duration of the output in seconds. Defaults to infinite, in which case the pattern is limited by MAX-PATTERN-YIELD-LENGTH.
 
+See also: `as-eseq'"))
 
+(defmethod render (object (output (eql :pstream)) &key max-pattern-yield-length)
+  (next-upto-n object (or max-pattern-yield-length *max-pattern-yield-length*)))
+
+(defmethod render (object (output pathname) &rest args &key &allow-other-keys)
+  (apply #'render object (namestring output) args))
+
+(defun find-backend-supporting-render (render-type)
+  "Get the output and backend names of the first enabled backend that supports RENDER-TYPE (i.e. :buffer, :file, :score, etc), or nil if none support it.
+
+See also: `render'"
+  (let ((backends (enabled-backends)))
+    (dolist (backend backends)
+      (let ((sym (my-intern (concat backend "-" render-type) :keyword)))
+        (when (find-method #'render nil (list t (list 'eql sym)) nil)
+          (return-from find-backend-supporting-render (values sym backend)))))))
+
+(defmacro make-default-render-method (type)
+  "Generate a default `render' method."
+  `(defmethod render (object (output (eql ,type)) &rest args &key &allow-other-keys)
+     (let ((backend (getf args :backend)))
+       (if backend
+           (apply #'render object output args)
+           (if-let ((backend (find-backend-supporting-render ,type)))
+             (apply #'render object backend args)
+             (error "No enabled backend supports rendering as ~s." ,type))))))
+
+(defmacro make-default-render-methods ()
+  "Generate the default `render' methods for :buffer, :file, :score, etc."
+  `(progn
+     ,@(loop :for type :in (list :buffer :file :score)
+             :collect `(make-default-render-method ,type))))
+
+(make-default-render-methods)
 
 ;;; macros / MOP stuff
 
