@@ -566,17 +566,17 @@ See also: `parent-pattern'"))
 
 ;;; pbind
 
-(defparameter *pbind-special-init-keys* (list)
+(defvar *pbind-special-init-keys* (list)
   "The list of special keys for pbind that alters it during its initialization.
 
 See also: `define-pbind-special-init-key'")
 
-(defparameter *pbind-special-wrap-keys* (list)
+(defvar *pbind-special-wrap-keys* (list)
   "The list of special keys for pbind that causes the pbind to be replaced by another pattern during its initialization.
 
 See also: `define-pbind-special-wrap-key'")
 
-(defparameter *pbind-special-process-keys* (list)
+(defvar *pbind-special-process-keys* (list)
   "The list of special keys for pbind that alter the outputs of the pbind.
 
 See also: `define-pbind-special-process-key'")
