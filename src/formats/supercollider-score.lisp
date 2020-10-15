@@ -137,7 +137,7 @@ See also: `as-score', `write-encoded-score'"
   ;; if the user wants to render a lone event without an explicitly-set beat, we assume they just want the event without its `beat' offset.
   ;; if the user is rendering multiple "tracks" then they will be provided as lists of events or as a pstream, pattern, etc, in which case we don't remove the `beat'.
   (apply #'render
-         (as-score (if (eql t (multiple-value-elt (beat event) 1))
+         (as-score (if (eql t (nth-value 1 (beat event)))
                        (list (combine-events event (event :beat 0)))
                        (list event)))
          output
