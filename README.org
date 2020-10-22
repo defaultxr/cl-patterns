@@ -150,6 +150,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 
 - [[file:src/extensions/sequence.lisp][sequence.lisp]] - additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].
 - [[file:src/extensions/swank.lisp][swank.lisp]] - creature comforts for slime/swank users.
+- [[file:src/extensions/slynk.lisp][slynk.lisp]] - creature comforts for sly/slynk users.
 
 ** t
 

@@ -403,8 +403,13 @@ See also: `render'"
                            (make-method ,form))))
           form))))
 
-;; conditionally load swank-extensions if swank is available
+;; conditionally load swank extensions if swank is available
 ;; using conditional compilation with #+swank fails if cl-patterns is compiled with swank and then loaded without -- see issue #7.
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (when (featurep :swank)
     (load (asdf:system-relative-pathname :cl-patterns "src/extensions/swank.lisp"))))
+
+;; conditionally load slynk extensions if slynk is available
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (when (featurep :slynk)
+    (load (asdf:system-relative-pathname :cl-patterns "src/extensions/slynk.lisp"))))

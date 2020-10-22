@@ -19,7 +19,7 @@
   :serial t
   :components ((:file "package")
                (:file "utility")
-               ;; extensions/swank.lisp conditionally loaded at the end of utility.lisp
+               ;; extensions/swank.lisp or extensions/slynk.lisp conditionally loaded at the end of utility.lisp
                (:file "conversions")
                (:file "scales")
                (:file "event")
