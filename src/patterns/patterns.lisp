@@ -1423,12 +1423,11 @@ See also: `pwhite', `pexprand', `pgauss'"
         (setf current-value (clamp current-value nlo nhi))))))
 
 ;;; pexprand
-;; FIX: should integer inputs result in integer outputs?
-;; FIX: assert against 0 as an input
+;; FIX: integer inputs should result in integer outputs
 
 (defpattern pexprand (pattern)
   ((lo :default 0.0001)
-   (hi :default 1)
+   (hi :default 1.0)
    (length :default :inf)
    (current-repeats-remaining :state t))
   :documentation "Exponentially-distributed random numbers between LO and HI. Note that LO and HI cannot be 0, and that LO and HI must have the same sign or else complex numbers will be output.
@@ -1438,7 +1437,14 @@ Example:
 ;; (next-upto-n (pexprand 1.0 8.0 4))
 ;; ;=> (1.0420843091865208d0 1.9340168112124456d0 2.173209129035095d0 4.501371557329618d0)
 
-See also: `pwhite', `pbrown', `pgauss', `prand'")
+See also: `pwhite', `pbrown', `pgauss', `prand'"
+  :defun (defun pexprand (&optional (lo 0.0001) (hi 1.0) (length :inf))
+           (assert (not (zerop lo)) (lo) "LO cannot be zero; got ~s" lo)
+           (assert (not (zerop hi)) (hi) "HI cannot be zero; got ~s" hi)
+           (make-instance 'pexprand
+                          :lo lo
+                          :hi hi
+                          :length length)))
 
 (defmethod as-pstream ((pexprand pexprand))
   (with-slots (lo hi length) pexprand
