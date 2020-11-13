@@ -55,35 +55,48 @@ See also: `play', `launch', `end', `stop'")
   (pushnew (make-keyword name) *backends*))
 
 (defun all-backends ()
-  "Get a list of all registered backends."
+  "Get a list of all registered backends.
+
+See also: `enabled-backends'"
   (keys *backends*))
 
 (defun enabled-backends ()
-  "Get a list of all enabled backends."
+  "Get a list of all enabled backends.
+
+See also: `all-backends', `enable-backend'"
   *enabled-backends*)
 
 (defun enable-backend (name)
-  "Enable a registered backend."
+  "Enable a registered backend.
+
+See also: `disable-backend', `start-backend', `enabled-backends'"
   (let ((name (make-keyword name)))
     (assert (position name *backends*) (name) "No backend named ~s registered." name)
     (pushnew name *enabled-backends*)))
 
 (defun disable-backend (name)
-  "Disable a registered backend."
+  "Disable a registered backend and stop it if it is running.
+
+See also: `enable-backend', `stop-backend'"
   (let ((name (make-keyword name)))
     (setf *enabled-backends*
-          (delete name *enabled-backends*))))
+          (delete name *enabled-backends*))
+    (stop-backend name)))
 
 ;;; generics
 
-(defgeneric start-backend (backend)
-  (:documentation "Start a backend. By default, this is automatically called when `enable-backend' is run."))
+(defgeneric start-backend (backend &key &allow-other-keys)
+  (:documentation "Start a backend. Some backends support additional options which can be provided as keyword arguments.
 
-(defmethod start-backend :before (backend)
+See also: `stop-backend', `enable-backend'"))
+
+(defmethod start-backend :before (backend &key &allow-other-keys)
   (enable-backend backend))
 
 (defgeneric stop-backend (backend)
-  (:documentation "Stop a backend. This is automatically called when `disable-backend' is run."))
+  (:documentation "Stop a backend. This is automatically called when `disable-backend' is run.
+
+See also: `start-backend', `disable-backend'"))
 
 (defgeneric backend-play-event (event task backend)
   (:documentation "Play ITEM on the sound server specified by BACKEND. TASK is the task that triggered ITEM to be played. Typically a backend should not need to define a specialized method for this generic if it already provides methods for the following:

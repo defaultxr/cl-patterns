@@ -63,7 +63,7 @@
 
 ;;; backend functions
 
-(defmethod start-backend ((backend (eql :alsa-midi)))
+(defmethod start-backend ((backend (eql :alsa-midi)) &key)
   (unless (elt (midihelper:inspect-midihelper) 5)
     (midihelper:start-midihelper)))
 

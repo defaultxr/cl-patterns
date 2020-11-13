@@ -11,8 +11,14 @@
 
 ;;; backend functions
 
-(defmethod start-backend ((backend (eql :supercollider)))
-  (setf cl-collider:*s* (cl-collider:make-external-server "localhost" :port 4444))
+(defmethod start-backend ((backend (eql :supercollider)) &rest rest &key (name "cl-collider") (host "localhost") (port 4444) just-connect-p &allow-other-keys)
+  (setf cl-collider:*s* (cl-collider:make-external-server
+                         name
+                         :server-options (apply #'cl-collider:make-server-options
+                                                (remove-from-plist rest :name :host :port :just-connect-p))
+                         :host host
+                         :port port
+                         :just-connect-p just-connect-p))
   (cl-collider:server-boot cl-collider:*s*))
 
 (defmethod stop-backend ((backend (eql :supercollider)))

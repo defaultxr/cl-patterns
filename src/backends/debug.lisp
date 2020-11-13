@@ -3,7 +3,7 @@
 
 (in-package #:cl-patterns)
 
-(defmethod start-backend ((backend (eql :debug)))
+(defmethod start-backend ((backend (eql :debug)) &key)
   (format t "~&Starting debug backend (i.e. doing nothing).~%"))
 
 (defmethod stop-backend ((backend (eql :debug)))

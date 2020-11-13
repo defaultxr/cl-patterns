@@ -59,7 +59,7 @@
 
 ;;; backend functions
 
-(defmethod start-backend ((backend (eql :incudine)))
+(defmethod start-backend ((backend (eql :incudine)) &key)
   (unless *clock*
     (warn "cl-patterns' *CLOCK* is nil; starting the clock on your behalf with START-CLOCK-LOOP: ~s."
           (start-clock-loop)))
