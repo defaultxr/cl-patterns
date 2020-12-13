@@ -288,7 +288,8 @@ See also: `scale', `define-tuning', `define-chord'"
   (scale-notes (scale this)))
 
 (defmethod scale-tuning ((this symbol))
-  (scale-tuning (scale this)))
+  (when this
+    (scale-tuning (scale this))))
 
 (defun scale-midinotes (scale &key (root :c) (octave 5))
   "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
