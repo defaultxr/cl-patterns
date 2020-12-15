@@ -166,13 +166,16 @@ See also: `tuning', `define-scale', `define-chord'"
   object)
 
 (defmethod tuning-name ((this symbol))
-  (tuning-name (tuning this)))
+  (when this
+    (tuning-name (tuning this))))
 
 (defmethod tuning-pitches ((this symbol))
-  (tuning-pitches (tuning this)))
+  (when this
+    (tuning-pitches (tuning this))))
 
 (defmethod tuning-octave-ratio ((this symbol))
-  (tuning-octave-ratio (tuning this)))
+  (when this
+    (tuning-octave-ratio (tuning this))))
 
 ;;; Scala (.scl) scale file support
 ;; http://www.huygens-fokker.org/scala/scl_format.html
@@ -282,10 +285,12 @@ See also: `scale', `define-tuning', `define-chord'"
   object)
 
 (defmethod scale-name ((this symbol))
-  (scale-name (scale this)))
+  (when this
+    (scale-name (scale this))))
 
 (defmethod scale-notes ((this symbol))
-  (scale-notes (scale this)))
+  (when this
+    (scale-notes (scale this))))
 
 (defmethod scale-tuning ((this symbol))
   (when this
@@ -373,13 +378,16 @@ See also: `scale', `define-tuning', `define-scale'"
   object)
 
 (defmethod chord-name ((this symbol))
-  (chord-name (chord this)))
+  (when this
+    (chord-name (chord this))))
 
 (defmethod chord-scale ((this symbol))
-  (chord-scale (chord this)))
+  (when this
+    (chord-scale (chord this))))
 
 (defmethod chord-indexes ((this symbol))
-  (chord-indexes (chord this)))
+  (when this
+    (chord-indexes (chord this))))
 
 (defmethod describe-object ((chord chord) stream)
   (with-slots (name scale) chord
