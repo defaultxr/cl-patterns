@@ -24,9 +24,9 @@ See also: `pbjorklund'"
                            (subseq arr index))))
                  (lace (a b)
                    (append (loop
-                              :for x :in a
-                              :for i :from 0
-                              :collect (list x (nth i b)))
+                             :for x :in a
+                             :for i :from 0
+                             :collect (list x (nth i b)))
                            (when (<= (length a) (length b))
                              (subseq b (length a))))))
           (rotate
@@ -38,28 +38,42 @@ See also: `pbjorklund'"
 (defpattern pbjorklund (pattern)
   (pulses
    steps
-   (offset :default 0))
-  :documentation "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, STEPS is number of steps in the sequence, and OFFSET is the number to rotate the sequence by. This pattern outputs events which can be embedded into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. The total duration of the sequence is normalized to 1 beat, so it can be easily multiplied if you want it to be longer or shorter. If you just want the raw output from the Bjorklund algorithm, not in pattern form, use `bjorklund' instead.
+   (offset :default 0)
+   (dur :default 1)
+   (repeats :default :inf))
+  :documentation "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, and STEPS is number of steps in the sequence. Additionally, OFFSET is the number to rotate the sequence by, DUR is the total duration one repeat of the sequence should be, and REPEATS is the number of repeats that should be yielded. This pattern outputs events which can be embedded into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. If you just want the raw output from the Bjorklund algorithm (not in pattern form), use `bjorklund' instead.
 
 Example:
 
 ;; (next-upto-n (pbjorklund 3 7))
 ;; => ((EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7))
 
-See also: `bjorklund'")
+See also: `bjorklund'"
+  :defun (defun pbjorklund (pulses steps &key (offset 0) (dur 1) (repeats :inf))
+           (make-instance 'pbjorklund
+                          :pulses pulses
+                          :steps steps
+                          :offset offset
+                          :dur dur
+                          :repeats repeats)))
 
 ;; FIX: add sustain-notes parameter which, when true, sustains each note until the next one instead of inserting rests.
 
 (defmethod as-pstream ((pbjorklund pbjorklund))
-  (with-slots (pulses steps offset) pbjorklund
+  (with-slots (pulses steps offset dur repeats) pbjorklund
     (make-instance 'pbjorklund-pstream
                    :pulses pulses
                    :steps steps
-                   :offset (pattern-as-pstream offset))))
+                   :offset (pattern-as-pstream offset)
+                   :dur dur
+                   :repeats repeats)))
 
 (defmethod next ((pattern pbjorklund-pstream))
-  (with-slots (number pulses steps offset) pattern
-    (when-let ((val (nth number (bjorklund pulses steps (next offset)))))
+  (with-slots (number pulses steps offset dur repeats) pattern
+    (when-let* ((c-offset (next offset))
+                (val (when (or (eql repeats :inf)
+                               (< (/ number (* steps repeats)) 1))
+                       (nth-wrap number (bjorklund pulses steps c-offset)))))
       (event :type (if (= 1 val) :note :rest)
-             :dur (/ 1 steps)))))
+             :dur (* (/ 1 steps) dur)))))
 
