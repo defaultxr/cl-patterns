@@ -58,7 +58,7 @@
 
 (play :bar)
 
-;; a pattern will loop by default when played. so even though the above patterns have finite durations (as set with the :pfin and :pfindur keys), they will continue to play until you specifically stop them.
+;; pdefs will loop by default when played. so even though the above patterns have finite durations (as set with the :pfin and :pfindur keys), triggering them via their containing pdefs will cause them to continue to play until you specifically stop them.
 ;; while they're playing you can modify them by editing the code and re-evaluating it. the changes you make will be reflected the next time the patterns loops.
 
 ;; when you're done with them, you can stop playing the patterns like so:
