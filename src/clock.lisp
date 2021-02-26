@@ -231,9 +231,8 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                        (if (loop-p task)
                            (let ((last-output (last-output item))
                                  (prev-start-beat (slot-value item 'start-beat)))
-                             (setf item (as-pstream (pdef (slot-value item 'key)))) ;; FIX: should this just call a "reset" method or the like?
-                             ;; FIX: add loop-quant for specifying a quant for when the loop is allowed to start playing next?
-                             (setf (slot-value item 'start-beat) (+ prev-start-beat
+                             (setf item (as-pstream (slot-value item 'source))
+                                   (slot-value item 'start-beat) (+ prev-start-beat
                                                                     (or (beat last-output) 0)
                                                                     (or (dur last-output) 0)))
                              (if (>= times 32)
@@ -321,14 +320,13 @@ See also: `clock-loop'"
     (clock-add pstr *clock*)))
 
 (defmethod play ((pdef pdef))
-  (with-slots (key) pdef
-    ;; if there is already a task playing this pdef, we do nothing.
-    ;; you can use `launch' instead to force launching a second instance of the pattern.
-    (unless (position (pdef-ref-get key :task) (clock-tasks *clock*))
-      (let ((task (call-next-method)))
-        (when (typep task 'task)
-          (pdef-ref-set key :task task)
-          task)))))
+  ;; if there is already a task playing this pdef, we do nothing.
+  ;; you can use `launch' instead to force launching a second instance of the pattern.
+  (unless (position (pdef-task pdef) (clock-tasks *clock*))
+    (let ((task (call-next-method)))
+      (when (typep task 'task)
+        (setf (pdef-task pdef) task)
+        task))))
 
 (defmethod play ((symbol symbol))
   (when-let ((res (lookup-object-for-symbol symbol)))
@@ -347,8 +345,7 @@ See also: `clock-loop'"
   (play pattern))
 
 (defmethod launch ((pdef pdef))
-  (with-slots (key) pdef
-    (play (pdef-ref-get key :pattern))))
+  (play (pdef-pattern pdef)))
 
 (defmethod launch ((symbol symbol))
   (launch (pdef symbol)))
@@ -357,11 +354,10 @@ See also: `clock-loop'"
   (mapcar 'launch list))
 
 (defmethod stop ((pdef pdef))
-  (with-slots (key) pdef
-    (when (pdef-ref-get key :task)
-      (stop (pdef-ref-get key :task)))
-    (pdef-ref-set key :pstream (as-pstream (pdef-ref-get key :pattern)))
-    (pdef-ref-set key :task nil)))
+  (when-let ((task (pdef-task pdef)))
+    (stop task))
+  (setf (pdef-pstream pdef) (as-pstream (pdef-pattern pdef))
+        (pdef-task pdef) nil))
 
 (defmethod stop ((symbol symbol))
   (stop (pdef symbol)))
@@ -375,11 +371,10 @@ See also: `clock-loop'"
 (defmethod end ((item t)) ;; forward to `stop' if a more specific method hasn't been defined for a class.
   (stop item))
 
-(defmethod end ((item pdef))
-  (with-slots (key) item
-    (if (pdef-ref-get key :task)
-        (end (pdef-ref-get key :task))
-        (warn "pdef ~a has no connected task; try the `stop' method instead." key))))
+(defmethod end ((pdef pdef))
+  (if (pdef-task pdef)
+      (end (pdef-task pdef))
+      (warn "~s has no connected task; try the `stop' method instead." pdef)))
 
 (defmethod end ((item symbol))
   (end (pdef item)))

@@ -165,7 +165,10 @@
 
    #:find-pdef
    #:all-pdefs
+   #:pdef-key
    #:pdef-pattern
+   #:pdef-pstream
+   #:pdef-task
 
    #:pseries*
    #:pgeom*

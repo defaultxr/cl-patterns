@@ -268,6 +268,11 @@ See also: `events-in-range'"))
   "Return true if OBJECT is a pstream, and NIL otherwise."
   (typep object 'pstream))
 
+(defmethod loop-p ((pstream pstream))
+  (if (slot-boundp pstream 'loop-p)
+      (slot-value pstream 'loop-p)
+      (loop-p (slot-value pstream 'source))))
+
 (defmethod events-in-range ((pstream pstream) min max)
   (loop :while (and (<= (beat pstream) max)
                     (not (ended-p pstream)))
@@ -687,7 +692,8 @@ See also: `pbind', `pdef'"
 ;;   (list :instrument value))
 
 (define-pbind-special-init-key loop-p
-  (setf (loop-p pattern) value))
+  (setf (loop-p pattern) value)
+  nil)
 
 (defmacro define-pbind-special-wrap-key (key &body body)
   "Define a special key for pbind that replaces the pbind with another pattern during the pbind's initialization. Each encapsulation key is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
@@ -1096,26 +1102,26 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 ;;; pdef
 ;; FIX: need to implement 'reset' method, and 'condition slot (for switching source patterns based on a condition rather than a quant time).
 
-;; (pdef-ref KEY) returns the pdef's plist which holds the pattern, pstream, task, etc.
-;; (pdef-ref-get KEY :task) returns the task associated with (pdef KEY).
-;; (pdef-ref-set KEY :pattern PAT) sets the pattern for (pdef KEY) to PAT.
-
 (defun pdef-ensure-key (key)
   "Ensure KEY is a proper pdef key."
   (etypecase key
     (symbol key)
     (string (intern (string-upcase key) :keyword))))
 
-(defun pdef-ref-get (pdef-key key)
-  "Get PDEF-KEY's KEY value from its plist."
-  (getf (pdef-ref pdef-key) (pdef-ensure-key key)))
+(defgeneric pdef-key (object)
+  (:documentation "Get the key (name) of PDEF."))
 
-(defun pdef-ref-set (pdef-key key pattern)
-  "Set PDEF-KEY's KEY in its plist to PATTERN."
-  (pdef-ref pdef-key (plist-set (pdef-ref pdef-key) (pdef-ensure-key key) pattern)))
+(defgeneric pdef-pattern (object)
+  (:documentation "Get the pattern that PDEF points to."))
+
+(defgeneric pdef-task (object)
+  (:documentation "Get the task that PDEF was last being played in."))
 
 (defpattern pdef (pattern)
   ((key :reader pdef-key)
+   (pattern :accessor pdef-pattern)
+   (pstream :initform nil :accessor pdef-pstream)
+   (task :initform nil :accessor pdef-task)
    (current-pstream :state t))
   :documentation "Define a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
@@ -1129,10 +1135,10 @@ Example:
 
 See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
   :defun (defun pdef (key &optional (pattern nil pattern-supplied-p))
-           (when pattern-supplied-p
-             (pdef-ref-set key :pattern pattern))
-           (make-instance 'pdef
-                          :key key)))
+           (let ((pdef (ensure-gethash key *pdef-dictionary* (make-instance 'pdef :key key))))
+             (when pattern-supplied-p
+               (setf (pdef-pattern pdef) pattern))
+             pdef)))
 
 (defun find-pdef (key &optional (errorp nil))
   "Get the pdef named KEY. If one by that name doesn't exist, return nil, or raise an error if ERRORP is true.
@@ -1142,8 +1148,7 @@ See also: `pdef', `all-pdefs'"
     (pattern
      key)
     (symbol
-     (if (pdef-ref key)
-         (pdef key)
+     (or (pdef-ref key)
          (when errorp
            (error "Could not find a pdef named ~s." key))))))
 
@@ -1156,7 +1161,16 @@ See also: `pdef', `all-pdefs'"
     (print-unreadable-object (pdef stream :type t)
       (format stream "~s" key))))
 
-(create-global-dictionary pdef)
+(defvar *pdef-dictionary* (make-hash-table)
+  "The global pdef dictionary.")
+
+(defun pdef-ref (key &optional (value nil value-provided-p))
+  "Retrieve a value from the global pdef dictionary, or set it if VALUE is provided."
+  (if value-provided-p
+      (if (null value)
+          (remhash key *pdef-dictionary*)
+          (setf (gethash key *pdef-dictionary*) value))
+      (gethash key *pdef-dictionary*)))
 
 (defun all-pdefs (&optional package)
   "Get a list of all pdefs. With PACKAGE, get all pdefs whose key is in that package.
@@ -1179,9 +1193,20 @@ See also: `all-patterns'"
     (pdef object)
     ((or symbol string) (pdef (pdef-ensure-key object)))))
 
-(defun pdef-pattern (pdef)
-  "Get the pattern that PDEF points to."
-  (pdef-ref-get (pdef-key (ensure-pdef pdef)) :pattern))
+(defmethod (setf pdef-key) (value (pdef pdef))
+  (let ((prev-key (pdef-key pdef)))
+    (remhash prev-key *pdef-dictionary*)
+    (setf (slot-value pdef 'key) value
+          (gethash value *pdef-dictionary*) pdef)))
+
+(defmethod (setf pdef-key) (value (symbol symbol))
+  (setf (pdef-key (pdef symbol)) value))
+
+(defmethod pdef-pattern ((symbol symbol))
+  (pdef-pattern (pdef-ref (pdef-ensure-key symbol))))
+
+(defmethod pdef-pattern ((null null))
+  nil)
 
 (defmethod quant ((pdef pdef))
   (if (slot-boundp pdef 'quant)
@@ -1197,12 +1222,13 @@ See also: `all-patterns'"
             t))))
 
 (defmethod as-pstream ((pdef pdef))
-  (with-slots (key) pdef
-    (if (null (pdef-ref key))
-        (error "No pdef with the key ~s defined." key)
+  (with-slots (key pattern) pdef
+    (if (pdef-ref key)
         (make-instance 'pdef-pstream
                        :key key
-                       :current-pstream (as-pstream (pdef-pattern pdef))))))
+                       :pattern pattern
+                       :current-pstream (as-pstream (pdef-pattern pdef)))
+        (error "No pdef with the key ~s defined." key))))
 
 (defmethod next ((pattern pdef-pstream))
   (next (slot-value pattern 'current-pstream)))
@@ -2322,7 +2348,7 @@ See also: `pdef', `ppar', `pmeta'")
 (defmethod next ((psym psym-pstream))
   (labels ((maybe-pdef (x)
              (if-let ((pdef (and (symbolp x)
-                                 (pdef-ref-get x :pattern))))
+                                 (pdef-pattern x))))
                pdef
                x)))
     (with-slots (pattern current-pstream) psym

@@ -365,20 +365,6 @@ See also: `render'"
 
 ;;; macros / MOP stuff
 
-(defmacro create-global-dictionary (name) ;; FIX: remove/refactor this?
-  (let* ((name-name (symbol-name name))
-         (dict-symbol (intern (string-upcase (concatenate 'string "*" name-name "-dictionary*")))))
-    `(progn
-       (defvar ,dict-symbol (make-hash-table)
-         ,(concatenate 'string "The global " name-name " dictionary."))
-       (defun ,(intern (string-upcase (concatenate 'string name-name "-ref"))) (key &optional (value nil value-provided-p))
-         ,(concatenate 'string "Retrieve a value from the global " name-name " dictionary, or set it if VALUE is provided.")
-         (if value-provided-p
-             (if (null value)
-                 (remhash key ,dict-symbol)
-                 (setf (gethash key ,dict-symbol) value))
-             (gethash key ,dict-symbol))))))
-
 (define-method-combination pattern ()
   ((around (:around))
    (before (:before))
