@@ -74,6 +74,6 @@ See also: `bjorklund'"
                 (val (when (or (eql repeats :inf)
                                (< (/ number (* steps repeats)) 1))
                        (nth-wrap number (bjorklund pulses steps c-offset)))))
-      (event :type (if (= 1 val) :note :rest)
+      (event :type (if (= 1 val) (event-value *event* :type) :rest)
              :dur (* (/ 1 steps) dur)))))
 
