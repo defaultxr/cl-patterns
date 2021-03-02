@@ -2563,11 +2563,14 @@ See doc/special-keys.org for more information on these keys.
 
 Example:
 
+;; ;; define a few patterns...
 ;; (pdef :foo (pbind :x (pseq '(1 2 3) 1) :dur 1))
-;; (pdef :bar (pbind :y (pseries) :dur (pn 1/2 3)))
-;; (pmeta (pbind :pattern (pseq (list :foo :bar) 1) :dur 2))
+;; (pdef :bar (pbind :y (pseries) :dur (pwhite 0.1 1.0 3)))
+;;
+;; ;; use pmeta to play pattern foo and then pattern bar, ensuring each are 2 beats long in total by way of pmeta's sync key, which works similarly to `psync'
+;; (next-upto-n (pmeta :pattern (pseq (list :foo :bar) 1) :sync 2))
 ;; ;=> ((EVENT :X 1 :DUR 1) (EVENT :X 2 :DUR 1) ;; from (pdef :foo)
-;;      (EVENT :Y 0 :DUR 1/2) (EVENT :Y 1 :DUR 1/2) (EVENT :Y 2 :DUR 1/2) (EVENT :TYPE :REST :DUR 1/2)) ;; from (pdef :bar)
+;;      (EVENT :Y 0 :DUR 0.76958686) (EVENT :Y 1 :DUR 0.94850993) (EVENT :Y 2 :DUR 0.28190327)) ;; from (pdef :bar)
 
 See also: `psym', `parp', `pdef', `pbind'"
   :defun (defun pmeta (&rest pairs)
