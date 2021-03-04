@@ -96,19 +96,22 @@ See also: `pattern-tasks', `clock-tasks'"
       (slot-value item 'source))))
 
 (defun pattern-tasks (pattern &optional (clock *clock*))
-  "Attempt to get the tasks that are playing PATTERN.
+  "Attempt to get the tasks on CLOCK that are playing PATTERN.
 
 See also: `task-pattern', `clock-tasks'"
-  (remove-if-not (lambda (i)
-                   (let ((item (slot-value i 'item)))
-                     (or (eq pattern item)
-                         (let ((source (slot-value item 'source)))
-                           (or (eq pattern source)
-                               (when (typep source 'pdef)
-                                 (or (and (typep pattern 'pdef)
-                                          (eql (pdef-key source) (pdef-key pattern)))
-                                     (eq pattern (pdef-pattern source)))))))))
-                 (slot-value clock 'tasks)))
+  (let ((pattern (if (symbolp pattern)
+                     (pdef pattern)
+                     pattern)))
+    (remove-if-not (lambda (i)
+                     (with-slots (item) i
+                       (or (eq pattern item)
+                           (with-slots (source) item
+                             (or (eq pattern source)
+                                 (when-let ((source-key (ignore-errors (pdef-key source))))
+                                   (eql source-key (pdef-key pattern)))
+                                 (when (typep source 'pdef)
+                                   (eq pattern (pdef-pattern source))))))))
+                   (slot-value clock 'tasks))))
 
 (defun playing-pdefs (&optional (clock *clock*))
   "Get a list of the names of all pdefs playing on CLOCK."
