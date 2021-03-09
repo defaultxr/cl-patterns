@@ -16,7 +16,8 @@
   "Temporarily set the backend and clock for testing."
   (let ((previously-enabled-backends (enabled-backends))
         (*clock* (apply 'make-clock clock-args)))
-    (mapc 'disable-backend (enabled-backends))
+    (dolist (backend (enabled-backends))
+      (disable-backend backend :stop nil))
     (enable-backend :debug)
     (debug-clear-events)
     (&body)
