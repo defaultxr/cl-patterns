@@ -74,14 +74,15 @@ See also: `disable-backend', `start-backend', `enabled-backends'"
     (assert (position name *backends*) (name) "No backend named ~s registered." name)
     (pushnew name *enabled-backends*)))
 
-(defun disable-backend (name)
-  "Disable a registered backend and stop it if it is running.
+(defun disable-backend (name &key (stop t))
+  "Disable a registered backend and stop it if STOP is true.
 
 See also: `enable-backend', `stop-backend'"
   (let ((name (make-keyword name)))
     (setf *enabled-backends*
           (delete name *enabled-backends*))
-    (stop-backend name)))
+    (when stop
+      (stop-backend name))))
 
 ;;; generics
 
