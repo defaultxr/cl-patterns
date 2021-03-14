@@ -57,7 +57,11 @@ pbind supports a set of special keys that, during the initialization of the pbin
 Here is a listing of all of the pbind special init keys:
 
 ** ~quant~
-Set the ~quant~ of the pattern, which determines when the pattern is allowed to start playing.
+Set the ~play-quant~ and ~end-quant~ of the pattern, which determine when the pattern is allowed to start or end playing, or when a pdef is allowed to swap to its new definition.
+** ~play-quant~
+Set the ~play-quant~ of the pattern, which determines when the pattern is allowed to start playing.
+** ~end-quant~
+Set the ~end-quant~ of the pattern, which determines when the pattern is allowed to end or swap to its new definition if redefined.
 ** ~loop-p~
 Set the ~loop-p~ slot of the pattern, which determines if the pattern should loop when it finishes playing.
 

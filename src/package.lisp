@@ -18,6 +18,8 @@
    #:tempo
    #:beat
    #:quant
+   #:play-quant
+   #:end-quant
    #:rest-p
    #:play
    #:launch

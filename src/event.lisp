@@ -368,7 +368,12 @@ See also: `sustain', `dur'")
 (define-event-special-key timing-offset ((t 0)))
 
 (define-event-special-key quant ((:quant (ensure-list (raw-event-value event :quant)))
+                                 (:play-quant (ensure-list (raw-event-value event :play-quant)))
                                  (t (list 1)))
+  :define-methods t)
+
+(define-event-special-key play-quant ((:play-quant (ensure-list (raw-event-value event :play-quant)))
+                                      (t (list 1)))
   :define-methods t)
 
 ;;; pitch

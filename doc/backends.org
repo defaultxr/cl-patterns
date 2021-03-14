@@ -122,7 +122,8 @@ The following is a list of some of the generic functions defined by cl-patterns.
 - ~end~ - Defers to ~stop~ if undefined for a class.
 - ~tempo~
 - ~beat~
-- ~quant~
+- ~play-quant~
+- ~end-quant~
 - ~playing-p~ - Allows functions like ~play-or-stop~ and ~play-or-end~ to work when defined.
 - ~loop-p~
 - ~render~

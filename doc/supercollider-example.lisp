@@ -38,14 +38,14 @@
 
 (pb :foo ;; define a new pattern named :foo
   :instrument :kik ;; use the :kik synth we defined above
-  :quant 4 ;; make sure the pattern will only start on a beat that is divisible by 4, to stay in sync
+  :play-quant 4 ;; make sure the pattern will only start on a beat that is divisible by 4, to stay in sync
   :dur 1 ;; give each event a duration of 1 beat
   :pfin 4 ;; limit the length of the pattern to 4 events (the default is infinite events)
   )
 
 (pb :bar
   :instrument :default
-  :quant 4
+  :play-quant 4
   :dur 1/2
   :scale :major ;; select the major scale
   :degree (pwhite 0 7) ;; pick a random note from the first 7 notes in the selected scale

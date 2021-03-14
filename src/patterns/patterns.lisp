@@ -120,7 +120,9 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
   (:documentation "The number of pstreams that have been made of this pattern."))
 
 (defclass pattern ()
-  ((quant :initarg :quant :documentation "A list of numbers representing when the pattern's pstream can start playing. The list takes the form (QUANT &OPTIONAL PHASE TIMING-OFFSET). For example, a quant of (4) means it can start on any beat on the clock that is divisible by 4. A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4. And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.")
+  ((play-quant :initarg :play-quant :documentation "A list of numbers representing when the pattern's pstream can start playing. See `play-quant' and `quant'.")
+   (end-quant :initarg :end-quant :accessor end-quant :type list :documentation "A list of numbers representing when a pattern can end playing and when a `pdef' can be swapped out for a new definition. See `end-quant' and `quant'.")
+   (end-condition :initarg :end-condition :initform nil :accessor end-condition :type (or null function) :documentation "Nil or a function that is called by the clock with the pattern as its argument to determine whether the pattern should end or swap to a new definition.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup-functions :initarg :cleanup-functions :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
@@ -138,13 +140,21 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
 See also: `all-pdefs'"
   *patterns*)
 
-(defmethod quant ((pattern pattern))
-  (if (slot-boundp pattern 'quant)
-      (slot-value pattern 'quant)
+(defmethod play-quant ((pattern pattern))
+  (if (slot-boundp pattern 'play-quant)
+      (slot-value pattern 'play-quant)
       (list 1)))
 
-(defmethod (setf quant) (value (pattern pattern))
-  (setf (slot-value pattern 'quant) (ensure-list value)))
+(defmethod (setf play-quant) (value (pattern pattern))
+  (setf (slot-value pattern 'play-quant) (ensure-list value)))
+
+(defmethod end-quant ((pattern pattern))
+  (if (slot-boundp pattern 'end-quant)
+      (slot-value pattern 'end-quant)
+      nil))
+
+(defmethod (setf end-quant) (value (pattern pattern))
+  (setf (slot-value pattern 'end-quant) (ensure-list value)))
 
 (defmethod loop-p ((pattern pattern))
   (if (slot-boundp pattern 'loop-p)
@@ -633,12 +643,10 @@ See also: `pmono', `pb'"
     (appendf pattern-chain (list pattern))
     (unless (length= 1 pattern-chain)
       (setf pattern (apply #'pchain pattern-chain)))
-    ;; process :quant key.
-    (when-let ((quant (getf pairs :quant)))
-      (setf (quant pattern)
-            (if (functionp quant)
-                (funcall quant)
-                quant)))
+    ;; process quant keys.
+    (doplist (k v pairs)
+      (when (member k (list :quant :play-quant :end-quant))
+        (funcall (fdefinition (list 'setf (reintern k 'cl-patterns))) (next v) pattern)))
     ;; process :pdef key.
     (when-let ((pdef-name (getf pairs :pdef)))
       (pdef pdef-name pattern))
@@ -1103,7 +1111,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
       current-value)))
 
 ;;; pdef
-;; FIX: need to implement 'reset' method, and 'condition slot (for switching source patterns based on a condition rather than a quant time).
+;; FIX: need to implement `reset' method and test to ensure end-condition works properly
 
 (defun pdef-ensure-key (key)
   "Ensure KEY is a proper pdef key."
@@ -1113,6 +1121,9 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defgeneric pdef-key (object)
   (:documentation "Get the key (name) of PDEF."))
+
+(defmethod pdef-key ((pbind pbind))
+  (getf (slot-value pbind 'pairs) :pdef))
 
 (defgeneric pdef-pattern (object)
   (:documentation "Get the pattern that PDEF points to."))
@@ -1126,7 +1137,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
    (pstream :initform nil :accessor pdef-pstream)
    (task :initform nil :accessor pdef-task)
    (current-pstream :state t))
-  :documentation "Define a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is currently being played, the changes won't be audible until either PATTERN ends, or the pdef's `quant' time is reached. Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
+  :documentation "Define a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is being played, the changes won't be audible until either PATTERN ends, or the pdef's `end-quant' time is reached (if non-nil). Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
 Example:
 
@@ -1211,10 +1222,15 @@ See also: `all-patterns'"
 (defmethod pdef-pattern ((null null))
   nil)
 
-(defmethod quant ((pdef pdef))
-  (if (slot-boundp pdef 'quant)
-      (slot-value pdef 'quant)
-      (quant (pdef-pattern pdef))))
+(defmethod play-quant ((pdef pdef))
+  (if (slot-boundp pdef 'play-quant)
+      (slot-value pdef 'play-quant)
+      (play-quant (pdef-pattern pdef))))
+
+(defmethod end-quant ((pdef pdef))
+  (if (slot-boundp pdef 'end-quant)
+      (slot-value pdef 'end-quant)
+      (end-quant (pdef-pattern pdef))))
 
 (defmethod loop-p ((pdef pdef))
   (if (slot-boundp pdef 'loop-p)

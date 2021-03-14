@@ -246,15 +246,39 @@ See also: `to-range', `from-range', `prerange'"
   nil)
 
 (defgeneric quant (object)
-  (:documentation "The quant of OBJECT; a list representing when OBJECT is allowed to begin playing.
+  (:documentation "The quant of OBJECT; a list representing when OBJECT is allowed to begin playing (`play-quant'), end playing (`end-quant'), or when a `pdef' is allowed to swap to its new definition (`end-quant'). `quant' will return the value of `play-quant', but sets both `play-quant' and `end-quant' when it is setf.
 
-A quant takes the form (divisor phase offset) where all provided elements are numbers. Only the first element is required.
+A quant value takes the form (divisor phase offset) where all provided elements are numbers. Only the first element is required.
 
 - \"divisor\" is the divisor to quantize the clock to. The next time (mod (beats *clock*) divisor) is 0 is when OBJECT will start playing.
 - \"phase\" is the number of beats to add on to the position determined by \"divisor\".
 - \"offset\" is the number of seconds to add on to the position determined by \"divisor\" and \"phase\".
 
-See also: `next-beat-for-quant', `beat', `play'"))
+For example, a quant of (4) means it can start on any clock beat that is divisible by 4 (0, 4, 8, etc). A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4 (2, 6, 10, etc). And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.
+
+See also: `play-quant', `end-quant', `next-beat-for-quant', `beat', `play'"))
+
+(defmethod quant ((object t))
+  (play-quant object))
+
+(defmethod (setf quant) (value (object t))
+  (let ((value (ensure-list value)))
+    (setf (play-quant object) value
+          (end-quant object) value)))
+
+(defgeneric play-quant (object)
+  (:documentation "The play-quant of OBJECT; a list representing when OBJECT is allowed to begin playing. Defaults to (1).
+
+See `quant' for more information on quants and a description of acceptable values.
+
+See also: `quant', `end-quant', `next-beat-for-quant', `beat', `play'"))
+
+(defgeneric end-quant (object)
+  (:documentation "The end-quant of OBJECT; a list representing when OBJECT is allowed to end playing or when a `pdef' is allowed to swap to a new definition if it has been redefined. Note that if `end-quant' is not set (the default), the pattern can only end or swap when the pattern itself ends (i.e. when it yields nil).
+
+See `quant' for more information on quants and a description of acceptable values.
+
+See also: `quant', `play-quant', `next-beat-for-quant', `beat', `end', `pdef'"))
 
 (defgeneric rest-p (object)
   (:documentation "Whether or not something is a rest or a rest-representing object (i.e. :rest, :r, or a rest event)."))

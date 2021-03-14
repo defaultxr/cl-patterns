@@ -2,24 +2,19 @@
 ;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
 ;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately `*latency*' seconds before they're supposed to be heard.
 
-;; FIX: don't play "expired" events... i.e. if the event should have already ended by the time we get around to playing it, just don't play it. this way, if the user takes too long to select a restart when an error occurs on the clock, the events won't be played all at once.
-;; FIX: print a warning after the clock has finished "catching up"... or perhaps print a warning each time the sleep amount is 0?
-;; FIX: make the clock's "beat" slot always completely accurate, so it can be referenced from within patterns or the like... or maybe just make the #'beat function default to the current context?
 ;; FIX: investigate syncing to internal time or time of day instead of local-time? https://github.com/jamieforth/osc/blob/79d25ca4e0a4a04135b6bc56231c6b9bb058f1d4/osc.lisp#L279
 
 (in-package #:cl-patterns)
 
 (defclass clock ()
-  ((beat :initform 0 :documentation "The number of beats that have elapsed since the creation of the clock.")
+  ((beat :initform 0 :accessor beat :type number :documentation "The number of beats that have elapsed since the creation of the clock.")
    (tempo :initarg :tempo :initform 1 :reader tempo :type number :documentation "The tempo of the clock, in beats per second.")
    (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (tasks-lock :initform (bt:make-recursive-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
-   (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed."))
+   (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")
+   (play-expired-events :initarg :play-expired-events :initform nil :documentation "If T, always play events, even if their scheduled time has already passed. If NIL, silently skip these events. If :WARN, print a warning for each event skipped."))
   (:documentation "A musical time-based clock defining a tempo and pulse that its tasks synchronize to."))
-
-(defmethod beat ((clock clock))
-  (slot-value clock 'beat))
 
 (defmethod real-beat ((clock clock))
   "Get the \"real beat\" of the clock; i.e. compute what the beat number should actually be at this instant in time (whereas the beat slot for the clock is quantized to the clock's granularity).
@@ -31,7 +26,7 @@ See also: `beat'"
     (+ beat-at-tempo (* tempo (local-time:timestamp-difference (local-time:now) timestamp-at-tempo)))))
 
 (defmethod (setf tempo) (value (item clock))
-  (clock-add (event :type :tempo-change :tempo value) item))
+  (clock-add (as-pstream (event :type :tempo-change :tempo value)) item))
 
 (defmethod tempo ((number number))
   ;; convenience method to quickly set the tempo of the default clock
@@ -42,7 +37,7 @@ See also: `beat'"
   (tempo (lookup-object-for-symbol symbol)))
 
 (defclass task ()
-  ((item :initarg :item :initform nil :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
+  ((item :initarg :item :initform nil :accessor task-item :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
    (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
    (start-beat :initarg :start-beat :initform nil :documentation "The beat of the clock when the task started.")
    (clock :initarg :clock :documentation "The clock that the task is running on.")
@@ -63,24 +58,26 @@ See also: `beat'"
   "Get an event like EVENT but with the :BEAT-AT-START and :TIMESTAMP-AT-START keys added for backends."
   (with-slots (item clock start-beat) task
     (let* ((tempo (tempo clock))
-           (quant (quant event))
+           (play-quant (play-quant event))
            (e-beat (beat event))
            (beat (+ (if (event-p item)
                         (if e-beat
                             e-beat
-                            (next-beat-for-quant (quant event) (beat *clock*)))
-                        (+ (slot-value item 'start-beat)
-                           e-beat))
+                            (next-beat-for-quant play-quant (beat *clock*)))
+                        (+ start-beat e-beat))
                     (time-dur (or (raw-event-value event :latency) *latency*)
                               tempo)
                     (time-dur (or (raw-event-value event :timing-offset) 0)
                               tempo)
-                    (if (> (length quant) 2)
-                        (nth 2 quant)
+                    (if (> (length play-quant) 2)
+                        (nth 2 play-quant)
                         0))))
       (combine-events event
                       (event :beat-at-start beat
                              :timestamp-at-start (absolute-beats-to-timestamp beat clock))))))
+
+(defmethod beat ((task task))
+  (beat (task-item task)))
 
 (defmethod loop-p ((task task))
   (if (slot-boundp task 'loop-p)
@@ -120,7 +117,7 @@ See also: `task-pattern', `clock-tasks'"
      :if (ignore-errors (slot-boundp item 'key))
      :collect (slot-value item 'key)))
 
-(defun make-clock (&optional (tempo 1))
+(defun make-clock (&optional (tempo 1) &key play-expired-events)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
 
 To make and start the clock, run `clock-loop' on a new thread, like so:
@@ -130,21 +127,22 @@ To make and start the clock, run `clock-loop' on a new thread, like so:
 Alternatively, you can call `clock-process' manually to process N beats on the clock.
 
 See also: `clock-loop', `clock-process'"
-  (make-instance 'clock :tempo tempo))
+  (make-instance 'clock :tempo tempo
+                        :play-expired-events play-expired-events))
 
 (defmethod print-object ((clock clock) stream)
   (with-slots (tempo beat) clock
     (format stream "#<~s :tempo ~s :beat ~f>" 'clock tempo beat)))
 
 (defun clock-add (item &optional (clock *clock*))
-  "Add ITEM to CLOCK's tasks. Generally you don't need to use this directly and would use `play' instead.
+  "Add ITEM (usually a `pstream') to CLOCK's tasks. Generally you don't need to use this directly and would use `play' instead.
 
 See also: `clock-remove', `play'"
   (when (null clock)
     (error "cl-patterns clock is NIL; perhaps try (start-clock-loop) or (defparameter *clock* (make-clock))"))
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
-      (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (quant item) (slot-value clock 'beat)))))
+      (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (play-quant item) (slot-value clock 'beat)))))
         (push task tasks)
         task))))
 
@@ -209,53 +207,73 @@ See also: `clock-tasks'"
   (dolist (backend (event-backends event))
     (backend-play-event event task backend)))
 
+(defun can-swap-now-p (pstream)
+  "Whether PSTREAM can swap to its new definition, based on `end-quant', `end-condition', and `ended-p'."
+  (or (when (plusp (slot-value pstream 'number))
+        (when-let ((end-quant (end-quant pstream))
+                   (beat (beat *clock*)))
+          ;; (break "eq ~s b ~s nbfq ~s eq ~s" end-quant beat (next-beat-for-quant end-quant beat) (= beat (next-beat-for-quant end-quant beat)))
+          (= beat (next-beat-for-quant end-quant beat))))
+      (when (end-condition pstream)
+        (funcall (end-condition pstream) pstream))
+      (ended-p pstream)))
+
 (defun clock-process (clock beats)
-  "Process any of CLOCK's tasks that occur in the next BEATS beats.
+  "Process tasks on CLOCK for the next BEATS beats.
 
 See also: `clock-loop', `clock-tasks', `make-clock'"
-  (let* ((sbeat (slot-value clock 'beat))
-         (ebeat (+ sbeat beats)))
-    (labels ((clock-process-task (task &optional (times 0))
-               (with-slots (item) task
-                 (if (or (event-p item)
-                         (not (ended-p item)))
-                     ;; FIX: need to make sure tempo-change events are processed first
-                     (progn
-                       (dolist (event (if (event-p item)
-                                          (list item)
-                                          (let ((start-beat (slot-value item 'start-beat)))
-                                            (events-in-range item (- sbeat start-beat) (- ebeat start-beat)))))
-                         (dolist (event (split-event-by-lists (event-with-raw-timing event task)))
-                           (clock-process-event clock task event (event-value event :type))))
-                       (if (event-p item)
-                           nil
-                           task))
-                     (unless (event-p item)
-                       (if (loop-p task)
-                           (let ((last-output (last-output item))
-                                 (prev-start-beat (slot-value item 'start-beat)))
-                             (setf item (as-pstream (slot-value item 'source))
-                                   (slot-value item 'start-beat) (+ prev-start-beat
-                                                                    (or (beat last-output) 0)
-                                                                    (or (dur last-output) 0)))
-                             (if (>= times 32)
-                                 (progn
-                                   (warn "Task ~s yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
-                                   nil)
-                                 (clock-process-task task (1+ times))))
-                           nil))))))
-      (bt:with-recursive-lock-held ((slot-value clock 'tasks-lock))
-        (dolist (task (slot-value clock 'tasks))
-          (restart-case
-              (unless (clock-process-task task)
-                (clock-remove task clock))
-            (skip-event ()
-              :report "Skip this event, preserving the task on the clock so it can be run again."
-              nil)
-            (remove-task ()
-              :report "Remove this task from the clock."
-              (clock-remove task clock))))))
-    (setf (slot-value clock 'beat) ebeat)))
+  (bt:with-recursive-lock-held ((slot-value clock 'tasks-lock))
+    (let ((*clock* clock)
+          (clock-start-beat (beat clock))
+          (clock-end-beat (+ (beat clock) beats))
+          (retries 0)
+          (prev-task nil))
+      (loop
+        :until (or (>= (beat *clock*) clock-end-beat)
+                   (null (clock-tasks clock)))
+        :for tasks := (remove-if-not (lambda (task)
+                                       (< (+ (slot-value task 'start-beat) (beat task)) clock-end-beat))
+                                     (clock-tasks clock))
+        :for task := (most #'< tasks :key (lambda (task) (+ (slot-value task 'start-beat) (beat task))))
+        :for item := (and task (task-item task))
+        :do (setf retries (if (eq task prev-task) (1+ retries) 0)
+                  prev-task task)
+        :if (null item)
+          :do (loop-finish)
+        :if (>= retries 32)
+          :do (warn "Task ~s yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
+              (clock-remove task)
+        :else
+          :if (or (and (typep item 'pdef-pstream)
+                       (not (eq (slot-value item 'pattern) (pdef-pattern (pdef-key item))))
+                       (can-swap-now-p item))
+                  (and (can-swap-now-p item)
+                       (not (loop-p task)))
+                  (ended-p item))
+            :do (if (not (loop-p task))
+                    (clock-remove task)
+                    (let ((prev-item-beat (beat item))
+                          (prev-start-beat (slot-value task 'start-beat)))
+                      (setf (task-item task) (as-pstream (slot-value item 'source))
+                            (slot-value task 'start-beat) (+ prev-start-beat prev-item-beat))))
+        :else
+          :do (restart-case
+                  (progn
+                    (setf (beat clock) (+ (slot-value task 'start-beat) (beat task)))
+                    (when-let ((event (next item)))
+                      (dolist (event (split-event-by-lists (event-with-raw-timing event task)))
+                        (if (or (local-time:timestamp>= (event-value event :timestamp-at-start) (local-time:now))
+                                (eql t (slot-value clock 'play-expired-events)))
+                            (clock-process-event clock task event (event-value event :type))
+                            (when (eql :warn (slot-value clock 'play-expired-events))
+                              (warn "Clock skipped expired event ~s from task ~s" event task))))))
+                (skip-event ()
+                  :report "Skip this event, preserving the task on the clock so it can be run again."
+                  nil)
+                (remove-task ()
+                  :report "Remove this task from the clock."
+                  (clock-remove task clock))))
+      (setf (beat clock) clock-end-beat))))
 
 ;;; basic clock-loop convenience functionality
 
@@ -268,7 +286,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
 (defparameter *performance-errors-lock* (bt:make-lock)
   "The lock on `*performance-errors*' to make it thread-safe.")
 
-(defun clock-loop (clock &key (granularity *latency*)) ;; FIX: make an option to automatically skip "expired" events (i.e. if the clock has to pause due to a condition, then upon resuming, it will skip events that were missed instead of playing them all at once)
+(defun clock-loop (clock &key (granularity *latency*))
   "Convenience method for processing a clock's tasks in a loop.
 
 To run the clock in a new thread, you can call `start-clock-loop'.
@@ -295,7 +313,7 @@ See also: `start-clock-loop', `clock-process'"
                         (/ *latency* 2)))))
     (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))
 
-(defun start-clock-loop (&key tempo force)
+(defun start-clock-loop (&key tempo force play-expired-events)
   "Convenience method to make a clock and start its loop in a new thread.
 
 With FORCE, make a new clock and thread even if one already appears to be running.
@@ -305,7 +323,7 @@ See also: `clock-loop'"
           (null (find "cl-patterns clock-loop" (bt:all-threads) :key #'bt:thread-name :test #'string-equal))
           force)
       (progn
-        (setf *clock* (make-clock (or tempo 1)))
+        (setf *clock* (make-clock (or tempo 1) :play-expired-events play-expired-events))
         (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
       (warn "A clock appears to be running already; doing nothing. Set ~s's ~s argument to true to force the creation of a new clock and thread regardless." 'start-clock-loop 'force))
   *clock*)
@@ -313,14 +331,10 @@ See also: `clock-loop'"
 ;;; play/stop/end methods
 
 (defmethod play ((event event))
-  (clock-add event))
+  (clock-add (as-pstream event) *clock*))
 
 (defmethod play ((pattern pattern))
-  (let ((pstr (as-pstream pattern)))
-    (with-slots (start-beat) pstr
-      (unless start-beat
-        (setf start-beat (next-beat-for-quant (quant pstr) (beat *clock*)))))
-    (clock-add pstr *clock*)))
+  (clock-add (as-pstream pattern) *clock*))
 
 (defmethod play ((pdef pdef))
   ;; if there is already a task playing this pdef, we do nothing.
