@@ -26,6 +26,8 @@ Pseq([1,2,3]).next;
 
 - ~pdurstutter~ - works on event streams as well as number streams. (as do any duration-based patterns)
 
+- ~play-quant~ / ~end-quant~ - instead of just ~quant~, a ~play-quant~ can be set to specify when a pattern can start playing, while ~end-quant~ sets when a pattern can end or swap to a new definition. setting ~quant~ sets both ~play-quant~ and ~end-quant~ at the same time.
+
 * Changed behaviors
 
 - non-patterns converted to pstreams only return one value:
