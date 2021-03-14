@@ -232,9 +232,11 @@ See also: `split-event-by-lists', `combine-events'"
   (when (member :beat (keys event))
     (setf (event-value event :beat) value)))
 
-
 (defmethod rest-p ((event event))
   (eql :rest (event-value event :type)))
+
+(defmethod loop-p ((event event))
+  (event-value event :loop-p))
 
 (defmacro define-event-special-key (name cases &key (remove-keys t) (define-methods nil) documentation)
   "Define a special key with the key NAME for events (i.e. keys that take their values from other keys, or keys that have default values).
