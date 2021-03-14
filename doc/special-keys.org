@@ -107,6 +107,8 @@ Results in ~(ptrace (pbind ...))~ when value is ~t~
 or traces the specified key when value is the name of a key.
 ** ~pr~
 Results in ~(pr (pbind ...) value)~
+** ~pn~
+Results in ~(pn (pbind ...) value)~
 ** ~pdef~
 Results in ~(pdef value (pbind ...))~
 

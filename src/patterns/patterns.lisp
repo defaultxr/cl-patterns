@@ -722,6 +722,9 @@ See also: `pbind', `pdef'"
 (define-pbind-special-wrap-key pr
   (pr pattern value))
 
+(define-pbind-special-wrap-key pn
+  (pn pattern value))
+
 (define-pbind-special-wrap-key ptrace
   (if value
       (if (eql t value)
