@@ -2225,10 +2225,26 @@ Example:
 ;; (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeat)) 3)
 ;; ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 2 :FOO 1) (EVENT :DUR 3 :FOO 3))
 
-See also: `beat', `prun'")
+See also: `pbeat*', `beat', `prun'")
 
 (defmethod next ((pbeat pbeat-pstream))
   (beat (parent-pbind pbeat)))
+
+;;; pbeat*
+
+(defpattern pbeat* (pattern)
+  ((task :state t :initform nil))
+  :documentation "Yield the number of beats on the `*clock*' of the current pattern. In other words, pbeat* is clock-synced, unlike `pbeat', which is pattern-synced.
+
+Example:
+
+;; (next-n (pbind :dur (pseq '(1 2 3)) :foo (pbeat*)) 3)
+;; ;=> ((EVENT :DUR 1 :FOO 200) (EVENT :DUR 2 :FOO 201) (EVENT :DUR 3 :FOO 203))
+
+See also: `pbeat', `beat', `prun'")
+
+(defmethod next ((pbeat* pbeat*-pstream))
+  (beat *clock*))
 
 ;;; ptime
 

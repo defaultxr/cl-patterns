@@ -861,6 +861,15 @@
   ;; FIX: test for peek
   )
 
+(test pbeat*
+  "Test pbeat*"
+  (with-fixture with-debug-backend-and-clock ()
+    (play (pbind :dur (pseq (list 1 1/2 1/4 1/4)) :x (pbeat*)))
+    (clock-process *clock* 4)
+    (let ((results (gete (nreverse (debug-recent-events 8)) :x)))
+      (is (equal (list 0 1 3/2 7/4 2 3 7/2 15/4) results)
+          "pbeat* doesn't correctly read the clock's beat; got ~s" results))))
+
 (test ptime
   ;; FIX
   )
