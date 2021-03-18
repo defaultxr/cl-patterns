@@ -645,8 +645,9 @@ See also: `pmono', `pb'"
       (setf pattern (apply #'pchain pattern-chain)))
     ;; process quant keys.
     (doplist (k v pairs)
-      (when (member k (list :quant :play-quant :end-quant))
-        (funcall (fdefinition (list 'setf (reintern k 'cl-patterns))) (next v) pattern)))
+             (when (member k (list :quant :play-quant :end-quant))
+               ;; Call `(setf (play-quant pattern) (next v))'
+               (funcall (fdefinition `(setf ,(find-symbol (symbol-name k) 'cl-patterns))) (next v) pattern)))
     ;; process :pdef key.
     (when-let ((pdef-name (getf pairs :pdef)))
       (pdef pdef-name pattern))
