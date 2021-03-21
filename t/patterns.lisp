@@ -535,34 +535,20 @@
 
 (test pwhite
   "Test pwhite"
-  (is (block :pwhite-test
-        (loop :for i :in (next-upto-n (pwhite 0 1 :inf))
-           :if (not (integerp i))
-           :do (return-from :pwhite-test nil))
-        t)
+  (is (every #'integerp (next-upto-n (pwhite 0 1 :inf)))
       "pwhite yields outputs other than integers when its LO and HI are integers")
-  (is (block :pwhite-test
-        (loop :for i :in (next-upto-n (pwhite 0.0 1 :inf))
-           :if (not (floatp i))
-           :do (return-from :pwhite-test nil))
-        t)
+  (is (every #'floatp (next-upto-n (pwhite 0.0 1 :inf)))
       "pwhite yields outputs other than floats when its LO is a float")
-  (is (block :pwhite-test
-        (loop :for i :in (next-upto-n (pwhite 0 1.0 :inf))
-           :if (not (floatp i))
-           :do (return-from :pwhite-test nil))
-        t)
+  (is (every #'floatp (next-upto-n (pwhite 0 1.0 :inf)))
       "pwhite yields outputs other than floats when its HI is a float")
-  (is (block :pwhite-test
-        (loop :for i :in (next-upto-n (pwhite -10 -1 :inf))
-           :if (or (not (>= i -10))
-                   (not (<= i -1)))
-           :do (return-from :pwhite-test nil))
-        t)
+  (is (every (fn (and (>= _ -10)
+                      (<= _ -1)))
+             (next-upto-n (pwhite -10 -1 :inf)))
       "pwhite yields incorrect outputs")
-  (is (= 7
-         (length (next-upto-n (pwhite 0 1 7))))
-      "pwhite yields the wrong number of outputs"))
+  (let* ((len (random *max-pattern-yield-length*))
+         (res (length (next-upto-n (pwhite 0 1 len)))))
+    (is (= len res)
+        "pwhite yields the wrong number of outputs (expected ~s, got ~s)" len res)))
 
 (test pbrown
   "Test pbrown"
@@ -585,12 +571,16 @@
         "pbrown yields the wrong number of outputs (expected ~s, got ~s)" len res)))
 
 (test pexprand
+  "Test pexprand"
   ;; FIX
   )
 
 (test pgauss
-  (is (= 8 (length (next-upto-n (pgauss 8 8 8))))
-      "pgauss yields the wrong number of outputs"))
+  "Test pgauss"
+  (let* ((len (random *max-pattern-yield-length*))
+         (res (length (next-upto-n (pgauss 8 8 len)))))
+    (is (= len res)
+        "pgauss yields the wrong number of outputs (expected ~s, got ~s)" len res)))
 
 (test pseries
   "Test pseries"
