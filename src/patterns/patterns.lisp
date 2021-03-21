@@ -1419,13 +1419,13 @@ See also: `pexprand', `pbrown', `pgauss', `prand'"
 ;;; pbrown
 
 (defpattern pbrown (pattern)
-  ((lo :default 0)
-   (hi :default 1)
+  ((lo :default 0.0)
+   (hi :default 1.0)
    (step :default 0.125)
    (length :default :inf)
    (current-repeats-remaining :state t)
    (current-value :state t :initform nil))
-  :documentation "Brownian motion within a range; each output a maximum of STEP away from the previous. LO and HI define the lower and upper bounds of the range.
+  :documentation "Brownian motion within a range; each output randomly a maximum of STEP away from the previous. LO and HI define the lower and upper bounds of the range. STEP defaults to 1 if LO and HI are integers.
 
 Example:
 
@@ -1434,18 +1434,25 @@ Example:
 
 See also: `pwhite', `pexprand', `pgauss'"
   ;; if only one argument is provided, we use it as the "hi" value
-  :defun (defun pbrown (&optional (lo 0 lo-provided-p) (hi 1 hi-provided-p) (step 0.125) (length :inf))
-           (make-instance 'pbrown
-                          :lo (if hi-provided-p
-                                  lo
-                                  0)
-                          :hi (if hi-provided-p
-                                  hi
-                                  (if lo-provided-p
-                                      lo
-                                      1))
-                          :step step
-                          :length length)))
+  :defun (defun pbrown (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (step 0.125 step-provided-p) (length :inf))
+           (let ((lo (if hi-provided-p
+                         lo
+                         (if (integerp lo) 0 0.0)))
+                 (hi (if hi-provided-p
+                         hi
+                         (if lo-provided-p
+                             lo
+                             1))))
+             (make-instance 'pbrown
+                            :lo lo
+                            :hi hi
+                            :step (if step-provided-p
+                                      step
+                                      (if (and (integerp lo)
+                                               (integerp hi))
+                                          1
+                                          0.125))
+                            :length length))))
 
 (defmethod as-pstream ((pattern pbrown))
   (with-slots (lo hi step length) pattern

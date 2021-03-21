@@ -565,8 +565,24 @@
       "pwhite yields the wrong number of outputs"))
 
 (test pbrown
-  ;; FIX
-  )
+  "Test pbrown"
+  (is (every #'integerp (next-upto-n (pbrown 0 1)))
+      "pbrown yields outputs other than integers when its LO and HI are integers")
+  (is (every #'floatp (next-upto-n (pbrown 0.0 1.0)))
+      "pbrown yields outputs other than floats when its LO and HI are floats")
+  (is (every (fn (and (>= _ -10)
+                      (<= _ -1)))
+             (next-upto-n (pbrown -10 -1)))
+      "pbrown yields incorrect outputs")
+  (is (every (fn (<= _ 0.125))
+             (loop :for (one two) :on (next-upto-n (pbrown 0.0 1.0 0.125))
+                   :if (and one two)
+                     :collect (abs (- one two))))
+      "pbrown's successive outputs are more than STEP away from each other")
+  (let* ((len (random *max-pattern-yield-length*))
+         (res (length (next-upto-n (pbrown 0 1 0.125 len)))))
+    (is (= len res)
+        "pbrown yields the wrong number of outputs (expected ~s, got ~s)" len res)))
 
 (test pexprand
   ;; FIX
