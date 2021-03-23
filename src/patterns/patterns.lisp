@@ -1884,14 +1884,15 @@ See also: `pscratch'")
                    :repeats (pattern-as-pstream repeats)
                    :len (pattern-as-pstream len)
                    :step (pattern-as-pstream step)
-                   :start (next start)
+                   :start (pattern-as-pstream start)
                    :wrap-at-end (next wrap-at-end)
                    :current-repeats 0
-                   :remaining-current-segment len
-                   :current-value start)))
+                   :remaining-current-segment len)))
 
 (defmethod next ((pattern pslide-pstream))
   (with-slots (list repeats len step start wrap-at-end current-repeats-remaining current-repeats remaining-current-segment current-value) pattern
+    (unless current-value
+      (setf current-value (next start)))
     (labels ((get-next ()
                (if (and (not wrap-at-end)
                         (minusp current-value))
@@ -1911,7 +1912,7 @@ See also: `pscratch'")
               (decf-remaining pattern 'current-repeats-remaining)
               (setf remaining-current-segment (next len))
               (incf current-repeats)
-              (setf current-value (+ start (* (next step) current-repeats)))
+              (setf current-value (+ (next start) (* (next step) current-repeats)))
               (next pattern)))))))
 
 ;;; phistory

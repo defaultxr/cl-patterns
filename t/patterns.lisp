@@ -726,7 +726,10 @@
       "pslide yields incorrect outputs for :inf REPEATS, 3 LEN, -1 STEP, 1 START")
   (is (equal (list 1 2 3 2 3 1 2 3 1 1 2 3)
              (next-upto-n (pslide (list 1 2 3) 4 3 (pseq (list 1 -1 2)))))
-      "pslide yields incorrect outputs when STEP is a pattern"))
+      "pslide yields incorrect outputs when STEP is a pattern")
+  (is (equal (list 0 1 2 1 2 3 2 3 4 3)
+             (next-upto-n (pslide (list 0 1 2 3 4 5 6 7 8 9 10) :inf 3 0 (pseries 0 1)) 10))
+      "pslide yields incorrect outputs when START is a pattern"))
 
 (test phistory
   "Test phistory"
