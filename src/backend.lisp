@@ -203,21 +203,21 @@ See also: `backend-play-event'"))
 (defmethod backend-instrument-args-list (instrument event backend)
   (if-let ((controls (backend-instrument-controls instrument backend)))
     (let ((instrument-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the instrument's defaults, NOT the event's...
-                                          (unless (string= (symbol-name arg) "SUSTAIN") ;; ...with the exception of sustain, which the instrument should always get.
+                                          (unless (string-equal arg :sustain) ;; ...with the exception of sustain, which the instrument should always get.
                                             (multiple-value-bind (value key) (event-value event arg)
                                               (declare (ignore value))
                                               (eql key t))))
                                         (append controls (list :group :to :id))))) ;; FIX: this is for the supercollider backend; genericize this
       ;; get the value of each of the instrument's arguments from the event...
       (loop :for param :in instrument-params
-         :for sparam = (make-keyword param)
-         :for val = (backend-convert-object (event-value event sparam) sparam backend)
-         :if (or (eql :gate sparam)
-                 (not (null val)))
-         :append (list (if (eql :group sparam) ;; :group is an alias for :to
-                           :to
-                           sparam)
-                       (if (eql :gate sparam) 1 val))))
+            :for sparam := (make-keyword (string-upcase param))
+            :for val := (backend-convert-object (event-value event sparam) sparam backend)
+            :if (or (eql :gate sparam)
+                    (not (null val)))
+              :append (list (if (eql :group sparam) ;; :group is an alias for :to
+                                :to
+                                sparam)
+                            (if (eql :gate sparam) 1 val))))
     (copy-list (event-plist event)))) ;; if we don't have data for the instrument, all we can do is return the plist for the event and hope for the best.
 
 (defgeneric backend-node-p (object backend)
