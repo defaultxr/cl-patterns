@@ -98,9 +98,7 @@
                                            (if (integerp value) value 0))))) ;; FIX: provide an instrument translation table to automatically translate instrument names to program numbers
            (note (midi-truncate-clamp (event-value event :midinote)))
            (velocity (unipolar-1-to-midi (event-value event :amp))) ;; FIX: maybe this shouldn't be linear?
-           (time (local-time:timestamp+ (or (raw-event-value event :timestamp-at-start) (local-time:now))
-                                        (truncate (* (or (raw-event-value event :latency) *latency*) 1000000000))
-                                        :nsec))
+           (time (or (raw-event-value event :timestamp-at-start) (local-time:now)))
            (extra-params (loop :for key :in (keys event)
                                :for cc-mapping := (get-alsa-midi-cc-mapping key)
                                :if cc-mapping
