@@ -1,0 +1,11 @@
+#+TITLE: resources
+#+DESCRIPTION: links to various sequencing and algorithmic music-related resources
+#+OPTIONS: num:nil
+
+* Music
+
+- [[https://music.stackexchange.com/questions/57261/are-there-geometric-symmetries-in-musical-harmonics][Are there geometric symmetries in musical harmonics?]]
+
+* Algorithmic music
+
+- [[https://cacm.acm.org/magazines/2011/7/109891-algorithmic-composition/fulltext][Algorithmic Composition: Computational Thinking in Music]]
