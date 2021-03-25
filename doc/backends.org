@@ -107,19 +107,26 @@ The following is a list of some of the generic functions defined by cl-patterns.
 - ~as-pstream~ - ?
 - ~last-output~ - ?
 *** backend functions
-- ~enable-backend~
-- ~disable-backend~
 - ~start-backend~
 - ~stop-backend~
-- ~backend-task-removed~
 - ~backend-play-event~
-- ~synth-controls~
+- ~backend-tempo-change-at~
+- ~backend-task-removed~
+- ~backend-instrument-controls~
+- ~backend-instrument-args-list~
+- ~backend-all-nodes~
+- ~backend-node-p~
+- ~backend-panic~ - Forwards to ~(stop (backend-all-nodes BACKEND))~ if undefined for a backend.
+- ~backend-timestamps-for-event~
+- ~backend-proxys-node~
+- ~backend-control-node-at~
+- ~backend-convert-object~
 *** object functions
 - ~*dictionary-lookup-functions*~ - A list of functions that ~play~, ~stop~, etc check when called with a symbol as their argument. For example, ~(play :foo)~ will check the functions in this list and the first non-nil result will be used as the object to play. You will likely want to include a function that can be added to this list, i.e. a function mapping symbols to playable/stoppable objects.
 - ~play~
 - ~stop~
-- ~launch~ - Defers to ~play~ if undefined for a class.
-- ~end~ - Defers to ~stop~ if undefined for a class.
+- ~launch~ - Forwards to ~play~ if undefined for a class.
+- ~end~ - Forwards to ~stop~ if undefined for a class.
 - ~tempo~
 - ~beat~
 - ~play-quant~
