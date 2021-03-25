@@ -93,30 +93,28 @@
             (typep (event-value event :instrument) 'number))
     (let* ((channel (midi-truncate-clamp (or (event-value event :channel) 0) 15))
            (pgm (midi-truncate-clamp (multiple-value-bind (value from) (event-value event :instrument)
-                                       (if (or (eql t from))
+                                       (if (eql t from)
                                            0
-                                           (if (not (integerp value))
-                                               0 ;; FIX: provide an instrument translation table (to automatically translate instrument names to program numbers)
-                                               value)))))
+                                           (if (integerp value) value 0))))) ;; FIX: provide an instrument translation table to automatically translate instrument names to program numbers
            (note (midi-truncate-clamp (event-value event :midinote)))
            (velocity (unipolar-1-to-midi (event-value event :amp))) ;; FIX: maybe this shouldn't be linear?
            (time (local-time:timestamp+ (or (raw-event-value event :timestamp-at-start) (local-time:now))
                                         (truncate (* (or (raw-event-value event :latency) *latency*) 1000000000))
                                         :nsec))
            (extra-params (loop :for key :in (keys event)
-                            :for cc-mapping = (get-alsa-midi-cc-mapping key)
-                            :if cc-mapping
-                            :collect (list (car cc-mapping) (funcall (nth 3 cc-mapping) (event-value event key))))))
+                               :for cc-mapping := (get-alsa-midi-cc-mapping key)
+                               :if cc-mapping
+                                 :collect (list (car cc-mapping) (funcall (nth 3 cc-mapping) (event-value event key))))))
       (bt:make-thread
        (lambda ()
-         (sleep (local-time:timestamp-difference time (local-time:now)))
+         (sleep (max 0 (local-time:timestamp-difference time (local-time:now))))
          (when (and pgm
                     (not (= pgm (nth channel *alsa-midi-channels-instruments*))))
            (midihelper:send-event (midihelper:ev-pgmchange channel pgm)))
-         (loop :for i :in extra-params
-            :do (midihelper:send-event (midihelper:ev-cc channel (car i) (cadr i))))
+         (dolist (param extra-params)
+           (midihelper:send-event (midihelper:ev-cc channel (car param) (cadr param))))
          (midihelper:send-event (midihelper:ev-noteon channel note velocity))
-         (sleep (dur-time (sustain event) (tempo (slot-value task 'clock)))) ;; FIX: ignore/handle events with negative sleep values?
+         (sleep (max 0 (dur-time (sustain event) (tempo (slot-value task 'clock)))))
          (midihelper:send-event (midihelper:ev-noteoff channel note velocity)))
        :name "cl-patterns temporary alsa midi note thread"))))
 
