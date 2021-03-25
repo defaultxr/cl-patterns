@@ -295,7 +295,7 @@ See also: `launch', `stop'"))
 See also: `play'"))
 
 (defgeneric stop (object)
-  (:documentation "Immediately stop a playing object (typically a playing task or pdef).
+  (:documentation "Immediately stop a playing object (typically a pattern, pdef, task, or node). If OBJECT is T, stop all playing patterns and nodes.
 
 See also: `end', `play'"))
 

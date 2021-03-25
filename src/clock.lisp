@@ -385,6 +385,14 @@ See also: `clock-loop'"
 (defmethod stop ((list list))
   (mapcar 'stop list))
 
+(defmethod stop ((item null))
+  nil)
+
+(defmethod stop ((item (eql t))) ;; (stop t) to stop all playing pdefs and nodes.
+  (stop (playing-pdefs))
+  (dolist (backend (enabled-backends))
+    (backend-panic backend)))
+
 (defmethod end ((item t)) ;; forward to `stop' if a more specific method hasn't been defined for a class.
   (stop item))
 
