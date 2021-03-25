@@ -173,7 +173,9 @@ See also: `seq'"
          (seq :start num :end (1- stop) :step step))))
 
 (defun next-beat-for-quant (&optional (quant 1) (beat (beat *clock*)) (direction 1))
-  "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT."
+  "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT.
+
+See also: `quant'"
   (destructuring-bind (quant &optional (phase 0) (offset 0)) (ensure-list quant)
     (declare (ignore offset))
     (let ((direction (if (minusp direction) -1 1)))

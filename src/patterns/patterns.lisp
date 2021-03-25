@@ -1829,6 +1829,8 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
   "Divide NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
   (apply #'pnary #'/ numbers))
 
+(export '(p+ p- p* p/))
+
 ;;; prerange
 
 (defpattern prerange (pattern)
@@ -2108,7 +2110,7 @@ See also: `pfin', `psync'")
              (event
               (event-value ev :delta))
              (list
-              (reduce 'max (mapcar #'delta ev)))
+              (reduce #'max (mapcar #'delta ev)))
              (t
               ev))))
     (with-slots (pattern dur tolerance current-dur elapsed-dur) pfindur
@@ -2120,7 +2122,7 @@ See also: `pfin', `psync'")
               n-event
               (let ((new-elapsed (+ (get-delta n-event) elapsed-dur)))
                 (prog1
-                    (if (> (if (= 0 tolerance)
+                    (if (> (if (zerop tolerance)
                                new-elapsed
                                (round-by new-elapsed tolerance)) ;; FIX: need to implement and test TOLERANCE
                            current-dur)
@@ -2576,6 +2578,7 @@ See also: `psym'")
             (combine-events nxt (event :delta (- (beat (next-in-pstreams)) (beat ppar)))))))))
 
 ;;; pmeta
+;; FIX: `pk' doesn't work in pmeta.
 
 (defpattern pmeta (pattern)
   (pattern

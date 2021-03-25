@@ -3,6 +3,7 @@
 ;;; pcycles
 ;; inspired by tidalcycles
 ;; FIX: remove this and write it as regular functions instead?
+;; FIX: make duration normalization optional; it should be a &key argument similar to `pbjorklund'
 
 (defpattern pcycles (pattern) ;; FIX: add REPEATS slot
   (list

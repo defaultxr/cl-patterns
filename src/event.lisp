@@ -120,9 +120,8 @@ See also: `every-event-equal'"
   (let* ((key (make-keyword key))
          (cases (getf *event-special-keys* key)))
     (when (cadr cases) ;; remove-keys
-      (let ((keys (remove-if (lambda (c) (eql c t)) (keys (car cases)))))
-        (loop :for i :in keys
-           :do (remove-event-value event i))))
+      (dolist (k (remove-if (lambda (c) (eql c t)) (keys (car cases))))
+        (remove-event-value event k)))
     (raw-set-event-value event key value)
     (when (eql key :beat)
       (setf (slot-value event '%beat) value))
@@ -252,6 +251,7 @@ DEFINE-METHODS, if true, will cause the macro to define methods for getting and 
 DOCUMENTATION is the documentation string for the function.
 
 Example:
+
 ;; (define-event-special-key amp ((:db (db-amp (raw-event-value event :db)))
 ;;                                (t 0.5))
 ;;   :define-methods t)
@@ -270,23 +270,23 @@ Additionally, because :define-methods is true, we can also do the following:
     `(progn
        (setf *event-special-keys*
              (plist-set *event-special-keys* ,kwname (list
-                                                      (list ,@(loop :for case :in cases
-                                                                 :for key = (car case)
-                                                                 :for value = (cadr case)
-                                                                 :append (list
-                                                                          (if (eql key t)
-                                                                              key
-                                                                              (make-keyword key))
-                                                                          `(lambda (event)
-                                                                             (declare (ignorable event))
-                                                                             ,value))))
+                                                      (list ,@(loop
+                                                                :for case :in cases
+                                                                :for key := (car case)
+                                                                :for value := (cadr case)
+                                                                :append (list
+                                                                         (if (eql key t)
+                                                                             key
+                                                                             (make-keyword key))
+                                                                         `(lambda (event)
+                                                                            (declare (ignorable event))
+                                                                            ,value))))
                                                       (list ,@(ensure-list remove-keys)))))
        ,(when define-methods
           `(progn
              ,(when documentation
                 `(defgeneric ,name (object)
                    (:documentation ,documentation)))
-             (defmethod ,name ((event null)) nil)
              (defmethod ,name ((event event))
                (event-value event ,kwname))
              (defmethod (setf ,name) (value (event event))
@@ -347,6 +347,9 @@ See also: `dur', `sustain'")
 See also: `delta', `legato'")
 
 ;; sustain/legato
+;; FIX: this should probably remove dur, not (just?) legato, because dur is closer to sustain than legato is?
+;; this was really confusing me when working on the piano-roll.
+;; delta of course remains the same if specified...
 
 (define-event-special-key sustain ((t (* (event-value event :legato)
                                          (event-value event :dur))))

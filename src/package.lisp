@@ -175,11 +175,6 @@
    #:pseries*
    #:pgeom*
 
-   #:p+
-   #:p-
-   #:p*
-   #:p/
-
    #:ppc
 
    ;;; bjorklund.lisp

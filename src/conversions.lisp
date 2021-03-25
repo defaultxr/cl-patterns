@@ -96,6 +96,18 @@ See also: `note-midinote', `note-number'"
        (* (length (tuning-pitches (tuning (scale-tuning scale))))
           (floor (/ degree (length notes)))))))
 
+;; FIX:
+;;
+;; implement OUTSIDE-SCALE-BEHAVIOR key for conversion functions involving scales:
+;;
+;; OUTSIDE-SCALE-BEHAVIOR determines what to do if the provided note isn't in the provided scale:
+;;
+;; - :round - round to the nearest note in the scale and return its degree
+;; - :truncate - truncate to the next note in the scale
+;; - :calculate - attempt to calculate the degree as-is, even if it causes non-integer results
+;; - :error - signal an error
+;; - :nil - return nil
+
 (defun note-degree (note &optional (scale :major)) ;; FIX: test this
   "Get the degree of a note in the provided scale. If the note is not in the provided scale, truncate to the nearest note that is."
   (labels ((find-in-notes (note notes)

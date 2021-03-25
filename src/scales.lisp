@@ -296,6 +296,7 @@ See also: `scale', `define-tuning', `define-chord'"
   (when this
     (scale-tuning (scale this))))
 
+;; FIX: this is wrong for (scale-midinotes :major :root :a :octave :all) ; note how it produces numbers above midi range.
 (defun scale-midinotes (scale &key (root :c) (octave 5))
   "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
   (typecase octave
@@ -307,7 +308,7 @@ See also: `scale', `define-tuning', `define-chord'"
      (let ((scale (scale scale))
            (root (note-number root)))
        (loop :for i :from (car octave) :upto (cadr octave)
-          :append (mapcar (lambda (note) (note-midinote note :root root :octave i)) (scale-notes scale)))))))
+             :append (mapcar (lambda (note) (note-midinote note :root root :octave i)) (scale-notes scale)))))))
 
 ;;; chords
 
@@ -363,6 +364,10 @@ See also: `scale', `define-tuning', `define-scale'"
 
 (defgeneric chord (object)
   (:documentation "Get a chord by name."))
+
+(defmethod chord ((object list))
+  ;; FIX: allow for stuff like '(:c :major) etc
+  )
 
 (defmethod chord ((object symbol))
   (let ((chord (gethash object *chords*)))
