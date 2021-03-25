@@ -73,8 +73,14 @@
 (defmethod backend-instrument-controls (instrument (backend (eql :alsa-midi)))
   (keys *alsa-midi-cc-table*))
 
+(defmethod backend-all-nodes ((backend (eql :alsa-midi)))
+  nil)
+
 (defmethod backend-node-p (object (backend (eql :alsa-midi)))
   nil)
+
+(defmethod backend-panic ((backend (eql :alsa-midi)))
+  (alsa-midi-panic))
 
 (defmethod backend-timestamps-for-event (event task (backend (eql :alsa-midi)))
   nil)

@@ -78,9 +78,15 @@
 
 (defmethod backend-instrument-controls (instrument (backend (eql :incudine)))
   (incudine.vug::dsp-properties-arguments (incudine.vug::get-dsp-properties (incudine-dsp-name instrument))))
+(defmethod backend-all-nodes ((backend (eql :incudine)))
+  ;; FIX; perhaps we can parse the output of (let ((stream (make-string-output-stream))) (incudine:dump 0 stream) stream) ?
+  )
 
 (defmethod backend-node-p (object (backend (eql :incudine)))
   (incudine:node-p object))
+
+(defmethod backend-panic ((backend (eql :incudine)))
+  (incudine:node-free-all))
 
 (defmethod backend-timestamps-for-event (event task (backend (eql :incudine)))
   (let ((timestamp (or (raw-event-value event :timestamp-at-start)

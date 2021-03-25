@@ -27,8 +27,18 @@
 (defmethod backend-instrument-controls (instrument (backend (eql :supercollider)))
   (mapcar #'car (cl-collider:synthdef-metadata instrument :controls)))
 
+(defmethod backend-all-nodes ((backend (eql :supercollider)))
+  ;; cl-collider doesn't store the node objects themselves, so this method creates its own node objects.
+  ;; unfortunately, that means that the objects returned by this function won't have all information, such as the 'name slot.
+  (loop :for id :in (cl-collider::node-watcher cl-collider:*s*)
+        :unless (member id (list 0 1))
+          :collect (make-instance 'cl-collider::node :id id :server cl-collider:*s* :name nil)))
+
 (defmethod backend-node-p (object (backend (eql :supercollider)))
   (typep object 'cl-collider::node))
+
+(defmethod backend-panic ((backend (eql :supercollider)))
+  (cl-collider:group-free-all cl-collider:*s*))
 
 (defmethod backend-timestamps-for-event (event task (backend (eql :supercollider)))
   (let ((time (if-let ((timestamp (raw-event-value event :timestamp-at-start)))

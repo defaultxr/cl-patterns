@@ -220,8 +220,21 @@ See also: `backend-play-event'"))
                             (if (eql :gate sparam) 1 val))))
     (copy-list (event-plist event)))) ;; if we don't have data for the instrument, all we can do is return the plist for the event and hope for the best.
 
+(defgeneric backend-all-nodes (backend)
+  (:documentation "Get a list of all active nodes for the specified backend.
+
+See also: `backend-panic'"))
+
 (defgeneric backend-node-p (object backend)
   (:documentation "True if OBJECT is a node for the specified backend."))
+
+(defgeneric backend-panic (backend)
+  (:documentation "\"Panic\" the backend, i.e. stop all of its nodes immediately.
+
+See also: `backend-all-nodes'"))
+
+(defmethod backend-panic (backend)
+  (stop (backend-all-nodes backend)))
 
 (defgeneric backend-timestamps-for-event (event task backend)
   (:documentation "Get a list containing timestamps for the start and end of EVENT's note, in the format that BACKEND expects for its scheduling function.
