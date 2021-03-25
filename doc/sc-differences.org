@@ -10,6 +10,8 @@ This document is a WIP.
 
 This section lists new features relative to SuperCollider's patterns system. For more, and for a complete listing of notable cl-patterns features, see [[file:features.org][features.org]].
 
+- multiple [[file:backends.org][backends]] supported; not just SuperCollider and MIDI but others such as [[http://incudine.sf.net/][Incudine]] as well.
+
 - coercion of patterns into pstreams is done automatically for you if you call ~next~ on a pattern:
 
 #+BEGIN_SRC sclang
@@ -43,6 +45,10 @@ Pseq([1,2,3]).next;
 - pdefs loop by default when played.
 
 This is because their ~loop-p~ slot defaults to ~t~. Set it to ~nil~ to prevent this.
+
+- ~midi~ is not a standard event type; instead, specify the event's ~backend~ to have the event sent exclusively to a specific backend.
+
+  The backend then interprets the event according to its capabilities. For example, the ~alsa-midi~ backend automatically coerces pitch keys (~freq~, ~midinote~, etc) into standard MIDI note numbers, ~amp~ into standard MIDI velocity values, and additional keys into control change (CC) messages. See the [[file:~/misc/lisp/cl-patterns/src/backends/alsa-midi.lisp][alsa-midi.lisp]] file for the ALSA MIDI backend implementation and [[file:backends.org][backends.lisp]] for more information on supported backends and their capabilities.
 
 - ~pfin~, ~pfindur~, ~pstutter~, ~pdurstutter~, etc, have their source pattern as the first input instead of the second, for consistency.
 # FIX: remove "etc" above, list all patterns with argument order changed
