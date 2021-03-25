@@ -305,7 +305,7 @@ See also: `end', `play'"))
 (defgeneric playing-p (object &optional clock)
   (:documentation "Whether OBJECT is playing.
 
-See also: `play-or-stop', `play-or-end', `playing-pdefs'"))
+See also: `play-or-stop', `play-or-end', `playing-pdefs', `playing-nodes'"))
 
 (defgeneric loop-p (object)
   (:documentation "Whether or not OBJECT should play again after it ends."))

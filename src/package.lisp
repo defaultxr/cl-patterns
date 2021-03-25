@@ -215,6 +215,7 @@
    #:task-pattern
    #:pattern-tasks
    #:playing-pdefs
+   #:playing-nodes
 
    #:make-clock
    #:clock-tasks
