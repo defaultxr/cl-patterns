@@ -26,7 +26,7 @@ See also: `beat'"
     (+ beat-at-tempo (* tempo (local-time:timestamp-difference (local-time:now) timestamp-at-tempo)))))
 
 (defmethod (setf tempo) (value (item clock))
-  (clock-add (as-pstream (event :type :tempo-change :tempo value)) item))
+  (clock-add (as-pstream (event :type :tempo :tempo value)) item))
 
 (defmethod tempo ((number number))
   ;; convenience method to quickly set the tempo of the default clock
@@ -186,7 +186,7 @@ See also: `clock-tasks'"
 (defgeneric clock-process-event (clock task event type)
   (:documentation "Process EVENT on CLOCK. TASK is the associated task, and TYPE is the event type."))
 
-(defmethod clock-process-event (clock task event (type (eql :tempo-change)))
+(defmethod clock-process-event (clock task event (type (eql :tempo)))
   (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
     (if (and (numberp (event-value event :tempo))
              (plusp (event-value event :tempo)))

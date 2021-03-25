@@ -45,7 +45,7 @@
                 (setf (pattern-metadata pseq :midi-program) (midi:message-program msg)
                       (pattern-metadata pseq :midi-channel) (midi:message-channel msg)))
                (midi:tempo-message
-                (push (event :type :tempo-change
+                (push (event :type :tempo
                              :beat (/ (midi:message-time msg) division)
                              :tempo (* 1000000 (/ 1 (midi:message-tempo msg))))
                       results))

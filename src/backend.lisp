@@ -124,12 +124,12 @@ See also: `backend-task-removed'"))
     (case type
       (:rest
        nil)
-      (:tempo-change
+      (:tempo
        (backend-tempo-change-at (slot-value task 'clock)
                                 (car (backend-timestamps-for-event item task backend))
                                 backend))
       (t
-       (when (and (not (position type (list :rest :tempo-change)))
+       (when (and (not (position type (list :rest :tempo)))
                   (or (backend-instrument-controls instrument backend)
                       (backend-node-p instrument backend)))
          (let ((time (backend-timestamps-for-event item task backend))
