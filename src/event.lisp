@@ -173,25 +173,25 @@ See also: `combine-events'"
 
 Example:
 
-;; (split-event-with-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5)))
+;; (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5)))
 ;;
 ;; => ((EVENT :FOO 1 :BAR 1 :BAZ 3)
 ;;     (EVENT :FOO 1 :BAR 2 :BAZ 4)
 ;;     (EVENT :FOO 1 :BAR 1 :BAZ 5))
 
 See also: `multi-channel-funcall', `combine-events-via-lists', `combine-events'"
-  (let ((length (reduce 'max
-                        (mapcar
-                         (lambda (x) (length (ensure-list x)))
-                         (loop :for key :in (keys event)
-                               :collect (event-value event key))))))
-    (if (= 1 length)
-        (list event)
-        (loop :for i :from 0 :below length
-              :collect
-              (apply 'event
-                     (loop :for key :in (keys event)
-                           :append (list key (elt-wrap (ensure-list (event-value event key)) i))))))))
+  (let* ((keys (keys event))
+         (length (if (null keys)
+                     1
+                     (reduce #'max
+                             (mapcar (fn (length (ensure-list (raw-event-value event _)))) keys)))))
+    (loop :for i :from 0 :below length
+          :for r-event := (apply 'event
+                                 (loop :for key :in keys
+                                       :append (list key (elt-wrap (ensure-list (raw-event-value event key)) i))))
+          :unless (find :beat keys)
+            :do (setf (slot-value r-event '%beat) (slot-value event '%beat))
+          :collect r-event)))
 
 (defun combine-events-via-lists (&rest events)
   "Combine EVENTS together to produce one event. Any keys that differ between the events will have be set to lists containing all the values from each event (unless the value is null). This is the opposite of `split-event-by-lists'.

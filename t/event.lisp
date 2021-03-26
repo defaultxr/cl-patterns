@@ -154,7 +154,26 @@
           (event :foo 1 :bar 2 :baz 4)
           (event :foo 1 :bar 1 :baz 5))
     (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
-   "split-event-by-lists returns incorrect results"))
+   "split-event-by-lists returns incorrect results")
+  (is-true
+   (every-event-equal
+    (list (event :foo 1 :bar 1 :baz 3)
+          (event :foo 1 :bar 2 :baz 4)
+          (event :foo 1 :bar 1 :baz 5))
+    (split-event-by-lists (event :foo (list 1) :bar (list 1 2) :baz (list 3 4 5))))
+   "split-event-by-lists returns incorrect results if one of the event values is a list of length 1")
+  (is-true
+   (equal (list 999)
+          (let ((event (event)))
+            (setf (beat event) 999)
+            (mapcar #'beat (split-event-by-lists event))))
+   "split-event-by-lists doesn't carry over the %beat slot for empty events")
+  (is-true
+   (equal (list 999 999 999)
+          (let ((event (event :midinote (list 40 50 60))))
+            (setf (beat event) 999)
+            (mapcar #'beat (split-event-by-lists event))))
+   "split-event-by-lists doesn't carry over the %beat slot for events with lists"))
 
 (test combine-events-via-lists
   "Test combine-events-via-lists"
