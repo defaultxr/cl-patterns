@@ -62,7 +62,7 @@ Example:
       0))
 
 (defun mapcar-longest (function &rest lists)
-  "Like `mapcar', but the resulting list is the length of the longest input list instead of the shortest. Indexes into shorter lists are wrapped.
+  "Like `mapcar', but the resulting list is the length of the longest input list instead of the shortest. Indexes into shorter lists are wrapped. Additional return values from the last call are passed through as additional values from this function.
 
 Example:
 
@@ -70,13 +70,19 @@ Example:
 ;; => (3 4 5)
 
 See also: `multi-channel-funcall'"
-  (loop
-    :for i :from 0 :below (reduce #'max (mapcar #'length lists))
-    :collect (apply function
-                    (mapcar
-                     (lambda (list)
-                       (elt-wrap list i))
-                     lists))))
+  (let (more-values)
+    (apply #'values
+           (loop
+             :for i :from 0 :below (reduce #'max (mapcar #'length lists))
+             :for res := (multiple-value-list
+                          (apply function
+                                 (mapcar
+                                  (lambda (list)
+                                    (elt-wrap list i))
+                                  lists)))
+             :collect (car res)
+             :do (setf more-values (cdr res)))
+           more-values)))
 
 (defun multi-channel-funcall (function &rest args)
   "Call FUNCTION on the provided arguments. If one or more of the arguments is a list, funcall for each element of the list(s). The length of the resulting list will be the same as the longest input list.

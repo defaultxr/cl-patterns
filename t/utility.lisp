@@ -33,7 +33,10 @@
       "mapcar-longest returns incorrect results")
   (is (equal (list 0 2 2 4 4 6)
              (cl-patterns::mapcar-longest #'+ (list 0 1) (list 0 1 2 3 4 5)))
-      "mapcar-longest doesn't wrap indexes of the shorter lists correctly"))
+      "mapcar-longest doesn't wrap indexes of the shorter lists correctly")
+  (is (equal (list (list 1 1) t)
+             (multiple-value-list (multi-channel-funcall #'dur (list (event :delta 1) (event :delta 2)))))
+      "mapcar-longest doesn't include additional return values from its last call"))
 
 (test last-dur
   "Test the `last-dur' function"
