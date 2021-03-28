@@ -29,8 +29,8 @@
       (accumulator params)
       ev)))
 
-(defvar *latency* 1/10
-  "Default latency for events, in seconds.")
+(define-symbol-macro *latency* ;; setting *latency* is deprecated; use (setf (clock-latency *clock*) ...) instead.
+    (clock-latency *clock*))
 
 (defparameter *event-special-keys* (list)
   "Plist mapping event special keys to their case lists.")
