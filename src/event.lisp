@@ -5,7 +5,7 @@
 ;; FIX: implement more keys and event types (see TODO.org)
 ;; FIX: (play (event :octave 2)) doesn't work properly (it still plays the default note)
 
-;;; event glue
+;;; event basics
 
 (defgeneric event-plist (event)
   (:documentation "The raw plist containing the key/value pairs of the event."))
@@ -19,32 +19,51 @@
   (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
 
 (defun event (&rest params)
-  "Create an event, using the PARAMS as its keys/values."
-  (assert (= 0 (mod (length params) 2)))
-  (let ((ev (make-instance 'event)))
-    (labels ((accumulator (pairs)
-               (when (not (null (car pairs)))
-                 (setf (event-value ev (ensure-symbol (car pairs) 'cl-patterns)) (cadr pairs))
-                 (accumulator (cddr pairs)))))
-      (accumulator params)
-      ev)))
+  "Create an event, using the PARAMS as its keys/values.
 
-(define-symbol-macro *latency* ;; setting *latency* is deprecated; use (setf (clock-latency *clock*) ...) instead.
-    (clock-latency *clock*))
+See also: `event-value', `event-p', `e', `*event*'"
+  (assert (evenp (length params)) (params) "PARAMS must be a list of key/value pairs; got ~s" params)
+  (let ((ev (make-instance 'event)))
+    (doplist (key value params ev)
+      (setf (event-value ev (ensure-symbol key 'cl-patterns)) value))))
+
+;; setting *latency* is deprecated; use (setf (clock-latency *clock*) ...) instead.
+(define-symbol-macro *latency* (clock-latency *clock*))
 
 (defparameter *event-special-keys* (list)
   "Plist mapping event special keys to their case lists.")
 
 (defun event-p (object)
-  "Return true if OBJECT is an event, and NIL otherwise."
+  "True if OBJECT is an event.
+
+See also: `event', `event-value'"
   (typep object 'event))
+
+(defun raw-event-value (event key)
+  "Get the value of KEY in EVENT without running any conversion functions.
+
+See also: `event-value'"
+  (getf (slot-value event 'event-plist) (make-keyword key)))
+
+(defun (setf raw-event-value) (value event key)
+  "Set the value of KEY to VALUE in EVENT without running any conversion functions.
+
+See also: `raw-event-value', `event-value'"
+  (with-slots (event-plist) event
+    (setf event-plist (plist-set event-plist (make-keyword key) value)))
+  value)
+
+(uiop:with-deprecation (:warning)
+  (defun raw-set-event-value (event key value)
+    "Set the value of KEY to VALUE in EVENT without running any conversion functions. Deprecated; use (setf (raw-event-value EVENT KEY) VALUE) instead."
+    (setf (raw-event-value event key) value)))
 
 (defun event-value (event key)
   "Get the value of KEY in EVENT, running any necessary conversion functions.
 
 Returns 2 values: the value of the key, and the name of the key the value was derived from (or t if the default value of the key was used, or nil if no value or default was provided).
 
-See also: `e'"
+See also: `event', `e', `raw-event-value'"
   (when (null event)
     (return-from event-value (values nil nil)))
   (let* ((key (make-keyword key))
@@ -61,34 +80,84 @@ See also: `e'"
                   (multiple-value-list (funcall func event)))))
     (values (car res) (or (cadr res) key))))
 
+(defun (setf event-value) (value event key)
+  "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."
+  (let* ((key (make-keyword key))
+         (cases (getf *event-special-keys* key)))
+    (when (cadr cases) ;; remove keys that are different "units" of the same concept
+      (dolist (k (remove-if (lambda (c) (eql c t)) (keys (car cases))))
+        (remove-event-value event k)))
+    (setf (raw-event-value event key) value)
+    (when (eql key :beat)
+      (setf (slot-value event '%beat) value))
+    value))
+
+(defun remove-event-value (event key)
+  "Removes KEY from EVENT."
+  (with-slots (event-plist) event
+    (setf event-plist (remove-from-plist event-plist (make-keyword key))))
+  event)
+
 (defun e (key)
   "Syntax sugar; like `event-value', but always gets the value from `*event*'.
 
-See also: `event-value'"
+See also: `event-value', `event', `*event*'"
   (event-value *event* key))
 
-(defun event-equal (event1 event2)
-  "Test if EVENT1 and EVENT2 are equivalent.
+(defun (setf e) (value key)
+  (if (event-p *event*)
+      (setf (event-value *event* key) value)
+      (error "Can't setf (e ~s); *EVENT* is not currently set to an event." key)))
+
+;;; methods for generic functions
+
+(defmethod keys ((event event))
+  (keys (slot-value event 'event-plist)))
+
+(defmethod beat ((event event))
+  (event-value event :beat))
+
+(defmethod (setf beat) (value (event event))
+  (setf (slot-value event '%beat) value)
+  (when (member :beat (keys event))
+    (setf (event-value event :beat) value)))
+
+(defmethod rest-p ((event event))
+  (eql :rest (event-value event :type)))
+
+(defmethod (setf rest-p) (value (event event))
+  (setf (event-value event :type) :rest))
+
+(defmethod loop-p ((event event))
+  (event-value event :loop-p))
+
+(defmethod (setf loop-p) (value (event event))
+  (setf (event-value event :loop-p) value))
+
+;;; compare, combine, copy, split
+
+(defun event-equal (event-1 event-2)
+  "Test if EVENT-1 and EVENT-2 are equivalent.
 
 See also: `every-event-equal'"
-  (let ((types (mapcar #'type-of (list event1 event2))))
+  (let ((types (mapcar #'type-of (list event-1 event-2))))
     (cond ((set-equal types (list 'cons 'cons))
-           (every-event-equal event1 event2))
+           (every-event-equal event-1 event-2))
           ((set-equal types (list 'event 'event))
-           (let ((ev1-keys (keys event1)))
-             (and (set-equal ev1-keys (keys event2))
+           (let ((ev1-keys (keys event-1)))
+             (and (set-equal ev1-keys (keys event-2))
                   (every (lambda (key)
-                           (equal (event-value event1 key)
-                                  (event-value event2 key)))
+                           (equal (event-value event-1 key)
+                                  (event-value event-2 key)))
                          ev1-keys))))
           ((set-equal types (list 'cons 'event))
-           (event-equal (ensure-list event1) (ensure-list event2)))
-          (t (equal event1 event2)))))
+           (event-equal (ensure-list event-1) (ensure-list event-2)))
+          (t (equal event-1 event-2)))))
 
 (defun every-event-equal (&rest lists)
   "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length.
 
-See also: `events-differing-keys'"
+See also: `event-equal', `events-differing-keys'"
   (and (apply #'= (mapcar #'length lists))
        (apply #'every #'event-equal lists)))
 
@@ -113,42 +182,10 @@ Example:
 
 See also: `every-event-equal'"
   (loop :for idx :from 0 :below (reduce #'max (mapcar #'length lists))
-     :collect (apply #'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists))))
-
-(defun (setf event-value) (value event key)
-  "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."
-  (let* ((key (make-keyword key))
-         (cases (getf *event-special-keys* key)))
-    (when (cadr cases) ;; remove-keys
-      (dolist (k (remove-if (lambda (c) (eql c t)) (keys (car cases))))
-        (remove-event-value event k)))
-    (raw-set-event-value event key value)
-    (when (eql key :beat)
-      (setf (slot-value event '%beat) value))
-    value))
-
-(defun (setf e) (value key)
-  (if (event-p *event*)
-      (setf (event-value *event* key) value)
-      (error "Can't setf (e ~s); *EVENT* is not currently set to an event." key)))
-
-(defun raw-set-event-value (event key value)
-  "Set the value of KEY to VALUE in EVENT without running any conversion functions."
-  (with-slots (event-plist) event
-    (setf event-plist (plist-set event-plist (make-keyword key) value))))
-
-(defun remove-event-value (event key)
-  "Removes KEY from EVENT."
-  (with-slots (event-plist) event
-    (setf event-plist (remove-from-plist event-plist (make-keyword key))))
-  event)
-
-(defun raw-event-value (event key)
-  "Get the value of KEY in EVENT without running any conversion functions."
-  (getf (slot-value event 'event-plist) (make-keyword key)))
+        :collect (apply #'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists))))
 
 (defun combine-events (&rest events)
-  "Returns a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
+  "Get a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
 
 See also: `copy-event', `split-event-by-lists', `combine-events-via-lists'"
   (unless (position nil events)
@@ -163,7 +200,7 @@ See also: `copy-event', `split-event-by-lists', `combine-events-via-lists'"
             (setf (slot-value ne '%beat) ibeat)))))))
 
 (defun copy-event (event)
-  "Return a new event that is a copy of EVENT.
+  "Get a new event that is a copy of EVENT.
 
 See also: `combine-events'"
   (combine-events event))
@@ -202,7 +239,6 @@ Example:
 ;; => (EVENT :FOO 1 :BAR (2 3) :QUX 4 :BAZ 5)
 
 See also: `split-event-by-lists', `combine-events'"
-  ;; FIX
   (let ((event (event))
         (listified nil))
     (dolist (ev events)
@@ -220,22 +256,7 @@ See also: `split-event-by-lists', `combine-events'"
                                                       (list nv))))))))
     event))
 
-(defmethod keys ((item event))
-  (keys (slot-value item 'event-plist)))
-
-(defmethod beat ((item event))
-  (event-value item :beat))
-
-(defmethod (setf beat) (value (event event))
-  (setf (slot-value event '%beat) value)
-  (when (member :beat (keys event))
-    (setf (event-value event :beat) value)))
-
-(defmethod rest-p ((event event))
-  (eql :rest (event-value event :type)))
-
-(defmethod loop-p ((event event))
-  (event-value event :loop-p))
+;;; special keys
 
 (defmacro define-event-special-key (name cases &key (remove-keys t) (define-methods nil) documentation)
   "Define a special key with the key NAME for events (i.e. keys that take their values from other keys, or keys that have default values).

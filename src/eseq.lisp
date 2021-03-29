@@ -31,7 +31,9 @@
       (eseq-add eseq event))))
 
 (defun eseq-p (object)
-  "Return true if OBJECT is a pattern, and NIL otherwise."
+  "True if OBJECT is an eseq.
+
+See also: `eseq'"
   (typep object 'eseq))
 
 (defgeneric eseq-events (object)

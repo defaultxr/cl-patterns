@@ -1,20 +1,22 @@
-;;; clock.lisp - keep playing patterns in sync by running each clock in its own thread and all patterns on a clock.
+(in-package #:cl-patterns)
+
+;;; clock.lisp - play patterns in sync by running all patterns on a clock, with each clock in its own thread.
+
 ;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
 ;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately N seconds before they're supposed to be heard, where N is the value of the clock's LATENCY slot.
+;; For efficiency, the clock processes LATENCY seconds worth of events at a time and sends them with timestamps to the relevant backend (see backend.lisp), which then converts the event to whatever format the backend server understands.
 
 ;; FIX: investigate syncing to internal time or time of day instead of local-time? https://github.com/jamieforth/osc/blob/79d25ca4e0a4a04135b6bc56231c6b9bb058f1d4/osc.lisp#L279
-
-(in-package #:cl-patterns)
 
 (defclass clock ()
   ((beat :initform 0 :accessor beat :type number :documentation "The number of beats that have elapsed since the creation of the clock.")
    (tempo :initarg :tempo :initform 1 :reader tempo :type number :documentation "The tempo of the clock, in beats per second.")
-   (tasks :initform nil :documentation "The list of tasks that are running on the clock.")
    (latency :initarg :latency :initform 1/10 :documentation "The default latency for events played on the clock.")
+   (play-expired-events :initarg :play-expired-events :initform nil :documentation "If T, always play events, even if their scheduled time has already passed. If NIL, silently skip these events. If :WARN, print a warning for each event skipped.")
+   (tasks :initform nil :documentation "The list of tasks that are running on the clock. Use `play', `stop', etc to play and stop patterns (the \"friendly\" way to add or remove them from the clock), or `clock-add' and `clock-remove' to manually remove them directly.")
    (tasks-lock :initform (bt:make-recursive-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
-   (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed.")
-   (play-expired-events :initarg :play-expired-events :initform nil :documentation "If T, always play events, even if their scheduled time has already passed. If NIL, silently skip these events. If :WARN, print a warning for each event skipped."))
+   (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed."))
   (:documentation "A musical time-based clock defining a tempo and pulse that its tasks synchronize to."))
 
 (defmethod real-beat ((clock clock))
@@ -40,7 +42,7 @@ See also: `beat'"
 (defclass task ()
   ((item :initarg :item :initform nil :accessor task-item :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
    (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
-   (start-beat :initarg :start-beat :initform nil :documentation "The beat of the clock when the task started.")
+   (start-beat :initarg :start-beat :initform nil :type number :documentation "The beat of the clock when the task started.")
    (clock :initarg :clock :accessor task-clock :type clock :documentation "The clock that the task is running on.")
    (backend-resources :initarg :backend-resources :initform nil :documentation "Resources associated with this task that should be freed by it, i.e. nodes it triggered, buffers it loaded, etc."))
   (:documentation "An item scheduled to be run on the clock."))
@@ -157,7 +159,7 @@ See also: `clock-remove', `play'"
         (push task tasks)
         task))))
 
-(defun clock-remove (task &optional (clock *clock*)) ;; FIX: can we just add "remove" events to the clock so that removals are automatically synchronized/happen at the right time?
+(defun clock-remove (task &optional (clock *clock*))
   "Remove TASK from CLOCK's tasks. Generally you don't need to use this directly and would use `stop' or `end' instead.
 
 See also: `clock-add', `stop', `end'"

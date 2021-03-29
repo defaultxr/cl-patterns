@@ -16,9 +16,8 @@
                     (setf (slot-value list 'parent) parent)))))
     (loop :for slot :in (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))
           :unless (eql slot 'parent) ;; FIX: add tests for this!
-            :do
-               (when (slot-boundp pattern slot)
-                 (set-parent (slot-value pattern slot) pattern)))
+            :do (when (slot-boundp pattern slot)
+                  (set-parent (slot-value pattern slot) pattern)))
     pattern))
 
 (defparameter *patterns* (list)
@@ -131,7 +130,9 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
   (:documentation "Abstract pattern superclass."))
 
 (defun pattern-p (object)
-  "Return true if OBJECT is a pattern, and NIL otherwise."
+  "True if OBJECT is a pattern.
+
+See also: `pattern', `defpattern'"
   (typep object 'pattern))
 
 (defun all-patterns ()
@@ -275,7 +276,9 @@ See also: `events-in-range'"))
       (format stream "~s ~s" :number number))))
 
 (defun pstream-p (object)
-  "Return true if OBJECT is a pstream, and NIL otherwise."
+  "True if OBJECT is a pstream.
+
+See also: `pstream', `as-pstream'"
   (typep object 'pstream))
 
 (defmethod loop-p ((pstream pstream))
@@ -284,11 +287,11 @@ See also: `events-in-range'"))
       (loop-p (slot-value pstream 'source))))
 
 (defmethod events-in-range ((pstream pstream) min max)
-  (loop :while (and (<= (beat pstream) max)
-                    (not (ended-p pstream)))
-        :do (let ((next (next pstream)))
-              (unless (typep next '(or null event))
-                (error "events-in-range can only be used on event streams."))))
+  (while (and (<= (beat pstream) max)
+              (not (ended-p pstream)))
+    (let ((next (next pstream)))
+      (unless (typep next '(or null event))
+        (error "events-in-range can only be used on event streams."))))
   (loop :for i :across (slot-value pstream 'history)
         :if (and i
                  (>= (beat i) min)
@@ -336,7 +339,9 @@ See also: `last-output'"))
          (null (pstream-elt pstream -1)))))
 
 (defun value-remaining-p (value)
-  "Returns true if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0."
+  "True if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0.
+
+See also: `remaining-p', `decf-remaining'"
   (typecase value
     (null nil)
     (symbol (eql value :inf))
@@ -344,7 +349,9 @@ See also: `last-output'"))
     (otherwise nil)))
 
 (defun remaining-p (pattern &optional (repeats-key 'repeats) (remaining-key 'current-repeats-remaining))
-  "Returns true if PATTERN's REMAINING-KEY slot value represents outputs \"remaining\" (see `value-remaining-p'). If PATTERN's REMAINING-KEY slot is unbound or 0, and REPEATS-KEY is not nil, then it is automatically set to the `next' of PATTERN's REPEATS-KEY slot. Then if that new value is 0 or nil, remaining-p returns nil. Otherwise, :reset is returned as a generalized true value and to indicate that `next' was called on PATTERN's REPEATS-KEY slot."
+  "True if PATTERN's REMAINING-KEY slot value represents outputs \"remaining\" (see `value-remaining-p'). If PATTERN's REMAINING-KEY slot is unbound or 0, and REPEATS-KEY is not nil, then it is automatically set to the `next' of PATTERN's REPEATS-KEY slot. Then if that new value is 0 or nil, remaining-p returns nil. Otherwise, :reset is returned as a generalized true value and to indicate that `next' was called on PATTERN's REPEATS-KEY slot.
+
+See also: `value-remaining-p', `decf-remaining'"
   (labels ((set-next ()
              (setf (slot-value pattern remaining-key) (next (slot-value pattern repeats-key)))
              (when (value-remaining-p (slot-value pattern remaining-key))
@@ -361,7 +368,9 @@ See also: `last-output'"))
             (otherwise nil))))))
 
 (defun decf-remaining (pattern &optional (key 'current-repeats-remaining))
-  "Decrease PATTERN's KEY value."
+  "Decrease PATTERN's KEY value.
+
+See also: `remaining-p'"
   (when (numberp (slot-value pattern key))
     (decf (slot-value pattern key))))
 
@@ -575,8 +584,8 @@ See also: `parent-pattern'"))
 
 (defmethod parent-pbind ((pattern pattern))
   (let ((par (parent-pattern pattern)))
-    (loop :until (or (null par) (typep par 'pbind))
-          :do (setf par (slot-value par 'parent)))
+    (until (or (null par) (typep par 'pbind))
+      (setf par (slot-value par 'parent)))
     par))
 
 ;;; pbind
@@ -814,8 +823,8 @@ Example:
 
 See also: `pser'")
 
-(defmethod as-pstream ((pattern pseq))
-  (with-slots (repeats list offset) pattern
+(defmethod as-pstream ((pseq pseq))
+  (with-slots (repeats list offset) pseq
     (make-instance 'pseq-pstream
                    :list (next list)
                    :repeats (as-pstream repeats)
@@ -824,7 +833,7 @@ See also: `pser'")
 (defmethod next ((pseq pseq-pstream))
   (with-slots (number list offset) pseq
     (when (and (plusp number)
-               (= 0 (mod number (length list))))
+               (zerop (mod number (length list))))
       (decf-remaining pseq 'current-repeats-remaining))
     (when-let ((off (next offset)))
       (when (and (remaining-p pseq)
@@ -881,8 +890,8 @@ Example:
 
 See also: `pbind', `event-value', `*event*'")
 
-(defmethod as-pstream ((pattern pk))
-  (with-slots (key default) pattern
+(defmethod as-pstream ((pk pk))
+  (with-slots (key default) pk
     (make-instance 'pk-pstream
                    :key key
                    :default default)))
@@ -909,16 +918,16 @@ Example:
 
 See also: `pxrand', `pwrand', `pwxrand'")
 
-(defmethod as-pstream ((pattern prand))
-  (with-slots (list length) pattern
+(defmethod as-pstream ((prand prand))
+  (with-slots (list length) prand
     (make-instance 'prand-pstream
                    :list (next list)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern prand-pstream))
-  (when (remaining-p pattern 'length)
-    (decf-remaining pattern 'current-repeats-remaining)
-    (random-elt (slot-value pattern 'list))))
+(defmethod next ((prand prand-pstream))
+  (when (remaining-p prand 'length)
+    (decf-remaining prand 'current-repeats-remaining)
+    (random-elt (slot-value prand 'list))))
 
 ;;; pxrand
 
@@ -969,17 +978,17 @@ Example:
 
 See also: `prand', `pxrand', `pwxrand'")
 
-(defmethod as-pstream ((pattern pwrand))
-  (with-slots (list weights length) pattern
+(defmethod as-pstream ((pwrand pwrand))
+  (with-slots (list weights length) pwrand
     (make-instance 'pwrand-pstream
                    :list (next list)
                    :weights (next weights)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pwrand-pstream))
-  (with-slots (list weights) pattern
-    (when (remaining-p pattern 'length)
-      (decf-remaining pattern 'current-repeats-remaining)
+(defmethod next ((pwrand pwrand-pstream))
+  (with-slots (list weights) pwrand
+    (when (remaining-p pwrand 'length)
+      (decf-remaining pwrand 'current-repeats-remaining)
       (let* ((cweights (cumulative-list (normalized-sum weights)))
              (num (random 1.0)))
         (nth (index-of-greater-than num cweights) list)))))
@@ -1004,8 +1013,8 @@ See also: `prand', `pxrand', `pwrand'"
   :defun (assert (position-if-not (lambda (i) (eql i (car list))) list) (list)
                  "pwxrand's input list must have at least two non-eql elements."))
 
-(defmethod as-pstream ((pattern pwxrand))
-  (with-slots (list weights length) pattern
+(defmethod as-pstream ((pwxrand pwxrand))
+  (with-slots (list weights length) pwxrand
     (make-instance 'pwxrand-pstream
                    :list list
                    :weights (pattern-as-pstream weights)
@@ -1041,16 +1050,16 @@ Example:
 See also: `pf', `pnary'"
   :defun (assert (typep func 'function) (func)))
 
-(defmethod as-pstream ((pattern pfunc))
-  (with-slots (func length) pattern
+(defmethod as-pstream ((pfunc pfunc))
+  (with-slots (func length) pfunc
     (make-instance 'pfunc-pstream
                    :func func
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pfunc-pstream))
-  (when (remaining-p pattern 'length)
-    (decf-remaining pattern 'current-repeats-remaining)
-    (funcall (slot-value pattern 'func))))
+(defmethod next ((pfunc pfunc-pstream))
+  (when (remaining-p pfunc 'length)
+    (decf-remaining pfunc 'current-repeats-remaining)
+    (funcall (slot-value pfunc 'func))))
 
 ;;; pf
 
@@ -1074,8 +1083,8 @@ Example:
 
 See also: `pdurstutter', `pn', `pdrop', `parp'")
 
-(defmethod as-pstream ((pattern pr))
-  (with-slots (pattern repeats) pattern
+(defmethod as-pstream ((pr pr))
+  (with-slots (pattern repeats) pr
     (make-instance 'pr-pstream
                    :pattern (as-pstream pattern)
                    :repeats (pattern-as-pstream repeats))))
@@ -1117,7 +1126,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
   "Ensure KEY is a proper pdef key."
   (etypecase key
     (symbol key)
-    (string (intern (string-upcase key) :keyword))))
+    (string (my-intern key :keyword))))
 
 (defgeneric pdef-key (object)
   (:documentation "Get the key (name) of PDEF."))
@@ -1249,8 +1258,8 @@ See also: `all-patterns'"
                        :current-pstream (as-pstream (pdef-pattern pdef)))
         (error "No pdef with the key ~s defined." key))))
 
-(defmethod next ((pattern pdef-pstream))
-  (next (slot-value pattern 'current-pstream)))
+(defmethod next ((pdef pdef-pstream))
+  (next (slot-value pdef 'current-pstream)))
 
 ;;; plazy
 
@@ -1268,18 +1277,18 @@ Example:
 
 See also: `pfunc'")
 
-(defmethod as-pstream ((pattern plazy))
-  (with-slots (func repeats) pattern
+(defmethod as-pstream ((plazy plazy))
+  (with-slots (func repeats) plazy
     (make-instance 'plazy-pstream
                    :func func
                    :repeats (as-pstream repeats))))
 
-(defmethod next ((pattern plazy-pstream))
-  (with-slots (func repeats current-pstream current-repeats-remaining) pattern
+(defmethod next ((plazy plazy-pstream))
+  (with-slots (func repeats current-pstream current-repeats-remaining) plazy
     (labels ((maybe-funcall ()
-               (when (remaining-p pattern)
+               (when (remaining-p plazy)
                  (setf current-pstream (as-pstream (funcall func)))
-                 (decf-remaining pattern 'current-repeats-remaining))))
+                 (decf-remaining plazy 'current-repeats-remaining))))
       (when (null current-repeats-remaining)
         (setf current-repeats-remaining (next repeats)))
       (when (null current-pstream)
@@ -1327,11 +1336,11 @@ See also: `pr'")
       (when (eql :reset rem)
         (setf current-pstream (as-pstream pattern)))
       (let ((nv (next current-pstream)))
-        (loop :while (and (null nv) rem)
-              :do (decf-remaining pn 'current-repeats-remaining)
-                  (setf rem (remaining-p pn))
-                  (setf current-pstream (as-pstream pattern))
-                  (setf nv (next current-pstream)))
+        (while (and (null nv) rem)
+          (decf-remaining pn 'current-repeats-remaining)
+          (setf rem (remaining-p pn))
+          (setf current-pstream (as-pstream pattern))
+          (setf nv (next current-pstream)))
         (when rem
           nv)))))
 
@@ -1352,8 +1361,8 @@ Example:
 
 See also: `prand'")
 
-(defmethod as-pstream ((pattern pshuf))
-  (with-slots (list repeats) pattern
+(defmethod as-pstream ((pshuf pshuf))
+  (with-slots (list repeats) pshuf
     (let ((list (typecase list
                   (pattern (next-upto-n list))
                   (function (funcall list))
@@ -1362,12 +1371,12 @@ See also: `prand'")
                      :list (next list)
                      :repeats (as-pstream repeats)))))
 
-(defmethod next ((pattern pshuf-pstream))
-  (with-slots (list number shuffled-list) pattern
+(defmethod next ((pshuf pshuf-pstream))
+  (with-slots (list number shuffled-list) pshuf
     (when (and (= 0 (mod number (length list)))
                (plusp number))
-      (decf-remaining pattern 'current-repeats-remaining))
-    (when-let ((rem (remaining-p pattern)))
+      (decf-remaining pshuf 'current-repeats-remaining))
+    (when-let ((rem (remaining-p pshuf)))
       (when (eql :reset rem)
         (setf shuffled-list (shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
       (nth (mod number (length shuffled-list))
@@ -1401,19 +1410,19 @@ See also: `pexprand', `pbrown', `pgauss', `prand'"
                                       1))
                           :length length)))
 
-(defmethod as-pstream ((pattern pwhite))
-  (with-slots (lo hi length) pattern
+(defmethod as-pstream ((pwhite pwhite))
+  (with-slots (lo hi length) pwhite
     (make-instance 'pwhite-pstream
                    :lo (pattern-as-pstream lo)
                    :hi (pattern-as-pstream hi)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pwhite-pstream))
-  (with-slots (lo hi) pattern
-    (when (remaining-p pattern 'length)
-      (decf-remaining pattern 'current-repeats-remaining)
+(defmethod next ((pwhite pwhite-pstream))
+  (with-slots (lo hi) pwhite
+    (when (remaining-p pwhite 'length)
+      (decf-remaining pwhite 'current-repeats-remaining)
       (when-let ((nlo (next lo))
-                            (nhi (next hi)))
+                 (nhi (next hi)))
         (random-range nlo nhi)))))
 
 ;;; pbrown
@@ -1454,22 +1463,22 @@ See also: `pwhite', `pexprand', `pgauss'"
                                           0.125))
                             :length length))))
 
-(defmethod as-pstream ((pattern pbrown))
-  (with-slots (lo hi step length) pattern
+(defmethod as-pstream ((pbrown pbrown))
+  (with-slots (lo hi step length) pbrown
     (make-instance 'pbrown-pstream
                    :lo (pattern-as-pstream lo)
                    :hi (pattern-as-pstream hi)
                    :step (pattern-as-pstream step)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pbrown-pstream))
-  (when (remaining-p pattern 'length)
-    (decf-remaining pattern 'current-repeats-remaining)
-    (with-slots (lo hi step current-value) pattern
+(defmethod next ((pbrown pbrown-pstream))
+  (when (remaining-p pbrown 'length)
+    (decf-remaining pbrown 'current-repeats-remaining)
+    (with-slots (lo hi step current-value) pbrown
       (when-let ((nlo (next lo))
-                            (nhi (next hi))
-                            (nstep (next step)))
-        (when (null current-value)
+                 (nhi (next hi))
+                 (nstep (next step)))
+        (unless current-value
           (setf current-value (random-range nlo nhi)))
         (incf current-value (random-range (* -1 nstep) nstep))
         (setf current-value (clamp current-value nlo nhi))))))
@@ -1561,20 +1570,20 @@ Example:
 
 See also: `pseries*', `pgeom', `paccum'")
 
-(defmethod as-pstream ((pattern pseries))
-  (with-slots (start step length) pattern
+(defmethod as-pstream ((pseries pseries))
+  (with-slots (start step length) pseries
     (make-instance 'pseries-pstream
                    :start (pattern-as-pstream start)
                    :step (pattern-as-pstream step)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pseries-pstream))
-  (with-slots (start step current-value) pattern
-    (unless (slot-boundp pattern 'current-value)
+(defmethod next ((pseries pseries-pstream))
+  (with-slots (start step current-value) pseries
+    (unless (slot-boundp pseries 'current-value)
       (setf current-value (next start)))
-    (when (and (remaining-p pattern 'length)
+    (when (and (remaining-p pseries 'length)
                current-value)
-      (decf-remaining pattern 'current-repeats-remaining)
+      (decf-remaining pseries 'current-repeats-remaining)
       (let ((nxt (next step)))
         (prog1
             current-value
@@ -1623,20 +1632,20 @@ Example:
 
 See also: `pseries', `paccum'")
 
-(defmethod as-pstream ((pattern pgeom))
-  (with-slots (start grow length) pattern
+(defmethod as-pstream ((pgeom pgeom))
+  (with-slots (start grow length) pgeom
     (make-instance 'pgeom-pstream
                    :start (pattern-as-pstream start)
                    :grow (pattern-as-pstream grow)
                    :length (as-pstream length))))
 
-(defmethod next ((pattern pgeom-pstream))
-  (with-slots (start grow current-value) pattern
-    (unless (slot-boundp pattern 'current-value)
+(defmethod next ((pgeom pgeom-pstream))
+  (with-slots (start grow current-value) pgeom
+    (unless (slot-boundp pgeom 'current-value)
       (setf current-value (next start)))
-    (when (remaining-p pattern 'length)
-      (decf-remaining pattern 'current-repeats-remaining)
-      (if (= 0 (slot-value pattern 'number))
+    (when (remaining-p pgeom 'length)
+      (decf-remaining pgeom 'current-repeats-remaining)
+      (if (zerop (slot-value pgeom 'number))
           current-value
           (when-let ((n (next grow)))
             (setf current-value (* current-value n)))))))
@@ -1754,29 +1763,29 @@ Example:
 
 See also: `place'")
 
-(defmethod as-pstream ((pattern ppatlace))
-  (with-slots (repeats list) pattern
+(defmethod as-pstream ((ppatlace ppatlace))
+  (with-slots (repeats list) ppatlace
     (make-instance 'ppatlace-pstream
                    :list (mapcar #'pattern-as-pstream list)
                    :repeats (as-pstream repeats))))
 
-(defmethod next ((pattern ppatlace-pstream))
-  (with-slots (number list) pattern
+(defmethod next ((ppatlace ppatlace-pstream))
+  (with-slots (number list) ppatlace
     (when (and (not (= number 0))
                (= 0 (mod number (length list))))
-      (decf-remaining pattern 'current-repeats-remaining))
+      (decf-remaining ppatlace 'current-repeats-remaining))
     (when (if (plusp number)
-              (and (not (null (pstream-elt pattern -1)))
-                   (remaining-p pattern))
-              (remaining-p pattern))
+              (and (not (null (pstream-elt ppatlace -1)))
+                   (remaining-p ppatlace))
+              (remaining-p ppatlace))
       (let* ((mod (mod number (length list)))
              (result (next (nth mod list))))
-        (if (not (null result))
+        (if result
             result
             (progn
               (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
               (when (plusp (length list))
-                (next pattern))))))))
+                (next ppatlace))))))))
 
 ;;; pnary
 
@@ -1797,14 +1806,14 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
                            :operator operator
                            :patterns patterns))))
 
-(defmethod as-pstream ((pattern pnary))
-  (with-slots (operator patterns) pattern
+(defmethod as-pstream ((pnary pnary))
+  (with-slots (operator patterns) pnary
     (make-instance 'pnary-pstream
                    :operator (pattern-as-pstream operator)
                    :patterns (mapcar #'pattern-as-pstream patterns))))
 
-(defmethod next ((pattern pnary-pstream))
-  (with-slots (operator patterns) pattern
+(defmethod next ((pnary pnary-pstream))
+  (with-slots (operator patterns) pnary
     (let ((op (if (pstream-p operator)
                   (next operator)
                   operator))
@@ -1879,8 +1888,8 @@ Example:
 
 See also: `pscratch'")
 
-(defmethod as-pstream ((pattern pslide))
-  (with-slots (list repeats len step start wrap-at-end) pattern
+(defmethod as-pstream ((pslide pslide))
+  (with-slots (list repeats len step start wrap-at-end) pslide
     (make-instance 'pslide-pstream
                    :list (next list)
                    :repeats (pattern-as-pstream repeats)
@@ -1891,8 +1900,8 @@ See also: `pscratch'")
                    :current-repeats 0
                    :remaining-current-segment len)))
 
-(defmethod next ((pattern pslide-pstream))
-  (with-slots (list repeats len step start wrap-at-end current-repeats-remaining current-repeats remaining-current-segment current-value) pattern
+(defmethod next ((pslide pslide-pstream))
+  (with-slots (list repeats len step start wrap-at-end current-repeats-remaining current-repeats remaining-current-segment current-value) pslide
     (unless current-value
       (setf current-value (next start)))
     (labels ((get-next ()
@@ -1902,20 +1911,20 @@ See also: `pscratch'")
                    (if wrap-at-end
                        (elt-wrap list current-value)
                        (nth current-value list)))))
-      (unless (slot-boundp pattern 'current-repeats-remaining)
+      (unless (slot-boundp pslide 'current-repeats-remaining)
         (setf current-repeats-remaining (next repeats)))
       (when (value-remaining-p current-repeats-remaining)
         (if (value-remaining-p remaining-current-segment)
             (prog1
                 (get-next)
-              (decf-remaining pattern 'remaining-current-segment)
+              (decf-remaining pslide 'remaining-current-segment)
               (incf current-value))
             (progn
-              (decf-remaining pattern 'current-repeats-remaining)
+              (decf-remaining pslide 'current-repeats-remaining)
               (setf remaining-current-segment (next len))
               (incf current-repeats)
               (setf current-value (+ (next start) (* (next step) current-repeats)))
-              (next pattern)))))))
+              (next pslide)))))))
 
 ;;; phistory
 
@@ -1939,8 +1948,8 @@ See also: `pscratch'")
                    :pattern (as-pstream pattern)
                    :step-pattern (as-pstream step-pattern))))
 
-(defmethod next ((pstream phistory-pstream))
-  (with-slots (pattern step-pattern) pstream
+(defmethod next ((phistory phistory-pstream))
+  (with-slots (pattern step-pattern) phistory
     (when-let ((next-step (next step-pattern)))
       (next pattern)
       (handler-case (pstream-elt pattern next-step)
@@ -2208,20 +2217,20 @@ See also: `pr'")
                    :pattern (as-pstream pattern)
                    :n (pattern-as-pstream n))))
 
-(defmethod next ((pattern pdurstutter-pstream))
-  (with-slots (n current-value current-repeats-remaining) pattern
-    (loop :while (and (not (null current-repeats-remaining))
-                      (= 0 current-repeats-remaining))
+(defmethod next ((pdurstutter pdurstutter-pstream))
+  (with-slots (pattern n current-value current-repeats-remaining) pdurstutter
+    (loop :while (and current-repeats-remaining
+                      (zerop current-repeats-remaining))
           :do (setf current-repeats-remaining (next n))
-              (let ((e (next (slot-value pattern 'pattern))))
-                (when (and (not (null current-repeats-remaining))
-                           (not (= 0 current-repeats-remaining)))
+              (let ((e (next pattern)))
+                (when (and current-repeats-remaining
+                           (not (zerop current-repeats-remaining)))
                   (setf current-value (ctypecase e
                                         (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
                                         (number (/ e current-repeats-remaining))
                                         (null nil))))))
-    (unless (null current-repeats-remaining)
-      (decf-remaining pattern 'current-repeats-remaining)
+    (when current-repeats-remaining
+      (decf-remaining pdurstutter)
       current-value)))
 
 ;;; pbeat
@@ -2360,10 +2369,10 @@ See also: `beat', `pbeat'")
                  (incf current-dur nxt))))
         (when (= number 0)
           (next-dur))
-        (loop :while (and (or (not (pstream-p dur))
-                              (not (ended-p dur)))
-                          (<= current-dur beats))
-              :do (next-dur))))
+        (while (and (or (not (pstream-p dur))
+                        (not (ended-p dur)))
+                    (<= current-dur beats))
+          (next-dur))))
     (pstream-elt pattern -1)))
 
 ;;; psym
@@ -2434,9 +2443,9 @@ See also: `pbind''s :embed key"
 (defmethod next ((pchain pchain-pstream))
   (with-slots (patterns) pchain
     (let ((c-event (make-default-event)))
-      (loop :for pattern :in patterns
-            :do (setf c-event (combine-events c-event (let ((*event* c-event))
-                                                        (next pattern)))))
+      (dolist (pattern patterns)
+        (setf c-event (combine-events c-event (let ((*event* c-event))
+                                                (next pattern)))))
       c-event)))
 
 ;;; pdiff

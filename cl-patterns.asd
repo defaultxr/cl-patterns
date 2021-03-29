@@ -10,6 +10,7 @@
   :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
   :depends-on (#:alexandria
                #:mutility
+               #:mutility/loopy
                #:bordeaux-threads
                #:closer-mop
                #:named-readtables

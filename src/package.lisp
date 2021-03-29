@@ -101,19 +101,19 @@
 
    #:event
    #:event-p
-   #:combine-events
-   #:copy-event
-   #:split-event-by-lists
-   #:combine-events-via-lists
    #:event-plist
+   #:event-value
+   #:remove-event-value
+   #:e
+
    #:event-equal
    #:every-event-equal
    #:events-differing-keys
    #:events-lists-differing-keys
-
-   #:event-value
-   #:e
-   #:remove-event-value
+   #:combine-events
+   #:copy-event
+   #:split-event-by-lists
+   #:combine-events-via-lists
 
    #:instrument
 
