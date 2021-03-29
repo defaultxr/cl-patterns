@@ -5,12 +5,17 @@ A "cookbook" for cl-patterns; various recipes for instruction and inspiration.
 
 * Random notes from a scale
 
-cl-patterns provides musical scale data in ~scales.lisp~. If we feel like being blasphemous, we can shuffle a scale and call it "automatic jazz":
+cl-patterns provides musical scale data in ~scales.lisp~. If we feel like being blasphemous, we can play random notes from a scale and call it "automatic jazz":
 
 #+BEGIN_SRC lisp
-  (pbind :degree (pshuf (scale-notes :minor) 4)
-         :dur (pshuf (list 1/3 1/4)))
+  (pb :automatic-jazz
+    :note (pshuf (scale-notes :minor) 4)
+    :octave (pr (pwhite 2 7))
+    :root (pr (pwhite 0 12))
+    :dur (pshuf (list 1/3 1/4)))
 #+END_SRC
+
+In this example, the notes of the minor scale are shuffled and the shuffled list is played through four times before the pattern ends and they're reshuffled. For each playthrough of the pattern, an octave and a root note are selected at random. ~:dur~ alternates between ~1/3~ and ~1/4~ to give the music a rudimentary shuffle rhythm or "swing".
 
 # * Quantize to a scale # FIX: add this :)
 
