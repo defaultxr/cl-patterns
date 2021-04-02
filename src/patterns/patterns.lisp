@@ -666,6 +666,9 @@ See also: `pmono', `pb'"
 (defmethod print-object ((pbind pbind) stream)
   (format stream "(~s~{ ~s ~s~})" 'pbind (slot-value pbind 'pairs)))
 
+(defmethod keys ((pbind pbind))
+  (keys (slot-value pbind 'pairs)))
+
 ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
 ;; FIX: allow keys to be lists, in which case results are destructured, i.e. (pb (list :foo :bar) (pcycles (a 1!4))) results in four (EVENT :FOO 1 :DUR 1/4)
 (defmacro pb (key &body pairs)
