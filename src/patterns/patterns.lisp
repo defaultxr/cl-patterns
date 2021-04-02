@@ -661,6 +661,8 @@ See also: `pmono', `pb'"
       (pdef pdef-name pattern))
     pattern))
 
+(pushnew 'pbind *patterns*)
+
 (setf (documentation 'pbind 'type) (documentation 'pbind 'function))
 
 (defmethod print-object ((pbind pbind) stream)
@@ -678,6 +680,8 @@ See also: `pbind', `pdef'"
   (if (length= 1 pairs)
       `(pdef ,key ,@pairs)
       `(pbind :pdef ,key ,@pairs)))
+
+(pushnew 'pb *patterns*)
 
 (defclass pbind-pstream (pbind pstream)
   ()
@@ -807,6 +811,8 @@ See also: `pbind'"
          :instrument instrument
          :type :mono
          pairs))
+
+(pushnew 'pmono *patterns*)
 
 ;;; pseq
 
@@ -1070,6 +1076,8 @@ See also: `pf', `pnary'"
 (defmacro pf (&body body)
   "Convenience macro for `pfunc' that automatically wraps BODY in a lambda."
   `(pfunc (lambda () ,@body)))
+
+(pushnew 'pf *patterns*)
 
 ;;; pr
 
@@ -1619,6 +1627,8 @@ See also: `pseries', `pgeom', `pgeom*'"
                     (max 2 (round (1+ (abs (- end start))))))))
     (pseries start (/ (- end start) (1- length)) length)))
 
+(pushnew 'pseries* *patterns*)
+
 ;;; pgeom
 
 (defpattern pgeom (pattern)
@@ -1673,6 +1683,8 @@ Example:
 See also: `pgeom', `pseries', `pseries*'"
   (assert (and (integerp length) (> length 1)) (length) "LENGTH must be an integer greater than 1 (~s provided)." length)
   (pgeom start (expt (/ end start) (/ 1 (1- length))) length))
+
+(pushnew 'pgeom* *patterns*)
 
 ;;; ptrace
 
@@ -1842,7 +1854,8 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
   "Divide NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
   (apply #'pnary #'/ numbers))
 
-(export '(p+ p- p* p/))
+(dolist (pat '(p+ p- p* p/))
+  (pushnew pat *patterns*))
 
 ;;; prerange
 
@@ -2836,6 +2849,8 @@ See also: `pparchain'"
                    pairs))))
     `(pparchain ,@(loop :for i :in (ppc-split pairs)
                         :collect (cons 'pbind i)))))
+
+(pushnew 'ppc *patterns*)
 
 ;;; pclump
 
