@@ -2979,7 +2979,7 @@ Example:
 ;; (next-upto-n *pst* 4)
 ;; ;=> (0 1 2 3)
 
-See also: `pdef'"
+See also: `prs', `pdef'"
   :defun (defun ps (pattern)
            (make-instance 'ps
                           :pattern pattern)))
@@ -2997,3 +2997,13 @@ See also: `pdef'"
 (defmethod next ((ps-pstream ps-pstream))
   (with-slots (pstream) ps-pstream
     (next pstream)))
+
+;;; prs
+
+(defun prs (pattern &optional (repeats :inf))
+  "Syntax sugar for (pr (ps PATTERN) REPEATS). Useful, for example, to ensure that each cycle of a pattern only gets one value from the `ps'.
+
+See also: `pr', `ps'"
+  (pr (ps pattern) repeats))
+
+(pushnew 'prs *patterns*)
