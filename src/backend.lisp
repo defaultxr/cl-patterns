@@ -125,7 +125,7 @@ See also: `backend-task-removed'"))
       (:rest
        nil)
       (:tempo
-       (backend-tempo-change-at (slot-value task 'clock)
+       (backend-tempo-change-at (task-clock task)
                                 (car (backend-timestamps-for-event item task backend))
                                 backend))
       (t

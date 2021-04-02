@@ -162,7 +162,7 @@ See also: `alsa-midi-instrument-program-number'"
              (midihelper:send-event (midihelper:ev-cc channel (car param) (cadr param))))
            (unless (eql type :set)
              (midihelper:send-event (midihelper:ev-noteon channel note velocity))
-             (sleep (max 0 (dur-time (sustain event) (tempo (slot-value task 'clock)))))
+             (sleep (max 0 (dur-time (sustain event) (tempo (task-clock task)))))
              (midihelper:send-event (midihelper:ev-noteoff channel note velocity))))
          :name "cl-patterns temporary alsa midi note thread")))))
 

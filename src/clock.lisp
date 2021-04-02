@@ -243,7 +243,6 @@ See also: `clock-tasks'"
 See also: `clock-loop', `clock-tasks', `make-clock'"
   (bt:with-recursive-lock-held ((slot-value clock 'tasks-lock))
     (let ((*clock* clock)
-          (clock-start-beat (beat clock))
           (clock-end-beat (+ (beat clock) beats))
           (retries 0)
           (prev-task nil))
