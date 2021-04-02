@@ -56,7 +56,7 @@ Patterns that limit the number of, or values of, outputs from a source pattern.
 - ~pconst~ - Limits the sum of the source pattern not to exceed a specified value.
 - ~pfin~ - Limits the number of outputs yielded by its source pattern.
 - ~pfindur~ - Limits the total duration of the outputs from its source pattern.
-- ~psync~ - Limits the total duration of the outputs from its source pattern, 
+- ~psync~ - Limits the total duration of the outputs from its source pattern, adding a rest to bring the total duration to a specified multiple.
 
 * Timing patterns
 Patterns that yield information about timing, or alter the timing of a source pattern.
