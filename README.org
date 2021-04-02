@@ -133,6 +133,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:src/patterns/cycles.lisp][cycles.lisp]] - TidalCycles-inspired patterns and notation, i.e. ~pcycles~, etc.
 - [[file:src/patterns/tracker.lisp][tracker.lisp]] - tracker-inspired patterns and notation, i.e. ~ptracker~ and associated functions, macros, reader macros, etc.
 - [[file:src/patterns/sc-compatibility.lisp][sc-compatibility.lisp]] - patterns intended to be fully compatible with SuperCollider's patterns system.
+- [[file:src/patterns/export.lisp][export.lisp]] - export all defined patterns in the ~*patterns*~ list.
 
 *** backends
 

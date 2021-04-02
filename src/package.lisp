@@ -132,6 +132,7 @@
    #:rate
 
    ;;; patterns.lisp
+   ;; NOTE: patterns in `*patterns*' (such as those defined with `defpattern') are automatically exported in export.lisp.
 
    #:defpattern
    #:*max-pattern-yield-length*
@@ -157,13 +158,6 @@
    #:pstream-count
    #:bsubseq
 
-   #:pbind
-   #:pb
-   #:pmono
-
-   ;; pattern classes defined with `defpattern' are automatically exported.
-
-   #:pf
 
    #:find-pdef
    #:all-pdefs
@@ -171,11 +165,6 @@
    #:pdef-pattern
    #:pdef-pstream
    #:pdef-task
-
-   #:pseries*
-   #:pgeom*
-
-   #:ppc
 
    ;;; bjorklund.lisp
 
