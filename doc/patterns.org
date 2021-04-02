@@ -20,7 +20,9 @@ Patterns that generate output based on an input list.
 * Curve patterns
 Patterns that generate numbers according to curve formulae.
 - ~pseries~ - Each output is the previous element plus a number.
+- ~pseries*~ - Syntax sugar for a ~pseries~ whose outputs move over a range linearly over a set number of steps.
 - ~pgeom~ - Each output is the previous element multiplied by a number.
+- ~pgeom*~ - Syntax sugar for a ~pgeom~ whose outputs move over a range exponentially over a set number of steps.
 # - ~penv~ - FIX
 
 * Randomness patterns
