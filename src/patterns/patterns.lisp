@@ -677,7 +677,8 @@ See also: `pbind', `pdef'"
       `(pbind :pdef ,key ,@pairs)))
 
 (defclass pbind-pstream (pbind pstream)
-  ())
+  ()
+  (:documentation "pstream for `pbind'"))
 
 (defmethod print-object ((pbind pbind-pstream) stream)
   (print-unreadable-object (pbind stream :type t)
