@@ -8,6 +8,15 @@
   "Get the child nodes of NODE."
   (slot-value node 'cl-org-mode::child-nodes))
 
+(defun node-text (node)
+  "Get the text of NODE."
+  (slot-value node 'cl-org-mode::text))
+
+(defun text-list-items (string)
+  "Get a list of all unordered list items in STRING."
+  (loop :for res :in (cl-ppcre:all-matches-as-strings (cl-ppcre:create-scanner "^- .*$" :multi-line-mode t) string)
+     :collect (subseq res 2)))
+
 (defun find-org-header (node contains)
   "Recursively search NODE and its child nodes to find a header that contains CONTAINS."
   (labels ((outline-node-p (node)
@@ -21,15 +30,12 @@
                 :do (recurse header contains))))
     (recurse node contains)))
 
-(defun find-text-list-items (string)
-  "Get a list of all unordered list items in STRING."
-  (loop :for res :in (cl-ppcre:all-matches-as-strings (cl-ppcre:create-scanner "^- .*$" :multi-line-mode t) string)
-     :collect (subseq res 2)))
 
 (defun find-code-text (string)
-  "Find the first instance of text surrounded by tildes in STRING."
-  (let ((first (1+ (position #\~ string))))
-    (subseq string first (position #\~ string :start first))))
+  "Find all instances of text surrounded by tildes in STRING prior to the first \" - \"."
+  (let ((dash-loc (search " - " string)))
+    (mapcar (lambda (str) (string-trim (list #\~) str))
+            (cl-ppcre:all-matches-as-strings "~([^~]*?)~" string :end dash-loc))))
 
 (defun find-missing-keys (node header-name keys)
   "Search for any missing in NODE under a header that contains HEADER-NAME.
@@ -53,13 +59,13 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
   (let* ((nodes (child-nodes *patterns.org*))
          (list-items (labels ((process-nodes (nodes)
                                 (loop :for node :in nodes
-                                   :if (typep node 'cl-org-mode::text-node)
-                                   :append (find-text-list-items (slot-value node 'cl-org-mode::text))
-                                   :else
-                                   :if (typep node 'cl-org-mode::outline-node)
-                                   :append (process-nodes (child-nodes node)))))
+                                      :if (typep node 'cl-org-mode::text-node)
+                                        :append (text-list-items (node-text node))
+                                      :else
+                                        :if (typep node 'cl-org-mode::outline-node)
+                                          :append (process-nodes (child-nodes node)))))
                        (process-nodes nodes)))
-         (code-texts (mapcar #'find-code-text list-items))
+         (code-texts (flatten (mapcar #'find-code-text list-items)))
          (missing (remove-if (lambda (pat) (position pat code-texts :test #'string-equal)) (mapcar #'symbol-name (all-patterns)))))
     (is-false missing
               "some patterns are not documented in patterns.org: ~a"
