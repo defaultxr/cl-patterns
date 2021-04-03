@@ -17,10 +17,9 @@ See also: `play', `launch', `end', `stop'")
 
 (defun lookup-object-for-symbol (symbol)
   "Look up the object named by SYMBOL using `*dictionary-lookup-functions*'. Returns nil if no object was found."
-  (loop :for func :in *dictionary-lookup-functions*
-     :for res = (ignore-errors (funcall func symbol))
-     :when res
-     :return res))
+  (dolist (func *dictionary-lookup-functions*)
+    (when-let ((res (ignore-errors (funcall func symbol))))
+      (return-from lookup-object-for-symbol res))))
 
 (defun task-nodes (task backend)
   "Get the list of nodes for TASK for the specified backend. If BACKEND is nil, get all of the resources for TASK regardless of backend."
@@ -38,8 +37,8 @@ See also: `play', `launch', `end', `stop'")
 
 (defun event-backends (event)
   "Get a list of backends that EVENT should be played on, either via the event's :backend key or via the `enabled-backends'."
-  (or (ensure-list (or (event-value event :backends)
-                       (event-value event :backend)))
+  (or (ensure-list (or (event-value event :backend)
+                       (event-value event :backends)))
       (enabled-backends)))
 
 ;;; backend management
@@ -58,7 +57,7 @@ See also: `play', `launch', `end', `stop'")
   "Get a list of all registered backends.
 
 See also: `enabled-backends'"
-  (keys *backends*))
+  *backends*)
 
 (defun enabled-backends ()
   "Get a list of all enabled backends.
