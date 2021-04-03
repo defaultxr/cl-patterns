@@ -142,7 +142,10 @@ See also: `alsa-midi-instrument-program-number'"
   (let ((pgm (alsa-midi-instrument-program-number (event-value event :instrument))))
     (when (or pgm (find :alsa-midi (ensure-list (event-value event :backend))))
       (let* ((type (event-value event :type))
-             (channel (midi-truncate-clamp (or (event-value event :channel) 0) 15))
+             (channel (midi-truncate-clamp (or (event-value event :channel)
+                                               (event-value event :chan)
+                                               0)
+                                           15))
              (pgm (or pgm 0))
              (note (midi-truncate-clamp (event-value event :midinote)))
              (velocity (unipolar-1-to-midi (event-value event :amp))) ;; FIX: maybe this shouldn't be linear?
