@@ -125,8 +125,11 @@ done as ~pseries*~ and ~pgeom*~
 * tempo change curves
 - can tempo be represented as a key in patterns instead of a slot in the clock? or maybe as a pattern that is always playing, and can be referred to with ~(ptempo)~ or the like? that way we get curves, etc for free
 * ~pblend~ to blend between two patterns
-* export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime
-** then make ~render~ or ~record~ functions
+* DONE export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime
+CLOSED: [2021-04-02 Fri 18:00]
+** DONE then make ~render~ or ~record~ functions
+CLOSED: [2021-04-02 Fri 18:00]
+~render~ is complete.
 * make pstreams compatible with sequence functions: http://www.sbcl.org/manual/#Extensible-Sequences
 * Renoise import/export
 see [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
@@ -138,8 +141,9 @@ see [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
 * cl-patterns "patterns-as-audio" backend
 * allow the clock to be stopped and resumed (i.e. for it to be slave to an external clock)
 ** might need to get rid of ~local-time~ stuff for this to work
-* functions to get output range of patterns, so something like ~range~ could be used on them to easily set numeric output ranges.
+* functions to get output range of patterns, so something like ~range~ could be used on them to easily set numeric output ranges. probably would also be nice to have this metadata for supercollider/cl-collider ugens as well.
 * additional event types:
+https://depts.washington.edu/dxscdoc/Help/Overviews/Event_types.html
 | type  | description                                                      |
 |-------+------------------------------------------------------------------|
 | on    | create a synth without release                                   |
@@ -190,3 +194,4 @@ take into account these variables (and maybe others?):
 * more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
 ** ~ipstream~
 * ~pswing~ pattern to apply swing to an input pattern
+* [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]]
