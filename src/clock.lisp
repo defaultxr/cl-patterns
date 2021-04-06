@@ -42,7 +42,7 @@ See also: `beat'"
 (defclass task ()
   ((item :initarg :item :initform nil :accessor task-item :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
    (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
-   (start-beat :initarg :start-beat :initform nil :type number :documentation "The beat of the clock when the task started.")
+   (start-beat :initarg :start-beat :initform nil :type (or null number) :documentation "The beat of the clock when the task started.")
    (clock :initarg :clock :accessor task-clock :type clock :documentation "The clock that the task is running on.")
    (backend-resources :initarg :backend-resources :initform nil :documentation "Resources associated with this task that should be freed by it, i.e. nodes it triggered, buffers it loaded, etc."))
   (:documentation "An item scheduled to be run on the clock."))
