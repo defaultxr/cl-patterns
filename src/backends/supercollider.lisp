@@ -120,7 +120,7 @@
   (let* ((synth *cl-collider-buffer-preview-synth*)
          (synthdef-controls (mapcar #'car (cl-collider:synthdef-metadata synth :controls))))
     (play (event :backend :supercollider
-                 ;; :type :note-on ;; to avoid automatically stopping it ;; FIX: implement this note type
+                 ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument synth
                  (find-if (lambda (x) ;; buffer or bufnum argument
                             (position x (list 'buffer 'bufnum) :test #'string-equal))

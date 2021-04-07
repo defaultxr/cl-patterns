@@ -159,6 +159,13 @@
                                 :pdurstutter (pseq (list 3 2 1)))))
            "pbind's pr and/or pdurstutter special keys do not work correctly"))
 
+(test special-wrap-keys ;; FIX: should work for all filter patterns
+  "Test behavior of wrap keys"
+  (is (every-event-equal
+       (list (event :foo 0 :x 1) (event :foo 1 :x 2) (event :foo 1 :x 2) (event :foo 2 :x 3) (event :foo 2 :x 3) (event :foo 2 :x 3))
+       (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
+      "pk in pr's repeats parameter can't access keys from pbind in pr's pattern parameter"))
+
 (test t-pstream
   "Test functionality of non-patterns as pstreams"
   (is (= 1
@@ -295,12 +302,6 @@
                      (cl-patterns::last-output pstr))
         "last-output doesn't return the second output of a pstream")))
 
-(test special-wrap-keys ;; FIX: should work for all filter patterns
-  "Test behavior of wrap keys"
-  (is (every-event-equal
-       (list (event :foo 0 :x 1) (event :foo 1 :x 2) (event :foo 1 :x 2) (event :foo 2 :x 3) (event :foo 2 :x 3) (event :foo 2 :x 3))
-       (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
-      "pk in pr's repeats parameter can't access keys from pbind in pr's pattern parameter"))
 
 (test pseq
   "Test pseq"

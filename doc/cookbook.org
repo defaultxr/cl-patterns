@@ -1,7 +1,7 @@
 #+TITLE: cl-patterns cookbook
 #+OPTIONS: num:nil
 
-A "cookbook" for cl-patterns; various recipes for instruction and inspiration.
+A "cookbook" for cl-patterns; various recipes for ideas and inspiration.
 
 * Random notes from a scale
 

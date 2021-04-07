@@ -129,6 +129,7 @@
   (let* ((dsp *incudine-buffer-preview-dsp*)
          (dsp-controls (backend-instrument-controls dsp :incudine)))
     (play (event :backend :incudine
+                 ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument dsp
                  (find-if (lambda (x)
                             (position x (list 'buffer 'bufnum) :test #'string-equal))
