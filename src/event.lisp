@@ -87,7 +87,16 @@ See also: `event', `e', `raw-event-value'"
     (when (cadr cases) ;; remove keys that are different "units" of the same concept
       (dolist (k (remove-if (lambda (c) (eql c t)) (keys (car cases))))
         (remove-event-value event k)))
-    (setf (raw-event-value event key) value)
+    (let ((rests (multi-channel-funcall #'rest-p value)))
+      (when (and rests (find t (ensure-list rests)))
+        (setf (raw-event-value event :type) (if (listp rests)
+                                                (let ((type (ensure-list (event-value event :type))))
+                                                  (loop :for i :in rests
+                                                        :for idx :from 0
+                                                        :collect (if i :rest (nth-wrap idx type))))
+                                                :rest))))
+    (setf (raw-event-value event key) (multi-channel-funcall (fn (if (typep _ 'prest) (slot-value _ 'value) _))
+                                                             value))
     (when (eql key :beat)
       (setf (slot-value event '%beat) value))
     value))

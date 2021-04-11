@@ -158,6 +158,7 @@
    #:pstream-count
    #:bsubseq
 
+   #:prest
 
    #:find-pdef
    #:all-pdefs

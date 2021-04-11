@@ -799,6 +799,28 @@ See also: `pbind', `pdef'"
 (defmethod as-pstream ((item pbind-pstream))
   item)
 
+;;; prest
+
+(defclass prest ()
+  ((value :initarg :value :initform 1))
+  (:documentation "An object representing a rest. When set as a value in an event, the event's :type becomes :rest and the prest's value slot is used as the actual value for the event key instead."))
+
+(defun prest (&optional (value 1))
+  "Make a prest object, which, when used in a `pbind' or similar event pattern, turns the current event into a rest and yields VALUE for the key's value.
+
+Note that this is not a pattern; it is just a regular function that returns a prest object.
+
+Example:
+
+;; (next-upto-n (pbind :degree (pseq (list 0 1 (prest 2) 3) 1)))
+;; ;=> ((EVENT :DEGREE 0) (EVENT :DEGREE 1) (EVENT :TYPE :REST :DEGREE 2) (EVENT :DEGREE 3))
+
+See also: `pbind', `pbind''s :type key"
+  (make-instance 'prest :value value))
+
+(defmethod rest-p ((prest prest))
+  t)
+
 ;;; pmono
 
 (defun pmono (instrument &rest pairs)

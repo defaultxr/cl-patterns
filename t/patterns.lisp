@@ -302,6 +302,25 @@
                      (cl-patterns::last-output pstr))
         "last-output doesn't return the second output of a pstream")))
 
+(test prest
+  "Test `prest'"
+  (is-true (rest-p (prest))
+           "`rest-p' is not true for prest")
+  (is (equal (list nil t nil)
+             (mapcar #'rest-p (next-upto-n
+                               (pbind :dur (pseq (list 1 (prest 2) 1) 1)
+                                      :dur (p+ (pk :dur) 1)))))
+      "prest does not work properly as a :dur value")
+  (is (equal (list 2 3 2)
+             (mapcar #'dur (next-upto-n
+                            (pbind :dur (pseq (list 1 (prest 2) 1) 1)
+                                   :dur (p+ (pk :dur) 1)))))
+      "prest's value is not used as the value of the key it is used in")
+  (is (equal (list nil t nil)
+             (mapcar #'rest-p (split-event-by-lists
+                               (next (pbind :freq (list 1 (prest 2) 1)
+                                            :freq (p+ (pk :freq) 1))))))
+      "prest does not work properly with multichannel expansion"))
 
 (test pseq
   "Test pseq"
