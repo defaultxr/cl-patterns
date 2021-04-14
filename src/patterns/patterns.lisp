@@ -1282,6 +1282,9 @@ See also: `all-patterns', `playing-pdefs', `all-instruments'"
             (slot-value pattern 'loop-p)
             t))))
 
+(defmethod keys ((pdef pdef))
+  (keys (pdef-pattern pdef)))
+
 (defmethod as-pstream ((pdef pdef))
   (with-slots (key pattern) pdef
     (if (pdef-ref key)
