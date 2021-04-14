@@ -47,10 +47,9 @@
         (ptracker (list :foo 1 :repeats 3) (list (list :foo (pseries))))))
       "patterns embedded in ptracker rows are not used to generate values in ptracker's output events")
   (is (equal (list t t t)
-             (mapcar (lambda (i) (numberp i))
-                     (gete (next-upto-n
-                            (ptracker (list :foo 1 :repeats 3) (list (list :foo (pseries)))))
-                           :foo)))
+             (mapcar (fn (numberp (event-value _ :foo)))
+                     (next-upto-n
+                      (ptracker (list :foo 1 :repeats 3) (list (list :foo (pseries)))))))
       "functions in ptracker rows are not evalated to generate values in output events")
   (is (every-event-equal
        (list

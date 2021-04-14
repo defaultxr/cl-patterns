@@ -102,7 +102,8 @@
            (beat pstr)))
       "beat returns incorrect results")
   (is-true (equal (list 0 1 2 3)
-                  (gete (next-n (pbind :dur 1 :x (pfunc (lambda () (beat *event*)))) 4) :x))
+                  (mapcar (fn (event-value _ :x))
+                          (next-n (pbind :dur 1 :x (pfunc (lambda () (beat *event*)))) 4)))
            "*event*'s beat is not correct in patterns"))
 
 (test quant

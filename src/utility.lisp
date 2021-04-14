@@ -27,12 +27,10 @@
 
 ;;; list stuff
 
-(defun gete (list key)
-  "Get a list of the value of KEY for each event in LIST."
-  (mapcar (lambda (event)
-            (unless (null event)
-              (event-value event key)))
-          list))
+(uiop:with-deprecation (:style-warning)
+  (defun gete (list key)
+    "Get a list of the value of KEY for each event in LIST."
+    (mapcar (fn (event-value _ key)) list)))
 
 (defun normalized-sum (list)
   "Return a copy of LIST normalized so all of its numbers summed together equal 1."

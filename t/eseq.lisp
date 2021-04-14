@@ -7,11 +7,12 @@
   (is (= 2
          (eseq-length (eseq (list (event :foo 1) (event :foo 2)))))
       "eseq-length does not return correct results")
-  (is (apply #'<= (gete (eseq-events (eseq (list
-                                            (event :beat 0)
-                                            (event :beat 1)
-                                            (event :beat 2)
-                                            (event :beat 3)))) :beat))
+  (is (apply #'<= (mapcar #'beat
+                          (eseq-events (eseq (list
+                                              (event :beat 0)
+                                              (event :beat 1)
+                                              (event :beat 2)
+                                              (event :beat 3))))))
       "eseq does not keep its events in order by beat"))
 
 (test bsubseq-eseq
