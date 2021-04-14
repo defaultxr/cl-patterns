@@ -29,6 +29,7 @@
    #:loop-p
    #:play-or-stop
    #:play-or-end
+   #:all-instruments
    #:render
 
    ;;; conversions.lisp

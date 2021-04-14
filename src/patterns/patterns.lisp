@@ -1231,7 +1231,7 @@ See also: `pdef', `all-pdefs'"
 (defun all-pdefs (&optional package)
   "Get a list of all pdefs. With PACKAGE, get all pdefs whose key is in that package.
 
-See also: `all-patterns'"
+See also: `all-patterns', `playing-pdefs', `all-instruments'"
   (let ((res (keys *pdef-dictionary*)))
     (if package
         (let ((package (etypecase package

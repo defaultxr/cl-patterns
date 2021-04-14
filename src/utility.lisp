@@ -332,6 +332,15 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs', `playing-nodes'"))
         nil)
       (play object)))
 
+(defun all-instruments (&optional backend)
+  "Get a list of the names of all instruments defined for BACKEND, or all enabled backends if none specified.
+
+See also: `playing-nodes', `all-patterns', `all-pdefs', `enabled-backends'"
+  (loop :for backend :in (or (ensure-list backend) (enabled-backends))
+        :append (backend-all-instruments backend)))
+
+;;; render
+
 (defgeneric render (object output &key tempo max-pattern-yield-length max-output-duration &allow-other-keys)
   (:documentation "Render a pattern or other object as audio or other format. OUTPUT is what the pattern should be rendered as. It accepts the following values:
 

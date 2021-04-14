@@ -27,6 +27,9 @@
 (defmethod backend-instrument-controls (instrument (backend (eql :supercollider)))
   (mapcar #'car (cl-collider:synthdef-metadata instrument :controls)))
 
+(defmethod backend-all-instruments ((backend (eql :supercollider)))
+  (keys cl-collider::*synthdef-metadata*))
+
 (defmethod backend-all-nodes ((backend (eql :supercollider)))
   ;; cl-collider doesn't store the node objects themselves, so this method creates its own node objects.
   ;; unfortunately, that means that the objects returned by this function won't have all information, such as the 'name slot.

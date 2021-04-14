@@ -78,6 +78,10 @@
 
 (defmethod backend-instrument-controls (instrument (backend (eql :incudine)))
   (incudine.vug::dsp-properties-arguments (incudine.vug::get-dsp-properties (incudine-dsp-name instrument))))
+
+(defmethod backend-all-instruments ((backend (eql :incudine)))
+  (incudine.vug:all-dsp-names))
+
 (defmethod backend-all-nodes ((backend (eql :incudine)))
   ;; FIX; perhaps we can parse the output of (let ((stream (make-string-output-stream))) (incudine:dump 0 stream) stream) ?
   )

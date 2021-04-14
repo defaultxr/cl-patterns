@@ -116,6 +116,9 @@ See also: `alsa-midi-instrument-program-number'"
 (defmethod backend-instrument-controls (instrument (backend (eql :alsa-midi)))
   (keys *alsa-midi-cc-map*))
 
+(defmethod backend-all-instruments ((backend (eql :alsa-midi)))
+  (keys *alsa-midi-instrument-map*))
+
 (defmethod backend-all-nodes ((backend (eql :alsa-midi)))
   nil)
 
