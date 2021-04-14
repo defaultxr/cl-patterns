@@ -113,23 +113,6 @@ See also: `task-pattern', `clock-tasks'"
                                    (eq pattern (pdef-pattern source))))))))
                    (slot-value clock 'tasks))))
 
-(defun playing-pdefs (&optional (clock *clock*))
-  "Get a list of the names of all pdefs playing on CLOCK.
-
-See also: `playing-nodes', `playing-p'"
-  (loop :for task :in (clock-tasks clock)
-        :for item := (slot-value task 'item)
-        :if (ignore-errors (slot-boundp item 'key))
-          :collect (slot-value item 'key)))
-
-(defun playing-nodes (&optional backend)
-  "Get a list of all nodes on BACKEND that are currently playing. Without BACKEND, get all playing nodes on all backends.
-
-See also: `playing-pdefs', `playing-p'"
-  (if backend
-      (backend-all-nodes backend)
-      (apply #'append (mapcar #'playing-nodes (enabled-backends)))))
-
 (defun make-clock (&optional (tempo 1) &key play-expired-events)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
 

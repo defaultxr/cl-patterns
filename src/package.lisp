@@ -30,6 +30,8 @@
    #:play-or-stop
    #:play-or-end
    #:all-instruments
+   #:playing-nodes
+
    #:render
 
    ;;; conversions.lisp
@@ -163,6 +165,7 @@
 
    #:find-pdef
    #:all-pdefs
+   #:playing-pdefs
    #:pdef-key
    #:pdef-pattern
    #:pdef-pstream
@@ -205,8 +208,6 @@
 
    #:task-pattern
    #:pattern-tasks
-   #:playing-pdefs
-   #:playing-nodes
 
    #:make-clock
    #:clock-tasks

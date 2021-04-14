@@ -1243,6 +1243,15 @@ See also: `all-patterns', `playing-pdefs', `all-instruments'"
            res))
         res)))
 
+(defun playing-pdefs (&optional (clock *clock*))
+  "Get a list of the names of all pdefs playing on CLOCK.
+
+See also: `all-pdefs', `playing-nodes', `playing-p'"
+  (loop :for task :in (clock-tasks clock)
+        :for item := (slot-value task 'item)
+        :if (ignore-errors (pdef-key item))
+          :collect (pdef-key item)))
+
 (defun ensure-pdef (object)
   "Attempt to ensure OBJECT is a pdef."
   (etypecase object

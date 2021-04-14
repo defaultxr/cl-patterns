@@ -337,6 +337,14 @@ See also: `playing-nodes', `all-patterns', `all-pdefs', `enabled-backends'"
   (loop :for backend :in (or (ensure-list backend) (enabled-backends))
         :append (backend-all-instruments backend)))
 
+(defun playing-nodes (&optional backend)
+  "Get a list of all nodes on BACKEND that are currently playing. Without BACKEND, get all playing nodes on all backends.
+
+See also: `all-instruments', `playing-pdefs', `playing-p'"
+  (if backend
+      (backend-all-nodes backend)
+      (apply #'append (mapcar #'playing-nodes (enabled-backends)))))
+
 ;;; render
 
 (defgeneric render (object output &key tempo max-pattern-yield-length max-output-duration &allow-other-keys)
