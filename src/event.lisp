@@ -135,7 +135,13 @@ See also: `event-value', `event', `*event*'"
   (eql :rest (event-value event :type)))
 
 (defmethod (setf rest-p) (value (event event))
-  (setf (event-value event :type) :rest))
+  (setf (event-value event :type) (cond
+                                    ((eql t value) :rest)
+                                    ((eql nil value) :note)
+                                    (t value))))
+
+(defmethod play ((event event))
+  (clock-add (as-pstream event) *clock*))
 
 (defmethod loop-p ((event event))
   (event-value event :loop-p))

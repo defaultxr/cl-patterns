@@ -293,23 +293,72 @@ See also: `quant', `play-quant', `next-beat-for-quant', `beat', `end', `pdef'"))
 
 See also: `launch', `stop'"))
 
+(defmethod play ((symbol symbol))
+  (when-let ((res (lookup-object-for-symbol symbol)))
+    (play res)))
+
+(defmethod play ((list list))
+  (mapcar #'play list))
+
 (defgeneric launch (object)
   (:documentation "Play a new copy of OBJECT on the clock. Unlike `play', calling this method on a `pdef' will always start a new copy of its pattern instead of the pdef itself.
 
 See also: `play'"))
+
+(defmethod launch ((object t)) ;; forward to `play' if a more specific method hasn't been defined for a class.
+  (play object))
+
+(defmethod launch ((symbol symbol))
+  (when-let ((res (lookup-object-for-symbol symbol)))
+    (launch res)))
+
+(defmethod launch ((list list))
+  (mapcar #'launch list))
 
 (defgeneric stop (object)
   (:documentation "Immediately stop a playing object (typically a pattern, pdef, task, or node). If OBJECT is T, stop all playing patterns and nodes.
 
 See also: `end', `play'"))
 
+(defmethod stop ((object (eql t))) ;; (stop t) to stop all playing pdefs and nodes.
+  (stop (clock-tasks))
+  (dolist (backend (enabled-backends))
+    (backend-panic backend)))
+
+(defmethod stop ((symbol symbol))
+  (when-let ((res (lookup-object-for-symbol symbol)))
+    (stop res)))
+
+(defmethod stop ((list list))
+  (mapcar #'stop list))
+
+(defmethod stop ((null null))
+  nil)
+
 (defgeneric end (object)
   (:documentation "End a task; it will stop when its current loop completes."))
+
+(defmethod end ((object t)) ;; forward to `stop' if a more specific method hasn't been defined for a class.
+  (stop object))
+
+(defmethod end ((symbol symbol))
+  (when-let ((res (lookup-object-for-symbol symbol)))
+    (end res)))
+
+(defmethod end ((list list))
+  (mapcar #'end list))
 
 (defgeneric playing-p (object &optional clock)
   (:documentation "Whether OBJECT is playing.
 
 See also: `play-or-stop', `play-or-end', `playing-pdefs', `playing-nodes'"))
+
+(defmethod playing-p ((symbol symbol) &optional (clock *clock*))
+  (when-let ((res (lookup-object-for-symbol symbol)))
+    (playing-p res clock)))
+
+(defmethod playing-p ((list list) &optional (clock *clock*))
+  (mapcar (fn _ (playing-p _ clock)) list))
 
 (defgeneric loop-p (object)
   (:documentation "Whether or not OBJECT should play again after it ends."))

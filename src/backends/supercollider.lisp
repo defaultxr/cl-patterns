@@ -115,9 +115,8 @@
 (defmethod end ((object cl-collider::node))
   (cl-collider:release object))
 
-(defmethod playing-p ((node cl-collider::node) &optional (server cl-collider:*s*))
-  (when (position (cl-collider::id node) (cl-collider::node-watcher server))
-    t))
+(defmethod playing-p ((node cl-collider::node) &optional (clock *clock*))
+  (find (cl-collider::id node) (cl-collider::node-watcher cl-collider:*s*)))
 
 (defmethod play ((buffer cl-collider::buffer))
   (let* ((synth *cl-collider-buffer-preview-synth*)
@@ -130,8 +129,7 @@
                           synthdef-controls)
                  (cl-collider:bufnum buffer) ;; get the actual buffer number
                  :dur 32
-                 :quant 0
-                 :latency 0))))
+                 :quant 0))))
 
 (register-backend :supercollider)
 

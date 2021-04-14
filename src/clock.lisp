@@ -82,6 +82,15 @@ See also: `beat'"
 (defmethod beat ((task task))
   (beat (task-item task)))
 
+(defmethod stop ((task task))
+  (clock-remove task))
+
+(defmethod end ((item task))
+  (setf (slot-value item 'loop-p) nil))
+
+(defmethod playing-p ((task task) &optional (clock *clock*))
+  (position task (clock-tasks clock)))
+
 (defmethod loop-p ((task task))
   (if (slot-boundp task 'loop-p)
       (slot-value task 'loop-p)
@@ -328,97 +337,3 @@ See also: `clock-loop'"
         (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
       (warn "A clock appears to be running already; doing nothing. Set ~s's ~s argument to true to force the creation of a new clock and thread regardless." 'start-clock-loop 'force))
   *clock*)
-
-;;; play/stop/end methods
-
-(defmethod play ((event event))
-  (clock-add (as-pstream event) *clock*))
-
-(defmethod play ((pattern pattern))
-  (clock-add (as-pstream pattern) *clock*))
-
-(defmethod play ((pdef pdef))
-  ;; if there is already a task playing this pdef, we do nothing.
-  ;; you can use `launch' instead to force launching a second instance of the pattern.
-  (unless (position (pdef-task pdef) (clock-tasks *clock*))
-    (let ((task (call-next-method)))
-      (when (typep task 'task)
-        (setf (pdef-task pdef) task)
-        task))))
-
-(defmethod play ((symbol symbol))
-  (when-let ((res (lookup-object-for-symbol symbol)))
-    (play res)))
-
-(defmethod play ((list list))
-  (mapcar 'play list))
-
-(defmethod launch ((item t)) ;; forward to `play' if a more specific method hasn't been defined for a class.
-  (play item))
-
-(defmethod launch ((event event))
-  (play event))
-
-(defmethod launch ((pattern pattern))
-  (play pattern))
-
-(defmethod launch ((pdef pdef))
-  (play (pdef-pattern pdef)))
-
-(defmethod launch ((symbol symbol))
-  (launch (pdef symbol)))
-
-(defmethod launch ((list list))
-  (mapcar 'launch list))
-
-(defmethod stop ((pdef pdef))
-  (when-let ((task (pdef-task pdef)))
-    (stop task))
-  (setf (pdef-pstream pdef) (as-pstream (pdef-pattern pdef))
-        (pdef-task pdef) nil))
-
-(defmethod stop ((symbol symbol))
-  (stop (pdef symbol)))
-
-(defmethod stop ((task task))
-  (clock-remove task))
-
-(defmethod stop ((list list))
-  (mapcar 'stop list))
-
-(defmethod stop ((item null))
-  nil)
-
-(defmethod stop ((item (eql t))) ;; (stop t) to stop all playing pdefs and nodes.
-  (stop (playing-pdefs))
-  (dolist (backend (enabled-backends))
-    (backend-panic backend)))
-
-(defmethod end ((item t)) ;; forward to `stop' if a more specific method hasn't been defined for a class.
-  (stop item))
-
-(defmethod end ((pdef pdef))
-  (if (pdef-task pdef)
-      (end (pdef-task pdef))
-      (warn "~s has no connected task; try the `stop' method instead." pdef)))
-
-(defmethod end ((item symbol))
-  (end (pdef item)))
-
-(defmethod end ((item task))
-  (setf (slot-value item 'loop-p) nil))
-
-(defmethod end ((list list))
-  (mapcar 'end list))
-
-(defmethod playing-p ((task task) &optional (clock *clock*))
-  (position task (clock-tasks clock)))
-
-(defmethod playing-p ((pdef pdef) &optional (clock *clock*))
-  (position pdef (clock-tasks clock)))
-
-(defmethod playing-p ((key symbol) &optional (clock *clock*))
-  (position key (playing-pdefs clock)))
-
-(defmethod playing-p ((list list) &optional (clock *clock*))
-  (mapcar (lambda (item) (playing-p item clock)) list))

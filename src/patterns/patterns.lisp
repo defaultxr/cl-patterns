@@ -156,6 +156,16 @@ See also: `all-pdefs'"
 (defmethod (setf end-quant) (value (pattern pattern))
   (setf (slot-value pattern 'end-quant) (ensure-list value)))
 
+(defmethod play ((pattern pattern))
+  (clock-add (as-pstream pattern) *clock*))
+
+(defmethod launch ((pattern pattern))
+  (play pattern))
+
+(defmethod playing-p ((pattern pattern) &optional (clock *clock*))
+  (find pattern (clock-tasks clock)
+        :key (fn (slot-value _ 'item))))
+
 (defmethod loop-p ((pattern pattern))
   (if (slot-boundp pattern 'loop-p)
       (slot-value pattern 'loop-p)
@@ -1282,6 +1292,33 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
   (if (slot-boundp pdef 'end-quant)
       (slot-value pdef 'end-quant)
       (end-quant (pdef-pattern pdef))))
+
+(defmethod play ((pdef pdef))
+  ;; if there is already a task playing this pdef, we do nothing.
+  ;; you can use `launch' instead to force launching a second instance of the pattern.
+  (unless (position (pdef-task pdef) (clock-tasks *clock*))
+    (let ((task (call-next-method)))
+      (when (typep task 'task)
+        (setf (pdef-task pdef) task)
+        task))))
+
+(defmethod launch ((pdef pdef))
+  (play (pdef-pattern pdef)))
+
+(defmethod stop ((pdef pdef))
+  (when-let ((task (pdef-task pdef)))
+    (stop task))
+  (setf (pdef-pstream pdef) (as-pstream (pdef-pattern pdef))
+        (pdef-task pdef) nil))
+
+(defmethod end ((pdef pdef))
+  (if (pdef-task pdef)
+      (end (pdef-task pdef))
+      (warn "~s has no connected task; try the `stop' method instead." pdef)))
+
+(defmethod playing-p ((pdef pdef) &optional (clock *clock*))
+  (find (pdef-key pdef) (clock-tasks clock)
+        :key (fn (ignore-errors (pdef-key (slot-value _ 'item))))))
 
 (defmethod loop-p ((pdef pdef))
   (if (slot-boundp pdef 'loop-p)
