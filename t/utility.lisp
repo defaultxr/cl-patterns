@@ -89,6 +89,11 @@
   ;; FIX: test more of the negative DIRECTION
   )
 
+(test tempo
+  "Test the `tempo' function"
+  ;; FIX
+  )
+
 (test beat
   "Test the `beat' function"
   (is (= 8
@@ -100,8 +105,91 @@
                   (gete (next-n (pbind :dur 1 :x (pfunc (lambda () (beat *event*)))) 4) :x))
            "*event*'s beat is not correct in patterns"))
 
+(test quant
+  "Test the `quant' function"
+  ;; FIX
+  )
+
+(test play-quant
+  "Test the `play-quant' function"
+  ;; FIX
+  )
+
+(test end-quant
+  "Test the `end-quant' function"
+  ;; FIX
+  )
+
+(test rest-p
+  "Test the `rest-p' function"
+  ;; FIX
+  )
+
+(test play
+  "Test the `play' function"
+  ;; FIX
+  )
+
+(test launch
+  "Test the `launch' function"
+  ;; FIX
+  )
+
+(test stop
+  "Test the `stop' function"
+  ;; FIX
+  )
+
+(test end
+  "Test the `end' function"
+  ;; FIX
+  )
+
+(test playing-p
+  "Test the `playing-p' function"
+  ;; FIX
+  )
+
+(test loop-p
+  "Test the `loop-p' function"
+  ;; FIX
+  )
+
+(test play-or-stop
+  "Test the `play-or-stop' function"
+  ;; FIX
+  )
+
+(test play-or-end
+  "Test the `play-or-end' function"
+  ;; FIX
+  )
+
+(test all-instruments
+  "Test the `all-instruments' function"
+  ;; FIX
+  )
+
+(test playing-nodes
+  "Test the `playing-nodes' function"
+  ;; FIX
+  )
+
+(test render
+  "Test the `render' function"
+  ;; FIX
+  )
+
 (test keys
   "Test cl-patterns `keys' methods"
   (is (equal (list :foo :bar)
-             (cl-patterns::keys (event :foo 1 :bar 2)))
-      "keys doesn't work correctly for events"))
+             (keys (event :foo 1 :bar 2)))
+      "keys doesn't work correctly for events")
+  (is (equal (list :foo :bar)
+             (keys (pbind :foo 1 :bar 2)))
+      "keys doesn't work correctly for pbinds")
+  (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
+    (pdef :test-pat (pbind :foo 1 :bar :2))
+    (is (equal (list :foo :bar)
+               (keys (pdef :test-pat)))
+        "keys doesn't work correctly for pdefs")))
