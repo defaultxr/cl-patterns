@@ -122,7 +122,7 @@ See also: `alexandria:clamp', `wrap'"
       range))
 
 
-(defun seq (&key start end limit step (default :mean))
+(defun seq (&key start end limit step (default :mean)) ;; FIX: deprecate and move to mutility
   "Generate a sequence of numbers as a list.
 
 START is the start of the range, END is the end. LIMIT is a hard limit on the number of results in the sequence. STEP is the interval between each number in the sequence.
@@ -134,7 +134,7 @@ If LIMIT is 1, DEFAULT is used to find the value. DEFAULT can be :START, :END, :
 See also: `seq-range'"
   (cond ((and limit step)
          (loop :for i :from start :upto end :by step :repeat limit
-            :collect i))
+               :collect i))
         ((and limit (null step))
          (if (= 1 limit)
              (case default
@@ -143,17 +143,17 @@ See also: `seq-range'"
                (:end end)
                (t default))
              (loop :for i :from start :upto end :by (/ (- end start) (1- limit))
-                :collect i)))
+                   :collect i)))
         ((and step (null limit))
          (loop :for i :from start :upto end :by step
-            :collect i))
+               :collect i))
         ((and (null step) (null limit))
          (loop :repeat (1+ (abs (- end start)))
-            :with i = start
-            :collect i
-            :do (incf i (signum (- end start)))))))
+               :with i := start
+               :collect i
+               :do (incf i (signum (- end start)))))))
 
-(defun seq-range (num &optional stop step)
+(defun seq-range (num &optional stop step) ;; FIX: deprecate and move to mutility
   "Conveniently generate a sequence of numbers as a list. This function is based off Python's range() function, and thus has three ways of being called:
 
 With one argument NUM, generate a range from 0 to (1- NUM):
