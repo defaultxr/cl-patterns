@@ -688,7 +688,7 @@ See also: `pmono', `pb'"
 See also: `pbind', `pdef'"
   (if (length= 1 pairs)
       `(pdef ,key ,@pairs)
-      `(pbind :pdef ,key ,@pairs)))
+      `(pdef ,key (pbind ,@pairs))))
 
 (pushnew 'pb *patterns*)
 
