@@ -63,6 +63,35 @@ This library isn't just a copy of SuperCollider's patterns - I wanted to improve
 
 If you're familiar with SuperCollider, you may also want to look at [[file:doc/sc-differences.org][sc-differences.org]] for a listing of differences between this library and SC's patterns, or [[file:doc/sc.org][sc.org]] for a listing of patterns in SuperCollider and their equivalent (and implementation status) in cl-patterns.
 
+** Emacs "Helper Functions"
+
+Included in [[file:res/emacs/][res/emacs/]] are a few small libraries that make it more convenient to work with cl-patterns and the synthesis engines it supports from inside Emacs. Their functionality includes:
+
+- commands for playing/stopping the pattern, buffer, proxy, or other object under point
+- command to stop all playing patterns, nodes, etc.
+- command to open the SuperCollider documentation for a specified class (with completion)
+- [[file:res/emacs/cl-patterns-skeletons.el][skeletons]] for commonly-used patterns/functions
+- and a few other utility functions.
+
+Here's the recommended setup to load these libraries automatically via your Emacs init file:
+
+#+begin_src emacs-lisp
+  (defun cl-patterns-helpers-load ()
+    (interactive)
+    (sly-eval-async '(cl:namestring (asdf:system-source-directory (asdf:find-system 'cl-patterns)))
+      (lambda (path)
+        (load (concat path "res/emacs/cl-patterns-helpers") nil nil nil t)
+        (load (concat path "res/emacs/cl-patterns-skeletons") nil nil nil t)))
+    (define-key sly-mode-map (kbd "C-c p") 'cl-patterns-play-or-end-context-or-select-pdef)
+    (define-key sly-mode-map (kbd "C-c P") 'cl-patterns-play-or-stop-context-or-select-pdef)
+    (define-key sly-mode-map (kbd "C-c s") 'cl-patterns-stop-all)
+    (define-key sly-doc-map (kbd "s") 'cl-patterns-supercollider-documentation))
+
+  (add-hook 'sly-connected-hook 'cl-patterns-helpers-load)
+#+end_src
+
+The above should also work with slime; just replace all instances of "sly" with "slime".
+
 * Current Status
 
 Right now, the library may be described as being in a "alpha" state, as major changes (which may break code you write) are still very likely to happen. However, these changes should be documented in commit messages, so check those if you have any issues after updating.
@@ -113,6 +142,13 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:doc/TODO.org][TODO.org]] - a list of things and ideas that have not yet been implemented into cl-patterns, but may be in the future.
 - [[file:doc/tutorial.org][tutorial.org]] - explanation of the basic concepts of cl-patterns, meant for people who have never used SuperCollider's patterns.
 - [[file:doc/writing-your-own.org][writing-your-own.org]] - information about how to write your own pattern classes.
+
+** res
+
+*** emacs
+
+- [[file:res/emacs/cl-patterns-helpers.el][cl-patterns-helpers.el]] - Helper functions to make cl-patterns more convenient to use from Emacs (see [[Emacs "Helper Functions"][above]]).
+- [[file:res/emacs/cl-patterns-skeletons.el][cl-patterns-skeletons.el]] - Emacs skeletons (templates) for quickly inserting commonly-used lisp forms.
 
 ** src
 
