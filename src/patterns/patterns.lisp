@@ -37,10 +37,10 @@ DOCUMENTATION is a docstring describing the pattern. We recommend providing at l
 DEFUN can either be a full defun form for the pattern, or an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example."
   (let* ((superclasses (or superclasses (list 'pattern)))
          (slots (mapcar #'ensure-list slots))
-         (name-pstream (intern (concatenate 'string (symbol-name name) "-PSTREAM") 'cl-patterns))
+         (name-pstream (symbolicate name '-pstream))
          (super-pstream (if (eql 'pattern (car superclasses))
                             'pstream
-                            (intern (concatenate 'string (symbol-name (car superclasses)) "-PSTREAM") 'cl-patterns))))
+                            (symbolicate (car superclasses) '-pstream))))
     (labels ((desugar-slot (slot)
                "Convert a slot into something appropriate for defclass to handle."
                (let ((name (car slot))
@@ -57,25 +57,26 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                (position :state (keys (cdr slot))))
              (function-lambda-list (slots)
                "Generate the lambda list for the pattern's creation function."
-               (let ((optional-used nil))
-                 (loop :for slot :in slots
-                       :append (unless (state-slot-p slot)
-                                 (if (optional-slot-p slot)
-                                     (prog1
-                                         (append (if (not optional-used)
-                                                     (list '&optional)
-                                                     (list))
-                                                 (list (list (car slot) (getf (cdr slot) :default))))
-                                       (setf optional-used t))
-                                     (list (car slot)))))))
+               (let (optional-used)
+                 (mapcan (fn (unless (state-slot-p _)
+                               (if (optional-slot-p _)
+                                   (prog1
+                                       (append (if optional-used
+                                                   (list)
+                                                   (list '&optional))
+                                               (list (list (car _) (getf (cdr _) :default))))
+                                     (setf optional-used t))
+                                   (list (car _)))))
+                         slots)))
              (make-defun (pre-init)
                `(defun ,name ,(function-lambda-list slots)
                   ,documentation
                   ,@(when pre-init (list pre-init))
                   (set-parents
                    (make-instance ',name
-                                  ,@(mapcan (lambda (i) (list (make-keyword (car i)) (car i)))
-                                            (remove-if #'state-slot-p slots))))))
+                                  ,@(mapcan (fn (unless (state-slot-p _)
+                                                  (list (make-keyword (car _)) (car _))))
+                                            slots)))))
              (add-doc-to-defun (sexp)
                (if (and (listp sexp)
                         (position (car sexp) (list 'defun 'defmacro))
@@ -465,7 +466,7 @@ See also: `pattern-as-pstream'"))
 (defmethod as-pstream ((pattern pattern))
   (let ((slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
     (apply #'make-instance
-           (intern (concatenate 'string (symbol-name (class-name (class-of pattern))) "-PSTREAM") 'cl-patterns)
+           (symbolicate (class-name (class-of pattern)) '-pstream)
            (loop :for slot :in slots
                  :if (slot-boundp pattern slot)
                    :append (list (make-keyword slot)
@@ -703,7 +704,7 @@ See also: `pbind', `pdef'"
 (defmethod as-pstream ((pbind pbind))
   (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pbind)))))
     (apply #'make-instance
-           (intern (concatenate 'string (symbol-name (class-name (class-of pbind))) "-PSTREAM") 'cl-patterns)
+           (symbolicate (class-name (class-of pbind)) '-pstream)
            (loop :for slot :in slots
                  :for slot-kw := (make-keyword slot)
                  :for bound := (slot-boundp pbind slot)
@@ -716,11 +717,10 @@ See also: `pbind', `pdef'"
 
 (defmacro define-pbind-special-init-key (key &body body)
   "Define a special key for pbind that alters the pbind during its initialization, either by embedding a plist into its pattern-pairs or in another way. These functions are called once, when the pbind is created, and must return a plist if the key should embed values into the pbind pairs, or NIL if it should not."
-  (let ((keyname (make-keyword key)))
-    `(setf (getf *pbind-special-init-keys* ,keyname)
-           (lambda (value pattern)
-             (declare (ignorable value pattern))
-             ,@body))))
+  `(setf (getf *pbind-special-init-keys* ,(make-keyword key))
+         (lambda (value pattern)
+           (declare (ignorable value pattern))
+           ,@body)))
 
 ;; (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well. maybe just rename to 'synth'?
 ;;   (list :instrument value))
@@ -731,11 +731,10 @@ See also: `pbind', `pdef'"
 
 (defmacro define-pbind-special-wrap-key (key &body body)
   "Define a special key for pbind that replaces the pbind with another pattern during the pbind's initialization. Each encapsulation key is run once on the pbind after it has been initialized, altering the type of pattern returned if the return value of the function is non-NIL."
-  (let ((keyname (make-keyword key)))
-    `(setf (getf *pbind-special-wrap-keys* ,keyname)
-           (lambda (value pattern)
-             (declare (ignorable value pattern))
-             ,@body))))
+  `(setf (getf *pbind-special-wrap-keys* ,(make-keyword key))
+         (lambda (value pattern)
+           (declare (ignorable value pattern))
+           ,@body)))
 
 (define-pbind-special-wrap-key parp
   (parp pattern value))
@@ -777,10 +776,9 @@ See also: `pbind', `pdef'"
 
 (defmacro define-pbind-special-process-key (key &body body)
   "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return an event if the key should embed values into the event stream, or NIL if the pstream should end."
-  (let ((keyname (make-keyword key)))
-    `(setf (getf *pbind-special-process-keys* ,keyname)
-           (lambda (value)
-             ,@body))))
+  `(setf (getf *pbind-special-process-keys* ,(make-keyword key))
+         (lambda (value)
+           ,@body)))
 
 (define-pbind-special-process-key embed
   value)
@@ -2655,7 +2653,7 @@ See also: `psym'")
                                           pstreams)))
                  (most #'< res :key #'beat)))
              (maybe-reset-pstreams ()
-               (when (null (remove-if #'null pstreams))
+               (unless (remove nil pstreams)
                  (let ((next-list (next list)))
                    (when (null next-list)
                      (return-from maybe-reset-pstreams nil))
@@ -2663,15 +2661,14 @@ See also: `psym'")
       (when (zerop history-number)
         (maybe-reset-pstreams))
       (let ((nxt (next (next-in-pstreams))))
-        (if (null nxt)
-            (let ((nip (next-in-pstreams)))
-              (when nip
-                (let ((beppar (beat ppar))
-                      (benip (beat nip)))
-                  (if (< beppar benip)
-                      (event :type :rest :delta (- benip beppar))
-                      (next ppar)))))
-            (combine-events nxt (event :delta (- (beat (next-in-pstreams)) (beat ppar)))))))))
+        (if nxt
+            (combine-events nxt (event :delta (- (beat (next-in-pstreams)) (beat ppar))))
+            (when-let ((nip (next-in-pstreams)))
+              (let ((beppar (beat ppar))
+                    (benip (beat nip)))
+                (if (< beppar benip)
+                    (event :type :rest :delta (- benip beppar))
+                    (next ppar)))))))))
 
 ;;; pmeta
 ;; FIX: `pk' doesn't work in pmeta.

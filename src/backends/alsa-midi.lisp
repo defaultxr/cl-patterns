@@ -85,7 +85,7 @@ See also: `alsa-midi-instrument-program-number'"
           nil))))
 
 ;; set default cc mappings
-(mapc (lambda (x) (apply 'alsa-midi-set-cc-mapping x))
+(mapc (fn (apply #'alsa-midi-set-cc-mapping _))
       '((1 "Vibrato/Modulation" :vibrato unipolar-1-to-midi)
         (8 "Balance" :balance bipolar-1-to-midi)
         (10 "Pan" :pan bipolar-1-to-midi)
