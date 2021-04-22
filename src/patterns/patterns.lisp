@@ -175,6 +175,9 @@ See also: `all-pdefs'"
 (defmethod (setf loop-p) (value (pattern pattern))
   (setf (slot-value pattern 'loop-p) value))
 
+(defmethod dur ((pattern pattern))
+  (reduce #'+ (next-upto-n pattern) :key #'dur))
+
 (defgeneric peek (pattern)
   (:documentation "\"Peek\" at the next value of a pstream, without advancing its current position.
 
