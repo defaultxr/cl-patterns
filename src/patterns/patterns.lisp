@@ -1132,30 +1132,24 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defmethod next ((pr pr-pstream))
   (with-slots (pattern repeats current-value current-repeats-remaining) pr
-    (loop :while (or (not (slot-boundp pr 'current-repeats-remaining))
-                     (and (not (null current-repeats-remaining))
-                          (not (null current-value))
-                          (not (value-remaining-p current-repeats-remaining))))
-          :do (setf current-value (next pattern))
-              (when current-value
-                (setf current-repeats-remaining
-                      (let ((*event* (if (event-p current-value)
-                                         (if (null *event*)
-                                             current-value
-                                             (combine-events *event* current-value))
-                                         *event*)))
-                        (if (typep repeats 'function)
-                            (let ((fle (function-lambda-expression repeats)))
-                              (if fle
-                                  (if (length= 0 (cadr fle))
-                                      (funcall repeats)
-                                      (funcall repeats current-value))
-                                  (handler-case
-                                      (funcall repeats current-value) ;; FIX: just provide the current-value as a key in *event*
-                                    #+sbcl (sb-int:simple-program-error (e) ;; FIX: need to add stuff for other implementations or generalize it somehow.
-                                             (declare (ignore e))
-                                             (funcall repeats)))))
-                            (next repeats))))))
+    (while (or (not (slot-boundp pr 'current-repeats-remaining))
+               (and current-repeats-remaining
+                    current-value
+                    (not (value-remaining-p current-repeats-remaining))))
+      (setf current-value (next pattern))
+      (when current-value
+        (setf current-repeats-remaining
+              (let ((*event* (if (event-p current-value)
+                                 (if (null *event*)
+                                     current-value
+                                     (combine-events *event* current-value))
+                                 *event*)))
+                (if (typep repeats 'function)
+                    (let ((arglist (function-arglist repeats)))
+                      (if (null arglist)
+                          (funcall repeats)
+                          (funcall repeats current-value)))
+                    (next repeats))))))
     (when (value-remaining-p current-repeats-remaining)
       (decf-remaining pr 'current-repeats-remaining)
       current-value)))
