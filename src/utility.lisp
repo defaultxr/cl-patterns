@@ -294,7 +294,7 @@ See also: `quant', `play-quant', `next-beat-for-quant', `beat', `end', `pdef'"))
 See also: `launch', `stop'"))
 
 (defmethod play ((symbol symbol))
-  (when-let ((res (lookup-object-for-symbol symbol)))
+  (when-let ((res (find-object-by-id symbol)))
     (play res)))
 
 (defmethod play ((list list))
@@ -309,7 +309,7 @@ See also: `play'"))
   (play object))
 
 (defmethod launch ((symbol symbol))
-  (when-let ((res (lookup-object-for-symbol symbol)))
+  (when-let ((res (find-object-by-id symbol)))
     (launch res)))
 
 (defmethod launch ((list list))
@@ -326,7 +326,7 @@ See also: `end', `play'"))
     (backend-panic backend)))
 
 (defmethod stop ((symbol symbol))
-  (when-let ((res (lookup-object-for-symbol symbol)))
+  (when-let ((res (find-object-by-id symbol)))
     (stop res)))
 
 (defmethod stop ((list list))
@@ -342,7 +342,7 @@ See also: `end', `play'"))
   (stop object))
 
 (defmethod end ((symbol symbol))
-  (when-let ((res (lookup-object-for-symbol symbol)))
+  (when-let ((res (find-object-by-id symbol)))
     (end res)))
 
 (defmethod end ((list list))
@@ -354,7 +354,7 @@ See also: `end', `play'"))
 See also: `play-or-stop', `play-or-end', `playing-pdefs', `playing-nodes'"))
 
 (defmethod playing-p ((symbol symbol) &optional (clock *clock*))
-  (when-let ((res (lookup-object-for-symbol symbol)))
+  (when-let ((res (find-object-by-id symbol)))
     (playing-p res clock)))
 
 (defmethod playing-p ((list list) &optional (clock *clock*))

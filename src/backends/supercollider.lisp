@@ -99,7 +99,7 @@
 
 ;;; convenience methods
 
-(defun cl-collider-proxy (id) ;; FIX: remove this and just make `lookup-object-for-symbol' call `backend-proxys-node' for each enabled/registered backend?
+(defun cl-collider-proxy (id) ;; FIX: remove this and just make `find-object-by-id' call `backend-proxys-node' for each enabled/registered backend?
   "Get the object representing the `cl-collider:proxy' with the given name."
   (backend-proxys-node id :supercollider))
 

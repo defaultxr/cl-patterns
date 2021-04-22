@@ -134,7 +134,7 @@
       (cl-patterns-lisp-interactive-eval (concat "(cl-patterns:" (if stop "play-or-stop" "play-or-end") " " name ")")))
      ((member type (list 'proxy 'dn))
       (let ((bounds (bounds-of-thing-at-point 'defun)))
-        (if (cl-patterns-lisp-eval `(cl-patterns:playing-p (cl-patterns::lookup-object-for-symbol ,(intern name))))
+        (if (cl-patterns-lisp-eval `(cl-patterns:playing-p (cl-patterns::find-object-by-id ,(intern name))))
             (cl-patterns-lisp-interactive-eval (concat "(cl-patterns:" (if stop "play-or-stop" "play-or-end") " " name ")"))
           (cl-patterns-lisp-eval-region (car bounds) (cdr bounds)))))
      ((member type (list 'defsynth 'defsynth* 'ds))

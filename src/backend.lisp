@@ -15,11 +15,15 @@ Example:
 
 See also: `play', `launch', `end', `stop'")
 
-(defun lookup-object-for-symbol (symbol)
-  "Look up the object named by SYMBOL using `*dictionary-lookup-functions*'. Returns nil if no object was found."
-  (dolist (func *dictionary-lookup-functions*)
-    (when-let ((res (ignore-errors (funcall func symbol))))
-      (return-from lookup-object-for-symbol res))))
+(defun find-object-by-id (id &key default)
+  "Find an object identified by ID using `*dictionary-lookup-functions*'. Returns DEFAULT if no object was found. If DEFAULT is a symbol with name \"error\" then throw an error.
+
+See also: `find-pdef'"
+  (dolist (func *dictionary-lookup-functions* (if (string= 'error default)
+                                                  (error "No object found with ID ~s" id)
+                                                  default))
+    (when-let ((res (ignore-errors (funcall func id))))
+      (return-from find-object-by-id res))))
 
 (defun task-nodes (task backend)
   "Get the list of nodes for TASK for the specified backend. If BACKEND is nil, get all of the resources for TASK regardless of backend."

@@ -37,7 +37,7 @@ See also: `beat'"
   (setf (tempo *clock*) number))
 
 (defmethod tempo ((symbol symbol))
-  (tempo (lookup-object-for-symbol symbol)))
+  (tempo (find-object-by-id symbol)))
 
 (defclass task ()
   ((item :initarg :item :initform nil :accessor task-item :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
