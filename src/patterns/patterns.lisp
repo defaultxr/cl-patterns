@@ -467,9 +467,11 @@ See also: `pattern-as-pstream'"))
           value))))
 
 (defmethod as-pstream ((pattern pattern))
-  (let ((slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))))))
+  (let* ((class (class-of pattern))
+         (name (class-name class))
+         (slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots class)))))
     (apply #'make-instance
-           (symbolicate (class-name (class-of pattern)) '-pstream)
+           (intern (concat name "-PSTREAM") (symbol-package name))
            (loop :for slot :in slots
                  :if (slot-boundp pattern slot)
                    :append (list (make-keyword slot)
@@ -705,9 +707,10 @@ See also: `pbind', `pdef'"
     (format stream "~{~s ~s~^ ~}" (slot-value pbind 'pairs))))
 
 (defmethod as-pstream ((pbind pbind))
-  (let ((slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pbind)))))
+  (let ((name (class-name (class-of pbind)))
+        (slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pbind)))))
     (apply #'make-instance
-           (symbolicate (class-name (class-of pbind)) '-pstream)
+           (intern (concat name "-PSTREAM") (symbol-package name))
            (loop :for slot :in slots
                  :for slot-kw := (make-keyword slot)
                  :for bound := (slot-boundp pbind slot)
