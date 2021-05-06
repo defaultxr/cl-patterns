@@ -41,6 +41,8 @@
 
    #:dur-time
    #:time-dur
+   #:dur-freq
+   #:freq-dur
 
    #:midinote-freq
    #:freq-midinote

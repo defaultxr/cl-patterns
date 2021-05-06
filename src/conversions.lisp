@@ -13,20 +13,33 @@
 ;;; dur
 
 (defun dur-time (dur &optional tempo)
-  "Convert duration in beats to time in seconds according to TEMPO in beats per second."
+  "Convert DUR in beats to time in seconds according to TEMPO in beats per second."
   (/ dur (or tempo
-             (and (boundp '*clock*)
-                  (not (null *clock*))
+             (and *clock*
                   (tempo *clock*))
              1)))
 
 (defun time-dur (time &optional tempo)
   "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
   (* time (or tempo
-              (and (boundp '*clock*)
-                   (not (null *clock*))
+              (and *clock*
                    (tempo *clock*))
               1)))
+
+(defun dur-freq (dur &optional tempo)
+  "Convert DUR in beats to frequency in Hz according to TEMPO in beats per second."
+  (/ 1 (/ dur (or tempo
+                  (and *clock*
+                       (tempo *clock*))
+                  1))))
+
+(defun freq-dur (freq &optional tempo)
+  "Convert FREQ in Hz to duration in beats according to TEMPO in beats per second."
+  (/ (or tempo
+         (and *clock*
+              (tempo *clock*))
+         1)
+     freq))
 
 ;;; freq/midinote/octave/root/degree
 
