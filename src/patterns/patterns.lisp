@@ -1266,6 +1266,12 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
     (pdef object)
     ((or symbol string) (pdef (pdef-ensure-key object)))))
 
+(defmethod pdef-key ((symbol symbol))
+  (pdef-key (pdef-ref (pdef-ensure-key symbol))))
+
+(defmethod pdef-key ((null null))
+  nil)
+
 (defmethod (setf pdef-key) (value (pdef pdef))
   (let ((prev-key (pdef-key pdef)))
     (remhash prev-key *pdef-dictionary*)
@@ -1279,6 +1285,18 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
   (pdef-pattern (pdef-ref (pdef-ensure-key symbol))))
 
 (defmethod pdef-pattern ((null null))
+  nil)
+
+(defmethod pdef-pstream ((symbol symbol))
+  (pdef-pstream (pdef-ref (pdef-ensure-key symbol))))
+
+(defmethod pdef-pstream ((null null))
+  nil)
+
+(defmethod pdef-task ((symbol symbol))
+  (pdef-task (pdef-ref (pdef-ensure-key symbol))))
+
+(defmethod pdef-task ((null null))
   nil)
 
 (defmethod play-quant ((pdef pdef))
