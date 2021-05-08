@@ -148,8 +148,10 @@
    #:as-pstream
    #:pattern-as-pstream
    #:all-patterns
+   #:pattern-parent
    #:parent-pattern
    #:parent-pbind
+   #:pattern-children
    #:pattern-metadata
 
    #:peek

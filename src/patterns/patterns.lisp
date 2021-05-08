@@ -178,6 +178,55 @@ See also: `all-pdefs'"
 (defmethod dur ((pattern pattern))
   (reduce #'+ (next-upto-n pattern) :key #'dur))
 
+(defun pattern-parent (pattern &key (num 1) (accumulate nil) (class 'pattern))
+  "Get the NUM-th containing pattern of PATTERN, or nil if there isn't one. If CLASS is specified, only consider patterns of that class.
+
+See also: `pattern-children'"
+  (assert (typep num '(integer 0)) (num) "NUM must be a non-negative integer; got ~s" num)
+  (let ((i 0)
+        res)
+    (until (or (>= i num)
+               (null pattern))
+      (setf pattern (slot-value pattern 'parent))
+      (when (typep pattern class)
+        (incf i)
+        (when accumulate
+          (appendf res pattern))))
+    (if accumulate
+        res
+        pattern)))
+
+(uiop:with-deprecation (:style-warning)
+  (defun parent-pattern (pattern)
+    "Deprecated alias for `pattern-parent'."
+    (pattern-parent pattern)))
+
+(uiop:with-deprecation (:style-warning)
+  (defun parent-pbind (pattern)
+    "Deprecated forward to `pattern-parent'. Use (pattern-parent PATTERN :class 'pbind) instead."
+    (pattern-parent pattern :class 'pbind)))
+
+(defun pattern-children (pattern &key (num 1) (accumulate nil) (class 'pattern))
+  "Get a list of all the direct child patterns of PATTERN, including any in slots or lists.
+
+See also: `pattern-parent'"
+  (let ((cur (list pattern))
+        res)
+    (dotimes (n num res)
+      (setf cur (remove-if-not (lambda (pattern) (typep pattern class))
+                               (mapcan #'%pattern-children cur)))
+      (if accumulate
+          (appendf res cur)
+          (setf res cur)))))
+
+(defmethod %pattern-children ((object t))
+  nil)
+
+(defmethod %pattern-children ((pattern pattern))
+  (mapcan (lambda (slot)
+            (copy-list (ensure-list (slot-value pattern (closer-mop:slot-definition-name slot)))))
+          (closer-mop:class-direct-slots (class-of pattern))))
+
 (defgeneric pattern-metadata (pattern &optional key)
   (:documentation "Get the value of PATTERN's metadata for KEY. Returns true as a second value if the metadata had an entry for KEY, or nil if it did not."))
 
@@ -585,25 +634,6 @@ See also: `pstream-elt', `phistory'"
     (let ((real-index (pstream-elt-index-to-history-index pstream n)))
       (elt history real-index))))
 
-(defgeneric parent-pattern (pattern)
-  (:documentation "Get the containing pattern of PATTERN, or NIL if there isn't one.
-
-See also: `parent-pbind'"))
-
-(defmethod parent-pattern ((pattern pattern))
-  (slot-value pattern 'parent))
-
-(defgeneric parent-pbind (pattern)
-  (:documentation "Get the containing pbind of PATTERN, or NIL if there isn't one.
-
-See also: `parent-pattern'"))
-
-(defmethod parent-pbind ((pattern pattern))
-  (let ((par (parent-pattern pattern)))
-    (until (or (null par) (typep par 'pbind))
-      (setf par (slot-value par 'parent)))
-    par))
-
 ;;; pbind
 
 (defvar *pbind-special-init-keys* (list)
@@ -683,6 +713,15 @@ See also: `pmono', `pb'"
 
 (defmethod print-object ((pbind pbind) stream)
   (format stream "(~s~{ ~s ~s~})" 'pbind (slot-value pbind 'pairs)))
+
+(defmethod %pattern-children ((pbind pbind))
+  (mapcan (lambda (slot)
+            (let ((slot-name (closer-mop:slot-definition-name slot)))
+              (copy-list (ensure-list
+                          (if (eql slot-name 'pairs)
+                              (loop :for (k v) :on (slot-value pbind slot-name) :by #'cddr :collect v)
+                              (slot-value pbind slot-name))))))
+          (closer-mop:class-direct-slots (find-class 'pbind))))
 
 (defmethod keys ((pbind pbind))
   (keys (slot-value pbind 'pairs)))
@@ -2351,7 +2390,7 @@ Example:
 See also: `pbeat*', `beat', `prun'")
 
 (defmethod next ((pbeat pbeat-pstream))
-  (beat (parent-pbind pbeat)))
+  (beat (pattern-parent pbeat :class 'pbind)))
 
 ;;; pbeat*
 
@@ -2390,7 +2429,7 @@ See also: `pbeat', `prun', `beat'")
 (defmethod next ((ptime ptime-pstream)) ;; FIX: take into account the previous tempo if it has been changed since the last-beat-checked.
   (with-slots (last-beat-checked tempo-at-beat elapsed-time) ptime
     (with-slots (tempo) *clock*
-      (let ((beat (beat (parent-pbind ptime))))
+      (let ((beat (beat (pattern-parent ptime :class 'pbind))))
         (prog1
             (incf elapsed-time (if (null last-beat-checked)
                                    0
@@ -2457,7 +2496,7 @@ See also: `beat', `pbeat'")
 
 (defmethod as-pstream ((prun prun))
   (with-slots (pattern dur) prun
-    (unless (parent-pbind prun)
+    (unless (pattern-parent prun :class 'pbind)
       (error "~s cannot be used outside of a pbind" prun))
     (make-instance 'prun-pstream
                    :pattern (as-pstream pattern)
@@ -2466,7 +2505,7 @@ See also: `beat', `pbeat'")
 
 (defmethod next ((prun prun-pstream))
   (with-slots (pattern dur current-dur dur-history number) prun
-    (let ((beats (beat (parent-pbind prun))))
+    (let ((beats (beat (pattern-parent prun :class 'pbind))))
       (flet ((next-dur ()
                (when-let ((nxt (next dur)))
                  (next pattern)

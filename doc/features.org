@@ -42,9 +42,9 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
 
   (defparameter *pseq* (getf (slot-value *pat* 'cl-patterns::pairs) :foo))
 
-  (parent-pattern *pseq*) ;=> #<PBIND {1003480F53}>
+  (pattern-parent *pseq*) ;=> #<PBIND {1003480F53}>
 
-  (eq *pat* (parent-pattern *pseq*)) ;=> T
+  (eq *pat* (pattern-parent *pseq*)) ;=> T
 #+END_SRC
 - errors in pattern execution give you the option to remove the task from the clock, or just skip one event.
   - alternatively, "performance mode" gives you the option to automatically remove erroring patterns from the clock, with their error and stack trace recorded to a variable:

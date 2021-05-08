@@ -64,20 +64,41 @@
 (test parent ;; FIX: make sure all patterns are given parents
   "Test whether patterns have the correct parent information"
   (is-true (let ((pb (pbind :foo (pseq (list 1 2 3)))))
-             (eql (parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
+             (eql (pattern-parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
                   pb))
            "pbind subpatterns don't have correct parents for pseq")
   (is-true (let ((pb (pbind :foo (pfunc (lambda () (random 5))))))
-             (eql (parent-pattern (getf (slot-value pb 'cl-patterns::pairs) :foo))
+             (eql (pattern-parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
                   pb))
-           "pbind subpatterns don't have correct parents for pfunc"))
-
-(test parent-pbind
-  "Test the `parent-pbind' function"
+           "pbind subpatterns don't have correct parents for pfunc")
   (is-true (let* ((child (pn 1 4))
                   (parent (pbind :foo child)))
-             (eq parent (parent-pbind child)))
-           "parent-pbind does not give correct results"))
+             (eq parent (pattern-parent child :class 'pbind)))
+           "pattern-parent with :class 'pbind does not give correct results"))
+
+(test children
+  "Test whether children of a pattern can be accessed"
+  (is-true (let* ((child (pn 1 4))
+                  (parent (pbind :foo child)))
+             (eq child (car (pattern-children parent))))
+           "pattern-children does not find the sole child of a pbind")
+  (is-true (let* ((child (pn 1 4))
+                  (parent (pbind :foo child :bar 4)))
+             (set-equal (list child 4)
+                        (pattern-children parent :class t)))
+           "pattern-children with :class t does not find all children of a pbind")
+  (is-true (let* ((top (pseq (list 99 98 97) 1))
+                  (child (pseq (list 1 2 top) 4))
+                  (parent (pbind :foo child :bar 4)))
+             (set-equal (list 1 2 top 4 0)
+                        (pattern-children parent :num 2 :class t)))
+           "pattern-children with :num 2 and :class t does not find all children of a pbind")
+  (is-true (let* ((top (pseq (list 99 98 97) 1))
+                  (child (pseq (list 1 2 top) 4))
+                  (parent (pbind :foo child :bar 4)))
+             (set-equal (list child 4 1 2 top 4 0 99 98 97 1 0)
+                        (pattern-children parent :num 3 :accumulate t :class t)))
+           "pattern-children with :num 3, :accumulate t, and :class t does not find all children of a pbind"))
 
 (test beat-key
   "Test that the :beat key is correct"
