@@ -13,26 +13,25 @@
   :defun (defun pcycles (list &optional map)
            (etypecase list
              (string
-              (pcycles (mapcar (lambda (c) (make-keyword (string-upcase (string c))))
-                               (coerce list 'list))
-                       map))
+              (pcycles (mapcar #'my-intern (coerce list 'list)) map))
              (list
               (make-instance 'pcycles :list list :map map)))))
 
 (defmethod print-object ((pcycles pcycles) stream)
-  (format stream "(~s ~s)" 'pcycles (slot-value pcycles 'list)))
+  (with-slots (list map) pcycles
+    (format stream "(~s ~s~#[~; ~s~])" 'pcycles list map)))
 
 (defun pcycles-parse-list (list &optional map)
   (let ((map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest)))))
     (labels ((recurse (list dur)
                (loop :for i :in list
-                  :collect (if (consp i)
-                               (recurse i (* dur (/ 1 (length i))))
-                               (combine-events (let ((res (getf map i)))
-                                                 (if res
-                                                     res
-                                                     (event)))
-                                               (event :value i :dur dur))))))
+                     :collect (if (consp i)
+                                  (recurse i (* dur (/ 1 (length i))))
+                                  (combine-events (let ((res (getf map i)))
+                                                    (if res
+                                                        res
+                                                        (event)))
+                                                  (event :value i :dur dur))))))
       (flatten (recurse list (/ 1 (length list)))))))
 
 (defmethod as-pstream ((pcycles pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?

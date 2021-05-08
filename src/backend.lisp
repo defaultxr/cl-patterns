@@ -2,30 +2,7 @@
 
 ;;; helpers
 
-(defvar *dictionary-lookup-functions* (list 'find-pdef)
-  "List of functions that can be used to look up the object that a symbol can name. Each function should return the object in question if it exists, or nil (or throw an error) if it doesn't.
-
-Functions like `play', `end', `launch', and `stop' will check symbols against each of these dictionaries in order and will apply themselves to the object from the first dictionary with a matching key. 
-
-Example:
-
-;; *dictionary-lookup-functions*
-;; => (CL-PATTERNS::FIND-PDEF BDEF:BDEF)
-;; (play :foo) ;; will (play (pdef :foo)) if that pdef exists, or (play (bdef :foo)) if the bdef exists. If neither exists, it will throw an error.
-
-See also: `play', `launch', `end', `stop'")
-
-(defun find-object-by-id (id &key default)
-  "Find an object identified by ID using `*dictionary-lookup-functions*'. Returns DEFAULT if no object was found. If DEFAULT is a symbol with name \"error\" then throw an error.
-
-See also: `find-pdef'"
-  (dolist (func *dictionary-lookup-functions* (if (string= 'error default)
-                                                  (error "No object found with ID ~s" id)
-                                                  default))
-    (when-let ((res (ignore-errors (funcall func id))))
-      (return-from find-object-by-id res))))
-
-(defun task-nodes (task backend)
+(defun task-nodes (task &optional backend)
   "Get the list of nodes for TASK for the specified backend. If BACKEND is nil, get all of the resources for TASK regardless of backend."
   (if backend
       (remove-if-not (rcurry 'backend-node-p backend) (slot-value task 'backend-resources))
@@ -33,11 +10,11 @@ See also: `find-pdef'"
 
 (defun (setf task-nodes) (value task backend)
   "Set the list of nodes for TASK for the specified backend. If BACKEND is nil, set the full backend-resources slot for the task."
-  (if backend
-      (setf (slot-value task 'backend-resources) (append (ensure-list value)
-                                                         (remove-if (rcurry 'backend-node-p backend)
-                                                                    (slot-value task 'backend-resources))))
-      (setf (slot-value task 'backend-resources) (ensure-list value))))
+  (with-slots (backend-resources) task
+    (setf backend-resources (if backend
+                                (append (ensure-list value)
+                                        (remove-if (rcurry #'backend-node-p backend) backend-resources))
+                                (ensure-list value)))))
 
 (defun event-backends (event)
   "Get a list of backends that EVENT should be played on, either via the event's :backend key or via the `enabled-backends'."
@@ -82,8 +59,7 @@ See also: `disable-backend', `start-backend', `enabled-backends'"
 
 See also: `enable-backend', `stop-backend'"
   (let ((name (make-keyword name)))
-    (setf *enabled-backends*
-          (delete name *enabled-backends*))
+    (deletef *enabled-backends* name)
     (when stop
       (stop-backend name))))
 
@@ -216,7 +192,7 @@ See also: `backend-play-event'"))
             :for sparam := (make-keyword (string-upcase param))
             :for val := (backend-convert-object (event-value event sparam) sparam backend)
             :if (or (eql :gate sparam)
-                    (not (null val)))
+                    val)
               :append (list (if (eql :group sparam) ;; :group is an alias for :to
                                 :to
                                 sparam)

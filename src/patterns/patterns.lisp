@@ -10,15 +10,15 @@
   "Loop through PATTERN's slots and set the \"parent\" slot of any patterns to this pattern."
   (labels ((set-parent (list parent)
              "Recurse through LIST, setting the parent of any pattern found to PARENT."
-             (cond ((listp list)
-                    (mapc (lambda (x) (set-parent x parent)) list))
-                   ((typep list 'pattern)
-                    (setf (slot-value list 'parent) parent)))))
-    (loop :for slot :in (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern)))
-          :unless (eql slot 'parent) ;; FIX: add tests for this!
-            :do (when (slot-boundp pattern slot)
-                  (set-parent (slot-value pattern slot) pattern)))
-    pattern))
+             (typecase list
+               (list
+                (mapc (lambda (x) (set-parent x parent)) list))
+               (pattern
+                (setf (slot-value list 'parent) parent)))))
+    (dolist (slot (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))) pattern)
+      (when (and (not (eql slot 'parent))
+                 (slot-boundp pattern slot))
+        (set-parent (slot-value pattern slot) pattern)))))
 
 (defparameter *patterns* (list)
   "List of the names of all defined pattern types.")
@@ -178,6 +178,18 @@ See also: `all-pdefs'"
 (defmethod dur ((pattern pattern))
   (reduce #'+ (next-upto-n pattern) :key #'dur))
 
+(defgeneric pattern-metadata (pattern &optional key)
+  (:documentation "Get the value of PATTERN's metadata for KEY. Returns true as a second value if the metadata had an entry for KEY, or nil if it did not."))
+
+(defmethod pattern-metadata ((pattern pattern) &optional key)
+  (with-slots (metadata) pattern
+    (if key
+        (gethash key metadata)
+        metadata)))
+
+(defun (setf pattern-metadata) (value pattern key)
+  (setf (gethash key (slot-value pattern 'metadata)) value))
+
 (defgeneric peek (pattern)
   (:documentation "\"Peek\" at the next value of a pstream, without advancing its current position.
 
@@ -213,14 +225,14 @@ See also: `peek', `peek-n', `next', `next-upto-n'"
 See also: `next-n', `next-upto-n', `peek'")
   (:method-combination pattern))
 
-(defmethod next ((pattern t))
-  pattern)
+(defmethod next ((object t))
+  object)
 
 (defmethod next ((pattern pattern))
   (next (as-pstream pattern)))
 
-(defmethod next ((pattern function))
-  (funcall pattern))
+(defmethod next ((function function))
+  (funcall function))
 
 (defun next-n (pattern n)
   "Get the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
@@ -256,17 +268,6 @@ See also: `events-in-range'"))
 
 (defmethod events-in-range ((pattern pattern) min max)
   (events-in-range (as-pstream pattern) min max))
-
-(defgeneric pattern-metadata (pattern &optional key)
-  (:documentation "Get the value of PATTERN's metadata for KEY. Returns true as a second value if the metadata had an entry for KEY, or nil if it did not."))
-
-(defmethod pattern-metadata ((pattern pattern) &optional key)
-  (if key
-      (gethash key (slot-value pattern 'metadata))
-      (slot-value pattern 'metadata)))
-
-(defun (setf pattern-metadata) (value pattern key)
-  (setf (gethash key (slot-value pattern 'metadata)) value))
 
 ;;; pstream
 

@@ -148,18 +148,20 @@
    #:as-pstream
    #:pattern-as-pstream
    #:all-patterns
+   #:parent-pattern
+   #:parent-pbind
+   #:pattern-metadata
+
    #:peek
    #:peek-n
    #:peek-upto-n
    #:next
    #:next-n
    #:next-upto-n
-   #:pattern-metadata
+
    #:pstream
    #:pstream-elt
    #:pstream-elt-future
-   #:parent-pattern
-   #:parent-pbind
    #:pstream-count
    #:bsubseq
 

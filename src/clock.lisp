@@ -143,7 +143,7 @@ See also: `clock-loop', `clock-process'"
   "Add ITEM (usually a `pstream') to CLOCK's tasks. Generally you don't need to use this directly and would use `play' instead.
 
 See also: `clock-remove', `play'"
-  (when (null clock)
+  (unless clock
     (error "cl-patterns clock is NIL; perhaps try (start-clock-loop) or (defparameter *clock* (make-clock))"))
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)

@@ -232,6 +232,31 @@ Example:
 See also: `to-range', `from-range', `prerange'"
   (to-range (from-range input from-range) to-range))
 
+;;; find-object-by-id
+
+(defvar *dictionary-lookup-functions* (list 'find-pdef)
+  "List of functions that can be used to look up the object that a symbol can name. Each function should return the object in question if it exists, or nil (or throw an error) if it doesn't.
+
+Functions like `play', `end', `launch', and `stop' will check symbols against each of these dictionaries in order and will apply themselves to the object from the first dictionary with a matching key. 
+
+Example:
+
+;; *dictionary-lookup-functions*
+;; => (CL-PATTERNS::FIND-PDEF BDEF:BDEF)
+;; (play :foo) ;; will (play (pdef :foo)) if that pdef exists, or (play (bdef :foo)) if the bdef exists. If neither exists, it will throw an error.
+
+See also: `play', `launch', `end', `stop'")
+
+(defun find-object-by-id (id &key default)
+  "Find an object identified by ID using `*dictionary-lookup-functions*'. Returns DEFAULT if no object was found. If DEFAULT is a symbol with name \"error\" then throw an error.
+
+See also: `find-pdef'"
+  (dolist (func *dictionary-lookup-functions* (if (string= 'error default)
+                                                  (error "No object found with ID ~s" id)
+                                                  default))
+    (when-let ((res (ignore-errors (funcall func id))))
+      (return-from find-object-by-id res))))
+
 ;;; generics
 
 (defgeneric tempo (object)

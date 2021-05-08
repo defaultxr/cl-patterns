@@ -51,12 +51,18 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-
-;; helper functions
+;;; Utility functions
 
 (defvar cl-patterns-named-object-regexp "\[\(:\]\\(pdef\\|pb\\|defsynth\\|ds\\|proxy\\|dn\\|bdef\\)\[ \t\n\]+\\([:']?\[^ \t\n\]+\\)"
   "Regexp to find \"named objects\", i.e. pdef, pb, defsynth, proxy, bdef, etc.")
+
+(defun cl-patterns-friendly-string (string)
+  "Remove and replace special characters from STRING."
+  (or (cl-patterns-lisp-eval `(cl:when (cl:find-package 'mutility)
+                                       (cl:funcall
+                                        (cl:find-symbol "FRIENDLY-STRING" 'mutility)
+                                        ,string)))
+      (replace-regexp-in-string "[^A-Za-z0-9-]+" "-" string)))
 
 (defun cl-patterns-lisp-eval (sexp)
   "Evaluate SEXP via slime or sly."
@@ -118,7 +124,14 @@
         (guess (cl-patterns-guess-instrument)))
     (completing-read "Instrument? " instruments nil nil (when (member guess instruments) guess))))
 
-;; commands
+(defun cl-patterns-generate-random-string (&optional length)
+  "Generate a random string. This is used as the default function to generate a name for a skeleton when the user supplies only an apostrophe."
+  (coerce (let (res)
+            (dotimes (n (or length (+ 3 (random 10))) res)
+              (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res)))
+          'string))
+
+;;; Commands
 
 (defun cl-patterns-stop-all ()
   "Stop all currently-playing patterns, nodes, etc."
@@ -128,7 +141,9 @@
 (defun cl-patterns-play-or-end-context (&optional stop)
   "Play or end the pdef, synthdef, bdef, etc, underneath the point. When STOP is true, play or stop instead."
   (interactive)
-  (cl-destructuring-bind (type name) (cl-patterns-context)
+  (let* ((context (cl-patterns-context))
+         (type (car context))
+         (name (cadr context)))
     (cond
      ((member type (list 'pdef 'pb 'pbind))
       (cl-patterns-lisp-interactive-eval (concat "(cl-patterns:" (if stop "play-or-stop" "play-or-end") " " name ")")))
@@ -178,7 +193,7 @@
         (cl-patterns-play-or-stop-pdef)
       (cl-patterns-play-or-stop-context))))
 
-;; supercollider documentation functions
+;;; SuperCollider documentation functionality
 
 (defvar cl-patterns-supercollider-classes-list nil
   "List of SuperCollider classes for `cl-patterns-supercollider-populate-classes-list'.")
