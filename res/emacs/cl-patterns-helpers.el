@@ -51,6 +51,11 @@
 
 ;;; Code:
 
+(defgroup cl-patterns nil
+  "cl-patterns helper functionality."
+  :group 'external
+  :prefix "cl-patterns-")
+
 ;;; Utility functions
 
 (defvar cl-patterns-named-object-regexp "\[\(:\]\\(pdef\\|pb\\|defsynth\\|ds\\|proxy\\|dn\\|bdef\\)\[ \t\n\]+\\([:']?\[^ \t\n\]+\\)"
@@ -63,6 +68,27 @@
                                         (cl:find-symbol "FRIENDLY-STRING" 'mutility)
                                         ,string)))
       (replace-regexp-in-string "[^A-Za-z0-9-]+" "-" string)))
+
+(defun cl-patterns-generate-random-name (&optional length)
+  "Generate a random \"name\". This is used as the default function for `cl-patterns-name-generator', to generate a name for a skeleton when the user supplies only a period."
+  (coerce (let (res)
+            (dotimes (n (or length (+ 3 (random 10))) res)
+              (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res))
+            (push ?: res))
+          'string))
+
+(defun cl-patterns-increase-number-suffix (string)
+  "Increase the number at the end of STRING by 1. If there is no number at the end of STRING, suffix it with \"-1\". Note that dashes count as a separator, not as a negative sign."
+  (if-let ((match (string-match "\\([[:digit:]]+\\)$" string)))
+      (concat (subseq string 0 (match-beginning 1))
+              (number-to-string (1+ (string-to-number (match-string-no-properties 1 string)))))
+    (concat string "-1")))
+
+(defun cl-patterns-ensure-symbol-syntax (string)
+  "Ensure that STRING starts with either a colon or an apostrophe; if neither, return it prefixed with a colon."
+  (if (member (elt string 0) (list ?: ?'))
+      string
+    (concat ":" string)))
 
 (defun cl-patterns-lisp-eval (sexp)
   "Evaluate SEXP via slime or sly."
@@ -113,23 +139,39 @@
   "Find the nearest instrument name before point."
   (cl-patterns-get-name-of-previous-item (list 'defsynth 'ds 'proxy 'dn)))
 
+;; FIX: make this
+;; (defun cl-patterns-guess-instrument-from-pattern ()
+;;   "Find the nearest pattern before point with an :instrument key and return the key's value."
+;;   (cl-patterns-get-name-of-previous-item (list 'defsynth 'ds 'proxy 'dn)))
+
+;; FIX: make this too
+;; (defun cl-patterns-guess-bdef-from-pattern ()
+;;   "Find the nearest pattern before point with a :buffer or :bufnum key and return the key's value."
+;;   (cl-patterns-get-name-of-previous-item (list 'defsynth 'ds 'proxy 'dn)))
+
 (defun cl-patterns-guess-bdef ()
   "Find the nearest bdef name before point."
   (cl-patterns-get-name-of-previous-item (list 'bdef)))
 
-(defun cl-patterns-select-instrument ()
+(defun cl-patterns-select-instrument (&optional prompt)
   "Select an instrument from the list of currently-defined instruments."
   (interactive)
-  (let ((instruments (cl-patterns-lisp-eval `(cl:mapcar 'cl:string-downcase (cl-patterns:all-instruments))))
-        (guess (cl-patterns-guess-instrument)))
-    (completing-read "Instrument? " instruments nil nil (when (member guess instruments) guess))))
+  (let* ((prompt (or prompt "Instrument? "))
+         (instruments (cl-patterns-lisp-eval
+                       `(cl:mapcar (cl:lambda (x) (cl:string-downcase (cl:write-to-string x)))
+                                   (cl-patterns:all-instruments))))
+         (guess (cl-patterns-guess-instrument)))
+    (cl-patterns-ensure-symbol-syntax
+     (completing-read prompt instruments nil nil (when (member guess instruments) guess) 'cl-patterns-instrument-history))))
 
-(defun cl-patterns-generate-random-string (&optional length)
-  "Generate a random string. This is used as the default function to generate a name for a skeleton when the user supplies only an apostrophe."
-  (coerce (let (res)
-            (dotimes (n (or length (+ 3 (random 10))) res)
-              (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res)))
-          'string))
+(defun cl-patterns-instrument-arguments (instrument)
+  "Get a list of INSTRUMENT's arguments."
+  (cl-patterns-lisp-eval
+   `(cl:mapcar
+     (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))
+     (cl-patterns::backend-instrument-controls
+      ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument)))
+      (cl:car (cl-patterns:enabled-backends))))))
 
 ;;; Commands
 
