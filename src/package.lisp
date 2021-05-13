@@ -1,4 +1,4 @@
-(defpackage #:cl-patterns
+(uiop:define-package #:cl-patterns
   (:use #:cl
         #:alexandria
         #:mutility)
