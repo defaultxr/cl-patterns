@@ -97,6 +97,34 @@
   (declare (ignore key))
   (cl-collider::id object))
 
+;;; pseudo-ugens
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (unless (find-package 'cl-collider/cl-patterns-extensions)
+    (make-package 'cl-collider/cl-patterns-extensions
+                  :use (list 'cl 'cl-collider))))
+
+(defmacro define-cl-collider-pseugen (name lambda-list &body body)
+  "Define a pseudo-ugen for a function, which can then be used in cl-collider synthdefs."
+  (let ((sc-name (alexandria:ensure-symbol (concat name '~) :cl-collider/cl-patterns-extensions)))
+    `(progn
+       (defun ,sc-name ,lambda-list
+         ,@(cl-collider::convert-code body))
+       (setf (cl-collider::synthdef-equivalent-function ',name) ',sc-name))))
+
+(defmacro make-cl-collider-conversion-pseugen (function)
+  "Convert FUNCTION, a function from `*conversions*', into a cl-collider pseudo-ugen using `define-cl-collider-pseugen'."
+  (let* ((val (gethash function *conversions*))
+         (lambda-list (getf val :lambda-list))
+         (body (getf val :body)))
+    `(define-cl-collider-pseugen ,function ,lambda-list
+       ,@body)))
+
+;; convert all of the functions in `*conversions*'
+#.(loop :for function :in (keys *conversions*)
+        :collect `(make-cl-collider-conversion-pseugen ,function) :into res
+        :finally (return `(progn ,@res)))
+
 ;;; convenience methods
 
 (defun cl-collider-proxy (id) ;; FIX: remove this and just make `find-object-by-id' call `backend-proxys-node' for each enabled/registered backend?
