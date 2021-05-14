@@ -466,23 +466,73 @@ See also: `remaining-p'"
                            (t res)))
                      (incf number))))))
     (with-slots (number history history-number future-number) pstream
-      (if (plusp future-number)
-          (let ((result (elt history (- number future-number))))
-            (decf future-number)
-            (when (event-p result)
-              (incf (slot-value pstream 'beat) (event-value result :delta)))
-            result)
-          (let ((result (get-value-from-stack pstream)))
-            (when (event-p result)
-              (setf result (copy-event result))
-              (when (and (null (raw-event-value result :beat))
-                         (null (slot-value pstream 'parent)))
-                (setf (beat result) (slot-value pstream 'future-beat)))
-              (incf (slot-value pstream 'beat) (event-value result :delta))
-              (incf (slot-value pstream 'future-beat) (event-value result :delta)))
-            (setf (elt history (mod history-number (length (slot-value pstream 'history)))) result)
-            (incf history-number)
-            result)))))
+      (let ((result (if (plusp future-number)
+                        (let ((result (elt history (- number future-number))))
+                          (decf future-number)
+                          (when (event-p result)
+                            (incf (slot-value pstream 'beat) (event-value result :delta)))
+                          result)
+                        (let ((result (get-value-from-stack pstream)))
+                          (when (event-p result)
+                            (setf result (copy-event result))
+                            (when (and (null (raw-event-value result :beat))
+                                       (null (slot-value pstream 'parent)))
+                              (setf (beat result) (slot-value pstream 'future-beat)))
+                            (incf (slot-value pstream 'beat) (event-value result :delta))
+                            (incf (slot-value pstream 'future-beat) (event-value result :delta)))
+                          (setf (elt history (mod history-number (length (slot-value pstream 'history)))) result)
+                          (incf history-number)
+                          result))))
+        (unless (pattern-parent pstream)
+          (dolist (proc *post-pattern-output-processors*)
+            (setf result (funcall proc result pstream))))
+        result))))
+
+(defvar *post-pattern-output-processors* (list 'remap-instrument-to-parameters)
+  "List of functions that are applied as the last step of pattern output generation. Each output yielded by an \"outermost\" pattern (i.e. one without a `pattern-parent') will be processed (along with the pstream as a second argument) through each function in this list, allowing for arbitrary transformations of the generated outputs. The return value of each function is used as the input to the next function, and the return value of the last function is used as the output yielded by the pattern.
+
+This can be used, for example, to implement mappings from friendly instrument names to the full parameters needed to specify the instrument in question for backends such as MIDI which require it; in fact this feature is already implemented more conveniently with the setf-able `instrument-mapping' function.
+
+See also: `*instrument-map*', `remap-instrument-to-parameters'")
+
+(defvar *instrument-map* (make-hash-table :test #'equal)
+  "Hash table mapping instrument names (as symbols) to arbitrary parameter lists. Used by `remap-instrument-to-parameters' as part of post-pattern output processing. Any events whose :instrument is not found in this table will not be affected.
+
+See also: `remap-instrument-to-parameters'")
+
+(defun remap-instrument-to-parameters (output &optional pstream)
+  "Remap OUTPUT's instrument key to arbitrary parameters specified in `*instrument-map*'. If OUTPUT is not an event or the instrument is not found in the map, it is passed through unchanged.
+
+See also: `instrument-mapping', `*instrument-map*', `*post-pattern-output-processors*'"
+  (declare (ignore pstream))
+  (unless (event-p output)
+    (return-from remap-instrument-to-parameters output))
+  (when-let ((mapping (gethash (event-value output :instrument) *instrument-map*)))
+    (etypecase mapping
+      (symbol
+       (setf (event-value output :instrument) mapping))
+      (list
+       (doplist (key value mapping)
+         (setf (event-value output key) value)))))
+  output)
+
+(defun instrument-mapping (instrument)
+  "Get a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which should be set in the event by `remap-instrument-to-parameters'.
+
+See also: `remap-instrument-to-parameters', `*instrument-map*'"
+  (gethash instrument *instrument-map*))
+
+(defun (setf instrument-mapping) (value instrument)
+  "Set a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which will be set in the event by `remap-instrument-to-parameters'. Setting an instrument to nil with this function removes it from the map.
+
+See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-map*'"
+  (assert (or (typep value '(or symbol number))
+              (and (listp value)
+                   (evenp (list-length value))))
+          (value) "VALUE must be a symbol, a number, or a plist; got ~s instead" value)
+  (if value
+      (setf (gethash instrument *instrument-map*) value)
+      (remhash instrument *instrument-map*)))
 
 (defgeneric as-pstream (thing)
   (:documentation "Return THING as a pstream object.

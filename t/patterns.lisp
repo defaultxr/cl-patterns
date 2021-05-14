@@ -157,6 +157,43 @@
                     (mapcar #'pstream-count lst)))
            "pstream-count does not return the correct value for pstreams"))
 
+(test post-pattern-output-processors
+  "Test `*post-pattern-output-processors*' functionality"
+  (defun increase-foo (event pstream)
+    "Helper function for the post-pattern-output-processors test."
+    (declare (ignore pstream))
+    (when (nth-value 1 (event-value event :foo))
+      (incf (event-value event :foo)))
+    event)
+  (let ((*post-pattern-output-processors* (list 'increase-foo)))
+    (is-true (equal (list 1 2 3)
+                    (mapcar (rcurry #'event-value :foo)
+                            (next-n (pbind :foo (pseries)) 3)))
+             "post-pattern-output-processors aren't working")
+    (is-true (equal (list 1 2 3)
+                    (mapcar (rcurry #'event-value :foo)
+                            (next-n (pchain (pbind :foo (pseries))
+                                            (pbind :bar (pseries)))
+                                    3)))
+             "post-pattern-output-processors are being applied incorrectly for nested patterns")))
+
+(test instrument-mapping
+  "Test `instrument-mapping' functionality"
+  (let ((cl-patterns::*instrument-map* (make-hash-table :test #'equal)))
+    (setf (instrument-mapping :foo) (list :bar 1 :baz 2)
+          (instrument-mapping :bar) :qux)
+    (is-true (every-event-equal
+              (list (event :instrument :foo :bar 1 :baz 2)
+                    (event :instrument :foo :test 99 :bar 1 :baz 2)
+                    (event :instrument :qux)
+                    (event :instrument :qux :test 99))
+              (next-n (pseq (list (event :instrument :foo)
+                                  (event :instrument :foo :test 99)
+                                  (event :instrument :bar)
+                                  (event :instrument :bar :test 99)))
+                      4))
+             "instrument-mapping does not map correctly")))
+
 (test special-keys
   "Test pbind special keys"
   (is-true (every-event-equal

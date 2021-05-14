@@ -165,6 +165,10 @@
    #:pstream-elt
    #:pstream-elt-future
    #:pstream-count
+
+   #:*post-pattern-output-processors*
+   #:instrument-mapping
+
    #:bsubseq
 
    #:prest
