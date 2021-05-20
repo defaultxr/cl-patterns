@@ -213,14 +213,16 @@
 
    ;;; clock.lisp
 
-   #:*performance-mode*
-   #:*performance-errors*
-
    #:task-pattern
    #:pattern-tasks
 
    #:make-clock
+   #:clock-latency
    #:clock-tasks
    #:clock-process
+
+   #:*performance-mode*
+   #:*performance-errors*
+
    #:clock-loop
    #:start-clock-loop))

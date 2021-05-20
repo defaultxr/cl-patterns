@@ -262,6 +262,9 @@ See also: `find-pdef'"
 (defgeneric tempo (object)
   (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number."))
 
+(defmethod tempo ((symbol symbol))
+  (tempo (find-object-by-id symbol)))
+
 (defgeneric beat (object)
   (:documentation "Get the beat that OBJECT occurs on, relative to its context's start. i.e. for an event, the beat is relative to the start of its source pattern, while for a pstream or clock object, the beat is the number of beats that have passed since its start."))
 

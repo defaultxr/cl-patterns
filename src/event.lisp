@@ -27,9 +27,6 @@ See also: `event-value', `event-p', `e', `*event*'"
     (doplist (key value params ev)
       (setf (event-value ev (ensure-symbol key 'cl-patterns)) value))))
 
-;; setting *latency* is deprecated; use (setf (clock-latency *clock*) ...) instead.
-(define-symbol-macro *latency* (clock-latency *clock*))
-
 (defparameter *event-special-keys* (list)
   "Plist mapping event special keys to their case lists.")
 
