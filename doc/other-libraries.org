@@ -84,5 +84,8 @@ Audio live coding environment in Clojure using the SuperCollider server as a bac
 ** [[https://github.com/defaultxr/tracker-mode][tracker-mode]]
 Tracker-inspired Emacs mode for live codable sequencing.
 
+** [[https://github.com/defaultxr/piano-mode][piano-mode]]
+Emacs mode to play notes using your computer keyboard as if it were a "piano-style" keyboard, similar to functionality common in DAWs.
+
 ** [[http://xelf.me/scheme-mosaic.html][SchemeMosaic]]
 A digital music mashup tool inspired by Steven Hazel's soundmosaic. The main technique employed is concatenative synthesis. Written in S7 Scheme as an extension to the Snd editor, and is released under the GPL Version 3.
