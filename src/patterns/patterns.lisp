@@ -1259,17 +1259,17 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
     (symbol key)
     (string (my-intern key :keyword))))
 
-(defgeneric pdef-key (object)
-  (:documentation "Get the key (name) of PDEF."))
+(defgeneric pdef-key (pdef)
+  (:documentation "The key (name) of PDEF."))
 
-(defmethod pdef-key ((pbind pbind))
-  (getf (slot-value pbind 'pairs) :pdef))
+(defgeneric pdef-pattern (pdef)
+  (:documentation "The pattern that PDEF points to."))
 
-(defgeneric pdef-pattern (object)
-  (:documentation "Get the pattern that PDEF points to."))
+(defgeneric pdef-pstream (pdef)
+  (:documentation "The currently-playing pstream of PDEF's pattern."))
 
-(defgeneric pdef-task (object)
-  (:documentation "Get the task that PDEF was last being played in."))
+(defgeneric pdef-task (pdef)
+  (:documentation "The task that PDEF was last being played in."))
 
 (defpattern pdef (pattern)
   ((key :reader pdef-key)
@@ -1289,22 +1289,12 @@ Example:
 
 See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
   :defun (defun pdef (key &optional (pattern nil pattern-supplied-p))
+           (assert key (key) "~s cannot have nil as its key." 'pdef)
+           (assert (not (typep pattern 'pdef)) (pattern) "Cannot set a pdef to a pdef (attempted to point ~s to ~s)." key pattern)
            (let ((pdef (ensure-gethash key *pdef-dictionary* (make-instance 'pdef :key key))))
              (when pattern-supplied-p
                (setf (pdef-pattern pdef) pattern))
              pdef)))
-
-(defun find-pdef (key &optional (errorp nil))
-  "Get the pdef named KEY. If one by that name doesn't exist, return nil, or raise an error if ERRORP is true.
-
-See also: `pdef', `all-pdefs'"
-  (etypecase key
-    (pattern
-     key)
-    (symbol
-     (or (pdef-ref key)
-         (when errorp
-           (error "Could not find a pdef named ~s." key))))))
 
 (defmethod print-object ((pdef pdef) stream)
   (with-slots (key) pdef
@@ -1315,30 +1305,47 @@ See also: `pdef', `all-pdefs'"
     (print-unreadable-object (pdef stream :type t)
       (format stream "~s" key))))
 
+(defun pdef-p (object)
+  "True if OBJECT is a pdef."
+  (typep object 'pdef))
+
 (defvar *pdef-dictionary* (make-hash-table)
   "The global pdef dictionary.")
 
-(defun pdef-ref (key &optional (value nil value-provided-p))
-  "Retrieve a value from the global pdef dictionary, or set it if VALUE is provided."
-  (if value-provided-p
-      (if (null value)
-          (remhash key *pdef-dictionary*)
-          (setf (gethash key *pdef-dictionary*) value))
-      (gethash key *pdef-dictionary*)))
+(defun find-pdef (key &optional (errorp nil) (dictionary *pdef-dictionary*))
+  "Get the pdef named KEY from DICTIONARY. If one by that name doesn't exist, return nil, or raise an error if ERRORP is true.
 
-(defun all-pdefs (&optional package)
-  "Get a list of all pdefs. With PACKAGE, get all pdefs whose key is in that package.
+See also: `pdef', `all-pdefs'"
+  (etypecase key
+    (pattern
+     key)
+    (symbol
+     (or (pdef-ref key dictionary)
+         (when errorp
+           (error "Could not find a pdef named ~s." key))))))
 
-See also: `all-patterns', `playing-pdefs', `all-instruments'"
+(defun pdef-ref (key &optional (dictionary *pdef-dictionary*))
+  "Retrieve a pdef from DICTIONARY."
+  (gethash (pdef-ensure-key key) dictionary))
+
+(defun (setf pdef-ref) (value key &optional (dictionary *pdef-dictionary*))
+  "Set a value in the global pdef dictionary."
+  (if value
+      (setf (gethash key dictionary) value)
+      (remhash key dictionary)))
+
+(defun all-pdefs (&key package (dictionary *pdef-dictionary*))
+  "Get a list of the names of all pdefs in DICTIONARY. With PACKAGE, get all pdefs whose key is in that package.
+
+See also: `pdef', `find-pdef', `ensure-pdef', `playing-pdefs', `all-patterns', `all-instruments'"
   (let ((res (keys *pdef-dictionary*)))
     (if package
         (let ((package (etypecase package
                          (package package)
                          (symbol (find-package package)))))
-          (remove-if-not
-           (lambda (sym)
-             (eql (symbol-package sym) package))
-           res))
+          (remove-if-not (lambda (sym)
+                           (eql (symbol-package sym) package))
+                         res))
         res)))
 
 (defun playing-pdefs (&optional (clock *clock*))
@@ -1351,10 +1358,13 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
           :collect (pdef-key item)))
 
 (defun ensure-pdef (object)
-  "Attempt to ensure OBJECT is a pdef."
+  "Return OBJECT if it is a pdef, otherwise find the pdef pointed to by OBJECT."
   (etypecase object
     (pdef object)
-    ((or symbol string) (pdef (pdef-ensure-key object)))))
+    (string-designator (find-pdef object t))))
+
+(defmethod pdef-key ((pbind pbind))
+  (getf (slot-value pbind 'pairs) :pdef))
 
 (defmethod pdef-key ((symbol symbol))
   (pdef-key (pdef-ref (pdef-ensure-key symbol))))
