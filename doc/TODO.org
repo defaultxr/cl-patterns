@@ -107,9 +107,9 @@ CLOSED: [2018-07-01 Sun 18:02]
 make other libraries that expand upon cl-patterns' feature sets (i.e. libraries for live coding conveience macros, etc.)
 * music theory
 ** make sure the functionality in [[file:~/misc/lisp/cl-patterns/src/scales.lisp][scales.lisp]], etc, is correct.
-* DONE "performance mode"
+* DONE clock condition handler (formerly known as "performance mode")
 CLOSED: [2018-07-01 Sun 18:02]
-...where any pattern that signals a condition/error is automatically removed from the clock, so the music doesn't come to a screeching halt.
+...where any pattern that signals a condition is automatically handled with the specified restart, so the music doesn't come to a screeching halt.
 still trying to think of ideas for how to make a good "performance mode" without just dumbly removing any patterns with errors... (is it possible to continue the rest of the clock's tasks while the user/coder is responding to the error condition?)
 ** add a restart to re-add the broken pattern
 * pattern plotting

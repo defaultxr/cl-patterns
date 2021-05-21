@@ -46,20 +46,19 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
 
   (eq *pat* (pattern-parent *pseq*)) ;=> T
 #+END_SRC
-- errors in pattern execution give you the option to remove the task from the clock, or just skip one event.
-  - alternatively, "performance mode" gives you the option to automatically remove erroring patterns from the clock, with their error and stack trace recorded to a variable:
+- conditions that occur during pattern execution give you the option to remove the task from the clock, or just skip processing of the event.
+  - alternatively, you can set a condition handler in the clock to automatically remove the task or skip the event, recording the error and stack trace to a slot:
 #+BEGIN_SRC lisp
-  (setf *performance-mode* t)
+  (setf (clock-condition-handler *clock*) 'remove-task)
 
   (play (pbind :x (p/ 1 (pseq '(440 220 0)))))
 
   ;; ...and then the error occurs:
-  ;; WARNING: Task #<CL-PATTERNS::TASK {100438A803}> had error #<DIVISION-BY-ZERO {10043ABA93}>; removed from clock, with state recorded as index 0 in CL-PATTERNS::*PERFORMANCE-ERRORS*.
+  ;; WARNING: Task had condition #<DIVISION-BY-ZERO {1002EF08E3}>; invoked CL-PATTERNS::REMOVE-TASK restart and pushed the condition and stack to #<CL-PATTERNS::CLOCK :tempo 110/60 :beat 2.0>'s caught-conditions slot.
 
-  (car (last *performance-errors*))
-  ;;=> (:TASK #<CL-PATTERNS::TASK {100438A803}>
-  ;;    :ERROR #<DIVISION-BY-ZERO {10043ABA93}>
-  ;;    :STACK (#<DISSECT::SBCL-CALL [1] ...> ...))
+  (car (clock-caught-conditions *clock*))
+  ;; => (:CONDITION #<DIVISION-BY-ZERO {10043ABA93}>
+  ;;     :STACK (#<DISSECT::SBCL-CALL [1] ...> ...))
 #+END_SRC
 - SuperCollider backend: if a node is supplied as a value for a ~pbind~, the synth metadata for that node is used to set its ~input-bus~ or ~output-bus~ as the value instead:
 #+BEGIN_SRC lisp

@@ -95,6 +95,9 @@ See also: `task-pattern', `clock-tasks'"
    (tempo :initarg :tempo :initform 1 :reader tempo :type number :documentation "The tempo of the clock, in beats per second.")
    (latency :initarg :latency :initform 1/10 :type number :documentation "The default latency for events played on the clock; the number of seconds added onto the event's scheduled time, in order to allow the backend to process it without being \"late\".")
    (play-expired-events :initarg :play-expired-events :initform nil :documentation "If T, always play events, even if their scheduled time has already passed. If NIL, silently skip these events. If :WARN, print a warning for each event skipped.")
+   (condition-handler :initarg :condition-handler :initform nil :type symbol :documentation "The restart to invoke when a condition occurs during task processing. If nil, the clock will not attempt to handle any conditions. If non-nil, all conditions signaled within a task will be caught and the specified restart will be invoked automatically to prevent the clock from pausing. Caught conditions will be printed as a warning and recorded with their stack trace in the clock's caught-conditions slot.")
+   (caught-conditions :initform (list) :type list :documentation "A list of conditions caught by the clock while processing tasks when its condition-handler is non-nil. Each entry in the list is a plist containing the the condition and the stack trace.")
+   (caught-conditions-lock :initform (bt:make-lock) :documentation "The lock on the caught-conditions slot to ensure it is thread-safe.")
    (tasks :initform nil :type list :documentation "The list of tasks that are running on the clock. Use `play', `stop', etc to play and stop patterns (the \"friendly\" way to add or remove them from the clock), or `clock-add' and `clock-remove' to manually remove them directly.")
    (tasks-lock :initform (bt:make-recursive-lock) :documentation "The lock on the tasks to make the clock thread-safe.")
    (timestamp-at-tempo :initform (local-time:now) :documentation "The local-time timestamp when the tempo was last changed.")
@@ -105,7 +108,7 @@ See also: `task-pattern', `clock-tasks'"
   (with-slots (tempo beat) clock
     (format stream "#<~s :tempo ~s :beat ~f>" 'clock tempo beat)))
 
-(defun make-clock (&optional (tempo 1) &key (latency 1/10) play-expired-events)
+(defun make-clock (&optional (tempo 1) &key (latency 1/10) play-expired-events condition-handler)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
 
 To start the clock so that it begins processing its tasks in a new thread, you can use `start-clock-loop'. Alternatively, you can call `clock-loop' yourself to start the loop in the current thread. The clock can also be advanced manually an arbitrary number of beats at a time with the `clock-process' function.
@@ -114,7 +117,8 @@ See also: `clock-process', `clock-loop', `start-clock-loop'"
   (make-instance 'clock
                  :tempo tempo
                  :latency latency
-                 :play-expired-events play-expired-events))
+                 :play-expired-events play-expired-events
+                 :condition-handler condition-handler))
 
 (defmethod real-beat ((clock clock))
   "Get the \"real beat\" of the clock; i.e. compute what the beat number should actually be at this instant in time (whereas the beat slot for the clock is quantized to the clock's granularity).
@@ -295,16 +299,55 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                   (clock-remove task clock))))
       (setf (beat clock) clock-end-beat))))
 
+(defun clock-condition-handler (&optional (clock *clock*))
+  "The restart to invoke when a condition occurs during task processing. If nil, the clock will not attempt to handle any conditions. If non-nil, all conditions signaled within a task will be caught and the specified restart will be invoked automatically to prevent the clock from pausing. Caught conditions will be printed as a warning and recorded with their stack trace in the clock's caught-conditions slot.
+
+See also: `clock-caught-conditions'"
+  (slot-value clock 'condition-handler))
+
+(defun (setf clock-condition-handler) (value &optional (clock *clock*))
+  (setf (slot-value clock 'condition-handler) value))
+
+(defun clock-caught-conditions (&optional (clock *clock*))
+  "A list of conditions caught by the clock while processing tasks when its condition-handler is non-nil. Each entry in the list is a plist containing the the condition and the stack trace.
+
+See also: `clock-condition-handler'"
+  (slot-value clock 'caught-conditions))
+
+(defun (setf clock-caught-conditions) (value &optional (clock *clock*))
+  (setf (slot-value clock 'caught-conditions) value))
+
 ;;; basic clock-loop convenience functionality
 
-(defvar *performance-mode* nil
-  "Set to true to enable \"performance mode\". In performance mode, all errors signaled within a task will be caught and a restart invoked automatically to prevent other tasks on the clock from pausing. REMOVE-TASK is the default restart, but another can be specified by setting this variable to its name. When an error occurs in performance mode, a warning is printed, and the task and its stack trace are saved to `*performance-errors*'.")
+(define-symbol-macro *performance-mode* (deprecated-clock-condition-handler))
 
-(defparameter *performance-errors* (list)
-  "A list of tasks' errors caught by the clock while `*performance-mode*' is enabled. Each entry in the list is a plist containing the task, the error, and the stack trace.")
+(setf (documentation '*performance-mode* 'variable)
+      "Deprecated alias for (clock-condition-handler *clock*).")
 
-(defparameter *performance-errors-lock* (bt:make-lock)
-  "The lock on `*performance-errors*' to make it thread-safe.")
+(defun deprecated-clock-condition-handler ()
+  "Deprecated alias for (clock-condition-handler *clock*)."
+  (warn "Using *performance-mode* is deprecated; please use (clock-condition-handler) instead.")
+  (clock-condition-handler))
+
+(defun (setf deprecated-clock-condition-handler) (value)
+  "Deprecated alias for (setf (clock-condition-handler *clock*) ...)."
+  (warn "Setting *performance-mode* is deprecated; please use (setf (clock-condition-handler) ...) instead.")
+  (setf (clock-condition-handler) value))
+
+(define-symbol-macro *performance-errors* (deprecated-clock-caught-conditions))
+
+(setf (documentation '*performance-errors* 'variable)
+      "Deprecated alias for (clock-caught-conditions *clock*).")
+
+(defun deprecated-clock-caught-conditions ()
+  "Deprecated alias for (clock-caught-conditions *clock*)."
+  (warn "Using *performance-errors* is deprecated; please use (clock-caught-conditions) instead.")
+  (clock-caught-conditions))
+
+(defun (setf deprecated-clock-caught-conditions) (value)
+  "Deprecated alias for (setf (clock-caught-conditions *clock*) ...)."
+  (warn "Setting *performance-errors* is deprecated; please use (setf (clock-caught-conditions) ...) instead.")
+  (setf (clock-caught-conditions) value))
 
 (defun clock-loop (clock &key (granularity (clock-latency clock)))
   "Convenience method for processing a clock's tasks in a loop.
@@ -314,21 +357,23 @@ To run the clock in a new thread, you can call `start-clock-loop'.
 See also: `start-clock-loop', `clock-process'"
   (unwind-protect
        (loop
-         (if *performance-mode*
+         (if (clock-condition-handler clock)
              (handler-bind
-                 ((error (lambda (e)
-                           (bt:with-lock-held (*performance-errors-lock*)
-                             (let ((restart (if (member *performance-mode* (list 'remove-task 'skip-event))
-                                                *performance-mode*
-                                                'remove-task)))
-                               (warn "Task had error ~s; invoked ~s restart, with state recorded ~s." e restart '*performance-errors*)
-                               (push (list (list :error e :stack (dissect:stack))) *performance-errors*)
-                               (invoke-restart restart))))))
+                 ((error
+                    (lambda (e)
+                      (bt:with-lock-held ((slot-value clock 'caught-conditions-lock))
+                        (let ((restart (if (member (clock-condition-handler clock) (list 'remove-task 'skip-event))
+                                           (clock-condition-handler clock)
+                                           'remove-task)))
+                          (warn "Task had condition ~s; invoked ~s restart and pushed the condition and stack to ~s's caught-conditions slot." e restart clock)
+                          (push (list :condition e :stack (dissect:stack))
+                                (slot-value clock 'caught-conditions))
+                          (invoke-restart restart))))))
                (clock-process clock granularity))
              (clock-process clock granularity))
          (sleep (max 0
                      (- (local-time:timestamp-difference
-                         (absolute-beats-to-timestamp (slot-value clock 'beat) clock)
+                         (absolute-beats-to-timestamp (beat clock) clock)
                          (local-time:now))
                         (/ granularity 2)))))
     (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))

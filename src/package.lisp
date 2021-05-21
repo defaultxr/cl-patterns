@@ -220,6 +220,8 @@
    #:clock-latency
    #:clock-tasks
    #:clock-process
+   #:clock-condition-handler
+   #:clock-caught-conditions
 
    #:*performance-mode*
    #:*performance-errors*
