@@ -7,65 +7,74 @@ This is a listing of notable features of cl-patterns. For a listing of new featu
   - [[https://incudine.sourceforge.net/][Incudine]]
   - ALSA MIDI (via the [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]] library)
 - event keys that are different representations of the same concept are automatically converted between each other. For example, if you set the ~amp~ of an event and then try to get its ~db~, cl-patterns converts the amplitude to decibels for you:
-#+BEGIN_SRC lisp
-  (db (event :amp 0.5))
-  ;=> -6.0205994
-  (amp (event :db -3))
-  ;=> 0.70794576
-#+END_SRC
+  #+begin_src lisp
+    (db (event :amp 0.5))
+    ;=> -6.0205994
+    (amp (event :db -3))
+    ;=> 0.70794576
+  #+end_src
 See [[file:special-keys.org][special-keys.org]] for a full listing of such keys.
 - pbind has "special" keys which alter the functionality of the pattern or pstream.
 For consistency, they're typically named after other patterns, i.e. ~pfin~, ~pfindur~, ~psync~, etc.
 See [[file:special-keys.org][special-keys.org]] for a full listing.
 - it's possible to embed an event's values into another from inside a pattern. For example:
-#+BEGIN_SRC lisp
-  (next-n (pbind :foo (pseq '(1 2 3 4))
-                 :embed (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
-          3)
-  ((EVENT :FOO 1)
-   (EVENT :FOO 2 :BAR 1 :BAZ 2)
-   (EVENT :FOO 3 :QUX 3))
-#+END_SRC
+  #+begin_src lisp
+    (next-n (pbind :foo (pseq '(1 2 3 4))
+                   :embed (pseq (list (event) (event :bar 1 :baz 2) (event :qux 3))))
+            3)
+    ((EVENT :FOO 1)
+     (EVENT :FOO 2 :BAR 1 :BAZ 2)
+     (EVENT :FOO 3 :QUX 3))
+  #+end_src
 - all pstreams keep a history of previous values that can be referred back to at any time using ~pstream-elt~.
 - patterns that have ~repeat~ or ~length~ arguments accept any pattern as "gate" patterns:
-#+BEGIN_SRC lisp
-  (let* ((foo 1)
-         (bar (as-pstream (pseq '(1 2 3) (pfunc (lambda () foo))))))
-    (print (next-n bar 10)) ;=> (1 2 3 1 2 3 1 2 3 1)
-    (setf foo 0)
-    (print (next-n bar 3)) ;=> (2 3 NIL)
-    )
-#+END_SRC
+  #+begin_src lisp
+    (let* ((foo 1)
+           (bar (as-pstream (pseq '(1 2 3) (pfunc (lambda () foo))))))
+      (print (next-n bar 10)) ;=> (1 2 3 1 2 3 1 2 3 1)
+      (setf foo 0)
+      (print (next-n bar 3))) ;=> (2 3 NIL)
+  #+end_src
 - patterns keep track of their "parents":
-#+BEGIN_SRC lisp
-  (defparameter *pat* (pbind :foo (pseq '(1 2 3))))
+  #+begin_src lisp
+    (defparameter *pat* (pbind :foo (pseq '(1 2 3))))
 
-  (defparameter *pseq* (getf (slot-value *pat* 'cl-patterns::pairs) :foo))
+    (defparameter *pseq* (getf (slot-value *pat* 'cl-patterns::pairs) :foo))
 
-  (pattern-parent *pseq*) ;=> #<PBIND {1003480F53}>
+    (pattern-parent *pseq*) ;=> #<PBIND {1003480F53}>
 
-  (eq *pat* (pattern-parent *pseq*)) ;=> T
-#+END_SRC
+    (eq *pat* (pattern-parent *pseq*)) ;=> T
+  #+end_src
+- the "children" of patterns can also be easily found with the ~pattern-children~ function:
+  #+begin_src lisp
+    ;; get just the children that are patterns:
+    (pattern-children (pbind :foo (pseq (list 1 2 3)) :bar 4))
+    ;; => (#<PSEQ (1 2 3) :INF 0>)
+
+    ;; ...or get all children even if they aren't patterns:
+    (pattern-children (pbind :foo (pseq (list 1 2 3)) :bar 4) :class t)
+    ;; => (#<PSEQ (1 2 3) :INF 0> 4)
+  #+end_src
 - conditions that occur during pattern execution give you the option to remove the task from the clock, or just skip processing of the event.
   - alternatively, you can set a condition handler in the clock to automatically remove the task or skip the event, recording the error and stack trace to a slot:
-#+BEGIN_SRC lisp
-  (setf (clock-condition-handler *clock*) 'remove-task)
+    #+begin_src lisp
+      (setf (clock-condition-handler *clock*) 'remove-task)
 
-  (play (pbind :x (p/ 1 (pseq '(440 220 0)))))
+      (play (pbind :x (p/ 1 (pseq '(440 220 0)))))
 
-  ;; ...and then the error occurs:
-  ;; WARNING: Task had condition #<DIVISION-BY-ZERO {1002EF08E3}>; invoked CL-PATTERNS::REMOVE-TASK restart and pushed the condition and stack to #<CL-PATTERNS::CLOCK :tempo 110/60 :beat 2.0>'s caught-conditions slot.
+      ;; ...and then the error occurs:
+      ;; WARNING: Task had condition #<DIVISION-BY-ZERO {1002EF08E3}>; invoked CL-PATTERNS::REMOVE-TASK restart and pushed the condition and stack to #<CL-PATTERNS::CLOCK :tempo 110/60 :beat 2.0>'s caught-conditions slot.
 
-  (car (clock-caught-conditions *clock*))
-  ;; => (:CONDITION #<DIVISION-BY-ZERO {10043ABA93}>
-  ;;     :STACK (#<DISSECT::SBCL-CALL [1] ...> ...))
-#+END_SRC
+      (car (clock-caught-conditions *clock*))
+      ;; => (:CONDITION #<DIVISION-BY-ZERO {10043ABA93}>
+      ;;     :STACK (#<DISSECT::SBCL-CALL [1] ...> ...))
+    #+end_src
 - SuperCollider backend: if a node is supplied as a value for a ~pbind~, the synth metadata for that node is used to set its ~input-bus~ or ~output-bus~ as the value instead:
-#+BEGIN_SRC lisp
-    (sc::set-synthdef-metadata :fx :input-bus (bus-audio :chanls 2))
+  #+begin_src lisp
+    (setf (synthdef-metadata :fx :input-bus) (bus-audio :chanls 2))
 
     (defparameter *fx* (proxy :fx
-                              (let* ((sig (in.ar (sc::get-synthdef-metadata :fx :input-bus) 2))
+                              (let* ((sig (in.ar (synthdef-metadata :fx :input-bus) 2))
                                      (sig (comb-c.ar sig 0.2 (range (lf-noise1.kr 1) 0.04 0.2))))
                                 sig)))
 
@@ -77,8 +86,28 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
       :out *fx*
       :pfindur 4)
 
-  (play :fx-test)
-#+END_SRC
+    (play :fx-test)
+  #+end_src
 ...in the future, this will be even simpler. :)
 - ~metadata~ slot for patterns
-Hash table associated with each pattern for storing additional data. Access with the ~pattern-metadata~ function. Used by the midifile functionality to include track names/information/etc.
+Hash table associated with each pattern for storing additional data. Access with the ~pattern-metadata~ function. This is used by the midifile functionality to include track names/information/etc, but it can be used to store any kind of arbitrary pattern data.
+- Process pattern outputs with arbitrary functions before they are sent to backends using the ~*post-pattern-output-processors*~ list:
+  #+begin_src lisp
+    (push (lambda (event pstream)
+            (declare (ignore pstream))
+            (when (position :foo (keys event))
+              (incf (event-value event :foo)))
+            event)
+          *post-pattern-output-processors*)
+
+    (next-n (pbind :foo (pseq (list 1 2 3))) 3)
+    ;; => ((EVENT :FOO 2) (EVENT :FOO 3) (EVENT :FOO 4))
+  #+end_src
+...by default, ~cl-patterns::remap-instrument-to-parameters~ is the function in this list, which can be used to map from specified ~instrument~ values to other event keys:
+  #+begin_src lisp
+    (setf (instrument-mapping :bar) (list :test 3 :instrument :qux))
+
+    (next (pbind :instrument :bar))
+    ;; => (EVENT :TEST 3 :INSTRUMENT :QUX)
+  #+end_src
+- Various unit conversion functions (i.e. ~midinote-freq~ to convert from a midi note number to a frequency in Hz) that also work on UGens when used in cl-collider synthdefs. see [[file:~/misc/lisp/cl-patterns/src/conversions.lisp][conversions.lisp]] for the conversion functions.
