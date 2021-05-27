@@ -71,34 +71,92 @@ See also: `pt', `pcycles', `pbind'"
                                     (next cur)
                                     (parse (1+ index))))))))
           ;; generate the output event for this step
-          (let ((ev
-                 (if (and (listp row)
-                          (null (cdr row))
-                          (rest-p (car row)))
-                     (combine-events
-                      (apply #'event c-header)
-                      (event :type :rest))
-                     (let ((res (parse 0)))
-                       (apply #'event
-                              (append
-                               (flatten-1 (mapcar (lambda (x)
-                                                    (list x (getf c-header x)))
-                                                  (set-difference (keys c-header) (keys res))))
-                               res))))))
+          (let ((ev (if (and (listp row)
+                             (null (cdr row))
+                             (rest-p (car row)))
+                        (combine-events
+                         (apply #'event c-header)
+                         (event :type :rest))
+                        (let ((res (parse 0)))
+                          (apply #'event
+                                 (append
+                                  (flatten-1 (mapcar (lambda (x)
+                                                       (list x (getf c-header x)))
+                                                     (set-difference (keys c-header) (keys res))))
+                                  res))))))
             ;; check for and handle continuation lines (dashes) after this line, increasing the dur of the event for each.
             (let ((next-num (1+ current-row))
                   (extra-dur 0))
-              (loop :while (let ((next (car (ensure-list (nth next-num rows)))))
-                             (and (symbolp next)
-                                  (string= :- next)))
-                 :do
-                   (incf next-num)
-                   (incf inc-by)
-                   (incf extra-dur (or (getf (mapcar #'next header) :dur) 1)))
+              (while (let ((next (car (ensure-list (nth next-num rows)))))
+                       (and (symbolp next)
+                            (string= :- next)))
+                (incf next-num)
+                (incf inc-by)
+                (incf extra-dur (or (getf (mapcar #'next header) :dur) 1)))
               (when (plusp extra-dur)
                 (incf (event-value ev :dur) extra-dur)))
             (incf current-row inc-by)
             ev))))))
+
+(defun ptracker-does-not-exist (ptracker type name if-does-not-exist)
+  (etypecase if-does-not-exist
+    ((member :error) (error "No ~a at ~s exists in ~s." (string-downcase type) name ptracker))
+    (null nil)))
+
+(defgeneric ptracker-row (ptracker row &key if-does-not-exist)
+  (:documentation "Get the plist for ROW from PTRACKER."))
+
+(defmethod ptracker-row ((ptracker ptracker) row &key (if-does-not-exist :error))
+  (typecase row
+    ((member :header :head :h nil)
+     (slot-value ptracker 'cl-patterns::header))
+    ((integer 0)
+     (let ((rows (slot-value ptracker 'cl-patterns::rows)))
+       (elt rows row))) ;; FIX: check if exists
+    (t
+     (ptracker-does-not-exist ptracker 'row row if-does-not-exist))))
+
+(defmethod (setf ptracker-row) (value (ptracker ptracker) row &key)
+  (etypecase row
+    ((member :header :head :h nil)
+     (setf (slot-value ptracker 'cl-patterns::header) value))
+    ((integer 0)
+     (setf (nth row (slot-value ptracker 'cl-patterns::rows)) value))))
+
+(defgeneric ptracker-cell (ptracker row key &key if-does-not-exist) ;; FIX: implement if-does-not-exist
+  (:documentation "Get the value of a cell from ptracker (i.e. the value at that location if specified, or the generated value if not specified). Can also be used on a ptracker-pstream to get the generated values from it. Returns three values:
+
+- the value of the cell
+- the name of the key that the specified KEY was derived from, or nil if it was not found
+- t if the output was taken from the row itself, or nil if it was derived from the header
+
+See also: `ptracker', `ptracker-row'"))
+
+(defmethod ptracker-cell ((ptracker ptracker) row key &key if-does-not-exist)
+  (multiple-value-bind (res derived-from)
+      (event-value (apply #'event (ptracker-row ptracker row :if-does-not-exist if-does-not-exist))
+                   key)
+    (if (eql derived-from t)
+        (let ((res (lastcar (next-n ptracker (1+ row)))))
+          (values-list (append (multiple-value-list (event-value res key))
+                               (list nil))))
+        (values res derived-from t))))
+
+(defmethod ptracker-cell ((ptracker ptracker-pstream) row key &key if-does-not-exist)
+  (etypecase row
+    (symbol
+     (ptracker-cell ptracker nil row))
+    (integer
+     (if-let ((event (elt ptracker row)))
+       (event-value event key)
+       (values nil nil nil)))))
+
+(defgeneric (setf ptracker-cell) (value ptracker row key &key))
+
+(defmethod (setf ptracker-cell) (value ptracker row key &key)
+  (let ((row-plist (ptracker-row ptracker row)))
+    (setf (getf row-plist key) value
+          (ptracker-row ptracker row) row-plist)))
 
 (defmacro pt (header &rest rows)
   "Syntax sugar for `ptracker'. Avoids the need to quote or use `list'.

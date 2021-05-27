@@ -189,6 +189,9 @@
 
    ;;; tracker.lisp
 
+   #:ptracker-row
+   #:ptracker-cell
+
    #:pt
 
    ;;; eseq.lisp
