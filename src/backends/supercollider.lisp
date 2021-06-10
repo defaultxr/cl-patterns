@@ -159,6 +159,17 @@
                  :dur 32
                  :quant 0))))
 
+(defmethod render ((buffer cl-collider::buffer) (path string) &rest args &key &allow-other-keys)
+  (let (o-args)
+    (doplist (k v args)
+      (when (position k (list :server :frames :start-frame :format :sample-format :leave-open-p :complete-handler))
+        (push v o-args)
+        (push (if (eql k :sample-format)
+                  :format
+                  k)
+              o-args)))
+    (apply #'cl-collider:buffer-write buffer path o-args)))
+
 (register-backend :supercollider)
 
 ;; (enable-backend :supercollider)
