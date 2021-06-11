@@ -462,7 +462,11 @@
       "prand is yielding outputs not specified in its inputs")
   (is (= 3
          (length (next-upto-n (prand (list 1 2 3) 3))))
-      "prand yields the correct number of outputs"))
+      "prand yields the correct number of outputs")
+  (is-false
+   (find-if-not (fn (member _ (list 1 2)))
+                (next-upto-n (prand (pf (list 1 2)))))
+   "prand returned incorrect results for LIST as a pattern"))
 
 (test pxrand
   "Test pxrand"
@@ -476,13 +480,27 @@
        t))
    "pxrand yielded the same item twice in a row")
   (signals simple-error (pxrand (list 1 1 1))
-           "pxrand does not raise an error for insufficient differing elements in its input list"))
+    "pxrand does not raise an error for insufficient differing elements in its input list")
+  (is-false
+   (find-if-not (fn (member _ (list 1 2)))
+                (next-upto-n (pxrand (pf (list 1 2)))))
+   "pxrand returned incorrect results for LIST as a pattern"))
 
 (test pwrand
   "Test pwrand"
   (is-false
    (position 0 (next-n (pwrand (list 0 1) (list 0 1)) 1000))
-   "pwrand yielded an item whose weight was 0"))
+   "pwrand yielded an item whose weight was 0")
+  (is-false
+   (find-if-not (fn (member _ (list 1 2)))
+                (next-upto-n (pwrand (pf (list 1 2)))))
+   "pwrand returned incorrect results for LIST as a pattern")
+  (is-false
+   (find 1 (mapcar #'freq
+                   (next-upto-n (pbind :foo 0
+                                       :freq (pwrand (list 1 0)
+                                                     (list (pk :foo) 1))))))
+   "pwrand returned incorrect results for WEIGHTS with a pattern"))
 
 (test pwxrand
   "Test pwxrand"
@@ -499,7 +517,17 @@
    (position 0 (next-n (pwxrand (list 0 1 2) (list 0 1 1)) 1000))
    "pwxrand yielded an item whose weight was 0")
   (signals simple-error (pwxrand (list 1 1 1))
-           "pwxrand does not raise an error for insufficient differing elements in its input list"))
+    "pwxrand does not raise an error for insufficient differing elements in its input list")
+  (is-false
+   (find-if-not (fn (member _ (list 1 2)))
+                (next-upto-n (pwxrand (pf (list 1 2)))))
+   "pwxrand returned incorrect results for LIST as a pattern")
+  (is-false
+   (find 1 (mapcar #'freq
+                   (next-upto-n (pbind :foo 0
+                                       :freq (pwxrand (list 1 0 -1)
+                                                      (list (pk :foo) 1 1))))))
+   "pwxrand returned incorrect results for WEIGHTS with a pattern"))
 
 (test pfunc
   "Test pfunc"
