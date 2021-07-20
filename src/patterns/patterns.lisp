@@ -2181,7 +2181,7 @@ See also: `pscratch'")
   (with-slots (pattern step-pattern) phistory
     (make-instance 'phistory-pstream
                    :pattern (as-pstream pattern)
-                   :step-pattern (as-pstream step-pattern))))
+                   :step-pattern (pattern-as-pstream step-pattern))))
 
 (defmethod next ((phistory phistory-pstream))
   (with-slots (pattern step-pattern) phistory
