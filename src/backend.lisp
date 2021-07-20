@@ -4,11 +4,12 @@
 
 (defun task-nodes (task &optional backend)
   "Get the list of nodes for TASK for the specified backend. If BACKEND is nil, get all of the resources for TASK regardless of backend."
-  (if backend
-      (remove-if-not (rcurry 'backend-node-p backend) (slot-value task 'backend-resources))
-      (slot-value task 'backend-resources)))
+  (with-slots (backend-resources) task
+    (if backend
+        (remove-if-not (rcurry #'backend-node-p backend) backend-resources)
+        backend-resources)))
 
-(defun (setf task-nodes) (value task backend)
+(defun (setf task-nodes) (value task &optional backend)
   "Set the list of nodes for TASK for the specified backend. If BACKEND is nil, set the full backend-resources slot for the task."
   (with-slots (backend-resources) task
     (setf backend-resources (if backend

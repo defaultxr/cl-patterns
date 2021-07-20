@@ -155,8 +155,8 @@
                  (find-if (lambda (x) ;; buffer or bufnum argument
                             (position x (list 'buffer 'bufnum) :test #'string-equal))
                           synthdef-controls)
-                 (cl-collider:bufnum buffer) ;; get the actual buffer number
-                 :dur 32
+                 buffer
+                 :dur 16
                  :quant 0))))
 
 (defmethod render ((buffer cl-collider::buffer) (path string) &rest args &key &allow-other-keys)

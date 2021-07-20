@@ -105,23 +105,6 @@ See also: `mapcar-longest', `split-event-by-lists'"
             plist)
           (append plist (list key value)))))
 
-;;; math stuff
-
-(defun near (number &optional (range 1) (of 0))
-  "Test whether NUMBER is within RANGE (bipolar) of OF.
-
-Examples:
-
-;; (near 4 1 5) ;; => t
-;; (near 4 1) ;; => nil
-;; (near 0.5) ;; => t
-;; (near 0.5 0.6 1) ;; => t
-
-See also: `alexandria:clamp', `wrap'"
-  (<= (abs (- number of))
-      range))
-
-
 (defun seq (&key start end limit step (default :mean)) ;; FIX: deprecate and move to mutility
   "Generate a sequence of numbers as a list.
 
@@ -175,6 +158,22 @@ See also: `seq'"
          (seq :start num :end (1- stop)))
         (t
          (seq :start num :end (1- stop) :step step))))
+
+;;; math stuff
+
+(defun near (number &optional (range 1) (of 0))
+  "Test whether NUMBER is within RANGE (bipolar) of OF.
+
+Examples:
+
+;; (near 4 1 5) ;; => t
+;; (near 4 1) ;; => nil
+;; (near 0.5) ;; => t
+;; (near 0.5 0.6 1) ;; => t
+
+See also: `alexandria:clamp', `wrap'"
+  (<= (abs (- number of))
+      range))
 
 (defun next-beat-for-quant (&optional (quant 1) (beat (beat *clock*)) (direction 1))
   "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT.

@@ -1249,9 +1249,9 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
       (when current-value
         (setf current-repeats-remaining
               (let ((*event* (if (event-p current-value)
-                                 (if (null *event*)
-                                     current-value
-                                     (combine-events *event* current-value))
+                                 (if *event*
+                                     (combine-events *event* current-value)
+                                     current-value)
                                  *event*)))
                 (if (typep repeats 'function)
                     (let ((arglist (function-arglist repeats)))
@@ -1584,7 +1584,7 @@ See also: `prand'")
 
 (defmethod next ((pshuf pshuf-pstream))
   (with-slots (list number shuffled-list) pshuf
-    (when (and (= 0 (mod number (length list)))
+    (when (and (zerop (mod number (length list)))
                (plusp number))
       (decf-remaining pshuf 'current-repeats-remaining))
     (when-let ((rem (remaining-p pshuf)))
@@ -1995,8 +1995,7 @@ See also: `place'")
               (remaining-p ppatlace))
       (let* ((mod (mod number (length list)))
              (result (next (nth mod list))))
-        (if result
-            result
+        (or result
             (progn
               (setf list (remove-if (constantly t) list :start mod :end (1+ mod)))
               (when (plusp (length list))

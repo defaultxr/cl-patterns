@@ -19,7 +19,7 @@
 
 (defun alsa-midi-instrument-program-number (instrument)
   "Get INSTRUMENT's program number according to `*alsa-midi-instrument-map*', or nil if INSTRUMENT was not found in the map. If INSTRUMENT is a number, coerce it to a MIDI-compatible integer (0-127)."
-  (when-let ((num (etypecase instrument
+  (when-let ((num (typecase instrument
                     (number instrument)
                     (symbol (gethash instrument *alsa-midi-instrument-map*)))))
     (midi-truncate-clamp num)))

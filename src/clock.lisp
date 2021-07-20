@@ -77,15 +77,14 @@ See also: `task-pattern', `clock-tasks'"
   (let ((pattern (if (symbolp pattern)
                      (pdef pattern)
                      pattern)))
-    (remove-if-not (lambda (i)
-                     (with-slots (item) i
-                       (or (eq pattern item)
-                           (with-slots (source) item
-                             (or (eq pattern source)
-                                 (when-let ((source-key (ignore-errors (pdef-key source))))
-                                   (eql source-key (pdef-key pattern)))
-                                 (when (typep source 'pdef)
-                                   (eq pattern (pdef-pattern source))))))))
+    (remove-if-not (fn (with-slots (item) _
+                         (or (eq pattern item)
+                             (with-slots (source) item
+                               (or (eq pattern source)
+                                   (when-let ((source-key (ignore-errors (pdef-key source))))
+                                     (eql source-key (pdef-key pattern)))
+                                   (when (typep source 'pdef)
+                                     (eq pattern (pdef-pattern source))))))))
                    (slot-value clock 'tasks))))
 
 ;;; clock
