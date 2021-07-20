@@ -2035,7 +2035,26 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
           (nexts (mapcar #'next patterns)))
       (unless (or (position nil nexts)
                   (null op))
-        (apply #'multi-channel-funcall op nexts)))))
+        (restart-case
+            (handler-bind
+                ((type-error
+                   (lambda (c)
+                     (when-let ((restart (find-restart 'retry-with-prest-values c)))
+                       (invoke-restart restart)))))
+              (apply #'multi-channel-funcall op nexts))
+          (retry-with-prest-values ()
+            :test (lambda (c)
+                    (and (typep c 'type-error)
+                         (eql 'number (type-error-expected-type c))
+                         (typep (type-error-datum c) 'prest)))
+            (labels ((replace-prests (list)
+                       (mapcar (lambda (item)
+                                 (typecase item
+                                   (list (replace-prests item))
+                                   (prest (slot-value item 'value))
+                                   (t item)))
+                               list)))
+              (apply #'multi-channel-funcall op (replace-prests nexts)))))))))
 
 (defun p+ (&rest numbers)
   "Add NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."

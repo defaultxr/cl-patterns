@@ -796,7 +796,10 @@
       "pnary yields incorrect outputs with pattern and two numbers as arguments")
   (is (equal (list 3 0)
              (next-upto-n (pnary (pseq (list #'+ #'-)) 2 (pseq (list 1 2) 1))))
-      "pnary yields incorrect outputs when its operator is a pattern"))
+      "pnary yields incorrect outputs when its operator is a pattern")
+  (is (equal (list 1 2 3)
+             (next-n (pnary #'+ 0 (pseq (list 1 (prest 2) 3))) 3))
+      "pnary does not handle prests correctly"))
 
 (test prerange
   "Test prerange"
