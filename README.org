@@ -135,7 +135,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:doc/other-libraries.org][other-libraries.org]] - listing of other libraries that have similar goals or may be useful in conjunction with cl-patterns.
 - [[file:doc/patterns.org][patterns.org]] - organized index of the pattern classes included in cl-patterns.
 - [[file:doc/roadmap.org][roadmap.org]] - general overview of major goals for the future development of cl-patterns.
-- [[file:doc/sc.org][sc.org]] - a list of pattern classes in SuperCollider and their cl-patterns implementation status.
+- [[file:doc/sc.org][sc.org]] - a list of pattern classes and special keys in SuperCollider and their cl-patterns implementation status.
 - [[file:doc/sc-differences.org][sc-differences.org]] - listing of things that differ between cl-patterns and SuperCollider.
 - [[file:doc/special-keys.org][special-keys.org]] - description of keys that have special effects when used in an event or pbind.
 - [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] - short example of how to use cl-patterns with cl-collider.

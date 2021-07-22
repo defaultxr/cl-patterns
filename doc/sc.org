@@ -1,6 +1,6 @@
-#+TITLE: SuperCollider Patterns
+#+TITLE: SuperCollider Patterns and Keys
 
-This is a listing of many of the pattern classes from SuperCollider and various quarks. Any patterns that have equivalents in cl-patterns are marked as such. If a pattern you want is not yet implemented (or not listed here), feel free to open an issue requesting it (or if you're feeling inspired, code it yourself and open a pull request!).
+This is a listing of many of the pattern classes from SuperCollider and various quarks, and the [[http://doc.sccode.org/Classes/Event.html#Useful%20keys%20for%20notes][event keys]]. Any patterns and keys that have equivalents in cl-patterns are marked as such. If a pattern you want is not yet implemented (or not listed here), feel free to open an issue requesting it (or if you're feeling inspired, code it yourself and open a pull request!).
 
 Note that this is just a simple rip of all the ~Pattern~ subclasses and that a pattern's inclusion in this list doesn't necessarily guarantee it will be implemented in the future.
 
@@ -116,3 +116,55 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pbjorklund~ - done as ~pbjorklund~.
 - ~PS~ - done as ~ps~.
 - ~Pspawn~ - functionality covered by ~pmeta~.
+
+* Special keys
+Many (but not all) SuperCollider special keys are supported in cl-patterns. [[file:special-keys.org][special-keys.org]] lists all of the supported keys in cl-patterns, but the implementation/equivalent status of all of the SuperCollider special keys are listed here for convenience.
+
+** serverEvent keys
+
+- ~server~ - not implemented; you probably want ~backend~ instead.
+- ~instrument~ - implemented.
+- ~group~ - implemented for the SuperCollider backend.
+- ~addAction~ - not implemented.
+- ~out~ - implemented.
+
+** ampEvent keys
+
+- ~amp~ - implemented.
+- ~db~ - implemented.
+- ~pan~ - implemented.
+- ~velocity~ - not implemented; just set ~:amp~ to ~N/127~ instead.
+- ~trig~ - not implemented.
+
+** durEvent keys
+
+- ~tempo~ - implemented.
+- ~dur~ - implemented.
+- ~stretch~ - not implemented; just multiply the ~:dur~ key, i.e. ~:dur (p* (pk :dur) N)~
+- ~legato~ - implemented.
+- ~sustain~ - implemented.
+- ~lag~ - not implemented; ~latency~ effectively provides this; just add your desired value onto it.
+- ~timingOffset~ - implemented but named ~timing-offset~.
+- ~strum~ - not implemented; will likely be implemented as a pattern instead.
+- ~strumEndsTogether~ - not implemented; will likely be implemented as a pattern instead.
+- ~sendGate~ - not implemented; the system automatically detects whether to send a gate parameter based on whether the instrument definition has one. You should ensure your instrument metadata and/or synth definitions are correct if you're having issues.
+
+** pitchEvent keys
+
+- ~freq~ - implemented.
+- ~midinote~ - implemented.
+- ~note~ - implemented.
+- ~degree~ - implemented.
+
+- ~scale~ - implemented.
+- ~octave~ - implemented.
+- ~root~ - implemented.
+- ~stepsPerOctave~ - not implemented; just set the ~scale~ key to a scale that has the number of steps you want to have per octave.
+- ~octaveRatio~ - not implemented; just set the ~scale~ key to a scale that has the octave ratio you need.
+- ~harmonic~ - not implemented; just multiply the ~freq~ key, i.e. ~:freq (p* (pk :freq) N)~
+- ~detune~ - not implemented; just add to the ~freq~ key, i.e. ~:freq (p+ (pk :freq) N)~
+- ~midiToCps~ - not implemented; pitch calculations are automatically done by the system; set your ~scale~ key to your desired scale and provide pitch information as additional keys and the system should (in theory) calculate the the frequency for you. It's not necessary and not recommended to use the ~midinote~ key to notate non-12-tone scale music. If the system's pitch functionality is not enough, define your own ~scale~ or ~tuning~, or just specify the frequency directly via the ~freq~ key.
+
+- ~mtranspose~ - not implemented; just add to the ~degree~ key instead, i.e. ~:degree (p+ (pk :degree) N)~
+- ~gtranspose~ - not implemented; just ensure your ~scale~ is set correctly and add to the ~note~ key instead, i.e. ~:note (p+ (pk :note) N)~
+- ~ctranspose~ - not implemented; just add to the ~note~ or ~midinote~ key instead, i.e. ~:midinote (p+ (pk :note) N)~
