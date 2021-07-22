@@ -39,9 +39,7 @@ When the event should play, relative to the start of the pattern.
 ** ~sustain~ / ~legato~
 How long the synth is held before being released. ~sustain~ is an absolute time in beats for the note to be held, while ~legato~ is multiplied by ~dur~ to get the sustain time.
 ** ~timing-offset~
-The timing offset of the event, added onto the time when it would normally occur.
-
-FIX: Not sure if this should be in beats or seconds.
+The timing offset of the event, in seconds, added onto the time when it would normally occur.
 ** ~freq~ / ~midinote~ / ~note~ / ~degree~ + ~octave~ + ~root~ + ~scale~
 Various ways to specify the pitch of the synth.
 ** ~buffer~ / ~bufnum~
