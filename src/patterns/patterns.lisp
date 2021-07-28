@@ -2726,16 +2726,15 @@ See also: `pbind''s :embed key"
 (defmethod as-pstream ((pchain pchain))
   (with-slots (patterns) pchain
     (make-instance 'pchain-pstream
-                   :patterns (loop :for pattern :in patterns
-                                   :collect (pattern-as-pstream pattern)))))
+                   :patterns (mapcar #'pattern-as-pstream patterns))))
 
 (defmethod next ((pchain pchain-pstream))
   (with-slots (patterns) pchain
     (let ((c-event (make-default-event)))
-      (dolist (pattern patterns)
-        (setf c-event (combine-events c-event (let ((*event* c-event))
-                                                (next pattern)))))
-      c-event)))
+      (dolist (pattern patterns c-event)
+        (setf c-event (combine-events c-event
+                                      (let ((*event* c-event))
+                                        (next pattern))))))))
 
 ;;; pdiff
 
