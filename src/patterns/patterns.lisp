@@ -3184,7 +3184,8 @@ See also: `pclump'")
    (lo :default nil)
    (hi :default nil)
    (bound-by :default nil)
-   (current-value :state t))
+   (current-value :state t)
+   (current-repeats-remaining :state t))
   :documentation "Numeric accumulator. Each output and STEP is used as the input for OPERATOR to generate the next output. When LO, HI, and BOUND-BY are provided, outputs that fall outside the range LO..HI are wrapped back inside with the BOUND-BY function; the value is provided as its first argument, and LO and HI are provided as its second and third.
 
 Based on the pattern originally from the ddwPatterns SuperCollider library.
@@ -3222,6 +3223,9 @@ See also: `pseries', `pgeom', `pwalk'"
 
 (defmethod next ((paccum paccum-pstream))
   (with-slots (operator start step length lo hi bound-by current-value) paccum
+    (unless (remaining-p paccum 'length)
+      (return-from next eop))
+    (decf-remaining paccum)
     (setf current-value (if (slot-boundp paccum 'current-value)
                             (when-let ((res (funcall (if (pstream-p operator)
                                                          (next operator)

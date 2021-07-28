@@ -1199,7 +1199,10 @@
       "paccum yields incorrect output for wrapped bounding")
   (is (equal (list 1 2 4 8 16 32 64 72 56 88)
              (next-upto-n (paccum #'* 1 2 :inf :lo 0 :hi 100 :bound-by 'fold) 10))
-      "paccum yields incorrect output for #'* as OPERATOR"))
+      "paccum yields incorrect output for #'* as OPERATOR")
+  (is (= 2
+         (length (next-upto-n (paccum #'+ 0 1 2))))
+      "paccum yields the wrong number of outputs when LENGTH is 2"))
 
 (test ps
   "Test ps"
