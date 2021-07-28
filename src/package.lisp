@@ -13,6 +13,7 @@
    #:eop
 
    #:multi-channel-funcall
+   #:pyramid
    #:next-beat-for-quant
    #:rerange
 

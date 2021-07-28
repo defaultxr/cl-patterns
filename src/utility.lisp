@@ -162,6 +162,98 @@ See also: `seq'"
         (t
          (seq :start num :end (1- stop) :step step))))
 
+(defun pyramid (sequence &optional (pattern-type 1))
+  "Return a new list whose elements have been reordered via one of 10 \"counting\" algorithms. This is based on and tested against SuperCollider's Array.pyramid method."
+  (check-type sequence sequence)
+  (check-type pattern-type (integer 1 10))
+  (let ((seq-length (length sequence))
+        (k 0))
+    (case pattern-type
+      (1
+       (let ((res (make-list (/ (+ (* seq-length seq-length) seq-length) 2))))
+         (dotimes (i (1+ seq-length) res)
+           (loop :for j :below i :do
+             (setf (elt res k) (elt sequence j))
+             (incf k)))))
+      (2
+       (let ((res (make-list (/ (+ (* seq-length seq-length) seq-length) 2))))
+         (dotimes (i seq-length res)
+           (loop :for j :from (- seq-length 1 i) :below seq-length :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (3
+       (let ((res (make-list (/ (+ (* seq-length seq-length) seq-length) 2))))
+         (dotimes (i seq-length res)
+           (loop :for j :below (- seq-length i) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (4
+       (let ((res (make-list (/ (+ (* seq-length seq-length) seq-length) 2))))
+         (dotimes (i seq-length res)
+           (loop :for j :from i :below seq-length :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (5
+       (let ((res (make-list (* seq-length seq-length))))
+         (dotimes (i seq-length)
+           (loop :for j :below i :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))
+         (dotimes (i seq-length res)
+           (loop :for j :below (- seq-length i) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (6
+       (let ((res (make-list (* seq-length seq-length))))
+         (dotimes (i seq-length)
+           (loop :for j :from (- seq-length 1 i) :below seq-length :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))
+         (dotimes (i seq-length res)
+           (loop :for j :from (1+ i) :below seq-length :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (7
+       (let ((res (make-list (+ (* seq-length seq-length) seq-length -1))))
+         (dotimes (i seq-length)
+           (loop :for j :below (- seq-length i) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))
+         (dotimes (i (1- seq-length) res)
+           (loop :for j :upto (1+ i) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (8
+       (let ((res (make-list (+ (* seq-length seq-length) seq-length -1))))
+         (dotimes (i seq-length)
+           (loop :for j :from i :below seq-length :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))
+         (dotimes (i (1- seq-length) res)
+           (loop :for j :from (- seq-length 1 (1+ i)) :upto (1- seq-length) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (9
+       (let ((res (make-list (* seq-length seq-length))))
+         (dotimes (i seq-length)
+           (loop :for j :upto i :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))
+         (dotimes (i seq-length res)
+           (loop :for j :from (1+ i) :upto (1- seq-length) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))))
+      (10
+       (let ((res (make-list (* seq-length seq-length))))
+         (dotimes (i seq-length)
+           (loop :for j :from (- seq-length 1 i) :upto (1- seq-length) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k)))
+         (dotimes (i seq-length res)
+           (loop :for j :upto (- seq-length 2 i) :do
+             (setf (elt res k) (elt-wrap sequence j))
+             (incf k))))))))
+
 ;;; math stuff
 
 (defun near (number &optional (range 1) (of 0))
