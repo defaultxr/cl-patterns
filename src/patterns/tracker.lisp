@@ -50,7 +50,7 @@ See also: `pt', `pcycles', `pbind'"
       (setf current-row 0)
       (decf-remaining ptracker)
       (unless (value-remaining-p current-repeats-remaining)
-        (return-from next nil)))
+        (return-from next eop)))
     (let* ((c-header (mapcar #'next header))
            (row (nth current-row rows))
            (row (etypecase row

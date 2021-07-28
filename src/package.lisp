@@ -10,6 +10,7 @@
 
    #:*event*
    #:*clock*
+   #:eop
 
    #:multi-channel-funcall
    #:next-beat-for-quant

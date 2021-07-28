@@ -61,7 +61,7 @@ See also: `raw-event-value', `event-value'"
 Returns 2 values: the value of the key, and the name of the key the value was derived from (or t if the default value of the key was used, or nil if no value or default was provided).
 
 See also: `event', `e', `raw-event-value'"
-  (when (null event)
+  (when (eql eop event)
     (return-from event-value (values nil nil)))
   (let* ((key (make-keyword key))
          (cases (car (getf *event-special-keys* key)))
@@ -119,6 +119,9 @@ See also: `event-value', `event', `*event*'"
 
 (defmethod keys ((event event))
   (keys (slot-value event 'event-plist)))
+
+(defmethod keys ((eop (eql eop)))
+  nil)
 
 (defmethod beat ((event event))
   (event-value event :beat))
@@ -200,16 +203,17 @@ See also: `every-event-equal'"
   "Get a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
 
 See also: `copy-event', `split-event-by-lists', `combine-events-via-lists'"
-  (unless (position nil events)
-    (let ((ne (event)))
-      (dolist (ev events ne)
-        (dolist (key (keys ev))
-          (if-let ((val (event-value ev key)))
-            (setf (event-value ne key) val)
-            (return-from combine-events nil)))
-        (unless (raw-event-value ne :beat)
-          (when-let ((ibeat (slot-value ev '%beat)))
-            (setf (slot-value ne '%beat) ibeat)))))))
+  (when (position eop events)
+    (return-from combine-events eop))
+  (let ((ne (event)))
+    (dolist (ev events ne)
+      (dolist (key (keys ev))
+        (if-let ((val (event-value ev key)))
+          (setf (event-value ne key) val)
+          (return-from combine-events nil)))
+      (unless (raw-event-value ne :beat)
+        (when-let ((ibeat (slot-value ev '%beat)))
+          (setf (slot-value ne '%beat) ibeat))))))
 
 (defun copy-event (event)
   "Get a new event that is a copy of EVENT.

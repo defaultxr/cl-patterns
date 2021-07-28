@@ -7,7 +7,7 @@
 (test embedding
   "Test embedding patterns in patterns"
   (is (equal
-       (list 0 1 2 3 4 5 nil)
+       (list 0 1 2 3 4 5 eop)
        (next-n (pseq (list 0 (pseq (list 1 (pseq (list 2 3) 1) 4) 1) 5) 1) 7))
       "Stacked pseqs do not give correct results")
   (is-true (equal (list 0 0 0 1 1 1 2 2)
@@ -258,11 +258,11 @@
 
 (test pstream-elt
   "Test the behavior of the `pstream-elt' function"
-  (is (null
-       (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
-         (next-upto-n pstr)
-         (pstream-elt pstr -1)))
-      "pstream-elt -1 does not return nil for ended pstreams")
+  (is (eql eop
+           (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
+             (next-upto-n pstr)
+             (pstream-elt pstr -1)))
+      "pstream-elt -1 does not return eop for ended pstreams")
   (is (= 99
          (let ((pstr (as-pstream (pseq '(1 2 99) 1))))
            (next-n pstr 3)
@@ -321,7 +321,7 @@
              (peek pstr)
              (beat pstr)))
         "beat method is counting peeked outputs")
-    (is (equal (list 1 2 nil)
+    (is (equal (list 1 2 eop)
                (peek-n (pseq (list 1 2) 1) 3))
         "peek-n does not return correct results")
     (is (equal (list 1 2)
@@ -384,11 +384,11 @@
        (next-upto-n (pseq (list 1 2 3) 0)))
       "pseq yields the wrong number of outputs when REPEATS is 0")
   (is (equal
-       (list 1 2 3 1 2 3 nil nil)
+       (list 1 2 3 1 2 3 eop eop)
        (next-n (pseq (list 1 2 3) 2) 8))
       "pseq yields wrong results when REPEATS is provided")
   (is (equal
-       (list 1 2 3 1 2 3 nil)
+       (list 1 2 3 1 2 3 eop)
        (next-n (pseq (lambda () (list 1 2 3)) 2) 7))
       "pseq yields incorrect results when LIST is a function")
   (is (string= "" ;; FIX: this should be done for other patterns as well.
@@ -397,7 +397,7 @@
                  (as-pstream (pseq (list 1 2 3) (lambda () (print 3))))
                  (get-output-stream-string s)))
       "pseq's REPEATS argument is evaluated before `next' is called")
-  (is (equalp #(1 2 3 1 2 3 1 2 3 1 2 3 NIL) ;; FIX: do this for other patterns as well.
+  (is (equalp (vector 1 2 3 1 2 3 1 2 3 1 2 3 eop) ;; FIX: do this for other patterns as well.
               (let* ((foo 1)
                      (bar (as-pstream (pseq (list 1 2 3) (pfunc (lambda () foo))))))
                 (next-n bar 10) ;=> (1 2 3 1 2 3 1 2 3 1)
@@ -417,7 +417,7 @@
 (test pser
   "Test pser"
   (is (equal
-       (list 1 2 3 nil nil nil)
+       (list 1 2 3 eop eop eop)
        (next-n (pser (list 1 2 3) 3) 6))
       "pser yields the wrong number of outputs when its LENGTH is specified")
   (is (equal
@@ -542,19 +542,19 @@
 
 (test pr
   "Test pr"
-  (is (equal (list 1 1 2 2 3 3 nil)
+  (is (equal (list 1 1 2 2 3 3 eop)
              (next-n (pr (pseq (list 1 2 3) 1) 2) 7))
       "pr yields incorrect outputs when its REPEATS is a number")
-  (is (equal (list 1 1 2 2 2 3 3 nil)
+  (is (equal (list 1 1 2 2 2 3 3 eop)
              (next-n (pr (pseq (list 1 2 3) 1) (lambda (e) (if (= e 2) 3 2))) 8))
       "pr yields incorrect outputs when its REPEATS is a function")
-  (is (equal (list 1 1 2 2 3 3 nil nil)
+  (is (equal (list 1 1 2 2 3 3 eop eop)
              (next-n (pr (pseq (list 1 2 3) 1) (lambda () 2)) 8))
       "pr yields incorrect outputs when its REPEATS is a function that doesn't accept arguments")
   (is (equal (list 3 3 3 3 3 3 3 3 3 3)
              (next-n (pr 3) 10))
       "pr yields incorrect outputs when its REPEATS is :inf")
-  (is (equal (list 1 1 2 nil)
+  (is (equal (list 1 1 2 eop)
              (next-n (pr (pseq (list 1 2 3) 1) (pseq (list 2 1 0) 1)) 4))
       "pr does not skip elements when REPEATS is 0")
   (is (equal ;; FIX: make sure this works for all filter patterns (parp, etc)
@@ -597,10 +597,10 @@
   (is (equal (list 1 2 3 1 2 3 1)
              (next-n (plazy (lambda () (pseq (list 1 2 3)))) 7))
       "plazy yields incorrect outputs")
-  (is (null (next-upto-n (plazy (lambda () nil))))
-      "plazy yields incorrect outputs when its function returns nil")
-  (is (null (next-upto-n (plazy (lambda () (pseq (list 1 2 3))) 0)))
-      "plazy yields 0 outputs when REPEATS is 0")
+  (is-false (next-upto-n (plazy (lambda () eop)))
+            "plazy yields incorrect outputs when its function returns eop")
+  (is-false (next-upto-n (plazy (lambda () (pseq (list 1 2 3))) 0))
+            "plazy yields 0 outputs when REPEATS is 0")
   (is (length= 14
                (next-upto-n (plazy (lambda () (random 20)) 14)))
       "plazy yields the wrong number of outputs when REPEATS is provided"))
@@ -612,19 +612,19 @@
 (test pn
   "Test pn"
   (is (equal
-       (list 1 nil nil)
+       (list 1 eop eop)
        (next-n (pn 1 1) 3))
       "pn yields incorrect outputs when its source pattern is a value")
   (is (equal
-       (list 3 3 3 nil)
+       (list 3 3 3 eop)
        (next-n (pn 3 3) 4))
       "pn yields incorrect outputs when its source pattern is a value")
   (is (equal
-       (list 1 2 3 1 2 3 1 2 3 nil nil nil)
+       (list 1 2 3 1 2 3 1 2 3 eop eop eop)
        (next-n (pn (pseq (list 1 2 3) 1) 3) 12))
       "pn yields incorrect outputs when its source pattern is a pattern")
-  (is (null (next (pn (pseq (list 1 2 3) 0) 1)))
-      "pn does not yield nil when its source pattern yields no outputs"))
+  (is (eql eop (next (pn (pseq (list 1 2 3) 0) 1)))
+      "pn does not yield eop when its source pattern yields no outputs"))
 
 (test pshuf
   "Test pshuf"
@@ -759,7 +759,7 @@
         "ptrace doesn't correctly pass TRACE's output events"))
   (let ((s (make-string-output-stream)))
     (next-upto-n (ptrace (pseq (list 1 2 3) 1) "foo" s))
-    (is (string= (format nil "foo 1~%foo 2~%foo 3~%foo NIL~%")
+    (is (string= (format nil "foo 1~%foo 2~%foo 3~%foo ~s~%" eop)
                  (get-output-stream-string s))
         "ptrace doesn't print the correct trace output to its STREAM"))
   (let ((s (make-string-output-stream)))
@@ -779,10 +779,10 @@
 
 (test ppatlace
   "Test ppatlace"
-  (is (equal (list 1 4 2 5 3 6 7 8 nil)
+  (is (equal (list 1 4 2 5 3 6 7 8 eop)
              (next-n (ppatlace (list (pseq (list 1 2 3) 1) (pseq (list 4 5 6 7 8) 1)) :inf) 9))
       "ppatlace yields incorrect outputs when its REPEATS is inf")
-  (is (equal (list 1 4 2 5 nil nil nil nil nil)
+  (is (equal (list 1 4 2 5 eop eop eop eop eop)
              (next-n (ppatlace (list (pseq (list 1 2 3)) (pseq (list 4 5 6 7 8))) 2) 9))
       "ppatlace yields incorrect outputs when its REPEATS is a number"))
 
@@ -818,16 +818,16 @@
   (is (equal (list 1 2 3 2 3 4)
              (next-upto-n (pslide (list 1 2 3 4 5) 2 3 1 0)))
       "pslide yields incorrect outputs for 2 REPEATS, 3 LEN, 1 STEP, 0 START")
-  (is (equal (list 1 2 3 2 3 4 nil nil nil nil nil nil nil)
+  (is (equal (list 1 2 3 2 3 4 eop eop eop eop eop eop eop)
              (next-n (pslide (list 1 2 3 4 5) 2 3 1 0) 13))
       "pslide yields incorrect outputs for 2 REPEATS, 3 LEN, 1 STEP, 0 START")
-  (is (equal (list 1 2 3 2 3 4 3 4 5 4 5 nil 5)
+  (is (equal (list 1 2 3 2 3 4 3 4 5 4 5 eop 5)
              (next-n (pslide (list 1 2 3 4 5) :inf 3 1 0 nil) 13))
       "pslide yields incorrect outputs for :inf REPEATS, 3 LEN, 1 STEP, 0 START, nil WRAP-AT-END")
   (is (equal (list 1 2 3 5 1 2 4 5 1 3 4 5 2)
              (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 0) 13))
       "pslide yields incorrect outputs for :inf REPEATS, 3 LEN, -1 STEP, 0 START")
-  (is (equal (list 1 2 3 nil 1 2 nil nil 1 nil nil nil nil)
+  (is (equal (list 1 2 3 eop 1 2 eop eop 1 eop eop eop eop)
              (next-n (pslide (list 1 2 3 4 5) :inf 3 -1 0 nil) 13))
       "pslide yields incorrect outputs for :inf REPEATS, 3 LEN, -1 STEP, 0 START, nil WRAP-AT-END")
   (is (equal (list 2 3 4 1 2 3 5 1 2 4 5 1 3)
@@ -860,7 +860,7 @@
 
 (test pif
   "Test pif"
-  (is (equal (list 1 2 4 5 3 nil 6)
+  (is (equal (list 1 2 4 5 3 eop 6)
              (next-n (pif (pseq (list t t nil nil t t nil) 1)
                           (pseq (list 1 2 3) 1)
                           (pseq (list 4 5 6) 1))
@@ -896,7 +896,7 @@
                   (event :freq 300 :xx 300)
                   (event :freq 400 :xx 800)
                   (event :freq 400 :xx 400)
-                  nil)
+                  eop)
             (next-n (parp (pbind :freq (pseq (list 200 300 400) 1))
                           (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
                     7))
@@ -1000,7 +1000,7 @@
 (test pindex
   "Test pindex"
   (is (equal
-       (list 3 2 1 nil nil nil nil)
+       (list 3 2 1 eop eop eop eop)
        (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2) 1)) 7))
       "pindex yields incorrect outputs")
   (is (equal (list 99 98 97 99 98 97 99 98 97)
@@ -1056,17 +1056,17 @@
 (test pchain
   "Test pchain"
   (is-true (every-event-equal
-            (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) nil)
+            (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) eop)
             (next-n (pchain (pbind :foo (pseq (list 1 2 3))) (pbind :bar (pseq (list 7 8 9) 1))) 4))
            "pchain doesn't combines the outputs from each of its input patterns correctly")
   (is-true (every-event-equal
-            (list (event :foo 1 :bar 1) (event :foo 2 :bar 2) (event :foo 3 :bar 3) nil)
+            (list (event :foo 1 :bar 1) (event :foo 2 :bar 2) (event :foo 3 :bar 3) eop)
             (next-n (pchain (pbind :foo (pseq (list 1 2 3) 1)) (pbind :bar (pk :foo))) 4))
            "outputs from previous patterns are accessible in subsequent patterns when pchain'd"))
 
 (test pdiff
   "Test pdiff"
-  (is (equal (list -2 3 -1 nil)
+  (is (equal (list -2 3 -1 eop)
              (next-n (pdiff (pseq (list 3 1 4 3) 1)) 4))
       "pdiff yields incorrect outputs"))
 
@@ -1081,16 +1081,16 @@
   (is (equal (list 1 1 2 0 1 1 2 0)
              (next-n (pdelta (pseq (list 0 1 2 0)) 4) 8))
       "pdelta yields incorrect outputs for a pattern with successive outputs that decrease")
-  (is (equal (list 1 1 2 nil nil)
+  (is (equal (list 1 1 2 eop eop)
              (next-n (pdelta (pseq (list 0 1 2 0) 1) 4) 5))
-      "pdelta doesn't output nil when its source pattern ends"))
+      "pdelta doesn't output eop when its source pattern ends"))
 
 (test pdrop
   "Test pdrop"
-  (is (equal (list 3 4 nil nil)
+  (is (equal (list 3 4 eop eop)
              (next-n (pdrop (pseq (list 1 2 3 4) 1) 2) 4))
       "pdrop doesn't drop the first N outputs")
-  (is (equal (list 1 2 3 nil)
+  (is (equal (list 1 2 3 eop)
              (next-n (pdrop (pseq (list 1 2 3 4 5) 1) -2) 4))
       "pdrop doesn't drop the last N outputs"))
 

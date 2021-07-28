@@ -14,6 +14,9 @@
 (defvar *clock* nil
   "The default clock to run tasks on.")
 
+(defparameter eop nil
+  "End Of Pattern; the symbol yielded by patterns after their last output.")
+
 ;;; string stuff
 
 (defun string-replace (string old new)

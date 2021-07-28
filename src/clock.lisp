@@ -47,9 +47,9 @@
            (play-quant (play-quant event))
            (e-beat (beat event))
            (beat (+ (if (event-p item)
-                        (if e-beat
-                            e-beat
-                            (next-beat-for-quant play-quant (beat *clock*)))
+                        (if (eql eop e-beat)
+                            (next-beat-for-quant play-quant (beat *clock*))
+                            e-beat)
                         (+ start-beat e-beat))
                     (time-dur (or (raw-event-value event :latency) (clock-latency (task-clock task)))
                               tempo)
@@ -283,14 +283,15 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
           :do (restart-case
                   (progn
                     (setf (beat clock) (+ (slot-value task 'start-beat) (beat task)))
-                    (when-let ((event (next item)))
-                      (dolist (event (split-event-by-lists event))
-                        (let ((event (event-with-raw-timing event task)))
-                          (if (or (local-time:timestamp>= (event-value event :timestamp-at-start) (local-time:now))
-                                  (eql t (slot-value clock 'play-expired-events)))
-                              (clock-process-event clock task event (event-value event :type))
-                              (when (eql :warn (slot-value clock 'play-expired-events))
-                                (warn "Clock skipped expired event ~s from task ~s" event task)))))))
+                    (let ((event (next item)))
+                      (unless (eql eop event)
+                        (dolist (event (split-event-by-lists event))
+                          (let ((event (event-with-raw-timing event task)))
+                            (if (or (local-time:timestamp>= (event-value event :timestamp-at-start) (local-time:now))
+                                    (eql t (slot-value clock 'play-expired-events)))
+                                (clock-process-event clock task event (event-value event :type))
+                                (when (eql :warn (slot-value clock 'play-expired-events))
+                                  (warn "Clock skipped expired event ~s from task ~s" event task))))))))
                 (skip-event ()
                   :report "Skip this event, preserving the task on the clock so it can be run again."
                   nil)
