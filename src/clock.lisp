@@ -47,7 +47,7 @@
            (play-quant (play-quant event))
            (e-beat (beat event))
            (beat (+ (if (event-p item)
-                        (if (eql eop e-beat)
+                        (if (eop-p e-beat)
                             (next-beat-for-quant play-quant (beat *clock*))
                             e-beat)
                         (+ start-beat e-beat))
@@ -262,7 +262,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
         :for item := (and task (task-item task))
         :do (setf retries (if (eq task prev-task) (1+ retries) 0)
                   prev-task task)
-        :if (null item)
+        :if (or (null item) (eop-p item)) ;; FIX: remove null when eop is done
           :do (loop-finish)
         :if (>= retries 32)
           :do (warn "Task ~s yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
@@ -284,7 +284,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                   (progn
                     (setf (beat clock) (+ (slot-value task 'start-beat) (beat task)))
                     (let ((event (next item)))
-                      (unless (eql eop event)
+                      (unless (eop-p event)
                         (dolist (event (split-event-by-lists event))
                           (let ((event (event-with-raw-timing event task)))
                             (if (or (local-time:timestamp>= (event-value event :timestamp-at-start) (local-time:now))

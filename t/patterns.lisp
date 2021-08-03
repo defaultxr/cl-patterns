@@ -258,10 +258,10 @@
 
 (test pstream-elt
   "Test the behavior of the `pstream-elt' function"
-  (is (eql eop
-           (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
-             (next-upto-n pstr)
-             (pstream-elt pstr -1)))
+  (is (eop-p
+       (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
+         (next-upto-n pstr)
+         (pstream-elt pstr -1)))
       "pstream-elt -1 does not return eop for ended pstreams")
   (is (= 99
          (let ((pstr (as-pstream (pseq '(1 2 99) 1))))
@@ -623,7 +623,7 @@
        (list 1 2 3 1 2 3 1 2 3 eop eop eop)
        (next-n (pn (pseq (list 1 2 3) 1) 3) 12))
       "pn yields incorrect outputs when its source pattern is a pattern")
-  (is (eql eop (next (pn (pseq (list 1 2 3) 0) 1)))
+  (is (eop-p (next (pn (pseq (list 1 2 3) 0) 1)))
       "pn does not yield eop when its source pattern yields no outputs"))
 
 (test pshuf

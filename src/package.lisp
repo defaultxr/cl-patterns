@@ -27,6 +27,7 @@
    #:launch
    #:stop
    #:end
+   #:eop-p
    #:playing-p
    #:loop-p
    #:ended-p

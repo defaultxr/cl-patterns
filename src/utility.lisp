@@ -470,6 +470,17 @@ See also: `end', `play'"))
 (defmethod end ((list list))
   (mapcar #'end list))
 
+(defgeneric eop-p (object)
+  (:documentation "True if OBJECT indicates the end of a pstream's outputs.
+
+See also: `ended-p'"))
+
+(defmethod eop-p ((object t))
+  nil)
+
+(defmethod eop-p ((symbol symbol))
+  (eql eop symbol))
+
 (defgeneric playing-p (object &optional clock)
   (:documentation "Whether OBJECT is playing.
 

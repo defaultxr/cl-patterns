@@ -61,7 +61,7 @@ See also: `raw-event-value', `event-value'"
 Returns 2 values: the value of the key, and the name of the key the value was derived from (or t if the default value of the key was used, or nil if no value or default was provided).
 
 See also: `event', `e', `raw-event-value'"
-  (when (eql eop event)
+  (when (eop-p event)
     (return-from event-value (values nil nil)))
   (let* ((key (make-keyword key))
          (cases (car (getf *event-special-keys* key)))
@@ -142,6 +142,11 @@ See also: `event-value', `event', `*event*'"
 
 (defmethod play ((event event))
   (clock-add (as-pstream event) *clock*))
+
+(defmethod eop-p ((event event))
+  (doplist (key value (event-plist event))
+    (when (eop-p value)
+      (return-from eop-p t))))
 
 (defmethod loop-p ((event event))
   (event-value event :loop-p))

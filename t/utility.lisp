@@ -190,6 +190,21 @@
   ;; FIX
   )
 
+(test eop-p
+  "Test the `eop-p' function"
+  (is-true (eop-p eop)
+           "eop-p is incorrect when testing eop object")
+  (is-false (eop-p nil)
+            "eop-p is incorrect when testing nil")
+  (is-false (eop-p (event))
+            "eop-p is incorrect when testing empty event")
+  (is-false (eop-p (event :foo 1))
+            "eop-p is incorrect when testing non-empty event")
+  (is-true (eop-p (event :foo 1 :bar eop))
+           "eop-p is incorrect when testing event with eop key")
+  (is-false (eop-p (random-range 0 100))
+            "eop-p is incorrect when testing numbers"))
+
 (test playing-p
   "Test the `playing-p' function"
   ;; FIX
