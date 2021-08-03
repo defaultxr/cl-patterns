@@ -81,8 +81,8 @@ See also: `task-pattern', `clock-tasks'"
                          (or (eq pattern item)
                              (with-slots (source) item
                                (or (eq pattern source)
-                                   (when-let ((source-key (ignore-errors (pdef-key source))))
-                                     (eql source-key (pdef-key pattern)))
+                                   (when-let ((source-key (ignore-errors (pdef-name source))))
+                                     (eql source-key (pdef-name pattern)))
                                    (when (typep source 'pdef)
                                      (eq pattern (pdef-pattern source))))))))
                    (slot-value clock 'tasks))))
@@ -270,7 +270,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
         :else
           :if (and (can-swap-now-p item (beat clock))
                    (or (and (typep item 'pdef-pstream)
-                            (not (eq (slot-value item 'pattern) (pdef-pattern (pdef-key item)))))
+                            (not (eq (slot-value item 'pattern) (pdef-pattern (pdef-name item)))))
                        (not (loop-p task))
                        (ended-p item)))
             :do (if (not (loop-p task))

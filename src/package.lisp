@@ -180,6 +180,7 @@
    #:find-pdef
    #:all-pdefs
    #:playing-pdefs
+   #:pdef-name
    #:pdef-key
    #:pdef-pattern
    #:pdef-pstream

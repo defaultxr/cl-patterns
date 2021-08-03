@@ -765,13 +765,13 @@ See also: `pmono', `pb'"
 
 ;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
 ;; FIX: allow keys to be lists, in which case results are destructured, i.e. (pb :blah (list :foo :bar) (pcycles (a 1!4))) results in four (EVENT :FOO 1 :DUR 1/4)
-(defmacro pb (key &body pairs)
-  "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. KEY is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
+(defmacro pb (name &body pairs)
+  "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. NAME is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
 
 See also: `pbind', `pdef'"
   (if (length= 1 pairs)
-      `(pdef ,key ,@pairs)
-      `(pdef ,key (pbind ,@pairs))))
+      `(pdef ,name ,@pairs)
+      `(pdef ,name (pbind ,@pairs))))
 
 (pushnew 'pb *patterns*)
 
@@ -1268,14 +1268,25 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 ;;; pdef
 ;; FIX: need to implement `reset' method and test to ensure end-condition works properly
 
-(defun pdef-ensure-key (key)
-  "Ensure KEY is a proper pdef key."
-  (etypecase key
-    (symbol key)
-    (string (my-intern key :keyword))))
+(defun pdef-ensure-name (name)
+  "Ensure NAME is a proper pdef name."
+  (assert name (name) "A ~s's name cannot be nil." 'pdef)
+  (etypecase name
+    (symbol name)
+    (string (my-intern name :keyword))))
 
-(defgeneric pdef-key (pdef)
-  (:documentation "The key (name) of PDEF."))
+(defgeneric pdef-name (pdef)
+  (:documentation "The name (\"key\") of PDEF."))
+
+(uiop:with-deprecation (:style-warning)
+  (defun pdef-key (pdef)
+    "Deprecated alias for `pdef-name'."
+    (pdef-name pdef)))
+
+(uiop:with-deprecation (:style-warning)
+  (defun (setf pdef-key) (value pdef)
+    "Deprecated alias for `(setf pdef-name)'."
+    (setf (pdef-name pdef) value)))
 
 (defgeneric pdef-pattern (pdef)
   (:documentation "The pattern that PDEF points to."))
@@ -1287,12 +1298,12 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
   (:documentation "The task that PDEF was last being played in."))
 
 (defpattern pdef (pattern)
-  ((key :reader pdef-key)
+  ((name :reader pdef-name)
    (pattern :accessor pdef-pattern)
    (pstream :initform nil :accessor pdef-pstream)
    (task :initform nil :accessor pdef-task)
    (current-pstream :state t))
-  :documentation "Define a named pattern, with KEY being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is being played, the changes won't be audible until either PATTERN ends, or the pdef's `end-quant' time is reached (if non-nil). Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
+  :documentation "Define a named pattern, with NAME being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is being played, the changes won't be audible until either PATTERN ends, or the pdef's `end-quant' time is reached (if non-nil). Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
 Example:
 
@@ -1303,22 +1314,21 @@ Example:
 ;; (pdef :foo (pbind :degree (pseries 4 -1 4)))
 
 See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
-  :defun (defun pdef (key &optional (pattern nil pattern-supplied-p))
-           (assert key (key) "~s cannot have nil as its key." 'pdef)
-           (assert (not (typep pattern 'pdef)) (pattern) "Cannot set a pdef to a pdef (attempted to point ~s to ~s)." key pattern)
-           (let ((pdef (ensure-gethash key *pdef-dictionary* (make-instance 'pdef :key key))))
+  :defun (defun pdef (name &optional (pattern nil pattern-supplied-p))
+           (let* ((name (pdef-ensure-name name))
+                  (pdef (ensure-gethash name *pdef-dictionary* (make-instance 'pdef :name name))))
              (when pattern-supplied-p
                (setf (pdef-pattern pdef) pattern))
              pdef)))
 
 (defmethod print-object ((pdef pdef) stream)
-  (with-slots (key) pdef
-    (format stream "(~s ~s)" 'pdef key)))
+  (with-slots (name) pdef
+    (format stream "(~s ~s)" 'pdef name)))
 
 (defmethod print-object ((pdef pdef-pstream) stream)
-  (with-slots (key) pdef
+  (with-slots (name) pdef
     (print-unreadable-object (pdef stream :type t)
-      (format stream "~s" key))))
+      (format stream "~s" name))))
 
 (defun pdef-p (object)
   "True if OBJECT is a pdef."
@@ -1327,30 +1337,30 @@ See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
 (defvar *pdef-dictionary* (make-hash-table)
   "The global pdef dictionary.")
 
-(defun find-pdef (key &optional (errorp nil) (dictionary *pdef-dictionary*))
-  "Get the pdef named KEY from DICTIONARY. If one by that name doesn't exist, return nil, or raise an error if ERRORP is true.
+(defun find-pdef (name &optional (errorp nil) (dictionary *pdef-dictionary*))
+  "Get the pdef named NAME from DICTIONARY. If one by that name doesn't exist, return nil, or raise an error if ERRORP is true.
 
 See also: `pdef', `all-pdefs'"
-  (etypecase key
+  (etypecase name
     (pattern
-     key)
+     name)
     (symbol
-     (or (pdef-ref key dictionary)
+     (or (pdef-ref name dictionary)
          (when errorp
-           (error "Could not find a pdef named ~s." key))))))
+           (error "Could not find a pdef named ~s." name))))))
 
-(defun pdef-ref (key &optional (dictionary *pdef-dictionary*))
+(defun pdef-ref (name &optional (dictionary *pdef-dictionary*))
   "Retrieve a pdef from DICTIONARY."
-  (gethash (pdef-ensure-key key) dictionary))
+  (gethash (pdef-ensure-name name) dictionary))
 
-(defun (setf pdef-ref) (value key &optional (dictionary *pdef-dictionary*))
+(defun (setf pdef-ref) (value name &optional (dictionary *pdef-dictionary*))
   "Set a value in the global pdef dictionary."
   (if value
-      (setf (gethash key dictionary) value)
-      (remhash key dictionary)))
+      (setf (gethash name dictionary) value)
+      (remhash name dictionary)))
 
 (defun all-pdefs (&key package (dictionary *pdef-dictionary*))
-  "Get a list of the names of all pdefs in DICTIONARY. With PACKAGE, get all pdefs whose key is in that package.
+  "Get a list of the names of all pdefs in DICTIONARY. With PACKAGE, get all pdefs whose name is in that package.
 
 See also: `pdef', `find-pdef', `ensure-pdef', `playing-pdefs', `all-patterns', `all-instruments'"
   (let ((res (keys *pdef-dictionary*)))
@@ -1369,8 +1379,8 @@ See also: `pdef', `find-pdef', `ensure-pdef', `playing-pdefs', `all-patterns', `
 See also: `all-pdefs', `playing-nodes', `playing-p'"
   (loop :for task :in (clock-tasks clock)
         :for item := (slot-value task 'item)
-        :if (ignore-errors (pdef-key item))
-          :collect (pdef-key item)))
+        :if (ignore-errors (pdef-name item))
+          :collect (pdef-name item)))
 
 (defun ensure-pdef (object)
   "Return OBJECT if it is a pdef, otherwise find the pdef pointed to by OBJECT."
@@ -1378,38 +1388,38 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
     (pdef object)
     (string-designator (find-pdef object t))))
 
-(defmethod pdef-key ((pbind pbind))
+(defmethod pdef-name ((pbind pbind))
   (getf (slot-value pbind 'pairs) :pdef))
 
-(defmethod pdef-key ((symbol symbol))
-  (pdef-key (pdef-ref (pdef-ensure-key symbol))))
+(defmethod pdef-name ((symbol symbol))
+  (pdef-name (pdef-ref (pdef-ensure-name symbol))))
 
-(defmethod pdef-key ((null null))
+(defmethod pdef-name ((null null))
   nil)
 
-(defmethod (setf pdef-key) (value (pdef pdef))
-  (let ((prev-key (pdef-key pdef)))
-    (remhash prev-key *pdef-dictionary*)
-    (setf (slot-value pdef 'key) value
+(defmethod (setf pdef-name) (value (pdef pdef))
+  (let ((prev-name (pdef-name pdef)))
+    (remhash prev-name *pdef-dictionary*)
+    (setf (slot-value pdef 'name) value
           (gethash value *pdef-dictionary*) pdef)))
 
-(defmethod (setf pdef-key) (value (symbol symbol))
-  (setf (pdef-key (pdef symbol)) value))
+(defmethod (setf pdef-name) (value (symbol symbol))
+  (setf (pdef-name (pdef symbol)) value))
 
 (defmethod pdef-pattern ((symbol symbol))
-  (pdef-pattern (pdef-ref (pdef-ensure-key symbol))))
+  (pdef-pattern (pdef-ref (pdef-ensure-name symbol))))
 
 (defmethod pdef-pattern ((null null))
   nil)
 
 (defmethod pdef-pstream ((symbol symbol))
-  (pdef-pstream (pdef-ref (pdef-ensure-key symbol))))
+  (pdef-pstream (pdef-ref (pdef-ensure-name symbol))))
 
 (defmethod pdef-pstream ((null null))
   nil)
 
 (defmethod pdef-task ((symbol symbol))
-  (pdef-task (pdef-ref (pdef-ensure-key symbol))))
+  (pdef-task (pdef-ref (pdef-ensure-name symbol))))
 
 (defmethod pdef-task ((null null))
   nil)
@@ -1448,8 +1458,8 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
       (warn "~s has no connected task; try the `stop' method instead." pdef)))
 
 (defmethod playing-p ((pdef pdef) &optional (clock *clock*))
-  (find (pdef-key pdef) (clock-tasks clock)
-        :key (fn (ignore-errors (pdef-key (slot-value _ 'item))))))
+  (find (pdef-name pdef) (clock-tasks clock)
+        :key (fn (ignore-errors (pdef-name (slot-value _ 'item))))))
 
 (defmethod loop-p ((pdef pdef))
   (if (slot-boundp pdef 'loop-p)
@@ -1463,13 +1473,13 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
   (keys (pdef-pattern pdef)))
 
 (defmethod as-pstream ((pdef pdef))
-  (with-slots (key pattern) pdef
-    (if (pdef-ref key)
+  (with-slots (name pattern) pdef
+    (if (pdef-ref name)
         (make-instance 'pdef-pstream
-                       :key key
+                       :name name
                        :pattern pattern
                        :current-pstream (as-pstream (pdef-pattern pdef)))
-        (error "No pdef with the key ~s defined." key))))
+        (error "No pdef with the name ~s defined." name))))
 
 (defmethod next ((pdef pdef-pstream))
   (next (slot-value pdef 'current-pstream)))
