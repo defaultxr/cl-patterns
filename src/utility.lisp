@@ -485,6 +485,21 @@ See also: `play-or-stop', `play-or-end', `playing-pdefs', `playing-nodes'"))
 (defgeneric loop-p (object)
   (:documentation "Whether or not OBJECT should play again after it ends."))
 
+(defgeneric ended-p (pstream)
+  (:documentation "Returns t if PSTREAM has no more outputs, or nil if outputs remain to be yielded.
+
+Example:
+
+;; (defparameter *pstr* (as-pstream (pseq '(1 2) 1)))
+;; (next *pstr*) ;=> 1
+;; (ended-p *pstr*) ;=> NIL
+;; (next *pstr*) ;=> 2
+;; (ended-p *pstr*) ;=> NIL
+;; (next *pstr*) ;=> NIL
+;; (ended-p *pstr*) ;=> T
+
+See also: `eop-p', `last-output'"))
+
 (defun play-or-stop (object)
   "`play' an object, or `stop' it if it is already playing. Returns the task if the object will start playing, or NIL if it will stop."
   (if (playing-p object)

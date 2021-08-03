@@ -200,6 +200,19 @@
   ;; FIX
   )
 
+(test ended-p
+  "Test the `ended-p' function"
+  (let ((pstr (as-pstream (pseq (list 1 2 3) 1))))
+    (next-n pstr 2)
+    (is-false (ended-p pstr)
+              "ended-p returns incorrect results for a non-ended pseq")
+    (next-n pstr 1)
+    (is-false (ended-p pstr)
+              "ended-p returns incorrect results for a non-ended pseq")
+    (next-n pstr 1)
+    (is-true (ended-p pstr)
+             "ended-p returns incorrect results for an ended pseq")))
+
 (test play-or-stop
   "Test the `play-or-stop' function"
   ;; FIX

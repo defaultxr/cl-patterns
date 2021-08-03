@@ -29,6 +29,7 @@
    #:end
    #:playing-p
    #:loop-p
+   #:ended-p
    #:play-or-stop
    #:play-or-end
    #:all-instruments

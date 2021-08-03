@@ -349,6 +349,11 @@ See also: `pstream', `as-pstream'"
       (slot-value pstream 'loop-p)
       (loop-p (slot-value pstream 'source))))
 
+(defmethod ended-p ((pstream pstream))
+  (with-slots (number future-number) pstream
+    (and (not (= 0 (- number future-number)))
+         (eop-p (pstream-elt pstream -1)))))
+
 (defmethod events-in-range ((pstream pstream) min max)
   (while (and (<= (beat pstream) max)
               (not (ended-p pstream)))
@@ -380,26 +385,6 @@ See also: `ended-p'"))
     (let ((idx (- number future-number)))
       (when (plusp idx)
         (pstream-elt pstream (- idx (if (ended-p pstream) 2 1)))))))
-
-(defgeneric ended-p (pstream)
-  (:documentation "Returns t if PSTREAM has no more outputs, or nil if outputs remain to be yielded.
-
-Example:
-
-;; (defparameter *pstr* (as-pstream (pseq '(1 2) 1)))
-;; (next *pstr*) ;=> 1
-;; (ended-p *pstr*) ;=> NIL
-;; (next *pstr*) ;=> 2
-;; (ended-p *pstr*) ;=> NIL
-;; (next *pstr*) ;=> NIL
-;; (ended-p *pstr*) ;=> T
-
-See also: `last-output'"))
-
-(defmethod ended-p ((pstream pstream))
-  (with-slots (number future-number) pstream
-    (and (not (= 0 (- number future-number)))
-         (eql eop (pstream-elt pstream -1)))))
 
 (defun value-remaining-p (value)
   "True if VALUE represents that a pstream has outputs \"remaining\"; i.e. VALUE is a symbol (i.e. :inf), or a number greater than 0.
