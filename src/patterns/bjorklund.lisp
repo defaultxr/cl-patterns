@@ -70,10 +70,14 @@ See also: `bjorklund'"
 
 (defmethod next ((pattern pbjorklund-pstream))
   (with-slots (number pulses steps offset dur repeats) pattern
-    (when-let* ((c-offset (next offset))
-                (val (when (or (eql repeats :inf)
-                               (< (/ number (* steps repeats)) 1))
-                       (nth-wrap number (bjorklund pulses steps c-offset)))))
-      (event :type (if (= 1 val) (event-value *event* :type) :rest)
-             :dur (* (/ 1 steps) dur)))))
+    (let* ((c-offset (next offset))
+           (val (when (or (eql repeats :inf)
+                          (< (/ number (* steps repeats)) 1))
+                  (nth-wrap number (bjorklund pulses steps c-offset)))))
+      (if (or (eop-p c-offset)
+              (eop-p val)
+              (null val))
+          eop
+          (event :type (if (= 1 val) (e :type) :rest)
+                 :dur (* (/ 1 steps) dur))))))
 
