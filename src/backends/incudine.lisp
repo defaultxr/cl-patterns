@@ -7,19 +7,14 @@
 
 ;;; helper functions
 
-(defparameter *incudine-start-timestamp* nil
+(defvar *incudine-start-timestamp* nil
   "The local-time timestamp when Incudine was started.")
 
-(defparameter *incudine-start-samples* 0
+(defvar *incudine-start-samples* 0
   "The result of `incudine:now' when `*incudine-start-timestamp*' was generated.")
 
 (defun timestamp-to-incudine (timestamp)
   "Convert a local-time timestamp to an Incudine sample number."
-  (unless *incudine-start-timestamp*
-    (if (eql (incudine:rt-status) :started)
-        (setf *incudine-start-timestamp* (local-time:now)
-              *incudine-start-samples* (incudine:now))
-        (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (start-backend :incudine) if you want to use Incudine, or disable its backend.")))
   (* (local-time:timestamp-difference timestamp *incudine-start-timestamp*)
      (incudine:rt-sample-rate)))
 
@@ -64,7 +59,8 @@
     (warn "cl-patterns' *CLOCK* is nil; starting the clock on your behalf with START-CLOCK-LOOP: ~s."
           (start-clock-loop)))
   (incudine:rt-start)
-  (setf *incudine-start-timestamp* (local-time:now)))
+  (setf *incudine-start-timestamp* (local-time:now)
+        *incudine-start-samples* (incudine:now)))
 
 (defmethod stop-backend ((backend (eql :incudine)))
   (incudine:rt-stop))
@@ -138,7 +134,7 @@
                  (find-if (lambda (x)
                             (position x (list 'buffer 'bufnum) :test #'string-equal))
                           dsp-controls)
-                 buffer ;; get the actual buffer number
+                 buffer
                  :dur 16
                  :quant 0
                  :latency 0))))
