@@ -3,48 +3,67 @@
 ;;; pcycles
 ;; inspired by tidalcycles
 ;; FIX: remove this and write it as regular functions instead?
-;; FIX: make duration normalization optional; it should be a &key argument similar to `pbjorklund'
 
-(defpattern pcycles (pattern) ;; FIX: add REPEATS slot
+(defpattern pcycles (pattern)
   (list
-   map
-   (parsed-list :state t))
+   (map :default nil :initform nil)
+   (key :default :value :initform :value)
+   (dur :default 1 :initform 1)
+   (repeats :default :inf :initform :inf)
+   (parsed-list :state t)
+   (current-repeats-remaining :state t))
   :documentation "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
-  :defun (defun pcycles (list &optional map)
-           (etypecase list
-             (string
-              (pcycles (mapcar #'my-intern (coerce list 'list)) map))
-             (list
-              (make-instance 'pcycles :list list :map map)))))
+  :defun (defun pcycles (list &key map (key :value) (dur 1) (repeats :inf))
+           (let ((args (list :map map :key key :dur dur :repeats repeats)))
+             (etypecase list
+               (string
+                (apply #'pcycles (mapcar #'my-intern (coerce list 'list)) args))
+               ((or list pattern)
+                (apply #'make-instance 'pcycles :list list args))))))
 
 (defmethod print-object ((pcycles pcycles) stream)
-  (with-slots (list map) pcycles
-    (format stream "(~s ~s~#[~; ~s~])" 'pcycles list map)))
+  (with-slots (list map key dur repeats) pcycles
+    (format stream "(~s ~s~@[ :MAP ~s~]~@[ :KEY ~s~]~@[ :DUR ~s~]~@[ :REPEATS ~s~])"
+            'pcycles list
+            map
+            (unless (eql :value key) key)
+            (unless (= 1 dur) dur)
+            (unless (eql :inf repeats) repeats))))
 
-(defun pcycles-parse-list (list &optional map)
+(defun pcycles-parse-list (list &key map (dur 1) (key :value))
   (let ((map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest)))))
-    (labels ((recurse (list dur)
-               (loop :for i :in list
-                     :collect (if (consp i)
-                                  (recurse i (* dur (/ 1 (length i))))
-                                  (combine-events (let ((res (getf map i)))
-                                                    (if res
-                                                        res
-                                                        (event)))
-                                                  (event :value i :dur dur))))))
+    (labels ((recurse (list subdur)
+               (mapcar (fn (if (consp _)
+                               (recurse _ (* subdur (/ 1 (length _))))
+                               (combine-events (or (doplist (k v map)
+                                                     (when (funcall
+                                                            (if (typep _ 'string-designator) #'string= #'eql)
+                                                            k _)
+                                                       (return v)))
+                                                   (event key _))
+                                               (event :dur (* dur subdur)))))
+                       list)))
       (flatten (recurse list (/ 1 (length list)))))))
 
 (defmethod as-pstream ((pcycles pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
-  (with-slots (list map) pcycles
+  (with-slots (list map key dur repeats) pcycles
     (make-instance 'pcycles-pstream
                    :list list
-                   :map map
-                   :parsed-list (pcycles-parse-list list map))))
+                   :map (pattern-as-pstream map)
+                   :key key
+                   :dur (pattern-as-pstream dur)
+                   :repeats (as-pstream repeats))))
 
 (defmethod next ((pcycles pcycles-pstream))
-  (with-slots (number parsed-list) pcycles
-    (unless (>= number (length parsed-list))
-      (elt parsed-list number))))
+  (with-slots (number list dur map key parsed-list) pcycles
+    (unless (slot-boundp pcycles 'parsed-list)
+      (setf parsed-list (pcycles-parse-list list :map map :dur dur :key key)))
+    (when (and (plusp number)
+               (zerop (mod number (length parsed-list))))
+      (decf-remaining pcycles))
+    (if (remaining-p pcycles)
+        (elt-wrap parsed-list number)
+        eop)))
 
 (defun cycles-parse (list)
   (labels ((modifier-symbol-p (symbol)
@@ -79,19 +98,22 @@
            (recurse (list dur)
              (let ((num (length-for-dur list)))
                (loop :for i :in list
-                  :for idx :from 0
-                  :for nxt = (nth (1+ idx) list)
-                  :if (consp i)
-                  :append (flatten-1 (make-list (if (modifier-symbol-p nxt)
-                                                    (modifier-symbol-dup nxt)
-                                                    1)
-                                                :initial-element (recurse i (dur-from-modifier (/ dur num) (when (modifier-symbol-p nxt) nxt)))))
-                  :else
-                  :unless (modifier-symbol-p i)
-                  :append (make-list (if (modifier-symbol-p nxt)
-                                         (modifier-symbol-dup nxt)
-                                         1)
-                                     :initial-element (list (dur-from-modifier (/ dur num) (when (modifier-symbol-p nxt) nxt)) i))))))
+                     :for idx :from 0
+                     :for nxt := (nth (1+ idx) list)
+                     :if (consp i)
+                       :append (flatten-1 (make-list (if (modifier-symbol-p nxt)
+                                                         (modifier-symbol-dup nxt)
+                                                         1)
+                                                     :initial-element (recurse i (dur-from-modifier (/ dur num) (when (modifier-symbol-p nxt) nxt)))))
+                     :else
+                       :unless (modifier-symbol-p i)
+                         :append (make-list (if (modifier-symbol-p nxt)
+                                                (modifier-symbol-dup nxt)
+                                                1)
+                                            :initial-element (list (dur-from-modifier (/ dur num)
+                                                                                      (when (modifier-symbol-p nxt)
+                                                                                        nxt))
+                                                                   i))))))
     (recurse list 1)))
 
 (defmacro cycles (spec map &rest list)
@@ -108,10 +130,11 @@ LIST is the actual pattern to generate."
       (labels ((translate-symbol (symbol)
                  (or (getf map symbol)
                      symbol)))
-        `(pseq (list ,@(loop :for i :in (cycles-parse list)
-                          :collect `(event :dur ,(* dur (car i)) ,@(if (eql '- (cadr i))
-                                                                       (list :type :rest)
-                                                                       (list key (translate-symbol (cadr i)))))))
+        `(pseq (list ,@(mapcar (lambda (i)
+                                 `(event :dur ,(* dur (car i)) ,@(if (eql '- (cadr i))
+                                                                     (list :type :rest)
+                                                                     (list key (translate-symbol (cadr i))))))
+                               (cycles-parse list)))
                1)))))
 
 (export '(cycles))
