@@ -933,7 +933,7 @@
          (length (next-upto-n (pfindur (pbind :dur 5) :inf) 99)))
       "pfindur doesn't properly handle :inf as its DUR")
   (is-false (remove-if-not (lambda (n) (> n 4))
-                           (let ((list (list)))
+                           (let (list)
                              (dotimes (n 100 list)
                                (push (reduce #'+ (next-upto-n (pfindur (pwhite 0.1 2.0 4) 4))) list))))
             "pfindur doesn't limit value patterns"))

@@ -120,11 +120,9 @@
             (event :qux 69)
             (combine-events (event) (event :qux 69)))
            "combine-events doesn't work correctly for empty first event")
-  (is-true (null
-            (combine-events nil (event :qux 69)))
+  (is-true (eop-p (combine-events eop (event :qux 69)))
            "combine-events doesn't work correctly for nil first event")
-  (is-true (null
-            (combine-events (event :foo 1) nil))
+  (is-true (eop-p (combine-events (event :foo 1) eop))
            "combine-events doesn't work correctly for nil second event")
   (is (event-equal (event)
                    (copy-event (event)))
