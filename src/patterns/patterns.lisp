@@ -102,7 +102,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
            (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
          ,(let* ((gen-func-p (or (null defun)
                                  (and (listp defun)
-                                      (position (car defun) (list 'assert)))))
+                                      (position (car defun) (list 'assert 'check-type)))))
                  (pre-init (when gen-func-p
                              defun)))
             (if gen-func-p
@@ -182,7 +182,7 @@ See also: `all-pdefs'"
   "Get the NUM-th containing pattern of PATTERN, or nil if there isn't one. If CLASS is specified, only consider patterns of that class.
 
 See also: `pattern-children'"
-  (assert (typep num '(integer 0)) (num) "NUM must be a non-negative integer; got ~s" num)
+  (check-type num (integer 0))
   (let ((i 0)
         res)
     (until (or (>= i num)
@@ -248,7 +248,7 @@ See also: `next', `peek-n', `peek-upto-n'"))
   "Peek at the next N results of a pstream, without advancing it forward in the process.
 
 See also: `peek', `peek-upto-n', `next', `next-n'"
-  (assert (integerp n) (n) "peek-n's N argument must be an integer.")
+  (check-type n (integer 0))
   (unless (pstream-p pstream)
     (return-from peek-n (peek-n (as-pstream pstream) n)))
   (with-slots (number future-number) pstream
@@ -259,7 +259,7 @@ See also: `peek', `peek-upto-n', `next', `next-n'"
   "Peek at up to the next N results of a pstream, without advancing it forward in the process.
 
 See also: `peek', `peek-n', `next', `next-upto-n'"
-  (assert (integerp n) (n) "peek-upto-n's N argument must be an integer.")
+  (check-type n (integer 0))
   (unless (pstream-p pstream)
     (return-from peek-upto-n (peek-upto-n (as-pstream pstream) n)))
   (with-slots (number future-number) pstream
@@ -283,21 +283,21 @@ See also: `next-n', `next-upto-n', `peek'")
 (defmethod next ((function function))
   (funcall function))
 
-(defun next-n (pattern n)
-  "Get the next N results of a pattern stream, function, or other object, advancing the pattern stream forward N times in the process.
+(defun next-n (pstream &optional (n *max-pattern-yield-length*))
+  "Get the next N outputs of a pstream, function, or other object, advancing the pstream forward N times in the process.
 
 See also: `next', `next-upto-n', `peek', `peek-n'"
-  (assert (integerp n) (n) "next-n's N argument must be an integer.")
-  (let ((pstream (pattern-as-pstream pattern)))
+  (check-type n (integer 0))
+  (let ((pstream (pattern-as-pstream pstream)))
     (loop :repeat n
           :collect (next pstream))))
 
-(defun next-upto-n (pattern &optional (n *max-pattern-yield-length*))
-  "Get a list of up to N results from PATTERN. If PATTERN ends after less than N values, then all of its results will be returned.
+(defun next-upto-n (pstream &optional (n *max-pattern-yield-length*))
+  "Get a list of up to N results from PSTREAM, not including the end of pattern.
 
 See also: `next', `next-n', `peek', `peek-upto-n'"
-  (assert (integerp n) (n) "next-upto-n's N argument must be an integer.")
-  (let ((pstream (pattern-as-pstream pattern)))
+  (check-type n (integer 0))
+  (let ((pstream (pattern-as-pstream pstream)))
     (loop
       :for number :from 0 :upto n
       :while (< number n)
@@ -515,7 +515,8 @@ See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-m
   (assert (or (typep value '(or symbol number))
               (and (listp value)
                    (evenp (list-length value))))
-          (value) "VALUE must be a symbol, a number, or a plist; got ~s instead" value)
+          (value)
+          "~s's VALUE argument must be a symbol, a number, or a plist; got ~s instead" 'instrument-mapping value)
   (if value
       (setf (gethash instrument *instrument-map*) value)
       (remhash instrument *instrument-map*)))
@@ -591,7 +592,7 @@ See also: `pattern-as-pstream'"))
   "Given INDEX, an absolute index into PSTREAM's history, return the actual index into the current recorded history of the pstream.
 
 See also: `pstream-history-advance-by'"
-  (assert (>= index 0) (index))
+  (check-type index (integer 0))
   (with-slots (history) pstream
     (mod index (length history))))
 
@@ -608,7 +609,7 @@ Example:
 ;;   (pstream-elt pstream -1)) ;=> 2 ;; most recent item in the pstream's history
 
 See also: `pstream-elt-future', `phistory'"
-  (assert (integerp n) (n))
+  (check-type n integer)
   (unless (pstream-p pstream)
     (return-from pstream-elt (pstream-elt (as-pstream pstream) n)))
   (with-slots (history history-number) pstream
@@ -628,7 +629,7 @@ If the provided index is within the current history, the result will be zero.
 If the provided index is in the future, the result will be a positive number denoting how far in the future it is.
 
 See also: `pstream-elt-index-to-history-index'"
-  (assert (>= index 0) (index))
+  (check-type index (integer 0))
   (with-slots (history history-number) pstream
     (let ((history-length (length history)))
       (if (< index (- history-number history-length))
@@ -649,7 +650,7 @@ Example:
 ;;   (next pstream)) ;=> 2
 
 See also: `pstream-elt', `phistory'"
-  (assert (integerp n) (n))
+  (check-type n integer)
   (unless (pstream-p pstream)
     (return-from pstream-elt-future (pstream-elt-future (as-pstream pstream) n)))
   (when (minusp n)
@@ -702,7 +703,7 @@ Example:
 ;; ;=> ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) NIL)
 
 See also: `pmono', `pb'"
-  (assert (evenp (length pairs)) (pairs) "pbind's input must be provided as a list of key/value pairs.")
+  (assert (evenp (length pairs)) (pairs) "~s's PAIRS argument must be a list of key/value pairs." 'pbind)
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
   (let* ((res-pairs (list))
@@ -922,7 +923,7 @@ See also: `pbind', `pbind''s :type key"
   "pmono defines a mono instrument event pstream. It's effectively the same as `pbind' with its :type key set to :mono.
 
 See also: `pbind'"
-  (assert (evenp (length pairs)) (pairs))
+  (assert (evenp (length pairs)) (pairs) "~s's PAIRS argument must be a list of key/value pairs." 'pmono)
   (apply #'pbind
          :instrument instrument
          :type :mono
@@ -1079,7 +1080,7 @@ See also: `prand', `pwrand', `pwxrand'"
   :defun (assert (or (not (listp list))
                      (position-if-not (lambda (i) (eql i (car list))) list))
                  (list)
-                 "pxrand's input list must have at least two non-eql elements."))
+                 "~s's LIST argument must have at least two non-eql elements." 'pxrand))
 
 (defmethod as-pstream ((pxrand pxrand))
   (with-slots (list length) pxrand
@@ -1154,7 +1155,7 @@ See also: `prand', `pxrand', `pwrand'"
   :defun (assert (or (not (listp list))
                      (position-if-not (lambda (i) (eql i (car list))) list))
                  (list)
-                 "pwxrand's input list must have at least two non-eql elements."))
+                 "~s's input list must have at least two non-eql elements" 'pwxrand))
 
 (defmethod as-pstream ((pwxrand pwxrand))
   (with-slots (list weights length) pwxrand
@@ -1196,7 +1197,7 @@ Example:
 ;;      (EVENT :FOO 7 :BAR :GREATER) (EVENT :FOO 8 :BAR :GREATER))
 
 See also: `pf', `pnary'"
-  :defun (assert (typep func 'function) (func)))
+  :defun (check-type func function))
 
 (defmethod as-pstream ((pfunc pfunc))
   (with-slots (func length) pfunc
@@ -1270,7 +1271,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defun pdef-ensure-name (name)
   "Ensure NAME is a proper pdef name."
-  (assert name (name) "A ~s's name cannot be nil." 'pdef)
+  (check-type name (and string-designator (not null)))
   (etypecase name
     (symbol name)
     (string (my-intern name :keyword))))
@@ -1734,8 +1735,14 @@ Example:
 
 See also: `pwhite', `pbrown', `pgauss', `prand'"
   :defun (defun pexprand (&optional (lo 0.0001) (hi 1.0) (length :inf))
-           (assert (not (zerop lo)) (lo) "LO cannot be zero; got ~s" lo)
-           (assert (not (zerop hi)) (hi) "HI cannot be zero; got ~s" hi)
+           (assert (and (numberp lo)
+                        (not (zerop lo)))
+                   (lo)
+                   "~s's LO argument must be a nonzero number; got ~s" 'pexprand lo)
+           (assert (and (numberp hi)
+                        (not (zerop hi)))
+                   (hi)
+                   "~s's HI argument must be a nonzero number; got ~s" 'pexprand hi)
            (make-instance 'pexprand
                           :lo lo
                           :hi hi
@@ -1850,10 +1857,7 @@ Example:
 ;; ;=> (0 2/3 4/3 2 8/3 10/3 4 14/3 16/3 6 20/3 22/3 8 26/3 28/3 10)
 
 See also: `pseries', `pgeom', `pgeom*'"
-  (assert (or (null length)
-              (and (integerp length) (> length 1))) ;; FIX: it should be possible to provide length as a pattern; same for pgeom*
-          (length)
-          "LENGTH must be an integer greater than 1 (~s provided)." length)
+  (check-type length (or null (integer 2) pattern))
   (let ((length (or length
                     (max 2 (round (1+ (abs (- end start))))))))
     (pseries start (/ (- end start) (1- length)) length)))
@@ -1915,7 +1919,7 @@ Example:
 ;; ;; Note that due to floating point rounding errors the last output may not always be exactly END.
 
 See also: `pgeom', `pseries', `pseries*'"
-  (assert (and (integerp length) (> length 1)) (length) "LENGTH must be an integer greater than 1 (~s provided)." length)
+  (check-type length (or (integer 2) pattern))
   (pgeom start (expt (/ end start) (/ 1 (1- length))) length))
 
 (pushnew 'pgeom* *patterns*)

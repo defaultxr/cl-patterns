@@ -28,7 +28,7 @@
   "Set a mapping from INSTRUMENT (an instrument name as a string or symbol) to a MIDI program number. Setting an instrument to nil with this function removes it from the map.
 
 See also: `alsa-midi-instrument-program-number'"
-  (assert (typep value '(or null (integer 0 127))) (value) "VALUE must be a MIDI program number (an integer in range 0-127); got ~s instead" value)
+  (check-type value (or null (integer 0 127)))
   (if value
       (setf (gethash instrument *alsa-midi-instrument-map*) value)
       (remhash instrument *alsa-midi-instrument-map*)))

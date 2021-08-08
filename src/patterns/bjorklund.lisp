@@ -11,7 +11,7 @@ See also: `pbjorklund'"
   (if (and (null steps) (typep pulses 'ratio))
       (bjorklund (numerator pulses) (denominator pulses))
       (progn
-        (assert (> steps 0) (steps))
+        (check-type steps (integer 1))
         (assert (>= steps pulses) (pulses))
         (labels ((from-array (arr)
                    (destructuring-bind (a b) (split arr)
