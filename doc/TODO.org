@@ -16,7 +16,7 @@ CLOSED: [2018-07-01 Sun 18:01]
 ** ~bsubseq*~ function. same as ~bsubseq~ but it also includes synths that would've already been playing at the start time specified.
   * i.e. ~(bsubseq* (pbind :dur 2 :foo (pseq '(1 2 3))) 1 4)~ returns ~(list (event :dur 1 :foo 1) (event :dur 2 :foo 2))~
 
-* DONE do "static" things to "dynamic" patterns - i.e. ~(pshift (pseq '(1 2 3)) 1)~ results in ~(3 1 2 3 1 2 3 ...)~ or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
+* DONE do "static" things to "dynamic" patterns - i.e. ~(protate (pseq '(1 2 3)) 1)~ results in ~(3 1 2 3 1 2 3 ...)~ or the like. would work with event patterns too obviously and should "fail" gracefully by still giving output even if the source pattern is infinite-length (maybe just only operate on the first 16 beats, events, or output values by default for infinite patterns).
 CLOSED: [2019-10-15 Tue 18:23]
 
 * more metadata in patterns and streams so that it's easier to write functions that process streams/patterns/etc

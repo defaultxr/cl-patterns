@@ -111,7 +111,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
          (pushnew ',name *patterns*)))))
 
 (defparameter *max-pattern-yield-length* 256
-  "The default maximum number of events or values that will be used by functions like `next-n' or patterns like `pshift', in order to prevent hangs caused by infinite-length patterns.")
+  "The default maximum number of events or values that will be used by functions like `next-n' or patterns like `protate', in order to prevent hangs caused by infinite-length patterns.")
 
 ;;; pattern
 
@@ -1531,13 +1531,35 @@ See also: `pfunc'")
               (next current-pstream))
             nv)))))
 
+;;; protate
 
+(defpattern protate (pattern)
+  (pattern
+   (shift :default 0))
+  :documentation "Rotate PATTERN N outputs forward or backward, wrapping the shifted items to the other side, a la `alexandria:rotate'.
 
+Example:
 
-;;; pshift
+;; (next-upto-n (protate (pseq '(1 2 3 4 5) 1) 2))
+;; ;=> (4 5 1 2 3)
 
-(defun pshift (pattern shift &optional (max-yield *max-pattern-yield-length*)) ;; FIX: don't use pseq internally, and make it possible for 'shift' to be a pattern
-  (pseq (alexandria:rotate (next-upto-n pattern max-yield) shift)))
+See also: `pdrop', `phistory', `pscratch'")
+
+(defmethod as-pstream ((protate protate))
+  (with-slots (pattern shift) protate
+    (make-instance 'protate-pstream
+                   :pattern (pattern-as-pstream pattern)
+                   :shift (pattern-as-pstream shift))))
+
+(defmethod next ((protate protate-pstream))
+  (with-slots (pattern shift number) protate
+    (when (zerop number)
+      (next-upto-n pattern))
+    (let ((actual-index (- number (next shift)))
+          (hn (slot-value pattern 'history-number)))
+      (if (>= number (1- hn))
+          eop
+          (pstream-elt pattern (mod actual-index (1- hn)))))))
 
 ;;; pn
 
@@ -2820,7 +2842,7 @@ Example:
 ;;
 ;; ;=> (3 4 NIL NIL)
 
-See also: `pshift'")
+See also: `protate'")
 
 (defmethod as-pstream ((pdrop pdrop))
   ;; FIX: check that n is not bigger or smaller than history allows

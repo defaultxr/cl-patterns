@@ -611,9 +611,17 @@
                (next-upto-n (plazy (lambda () (random 20)) 14)))
       "plazy yields the wrong number of outputs when REPEATS is provided"))
 
-(test pshift
-  ;; FIX
-  )
+(test protate
+  "Test protate"
+  (is (equal (list 3 1 2)
+             (next-upto-n (protate (pseq (list 1 2 3) 1) 1)))
+      "protate yields incorrect outputs")
+  (is (equal (list 4 5 1 2 3)
+             (next-upto-n (protate (pseq (list 1 2 3 4 5) 1) 2)))
+      "protate yields incorrect outputs")
+  (is (equal (list 2 3 1)
+             (next-upto-n (protate (pseq (list 1 2 3) 1) -1)))
+      "protate yields incorrect outputs for negative shifts"))
 
 (test pn
   "Test pn"
