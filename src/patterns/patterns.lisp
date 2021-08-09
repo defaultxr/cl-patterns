@@ -2455,7 +2455,7 @@ See also: `pfindur'")
   (with-slots (count pattern) pfin
     (make-instance 'pfin-pstream
                    :pattern (as-pstream pattern)
-                   :count (next count))))
+                   :count (next count)))) ;; FIX: should be able to use as a gate pattern
 
 (defmethod next ((pfin pfin-pstream))
   (with-slots (pattern count number) pfin

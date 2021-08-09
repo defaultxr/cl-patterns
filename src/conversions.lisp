@@ -170,13 +170,15 @@ See also: `note-midinote', `note-number'"
   "Convert a playback rate RATE to a frequency, based on BASE-FREQ."
   (* base-freq rate))
 
-(defconversion midinote-rate (midinote &optional (base-note 69))
+(defconversion midinote-rate (midinote &optional (base-note 69)) ;; FIX: support note names like :c4, :d4, :c#2 etc
   "Convert a midinote to a playback rate."
   (freq-rate (midinote-freq midinote) (midinote-freq base-note)))
 
 (defconversion rate-midinote (rate &optional (base-note 69))
   "Convert a playback rate to a midinote."
   (freq-midinote (rate-freq rate (midinote-freq base-note))))
+
+;; FIX: need `note-rate' and `rate-note' functions
 
 ;;; MIDI stuff
 
