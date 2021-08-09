@@ -2151,28 +2151,29 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
                   (next operator)
                   operator))
           (nexts (mapcar #'next patterns)))
-      (unless (or (position nil nexts)
-                  (null op))
-        (restart-case
-            (handler-bind
-                ((type-error
-                   (lambda (c)
-                     (when-let ((restart (find-restart 'retry-with-prest-values c)))
-                       (invoke-restart restart)))))
-              (apply #'multi-channel-funcall op nexts))
-          (retry-with-prest-values ()
-            :test (lambda (c)
-                    (and (typep c 'type-error)
-                         (eql 'number (type-error-expected-type c))
-                         (typep (type-error-datum c) 'prest)))
-            (labels ((replace-prests (list)
-                       (mapcar (lambda (item)
-                                 (typecase item
-                                   (list (replace-prests item))
-                                   (prest (slot-value item 'value))
-                                   (t item)))
-                               list)))
-              (apply #'multi-channel-funcall op (replace-prests nexts)))))))))
+      (when (or (position eop nexts)
+                (eop-p op))
+        (return-from next eop))
+      (restart-case
+          (handler-bind
+              ((type-error
+                 (lambda (c)
+                   (when-let ((restart (find-restart 'retry-with-prest-values c)))
+                     (invoke-restart restart)))))
+            (apply #'multi-channel-funcall op nexts))
+        (retry-with-prest-values ()
+          :test (lambda (c)
+                  (and (typep c 'type-error)
+                       (eql 'number (type-error-expected-type c))
+                       (typep (type-error-datum c) 'prest)))
+          (labels ((replace-prests (list)
+                     (mapcar (lambda (item)
+                               (typecase item
+                                 (list (replace-prests item))
+                                 (prest (slot-value item 'value))
+                                 (t item)))
+                             list)))
+            (apply #'multi-channel-funcall op (replace-prests nexts))))))))
 
 (defmacro make-pattern-for-function (function)
   "Define a wrapper function named pFUNCTION whose definition is (pnary FUNCTION ...).
