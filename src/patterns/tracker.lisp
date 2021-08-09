@@ -5,7 +5,7 @@
 (defpattern ptracker (pattern)
   (header
    rows
-   (repeats :state t)
+   (repeats :default :inf)
    (current-row :state t)
    (current-repeats-remaining :state t))
   :documentation "Defines an event pattern via a tracker-inspired notation. HEADER is a plist mapping the pattern's \"columns\" (keys) to their default values or to patterns that are used to generate the key's values for each output. ROWS is a list of lists, each sublist specifying the values for a step. Values can be specified on their own (in which case they're matched in order to the columns specified in the header) or by using Lisp's traditional key/value notation.
@@ -25,12 +25,16 @@ Example:
 ;;             ))
 
 See also: `pt', `pcycles', `pbind'"
-  :defun (assert (evenp (length header)) (header)))
+  :defun (defun ptracker (header rows &key (repeats :inf))
+           (assert (evenp (length header)) (header))
+           (make-instance 'ptracker
+                          :header header
+                          :rows rows
+                          :repeats repeats)))
 
 (defmethod as-pstream ((ptracker ptracker))
-  (with-slots (header rows current-row) ptracker
-    (let ((repeats (or (getf header :repeats) :inf))
-          (header (mapcar #'pattern-as-pstream (remove-from-plist header :repeats))))
+  (with-slots (header rows repeats current-row) ptracker
+    (let ((header (mapcar #'pattern-as-pstream header)))
       (make-instance 'ptracker-pstream
                      :header header
                      :rows (mapcar
@@ -48,9 +52,9 @@ See also: `pt', `pcycles', `pbind'"
   (with-slots (header rows current-row current-repeats-remaining) ptracker
     (when (>= current-row (length rows))
       (setf current-row 0)
-      (decf-remaining ptracker)
-      (unless (value-remaining-p current-repeats-remaining)
-        (return-from next eop)))
+      (decf-remaining ptracker))
+    (unless (value-remaining-p current-repeats-remaining)
+      (return-from next eop))
     (let* ((c-header (mapcar #'next header))
            (row (nth current-row rows))
            (row (etypecase row
@@ -58,45 +62,46 @@ See also: `pt', `pcycles', `pbind'"
                   (list row)
                   (atom (list row))))
            (inc-by 1))
-      (unless (position nil c-header)
-        (labels ((parse (index &optional keys-p)
-                   (when-let ((cur (nth index row)))
-                     (if keys-p
-                         (list* cur
-                                (next (nth (1+ index) row))
-                                (parse (+ 2 index) t))
-                         (if (keywordp cur)
-                             (parse index t)
-                             (list* (nth index (keys c-header))
-                                    (next cur)
-                                    (parse (1+ index))))))))
-          ;; generate the output event for this step
-          (let ((ev (if (and (listp row)
-                             (null (cdr row))
-                             (rest-p (car row)))
-                        (combine-events
-                         (apply #'event c-header)
-                         (event :type :rest))
-                        (let ((res (parse 0)))
-                          (apply #'event
-                                 (append
-                                  (flatten-1 (mapcar (lambda (x)
-                                                       (list x (getf c-header x)))
-                                                     (set-difference (keys c-header) (keys res))))
-                                  res))))))
-            ;; check for and handle continuation lines (dashes) after this line, increasing the dur of the event for each.
-            (let ((next-num (1+ current-row))
-                  (extra-dur 0))
-              (while (let ((next (car (ensure-list (nth next-num rows)))))
-                       (and (symbolp next)
-                            (string= :- next)))
-                (incf next-num)
-                (incf inc-by)
-                (incf extra-dur (or (getf (mapcar #'next header) :dur) 1)))
-              (when (plusp extra-dur)
-                (incf (event-value ev :dur) extra-dur)))
-            (incf current-row inc-by)
-            ev))))))
+      (when (position eop c-header)
+        (return-from next eop))
+      (labels ((parse (index &optional keys-p)
+                 (when-let ((cur (nth index row)))
+                   (if keys-p
+                       (list* cur
+                              (next (nth (1+ index) row))
+                              (parse (+ 2 index) t))
+                       (if (keywordp cur)
+                           (parse index t)
+                           (list* (nth index (keys c-header))
+                                  (next cur)
+                                  (parse (1+ index))))))))
+        ;; generate the output event for this step
+        (let ((ev (if (and (listp row)
+                           (null (cdr row))
+                           (rest-p (car row)))
+                      (combine-events
+                       (apply #'event c-header)
+                       (event :type :rest))
+                      (let ((res (parse 0)))
+                        (apply #'event
+                               (append
+                                (flatten-1 (mapcar (lambda (x)
+                                                     (list x (getf c-header x)))
+                                                   (set-difference (keys c-header) (keys res))))
+                                res))))))
+          ;; check for and handle continuation lines (dashes) after this line, increasing the dur of the event for each.
+          (let ((next-num (1+ current-row))
+                (extra-dur 0))
+            (while (let ((next (car (ensure-list (nth next-num rows)))))
+                     (and (symbolp next)
+                          (string= :- next)))
+              (incf next-num)
+              (incf inc-by)
+              (incf extra-dur (or (getf (mapcar #'next header) :dur) 1)))
+            (when (plusp extra-dur)
+              (incf (event-value ev :dur) extra-dur)))
+          (incf current-row inc-by)
+          ev)))))
 
 (defun ptracker-does-not-exist (ptracker type name if-does-not-exist)
   (etypecase if-does-not-exist

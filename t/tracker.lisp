@@ -36,7 +36,7 @@
         (event :foo 1)
         (event :foo 1))
        (next-upto-n
-        (ptracker (list :foo 1 :repeats 3) (list (list :foo 1)))))
+        (ptracker (list :foo 1) (list (list :foo 1)) :repeats 3)))
       "ptracker does not limit by repeats")
   (is (every-event-equal
        (list
@@ -44,12 +44,12 @@
         (event :foo 1)
         (event :foo 2))
        (next-upto-n
-        (ptracker (list :foo 1 :repeats 3) (list (list :foo (pseries))))))
+        (ptracker (list :foo 1) (list (list :foo (pseries))) :repeats 3)))
       "patterns embedded in ptracker rows are not used to generate values in ptracker's output events")
   (is (equal (list t t t)
              (mapcar (fn (numberp (event-value _ :foo)))
                      (next-upto-n
-                      (ptracker (list :foo 1 :repeats 3) (list (list :foo (pseries)))))))
+                      (ptracker (list :foo 1) (list (list :foo (pseries))) :repeats 3))))
       "functions in ptracker rows are not evalated to generate values in output events")
   (is (every-event-equal
        (list
