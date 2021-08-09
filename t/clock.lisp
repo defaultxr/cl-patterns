@@ -49,17 +49,17 @@
 
 (test play-expired-events
   "Test the clock's play-expired-events setting"
-  (with-fixture with-debug-backend-and-clock (1 :play-expired-events t)
+  (with-fixture with-debug-backend-and-clock (4 :play-expired-events t)
     (play (pbind :dur (pn 1 4)))
     (setf (beat *clock*) 5)
     (clock-process *clock* 2)
     (let ((recent (debug-recent-events 4)))
       (is-true (= 4 (length recent))
                "clock does not play expired events when play-expired-events is true")))
-  (with-fixture with-debug-backend-and-clock (1 :play-expired-events nil)
+  (with-fixture with-debug-backend-and-clock (4 :play-expired-events nil)
     (play (pbind :dur (pn 1/4 4)))
     (setf (beat *clock*) 5)
-    (sleep 1)
+    (sleep 0.3)
     (clock-process *clock* 2)
     (let ((recent (debug-recent-events 4)))
       (is-true (= 0 (length recent))
