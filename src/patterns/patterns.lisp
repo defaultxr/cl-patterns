@@ -770,15 +770,66 @@ See also: `pmono', `pb'"
 (defmethod keys ((pbind pbind))
   (keys (slot-value pbind 'pairs)))
 
-;; FIX: should automatically convert +, *, -, /, etc to their equivalent patterns.
+(defvar *pattern-function-translations* (list)
+  "The list of names of functions and the forms they will be translated to in `pb' and other pattern macros.
+
+See also: `define-pattern-function-translation'")
+
+(defmacro define-pattern-function-translation (function pattern)
+  "Define a translation from FUNCTION to PATTERN in `pb'."
+  `(setf (getf *pattern-function-translations* ',function) ',pattern))
+
+(define-pattern-function-translation + p+)
+
+(define-pattern-function-translation - p-)
+
+(define-pattern-function-translation * p*)
+
+(define-pattern-function-translation / p/)
+
+(define-pattern-function-translation round (pnary 'round))
+
+(defun pattern-translate-sexp (sexp)
+  "Translate SEXP to the equivalent pattern as per `*pattern-function-translations*', or pass it through unchanged if there is no translation.
+
+See also: `pb-translate-body-functions'"
+  (typecase sexp
+    (null sexp)
+    (atom sexp)
+    (list (let* ((first (car sexp))
+                 (rest (cdr sexp))
+                 (translated-p (getf *pattern-function-translations* first))
+                 (head (list (if (find-if (fn (typep _ '(or pattern list))) rest)
+                                 (or translated-p first)
+                                 first))))
+            `(,@head ,@(if translated-p
+                           (mapcar #'pattern-translate-sexp rest)
+                           rest))))))
+
+(defun pb-translate-body-functions (body)
+  "Translate functions in BODY to their equivalent pattern as per `*pattern-function-translations*'.
+
+See also: `pattern-translate-sexp'"
+  (loop :for (k v) :on body :by #'cddr
+        :collect k
+        :collect (pattern-translate-sexp v)))
+
 ;; FIX: allow keys to be lists, in which case results are destructured, i.e. (pb :blah (list :foo :bar) (pcycles (a 1!4))) results in four (EVENT :FOO 1 :DUR 1/4)
 (defmacro pb (name &body pairs)
-  "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef'. NAME is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
+  "pb is a convenience macro, wrapping the functionality of `pbind' and `pdef' while also providing additional syntax sugar. NAME is the name of the pattern (same as pbind's :pdef key or `pdef' itself), and PAIRS is the same as in regular pbind. If PAIRS is only one element, pb operates like `pdef', otherwise it operates like `pbind'.
+
+The expressions in PAIRS are also automatically translated to equivalent patterns if applicable; for example:
+
+;; (pb :foo :bar (+ (pseries) (pseq (list -1 0 1))))
+
+...is the same as:
+
+;; (pb :foo :bar (p+ (pseries) (pseq (list -1 0 1))))
 
 See also: `pbind', `pdef'"
   (if (length= 1 pairs)
-      `(pdef ,name ,@pairs)
-      `(pdef ,name (pbind ,@pairs))))
+      `(pdef ,name ,@(pb-translate-body-functions pairs))
+      `(pdef ,name (pbind ,@(pb-translate-body-functions pairs)))))
 
 (pushnew 'pb *patterns*)
 
@@ -2123,24 +2174,28 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
                                list)))
               (apply #'multi-channel-funcall op (replace-prests nexts)))))))))
 
-(defun p+ (&rest numbers)
-  "Add NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'+ numbers)."
-  (apply #'pnary #'+ numbers))
+(defmacro make-pattern-for-function (function)
+  "Define a wrapper function named pFUNCTION whose definition is (pnary FUNCTION ...).
 
-(defun p- (&rest numbers)
-  "Subtract NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'- numbers)."
-  (apply #'pnary #'- numbers))
+See also: `pnary'"
+  (let* ((pat-sym (intern (concat "P" (symbol-name function)) 'cl-patterns))
+         (argslist (function-arglist function))
+         (func-name (string-downcase (symbol-name function)))
+         (parsed (multiple-value-list (parse-ordinary-lambda-list argslist)))
+         (has-rest (third parsed))
+         (args (concatenate 'list (first parsed) (mapcar #'car (second parsed)) (ensure-list (third parsed)))))
+    `(progn
+       (defun ,pat-sym ,argslist
+         ,(concat "Syntax sugar for (pnary #'" func-name " ...).")
+         (,(if has-rest
+               'apply
+               'funcall)
+          #'pnary #',function ,@args))
+       (pushnew ',pat-sym *patterns*))))
 
-(defun p* (&rest numbers)
-  "Multiply NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'* numbers)."
-  (apply #'pnary #'* numbers))
-
-(defun p/ (&rest numbers)
-  "Divide NUMBERS, where NUMBERS can be any object that responds to the `next' method. This function is simply a shortcut for (apply #'pnary #'/ numbers)."
-  (apply #'pnary #'/ numbers))
-
-(dolist (pat '(p+ p- p* p/))
-  (pushnew pat *patterns*))
+#.(loop :for function :in (list '+ '- '* '/ '> '>= '< '<= '= '/= 'eql 'wrap)
+        :collect `(make-pattern-for-function ,function) :into res
+        :finally (return `(progn ,@res)))
 
 ;;; prerange
 

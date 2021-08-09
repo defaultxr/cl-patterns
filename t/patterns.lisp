@@ -61,6 +61,19 @@
                          (next-n (pbind) 3))
       "empty pbinds don't yield empty events"))
 
+(test pb
+  "Test pb functionality"
+  (is-true (every-event-equal (list (event :bar 1)
+                                    (event :bar 1/2)
+                                    (event :bar 1/3)
+                                    (event :bar 1/4))
+                              (next-n (pb :foo :bar (/ 1 (pseries 1 1 4))) 4))
+           "pb doesn't correctly translate /")
+  (is-true (every-event-equal (list (event :bar 0)
+                                    (event :bar 2))
+                              (next-n (pb :foo :bar (pseq (list 0 (truncate (/ 5 2))) 1)) 2))
+           "pb doesn't correctly avoid translating functions inside non-translatable functions"))
+
 (test parent ;; FIX: make sure all patterns are given parents
   "Test whether patterns have the correct parent information"
   (is-true (let ((pb (pbind :foo (pseq (list 1 2 3)))))
