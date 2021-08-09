@@ -2601,16 +2601,19 @@ See also: `pr'")
 
 (defmethod next ((pdurstutter pdurstutter-pstream))
   (with-slots (pattern n current-value current-repeats-remaining) pdurstutter
-    (loop :while (and current-repeats-remaining
-                      (zerop current-repeats-remaining))
-          :do (setf current-repeats-remaining (next n))
-              (let ((e (next pattern)))
-                (when (and current-repeats-remaining
-                           (not (zerop current-repeats-remaining)))
-                  (setf current-value (ctypecase e
-                                        (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
-                                        (number (/ e current-repeats-remaining))
-                                        (null nil))))))
+    (while (and current-repeats-remaining
+                (zerop current-repeats-remaining))
+      (setf current-repeats-remaining (next n))
+      (let ((e (next pattern)))
+        (when (eop-p current-repeats-remaining)
+          (return-from next eop))
+        (when (and current-repeats-remaining
+                   (not (zerop current-repeats-remaining)))
+          (setf current-value (if (eop-p e)
+                                  eop
+                                  (ctypecase e
+                                    (event (combine-events e (event :dur (/ (event-value e :dur) current-repeats-remaining))))
+                                    (number (/ e current-repeats-remaining))))))))
     (when current-repeats-remaining
       (decf-remaining pdurstutter)
       current-value)))
@@ -2748,16 +2751,17 @@ See also: `beat', `pbeat'")
   (with-slots (pattern dur current-dur dur-history number) prun
     (let ((beats (beat (pattern-parent prun :class 'pbind))))
       (flet ((next-dur ()
-               (when-let ((nxt (next dur)))
-                 (next pattern)
-                 (incf current-dur nxt))))
-        (when (= number 0)
+               (let ((nxt (next dur)))
+                 (unless (eop-p nxt)
+                   (next pattern)
+                   (incf current-dur nxt)))))
+        (when (zerop number)
           (next-dur))
         (while (and (or (not (pstream-p dur))
                         (not (ended-p dur)))
                     (<= current-dur beats))
           (next-dur))))
-    (pstream-elt pattern -1)))
+    (last-output pattern)))
 
 ;;; psym
 
@@ -3162,22 +3166,24 @@ See also: `pindex', `pbrown', `paccum'")
                    :start-pos (pattern-as-pstream start-pos))))
 
 (defmethod next ((pwalk pwalk-pstream))
-  (with-slots (list step-pattern direction-pattern start-pos current-index current-direction) pwalk
-    (unless (slot-boundp pwalk 'current-direction)
-      (setf current-direction (next direction-pattern)))
-    (if (slot-boundp pwalk 'current-index)
-        (let ((nsp (next step-pattern)))
-          (when (and nsp current-direction)
-            (let ((next-index (+ current-index (* nsp current-direction))))
-              (if (or (minusp next-index) ;; if we're out of the list bounds, check the direction pattern...
-                      (>= next-index (length list)))
-                  (setf current-direction (next direction-pattern)))
-              (setf current-index (mod (+ current-index (* nsp current-direction)) (length list))))))
-        (progn
-          (next list) ;; FIX?
-          (setf current-index (next start-pos))))
-    (when (and current-index list)
-      (elt-wrap list current-index))))
+  (with-slots (list step-pattern direction-pattern start-pos current-index current-direction number) pwalk
+    (when (zerop number)
+      (setf current-index (next start-pos))
+      (setf current-direction (next direction-pattern))
+      (return-from next (nth current-index list)))
+    (let ((nsp (next step-pattern)))
+      (when (or (eop-p nsp) (eop-p current-index) (eop-p current-direction))
+        (return-from next eop))
+      (labels ((next-index ()
+                 (+ current-index (* nsp current-direction))))
+        (let ((next-index (next-index)))
+          (when (or (minusp next-index)
+                    (>= next-index (length list)))
+            (setf current-direction (next direction-pattern)))
+          (when (eop-p current-direction)
+            (return-from next eop))
+          (setf current-index (mod (next-index) (length list))))))
+    (elt-wrap list current-index)))
 
 ;;; pparchain
 
