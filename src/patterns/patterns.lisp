@@ -3023,62 +3023,77 @@ See also: `psym', `parp', `pdef', `pbind'"
 
 (defmethod next ((pmeta pmeta-pstream))
   (with-slots (pattern current-pstream) pmeta
-    (labels ((make-pstream (plist)
+    (labels ((make-pstream (plist &optional res-pattern)
                (unless plist
-                 (return-from make-pstream))
-               (let (res-pattern)
-                 (doplist (key value plist)
-                   (when (null value)
-                     (return-from make-pstream nil))
-                   (case key
-                     ((:pattern :instrument)
-                      (setf res-pattern (etypecase value
-                                          (symbol
-                                           (pdef value))
-                                          (pattern
-                                           value))))
-                     ((:dur)
-                      (unless (eql value :inf)
-                        (setf res-pattern (psync res-pattern value value))))
-                     ((:findur)
-                      (unless (eql value :inf)
-                        (setf res-pattern (pfindur res-pattern value))))
-                     ((:sync)
-                      (unless (eql value :inf)
-                        (setf res-pattern (apply #'psync res-pattern (ensure-list value)))))
-                     ((:stretch)
-                      (setf res-pattern (pchain res-pattern (pbind :dur (p* value (pk :dur))))))
-                     ((:fit :ts)
-                      (setf res-pattern (pts res-pattern value)))
-                     ((:r :repeat)
-                      (setf res-pattern (pr res-pattern value)))
-                     ((:inject)
-                      (setf res-pattern (pchain res-pattern value)))
-                     ((:step-inject :sinject)
-                      (setf res-pattern (pchain res-pattern (pn (next value)))))))
-                 (let ((pstream (as-pstream res-pattern)))
-                   (setf (slot-value pstream 'parent) pmeta)
-                   pstream))))
+                 (return-from make-pstream nil))
+               (destructuring-bind (key value &rest rest) plist
+                 (when (eop-p value)
+                   (return-from make-pstream eop))
+                 (case key
+                   ((:pattern :instrument)
+                    (setf res-pattern (etypecase value
+                                        (symbol
+                                         (pdef value))
+                                        (pattern
+                                         value)
+                                        (list
+                                         (ppar value)))))
+                   ((:embed)
+                    (let* ((nv (next value))
+                           (nvp (typecase nv
+                                  (list nv)
+                                  (event (event-plist nv)))))
+                      (dolist (i (reverse nvp))
+                        (push i rest))))
+                   ((:dur)
+                    (unless (eql value :inf)
+                      (setf res-pattern (psync res-pattern value value))))
+                   ((:findur)
+                    (unless (eql value :inf)
+                      (setf res-pattern (pfindur res-pattern value))))
+                   ((:sync)
+                    (unless (eql value :inf)
+                      (setf res-pattern (apply #'psync res-pattern (ensure-list value)))))
+                   ((:stretch)
+                    (setf res-pattern (pchain res-pattern (pbind :dur (p* value (pk :dur))))))
+                   ((:fit :ts)
+                    (setf res-pattern (pts res-pattern value)))
+                   ((:r :repeat)
+                    (setf res-pattern (pr res-pattern value)))
+                   ((:inject)
+                    (setf res-pattern (pchain res-pattern value)))
+                   ((:step-inject :sinject)
+                    (setf res-pattern (pchain res-pattern (pn (next value))))))
+                 (if rest
+                     (make-pstream rest res-pattern)
+                     (let ((pstream (as-pstream res-pattern)))
+                       (setf (slot-value pstream 'parent) pmeta)
+                       pstream)))))
       (unless current-pstream
         (setf current-pstream (make-pstream (if (listp pattern)
                                                 (loop :for (key value) :on pattern :by #'cddr
-                                                      :if (pstream-p value)
-                                                        :append (list key (next value))
-                                                      :else
-                                                        :append (list key value))
-                                                (event-plist (next pattern))))))
-      (when current-pstream
-        (if-let ((nxt (next current-pstream)))
-          nxt
-          (progn
-            (setf current-pstream nil)
-            (next pmeta)))))))
+                                                      :append (list key (next value)))
+                                                (let ((nxt (next pattern)))
+                                                  (typecase nxt
+                                                    (event (event-plist nxt))
+                                                    (symbol (if (eop-p nxt)
+                                                                (list :none eop)
+                                                                (list :pattern nxt)))))))))
+      (when (eop-p current-pstream)
+        (return-from next eop))
+      (let ((nxt (next current-pstream)))
+        (if (eop-p nxt)
+            (progn
+              (setf current-pstream nil)
+              (next pmeta))
+            nxt)))))
 
 ;;; pts
 
 (defpattern pts (pattern)
   (pattern
-   (dur :default 4))
+   (dur :default 4)
+   (pattern-outputs :state t))
   :documentation "Timestretch PATTERN so its total duration is DUR. Note that only the first `*max-pattern-yield-length*' events from PATTERN are considered, and that they are calculated immediately at pstream creation time rather than lazily as the pstream yields.
 
 Example:
@@ -3091,19 +3106,20 @@ See also: `pfindur', `psync'")
 
 (defmethod as-pstream ((pts pts))
   (with-slots (pattern dur) pts
-    (let ((pstr (as-pstream pattern)))
-      (next-upto-n pstr)
+    (let* ((pstr (as-pstream pattern))
+           (res (next-upto-n pstr)))
       (make-instance 'pts-pstream
                      :pattern pstr
-                     :dur (next dur)))))
+                     :dur (next dur)
+                     :pattern-outputs (coerce res 'vector)))))
 
 (defmethod next ((pts pts-pstream))
-  (with-slots (pattern dur number) pts
+  (with-slots (pattern dur pattern-outputs number) pts
+    (when (>= number (length pattern-outputs))
+      (return-from next eop))
     (let ((mul (/ dur (beat pattern)))
-          (ev (pstream-elt pattern number)))
-      (if (eop-p ev)
-          eop
-          (combine-events ev (event :dur (* mul (event-value ev :dur))))))))
+          (ev (elt pattern-outputs number)))
+      (combine-events ev (event :dur (* mul (event-value ev :dur)))))))
 
 ;;; pwalk
 
