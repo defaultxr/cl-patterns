@@ -3409,3 +3409,69 @@ See also: `pr', `ps'"
   (pr (ps pattern) repeats))
 
 (pushnew 'prs *patterns*)
+
+;;; ipstream
+
+(defpattern ipstream (pattern)
+  ((patterns :default (list))
+   (end-when-empty :default nil)
+   (granularity :default 1/5)
+   (lock :state t :initform (bt:make-lock "ipstream patterns slot lock")))
+  :documentation "Insertable pstream; a pstream that can be changed while it's running by inserting new patterns at a specified beat.")
+
+(defmethod as-pstream ((ipstream ipstream))
+  (with-slots (patterns end-when-empty granularity) ipstream
+    (let ((pstr (make-instance 'ipstream-pstream
+                               :patterns (list)
+                               :end-when-empty end-when-empty
+                               :granularity granularity
+                               :lock (bt:make-lock "ipstream patterns slot lock"))))
+      (dolist (pat patterns pstr)
+        (etypecase pat
+          (pattern
+           (ipstream-insert pstr pat 0))
+          (list
+           (destructuring-bind (beat &rest patterns) pat
+             (dolist (pat patterns)
+               (ipstream-insert pstr pat beat)))))))))
+
+(defmethod next ((ipstream ipstream-pstream))
+  (with-slots (patterns end-when-empty granularity lock) ipstream
+    (labels ((actual-beat (pstream)
+               (+ (slot-value pstream 'start-beat) (beat pstream)))
+             (sorted-pstrs ()
+               (sort patterns #'< :key #'actual-beat)))
+      (bt:with-recursive-lock-held (lock)
+        (if patterns
+            (let* ((next-pstr (car (sorted-pstrs)))
+                   (ev (if (<= (actual-beat next-pstr)
+                               (beat ipstream))
+                           (let ((nxt (next next-pstr)))
+                             (if (eop-p nxt)
+                                 (progn
+                                   (deletef patterns next-pstr)
+                                   (next ipstream))
+                                 nxt))
+                           (event :type :rest :delta granularity)))
+                   (next-pstr (car (sorted-pstrs))))
+              (combine-events ev (event :delta (if next-pstr
+                                                   (min granularity
+                                                        (- (actual-beat next-pstr)
+                                                           (beat ipstream)))
+                                                   granularity))))
+            (if end-when-empty
+                eop
+                (event :type :rest :delta granularity)))))))
+
+(defgeneric ipstream-insert (ipstream pattern &optional start-beat)
+  (:documentation "Insert PATTERN into IPSTREAM at START-BEAT. START-BEAT defaults to the ipstream's current beat."))
+
+(defmethod ipstream-insert ((ipstream ipstream-pstream) pattern &optional start-beat)
+  (with-slots (patterns lock) ipstream
+    (let ((pstr (as-pstream pattern)))
+      (setf (slot-value pstr 'start-beat) (or start-beat (beat ipstream)))
+      (bt:with-lock-held (lock)
+        (push pstr patterns)))))
+
+(export 'ipstream-insert)
+
