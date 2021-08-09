@@ -6,24 +6,10 @@
   "Get `*event*' if it's not nil, or get a fresh empty event."
   (or *event* (event)))
 
-(defun set-parents (pattern)
-  "Loop through PATTERN's slots and set the \"parent\" slot of any patterns to this pattern."
-  (labels ((set-parent (list parent)
-             "Recurse through LIST, setting the parent of any pattern found to PARENT."
-             (typecase list
-               (list
-                (mapc (lambda (x) (set-parent x parent)) list))
-               (pattern
-                (setf (slot-value list 'parent) parent)))))
-    (dolist (slot (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))) pattern)
-      (when (and (not (eql slot 'parent))
-                 (slot-boundp pattern slot))
-        (set-parent (slot-value pattern slot) pattern)))))
-
 (defparameter *patterns* (list)
   "List of the names of all defined pattern types.")
 
-(defmacro defpattern (name superclasses slots &key documentation defun) ;; FIX: should warn if `set-parents' is not called in the creation-function.
+(defmacro defpattern (name superclasses slots &key documentation defun)
   "Define a pattern. This macro automatically generates the pattern's class, its pstream class, and the function to create an instance of the pattern, and makes them external in the cl-patterns package.
 
 NAME is the name of the pattern. Typically a word or two that describes its function, prefixed with p.
@@ -72,11 +58,10 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                `(defun ,name ,(function-lambda-list slots)
                   ,documentation
                   ,@(when pre-init (list pre-init))
-                  (set-parents
-                   (make-instance ',name
-                                  ,@(mapcan (fn (unless (state-slot-p _)
-                                                  (list (make-keyword (car _)) (car _))))
-                                            slots)))))
+                  (make-instance ',name
+                                 ,@(mapcan (fn (unless (state-slot-p _)
+                                                 (list (make-keyword (car _)) (car _))))
+                                           slots))))
              (add-doc-to-defun (sexp)
                (if (and (listp sexp)
                         (position (car sexp) (list 'defun 'defmacro))
@@ -128,6 +113,23 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
    (pstream-count :initform 0 :accessor pstream-count :documentation "The number of pstreams that have been made of this pattern.")
    (metadata :initarg :metadata :initform (make-hash-table) :type hash-table :documentation "Hash table of additional data associated with the pattern, accessible with the `pattern-metadata' function."))
   (:documentation "Abstract pattern superclass."))
+
+(defun set-parents (pattern)
+  "Loop through PATTERN's slots and set the \"parent\" slot of any patterns to this pattern."
+  (labels ((set-parent (list parent)
+             "Recurse through LIST, setting the parent of any pattern found to PARENT."
+             (typecase list
+               (list
+                (mapc (lambda (x) (set-parent x parent)) list))
+               (pattern
+                (setf (slot-value list 'parent) parent)))))
+    (dolist (slot (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pattern))) pattern)
+      (when (and (not (eql slot 'parent))
+                 (slot-boundp pattern slot))
+        (set-parent (slot-value pattern slot) pattern)))))
+
+(defmethod initialize-instance :before ((pattern pattern) &key)
+  (set-parents pattern))
 
 (defun pattern-p (object)
   "True if OBJECT is a pattern.
@@ -332,6 +334,13 @@ See also: `events-in-range'"))
    (future-number :initform 0 :documentation "The number of peeks into the future that have been made in the pstream. For example, if `peek' is used once, this would be 1. If `next' is called after that, future-number decreases back to 0.")
    (future-beat :initform 0 :documentation "The current beat including all future outputs (the `beat' slot does not include peeked outputs)."))
   (:documentation "\"Pattern stream\". Keeps track of the current state of a pattern in process of yielding its outputs."))
+
+(defmethod initialize-instance :before ((pstream pstream) &key)
+  (with-slots (history) pstream
+    (setf history (make-array *max-pattern-yield-length* :initial-element nil))))
+
+(defmethod initialize-instance :after ((pstream pstream) &key)
+  (set-parents pstream))
 
 (defmethod print-object ((pstream pstream) stream)
   (with-slots (number) pstream
@@ -590,9 +599,7 @@ See also: `pattern-as-pstream'"))
       (setf pstream-count (if (slot-exists-p object 'pstream-count)
                               (slot-value object 'pstream-count)
                               0)
-            source object
-            history (make-array *max-pattern-yield-length* :initial-element nil)))
-    (set-parents pstream)
+            source object))
     pstream))
 
 (defmethod as-pstream :around ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
@@ -2142,10 +2149,9 @@ Example:
 
 See also: `pfunc', `p+', `p-', `p*', `p/'"
   :defun (defun pnary (operator &rest patterns)
-           (set-parents
-            (make-instance 'pnary
-                           :operator operator
-                           :patterns patterns))))
+           (make-instance 'pnary
+                          :operator operator
+                          :patterns patterns)))
 
 (defmethod as-pstream ((pnary pnary))
   (with-slots (operator patterns) pnary
@@ -2809,9 +2815,8 @@ Example:
 
 See also: `pbind''s :embed key"
   :defun (defun pchain (&rest patterns)
-           (set-parents
-            (make-instance 'pchain
-                           :patterns patterns))))
+           (make-instance 'pchain
+                          :patterns patterns)))
 
 (defmethod as-pstream ((pchain pchain))
   (with-slots (patterns) pchain
@@ -3189,15 +3194,13 @@ Example:
 
 See also: `ppc', `ppar', `pchain', `pbind''s :embed key"
   :defun (defun pparchain (&rest patterns)
-           (set-parents
-            (make-instance 'pparchain
-                           :patterns patterns))))
+           (make-instance 'pparchain
+                          :patterns patterns)))
 
 (defmethod as-pstream ((pparchain pparchain))
   (with-slots (patterns) pparchain
     (make-instance 'pparchain-pstream
-                   :patterns (loop :for pattern :in patterns
-                                   :collect (as-pstream pattern)))))
+                   :patterns (mapcar #'as-pstream patterns))))
 
 (defmethod next ((pparchain pparchain-pstream))
   (with-slots (patterns) pparchain
