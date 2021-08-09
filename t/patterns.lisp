@@ -143,6 +143,12 @@
   (is-false (pstream-p (pseq (list 1)))
             "pstream-p returns incorrect results for patterns"))
 
+(test t-pstream
+  "Test `t-pstream' functionality"
+  (is (equal (list 3 3 3 eop eop)
+             (next-n (t-pstream 3 3) 5))
+      "t-pstream yields incorrect results"))
+
 (test pstream-count
   "Test `pstream-count' functionality"
   (is-true (= 0 (pstream-count (as-pstream (pbind :foo 1))))

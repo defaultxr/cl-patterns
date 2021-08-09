@@ -151,6 +151,7 @@
    #:pstream-p
    #:as-pstream
    #:pattern-as-pstream
+   #:t-pstream
    #:all-patterns
    #:pattern-parent
    #:parent-pattern

@@ -533,23 +533,29 @@ See also: `pattern-as-pstream'"))
       thing))
 
 (defclass t-pstream (pstream)
-  ((value :initarg :value :initform nil :documentation "The value that is yielded by the t-pstream."))
-  (:documentation "Pattern stream object that yields its value only once."))
+  ((value :initarg :value :initform nil :documentation "The value that is yielded by the t-pstream.")
+   (length :initarg :length :initform 1 :documentation "The number of times to yield the value."))
+  (:documentation "Pattern stream object that by default yields its value only once."))
 
-(defun t-pstream (value)
+(defun t-pstream (value &optional (length 1))
   "Make a t-pstream object with the value VALUE."
-  (make-instance 't-pstream :value value))
+  (check-type length (or (integer 0) (eql :inf)))
+  (make-instance 't-pstream
+                 :value value
+                 :length length))
 
-(defmethod print-object ((pstream t-pstream) stream)
-  (print-unreadable-object (pstream stream :type t) (prin1 (slot-value pstream 'value) stream)))
+(defmethod print-object ((t-pstream t-pstream) stream)
+  (with-slots (value length) t-pstream
+    (print-unreadable-object (t-pstream stream :type t) (prin1 value stream) (prin1 length stream))))
 
 (defmethod as-pstream ((value t))
   (t-pstream value))
 
-(defmethod next ((pattern t-pstream))
-  (unless (= 0 (slot-value pattern 'number))
-    (return-from next eop))
-  (let ((value (slot-value pattern 'value)))
+(defmethod next ((t-pstream t-pstream))
+  (with-slots (value length number) t-pstream
+    (when (and (not (eql :inf length))
+               (>= number length))
+      (return-from next eop))
     (if (functionp value)
         (funcall value)
         value)))
