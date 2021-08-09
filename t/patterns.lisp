@@ -963,7 +963,10 @@
                            (let (list)
                              (dotimes (n 100 list)
                                (push (reduce #'+ (next-upto-n (pfindur (pwhite 0.1 2.0 4) 4))) list))))
-            "pfindur doesn't limit value patterns"))
+            "pfindur doesn't limit value patterns")
+  (is (= 2
+         (length (next-upto-n (pfindur (pbind :dur 2) 5 1))))
+      "pfindur's TOLERANCE argument doesn't work properly"))
 
 (test psync
   "Test psync"

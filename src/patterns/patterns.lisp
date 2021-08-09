@@ -2462,7 +2462,7 @@ See also: `pfindur'")
 Example:
 
 ;; (next-n (pfindur (pbind :dur 1 :foo (pseries)) 2) 3)
-;; ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) NIL)
+;; ;=> ((EVENT :DUR 1 :FOO 0) (EVENT :DUR 1 :FOO 1) EOP)
 ;;
 ;; (next-upto-n (pfindur (pwhite 0 4) 16))
 ;; ;=> (1 3 0 1 2 2 1 3 0 1 2)
@@ -2479,34 +2479,33 @@ See also: `pfin', `psync'")
                    :tolerance (next tolerance))))
 
 (defmethod next ((pfindur pfindur-pstream))
-  (flet ((get-delta (ev)
-           (typecase ev
-             (event
-              (event-value ev :delta))
-             (list
-              (reduce #'max (mapcar #'delta ev)))
-             (t
-              ev))))
+  (labels ((get-delta (ev)
+             (etypecase ev
+               (event
+                (event-value ev :delta))
+               (list
+                (reduce #'max (mapcar #'get-delta ev)))
+               (number
+                ev))))
     (with-slots (pattern dur tolerance current-dur elapsed-dur) pfindur
-      (when-let ((n-event (next pattern)))
+      (let ((n-event (next pattern)))
+        (when (eop-p n-event)
+          (return-from next eop))
         (unless (slot-boundp pfindur 'current-dur)
           (setf current-dur (next dur)))
-        (when current-dur
-          (if (eql :inf current-dur)
-              n-event
-              (let ((new-elapsed (+ (get-delta n-event) elapsed-dur)))
-                (prog1
-                    (if (> (if (zerop tolerance)
-                               new-elapsed
-                               (round-by new-elapsed tolerance)) ;; FIX: need to implement and test TOLERANCE
-                           current-dur)
-                        (let ((tdur (- current-dur elapsed-dur)))
-                          (when (plusp tdur)
-                            (if (event-p n-event)
-                                (combine-events n-event (event :dur tdur))
-                                tdur)))
-                        n-event)
-                  (incf elapsed-dur (get-delta n-event))))))))))
+        (when (eop-p current-dur)
+          (return-from next eop))
+        (let ((res (if (or (eql :inf current-dur)
+                           (>= current-dur (+ elapsed-dur (get-delta n-event))))
+                       n-event
+                       (let ((tdur (- current-dur elapsed-dur)))
+                         (when (>= tolerance tdur)
+                           (return-from next eop))
+                         (if (event-p n-event)
+                             (combine-events n-event (event :dur tdur))
+                             tdur)))))
+          (incf elapsed-dur (get-delta res))
+          res)))))
 
 ;;; psync
 
