@@ -63,9 +63,12 @@ See also: `*abbreviations*'"
 
 See also: `note-number', `note-name'"
   (let* ((str (string note))
-         (note (remove-if #'digit-char-p str))
+         (note (remove-if-not (lambda (i)
+                                (or (alpha-char-p i)
+                                    (char= i #\#)))
+                              str))
          (octave (remove-if-not #'digit-char-p str)))
-    (list (if (emptyp note) :c (make-keyword note))
+    (list (if (emptyp note) :c (make-keyword (string-upcase note)))
           (if (emptyp octave) 5 (parse-integer octave)))))
 
 (defun note-number (note)
@@ -74,9 +77,10 @@ See also: `note-number', `note-name'"
 See also: `note-name', `note-name-and-octave', `note-midinote'"
   (etypecase note
     (number note)
-    (symbol
+    (string-designator
      (destructuring-bind (name octave) (note-name-and-octave note)
-       (+ (position name *note-names* :test #'position) (* 12 (- octave 5)))))))
+       (+ (position name *note-names* :test #'position)
+          (* 12 octave))))))
 
 (defun note-name (note-number)
   "Given a note number, return its note name.
