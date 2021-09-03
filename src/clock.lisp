@@ -105,7 +105,7 @@ See also: `task-pattern', `clock-tasks'"
 
 (defmethod print-object ((clock clock) stream)
   (with-slots (tempo beat) clock
-    (format stream "#<~s :tempo ~s :beat ~f>" 'clock tempo beat)))
+    (format stream "#<~s :tempo ~s (~s bpm) :beat ~f>" 'clock tempo (* tempo 60) beat)))
 
 (defun make-clock (&optional (tempo 1) &key (latency 1/10) play-expired-events condition-handler)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
