@@ -5,7 +5,7 @@
 ;; Author: modula t. <defaultxr AT gmail DOT com>
 ;; Homepage: https://github.com/defaultxr/cl-patterns
 ;; Version: 0.5
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires: ((emacs "24.4") cl-lib)
 ;; Keywords: convenience, languages, lisp, multimedia
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,6 +51,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defgroup cl-patterns nil
   "cl-patterns helper functionality."
   :group 'external
@@ -86,7 +88,8 @@
 
 (defun cl-patterns-ensure-symbol-syntax (string)
   "Ensure that STRING starts with either a colon or an apostrophe; if neither, return it prefixed with a colon."
-  (if (member (elt string 0) (list ?: ?'))
+  (if (or (member (elt string 0) (list ?: ?'))
+          (cl-every #'cl-digit-char-p string))
       string
     (concat ":" string)))
 
@@ -165,13 +168,14 @@
      (completing-read prompt instruments nil nil (when (member guess instruments) guess) 'cl-patterns-instrument-history))))
 
 (defun cl-patterns-instrument-arguments (instrument)
-  "Get a list of INSTRUMENT's arguments."
-  (cl-patterns-lisp-eval
-   `(cl:mapcar
-     (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))
-     (cl-patterns::backend-instrument-controls
-      ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument)))
-      (cl:car (cl-patterns:enabled-backends))))))
+  "Get a list of INSTRUMENT's arguments, or nil if the arguments can't be determined."
+  (unless (cl-every #'cl-digit-char-p instrument) ;; if INSTRUMENT is a number then it's likely referring to a midi backend, in which case we don't really have a standard way to get a list of said instrument's controls.
+    (cl-patterns-lisp-eval
+     `(cl:mapcar
+       (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))
+       (cl-patterns::backend-instrument-controls
+        ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument)))
+        (cl:car (cl-patterns:enabled-backends)))))))
 
 ;;; Commands
 
