@@ -114,7 +114,7 @@ See also: `alsa-midi-instrument-program-number'"
   (midihelper:stop-midihelper))
 
 (defmethod backend-instrument-controls (instrument (backend (eql :alsa-midi)))
-  (keys *alsa-midi-cc-map*))
+  (remove-if #'numberp (keys *alsa-midi-cc-map*)))
 
 (defmethod backend-all-instruments ((backend (eql :alsa-midi)))
   (keys *alsa-midi-instrument-map*))
