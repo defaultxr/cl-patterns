@@ -394,7 +394,7 @@ See `quant' for more information on quants and a description of acceptable value
 See also: `quant', `end-quant', `next-beat-for-quant', `beat', `play'"))
 
 (defgeneric end-quant (object)
-  (:documentation "The end-quant of OBJECT; a list representing when OBJECT is allowed to end playing or when a `pdef' is allowed to swap to a new definition if it has been redefined. Note that if `end-quant' is not set (the default), the pattern can only end or swap when the pattern itself ends (i.e. when it yields nil).
+  (:documentation "The end-quant of OBJECT; a list representing when OBJECT is allowed to end playing or when a `pdef' is allowed to swap to a new definition if it has been redefined. Note that if `end-quant' is not set (the default), the pattern can only end or swap when the pattern itself ends (i.e. when it yields `eop').
 
 See `quant' for more information on quants and a description of acceptable values.
 

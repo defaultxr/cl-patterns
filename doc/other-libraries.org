@@ -8,7 +8,7 @@ This document is a list of other libraries, tools, projects, etc that either hav
 Lisp/CLIM-based digital audio workstation and live coding laboratory.
 
 ** [[https://github.com/byulparan/cl-collider][cl-collider]]
-The primary backend that cl-patterns was developed against, a Lisp interface to the SuperCollider sound server.
+The primary backend that cl-patterns is developed against, a Lisp interface to the SuperCollider sound server.
 
 ** [[http://incudine.sourceforge.net/][Incudine]]
 Another supported backend for cl-patterns. Written from the ground up and designed to be used with Lisp.
@@ -92,3 +92,9 @@ A digital music mashup tool inspired by Steven Hazel's soundmosaic. The main tec
 
 ** [[https://github.com/ideoforms/isobar][isobar]]
 A Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources including MIDI, MIDI files, and OSC.
+
+** [[https://opusmodus.com][Opusmodus]]
+A comprehensive computer-aided environment for the whole work of music composition; a virtual space where a composer can develop ideas and experiments for projects large and small.
+
+** [[https://twitter.com/Nifflas/status/1393138296147124228][Ynglet's realtime generated music interface]]
+A meditative side scrolling swimming game with fully generative music. The link is to a video of the music UI.

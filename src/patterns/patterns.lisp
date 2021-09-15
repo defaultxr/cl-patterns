@@ -721,7 +721,7 @@ Example:
 
 ;; (next-n (pbind :foo (pseq '(1 2 3)) :bar :hello) 4)
 ;;
-;; ;=> ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) NIL)
+;; ;=> ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) EOP)
 
 See also: `pmono', `pb'"
   (assert (evenp (length pairs)) (pairs) "~s's PAIRS argument must be a list of key/value pairs." 'pbind)
@@ -931,7 +931,7 @@ See also: `pbind', `pdef'"
   (pparchain pattern value))
 
 (defmacro define-pbind-special-process-key (key &body body)
-  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return an event if the key should embed values into the event stream, or NIL if the pstream should end."
+  "Define a special key for pbind that alters the pattern in a nonstandard way. These functions are called for each event created by the pbind and must return an event if the key should embed values into the event stream, or `eop' if the pstream should end."
   `(setf (getf *pbind-special-process-keys* ,(make-keyword key))
          (lambda (value)
            ,@body)))
@@ -1015,12 +1015,12 @@ See also: `pbind'"
 Example:
 
 ;; (next-n (pseq '(5 6 7) 2) 7)
-;; ;=> (5 6 7 5 6 7 NIL)
+;; ;=> (5 6 7 5 6 7 EOP)
 ;;
 ;; (next-upto-n (pseq '(5 6 7) 2 1))
 ;; ;=> (6 7 5 6 7 5)
 
-See also: `pser'")
+See also: `pser', `eseq'")
 
 (defmethod as-pstream ((pseq pseq))
   (with-slots (repeats list offset) pseq
@@ -1055,7 +1055,7 @@ Example:
 
 ;; (next-n (pser '(5 6 7) 2) 3)
 ;;
-;; ;=> (5 6 NIL)
+;; ;=> (5 6 EOP)
 
 See also: `pseq'")
 
@@ -1118,7 +1118,7 @@ See also: `pbind', `event-value', `*event*'")
 Example:
 
 ;; (next-n (prand '(1 2 3) 5) 6)
-;; ;=> (3 2 2 1 1 NIL)
+;; ;=> (3 2 2 1 1 EOP)
 
 See also: `pxrand', `pwrand', `pwxrand'")
 
@@ -1268,7 +1268,7 @@ Example:
 ;; ;=> ((EVENT :FOO 0 :BAR :LESSER) (EVENT :FOO 6 :BAR :GREATER)
 ;;      (EVENT :FOO 7 :BAR :GREATER) (EVENT :FOO 8 :BAR :GREATER))
 
-See also: `pf', `pnary'"
+See also: `pf', `pnary', `plazy', `pif'"
   :defun (check-type func function))
 
 (defmethod as-pstream ((pfunc pfunc))
@@ -2408,12 +2408,13 @@ Example:
 
 Example:
 
-;; (next-n (parp (pbind :foo (pseq '(1 2 3))) (pbind :bar (pseq '(4 5 6) 1))) 9)
+;; (next-upto-n (parp (pbind :foo (pseq '(1 2 3) 1))
+;;                    (pbind :bar (pseq '(4 5 6) 1))))
 ;; ;=> ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 1 :BAR 5) (EVENT :FOO 1 :BAR 6)
 ;;      (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
 ;;      (EVENT :FOO 3 :BAR 4) (EVENT :FOO 3 :BAR 5) (EVENT :FOO 3 :BAR 6))
 
-See also: `psym', `pmeta'")
+See also: `psym', `pmeta', `pr'")
 
 (defmethod as-pstream ((parp parp))
   (with-slots (pattern arpeggiator) parp

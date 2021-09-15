@@ -180,7 +180,7 @@
 ;;; Commands
 
 (defun cl-patterns-stop-all ()
-  "Stop all currently-playing patterns, nodes, etc."
+  "Stop all currently-playing patterns, nodes, etc. Sometimes referred to as \"MIDI panic\"."
   (interactive)
   (cl-patterns-lisp-eval '(cl-patterns:stop t)))
 
