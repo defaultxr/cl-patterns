@@ -181,16 +181,18 @@ See also: `as-pstream'")) ;; FIX: add as-score when finished
               (warn "direct-p is not yet implemented."))
             (when (< number 4)
               (event :dur 1)))
-          (when-let* ((next (first-event events-remaining))
-                      (delta (- (beat next) (beat eseq))))
-            (if (plusp delta)
-                (event :type :rest :delta delta)
-                (progn
-                  (removef events-remaining next :test #'eq)
-                  (let ((after (first-event events-remaining)))
-                    (combine-events next (event :delta (- (if after
-                                                              (beat after)
-                                                              (dur eseq))
-                                                          (beat next))))))))))))
+          (let ((next (first-event events-remaining)))
+            (unless next
+              (return-from next eop))
+            (let ((delta (- (beat next) (beat eseq))))
+              (if (plusp delta)
+                  (event :type :rest :delta delta)
+                  (progn
+                    (removef events-remaining next :test #'eq)
+                    (let ((after (first-event events-remaining)))
+                      (combine-events next (event :delta (- (if after
+                                                                (beat after)
+                                                                (dur eseq))
+                                                            (beat next)))))))))))))
 
 

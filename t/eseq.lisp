@@ -13,7 +13,9 @@
                                               (event :beat 1)
                                               (event :beat 2)
                                               (event :beat 3))))))
-      "eseq does not keep its events in order by beat"))
+      "eseq does not keep its events in order by beat")
+  (is-true (eop-p (lastcar (next-n (eseq (list (event :beat 0))) 2)))
+           "eseq does not yield eop at its end"))
 
 (test bsubseq-eseq
   "Test the bsubseq function on eseqs"
