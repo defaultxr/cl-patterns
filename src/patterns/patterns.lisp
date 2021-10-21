@@ -128,7 +128,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                  (slot-boundp pattern slot))
         (set-parent (slot-value pattern slot) pattern)))))
 
-(defmethod initialize-instance :before ((pattern pattern) &key)
+(defmethod initialize-instance :after ((pattern pattern) &key)
   (set-parents pattern))
 
 (defun pattern-p (object)
@@ -438,26 +438,32 @@ See also: `remaining-p'"
 (defmethod peek ((pattern pattern))
   (next (as-pstream pattern)))
 
+(defmethod next ((pstream pstream))
+  ;; fallback method; patterns should override their pstream subclasses with their own behaviors
+  nil)
+
 (defmethod next :around ((pstream pstream))
   (labels ((get-value-from-stack (pattern)
              (with-slots (number pattern-stack) pattern
                (if pattern-stack
-                   (let ((popped (pop pattern-stack)))
-                     (let ((nv (next popped)))
-                       (if (eop-p nv)
-                           (get-value-from-stack pattern)
-                           (progn
-                             (push popped pattern-stack)
-                             nv))))
+                   (let* ((popped (pop pattern-stack))
+                          (nv (next popped)))
+                     (if (eop-p nv)
+                         (get-value-from-stack pattern)
+                         (progn
+                           (push popped pattern-stack)
+                           nv)))
                    (prog1
                        (let ((res (call-next-method)))
                          (typecase res
                            (pattern
-                            ;; if `next' returns a pattern, we push it to the pattern stack as a pstream
-                            (let ((pstr (as-pstream res)))
-                              (setf (slot-value pstr 'start-beat) (beat pattern))
-                              (push pstr pattern-stack))
-                            (get-value-from-stack pattern))
+                            (if (typep pattern '(or function t-pstream))
+                                res
+                                (progn ;; if `next' returns a pattern, we push it to the pattern stack as a pstream
+                                  (let ((pstr (as-pstream res)))
+                                    (setf (slot-value pstr 'start-beat) (beat pattern))
+                                    (push pstr pattern-stack))
+                                  (get-value-from-stack pattern))))
                            (t res)))
                      (incf number))))))
     (with-slots (number history history-number future-number) pstream
@@ -582,16 +588,11 @@ See also: `pattern-as-pstream'"))
          (name (class-name class))
          (slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots class)))))
     (apply #'make-instance
-           (intern (concat name "-PSTREAM") (symbol-package name))
-           (loop :for slot :in slots
-                 :if (slot-boundp pattern slot)
-                   :append (list (make-keyword slot)
-                                 (pattern-as-pstream (slot-value pattern slot)))))))
-
-(defmethod as-pstream :around ((pattern pattern))
-  (let ((pstream (call-next-method)))
-    (incf (slot-value pattern 'pstream-count))
-    pstream))
+           (intern (concat name '-pstream) (symbol-package name))
+           (mapcan (fn (when (slot-boundp pattern _)
+                         (list (make-keyword _)
+                               (pattern-as-pstream (slot-value pattern _)))))
+                   slots))))
 
 (defmethod as-pstream :around ((object t))
   (let ((pstream (call-next-method)))
@@ -600,9 +601,11 @@ See also: `pattern-as-pstream'"))
                               (slot-value object 'pstream-count)
                               0)
             source object))
+    (when (slot-exists-p object 'pstream-count)
+      (incf (slot-value object 'pstream-count)))
     pstream))
 
-(defmethod as-pstream :around ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
+(defmethod as-pstream ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
   pstream)
 
 (define-condition pstream-out-of-range () ((index :initarg :index :reader pstream-elt-index))
@@ -964,8 +967,8 @@ See also: `pbind', `pdef'"
         (accumulator pairs)
         *event*))))
 
-(defmethod as-pstream ((item pbind-pstream))
-  item)
+(defmethod as-pstream ((pbind pbind-pstream))
+  pbind)
 
 ;;; prest
 
