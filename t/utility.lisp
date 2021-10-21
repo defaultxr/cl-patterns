@@ -194,8 +194,10 @@
   "Test the `eop-p' function"
   (is-true (eop-p eop)
            "eop-p is incorrect when testing eop object")
-  (is-false (eop-p nil)
-            "eop-p is incorrect when testing nil")
+  (is-true (if eop
+               (null (eop-p nil))
+               (eop-p nil))
+           "eop-p is incorrect when testing nil")
   (is-false (eop-p (event))
             "eop-p is incorrect when testing empty event")
   (is-false (eop-p (event :foo 1))
