@@ -2944,9 +2944,9 @@ See also: `protate'")
 ;;; ppar
 
 (defpattern ppar (pattern)
-  (list
+  (patterns
    (pstreams :state t :initform nil))
-  :documentation "Combine multiple event patterns into one pstream with all events in temporal order. LIST is the list of patterns, or a pattern yielding lists of patterns. The ppar ends when all of the patterns in LIST end.
+  :documentation "Combine multiple event patterns into one pstream with all events in temporal order. PATTERNS is the list of patterns, or a pattern yielding lists of patterns. The ppar ends when all of the patterns in PATTERNS end.
 
 Example:
 
@@ -2961,30 +2961,32 @@ Example:
 See also: `psym'")
 
 (defmethod next ((ppar ppar-pstream))
-  (with-slots (list pstreams history-number) ppar
+  (with-slots (patterns pstreams history-number) ppar
     (labels ((next-in-pstreams ()
-               (when-let ((res (remove-if (lambda (pstream)
-                                            (and (not (zerop (slot-value pstream 'history-number)))
-                                                 (ended-p pstream)))
-                                          pstreams)))
-                 (most #'< res :key #'beat)))
+               (if-let ((res (remove-if (lambda (pstream)
+                                          (and (not (zerop (slot-value pstream 'history-number)))
+                                               (ended-p pstream)))
+                                        pstreams)))
+                 (most #'< res :key #'beat)
+                 eop))
              (maybe-reset-pstreams ()
                (unless (remove eop pstreams)
-                 (let ((next-list (next list)))
+                 (let ((next-list (next patterns)))
                    (when (eop-p next-list)
-                     (return-from maybe-reset-pstreams eop))
+                     (return-from maybe-reset-pstreams nil))
                    (setf pstreams (mapcar #'as-pstream next-list))))))
       (when (zerop history-number)
         (maybe-reset-pstreams))
       (let ((nxt (next (next-in-pstreams))))
         (if (eop-p nxt)
-            (if-let ((nip (next-in-pstreams)))
-              (let ((beppar (beat ppar))
-                    (benip (beat nip)))
-                (if (< beppar benip)
-                    (event :type :rest :delta (- benip beppar))
-                    (next ppar)))
-              eop)
+            (let ((nip (next-in-pstreams)))
+              (if (eop-p nip)
+                  eop
+                  (let ((beppar (beat ppar))
+                        (benip (beat nip)))
+                    (if (< beppar benip)
+                        (event :type :rest :delta (- benip beppar))
+                        (next ppar)))))
             (combine-events nxt (event :delta (- (beat (next-in-pstreams)) (beat ppar)))))))))
 
 ;;; pmeta
