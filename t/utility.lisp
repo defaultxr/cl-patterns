@@ -53,9 +53,7 @@
   "Test the `plist-set' function"
   (is (equal (list :foo :bar :baz :qux)
              (cl-patterns::plist-set (list :foo :bar) :baz :qux))
-      "plist-set returns incorrect results")
-  (is (null (cl-patterns::plist-set (list :foo :bar) :foo nil))
-      "plist-set doesn't remove items from the plist when VALUE is nil"))
+      "plist-set returns incorrect results"))
 
 (test seq
   "Test the `seq' function"

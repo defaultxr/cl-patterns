@@ -98,15 +98,13 @@ See also: `mapcar-longest', `split-event-by-lists'"
     (apply #'mapcar-longest function (mapcar #'ensure-list args))
     (apply #'funcall function args)))
 
-(defun plist-set (plist key value) ;; doesn't actually setf the place; only returns an altered plist.
-  "Return a new copy of PLIST, but with its KEY set to VALUE. If VALUE is nil, return a copy without KEY."
-  (if (null value)
-      (remove-from-plist plist key)
-      (if (getf plist key)
-          (progn
-            (setf (getf plist key) value)
-            plist)
-          (append plist (list key value)))))
+(defun plist-set (plist key value)
+  "Return a new copy of PLIST, but with its KEY set to VALUE."
+  (if (getf plist key)
+      (progn
+        (setf (getf plist key) value)
+        plist)
+      (append plist (list key value))))
 
 (defun seq (&key start end limit step (default :mean)) ;; FIX: deprecate and move to mutility
   "Generate a sequence of numbers as a list.
