@@ -191,19 +191,19 @@
 (test eop-p
   "Test the `eop-p' function"
   (is-true (eop-p eop)
-           "eop-p is incorrect when testing eop object")
+           "eop-p is incorrect for the eop object")
   (is-true (if eop
                (null (eop-p nil))
                (eop-p nil))
-           "eop-p is incorrect when testing nil")
+           "eop-p is incorrect for nil")
   (is-false (eop-p (event))
-            "eop-p is incorrect when testing empty event")
+            "eop-p is incorrect for empty events")
   (is-false (eop-p (event :foo 1))
-            "eop-p is incorrect when testing non-empty event")
+            "eop-p is incorrect for non-empty events")
   (is-true (eop-p (event :foo 1 :bar eop))
-           "eop-p is incorrect when testing event with eop key")
+           "eop-p is incorrect for events with eop keys")
   (is-false (eop-p (random-range 0 100))
-            "eop-p is incorrect when testing numbers"))
+            "eop-p is incorrect for numbers"))
 
 (test playing-p
   "Test the `playing-p' function"

@@ -176,7 +176,7 @@ See also: `every-event-equal'"
   "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length.
 
 See also: `event-equal', `events-differing-keys'"
-  (and (apply #'= (mapcar #'length lists))
+  (and (apply #'length= lists)
        (apply #'every #'event-equal lists)))
 
 (defun events-differing-keys (&rest events)
@@ -264,15 +264,15 @@ See also: `split-event-by-lists', `combine-events'"
       (dolist (key (keys ev))
         (let ((cv (event-value event key))
               (nv (event-value ev key)))
-          (if (null cv)
-              (setf (event-value event key) nv)
-              (when (not (eql cv nv))
+          (if cv
+              (unless (eql cv nv)
                 (setf (event-value event key) (append (if (position key listified)
                                                           cv
                                                           (progn
                                                             (push key listified)
                                                             (list cv)))
-                                                      (list nv))))))))
+                                                      (list nv))))
+              (setf (event-value event key) nv)))))
     event))
 
 ;;; special keys
@@ -303,16 +303,13 @@ Additionally, because :define-methods is true, we can also do the following:
 ;; (defparameter *foo* (event :amp 0.9))
 ;; (amp *foo*) ; => 0.9
 ;; (setf (amp *foo*) 0.7)"
-  ;; FIX: does not handle cases with multiple keys. (i.e. (((:foo :bar) 5)))
-  (unless (position name (mapcar #'car cases))
-    (setf cases (cons (list name (list 'raw-event-value 'event name)) cases)))
+  (unless (position name cases :key #'car)
+    (push (list name (list 'raw-event-value 'event name)) cases))
   `(progn
      (setf *event-special-keys*
            (plist-set *event-special-keys* ,name (list
                                                   (list ,@(loop
-                                                            :for case :in cases
-                                                            :for key := (car case)
-                                                            :for value := (cadr case)
+                                                            :for (key value) :in cases
                                                             :append (list
                                                                      key
                                                                      `(lambda (event)

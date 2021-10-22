@@ -608,7 +608,8 @@ See also: `pattern-as-pstream'"))
 (defmethod as-pstream ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
   pstream)
 
-(define-condition pstream-out-of-range () ((index :initarg :index :reader pstream-elt-index))
+(define-condition pstream-out-of-range ()
+  ((index :initarg :index :reader pstream-elt-index))
   (:report (lambda (condition stream)
              (format stream "The index ~d falls outside the scope of the pstream's history." (pstream-elt-index condition)))))
 

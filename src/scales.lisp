@@ -55,7 +55,10 @@ See also: `*abbreviations*'"
 
 ;;; notes
 
-(defparameter *note-names* '((:c :b#) (:c# :db) (:d) (:d# :eb) (:e :fb) (:f :e#) (:f# :gb) (:g) (:g# :ab) (:a) (:a# :bb) (:b :cb))
+(defparameter *note-names* '((:c :b#) (:c# :db) (:d)
+                             (:d# :eb) (:e :fb) (:f :e#)
+                             (:f# :gb) (:g) (:g# :ab)
+                             (:a) (:a# :bb) (:b :cb))
   "List of note names in the equal temperament 12-tone tuning.")
 
 (defun note-name-and-octave (note)
