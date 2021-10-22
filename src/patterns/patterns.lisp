@@ -2375,7 +2375,9 @@ See also: `phistory'")
 
 (defmethod next ((pscratch pscratch-pstream))
   (with-slots (pattern step-pattern current-index) pscratch
-    (when-let ((nxt (next step-pattern)))
+    (let ((nxt (next step-pattern)))
+      (when (eop-p nxt)
+        (return-from next eop))
       (prog1
           (pstream-elt-future pattern current-index)
         (setf current-index (max (+ current-index nxt) 0))))))
