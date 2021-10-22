@@ -1489,6 +1489,9 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
 (defmethod pdef-pattern ((null null))
   nil)
 
+(defmethod (setf pdef-pstream) (value (symbol symbol))
+  (setf (slot-value (pdef-ref (pdef-ensure-name symbol)) 'pstream) value))
+
 (defmethod pdef-pstream ((symbol symbol))
   (pdef-pstream (pdef-ref (pdef-ensure-name symbol))))
 
