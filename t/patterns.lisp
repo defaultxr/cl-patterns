@@ -171,8 +171,10 @@
 
 (test pstream-count
   "Test `pstream-count' functionality"
+  (is-true (= 0 (pstream-count (pbind :foo 1)))
+           "pstream-count isn't 0 for patterns not yet made into pstreams")
   (is-true (= 0 (pstream-count (as-pstream (pbind :foo 1))))
-           "pstream-count doesn't return 0 for patterns not yet made into pstreams")
+           "pstream-count isn't 0 for the first pstream made from a pattern")
   (is-true (= 1 (let ((pb (pbind :foo 1)))
                   (as-pstream pb)
                   (pstream-count pb)))
