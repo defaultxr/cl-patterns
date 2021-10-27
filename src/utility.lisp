@@ -363,6 +363,9 @@ See also: `find-pdef'"
 (defmethod beat ((null null))
   nil)
 
+(defmethod beat ((eop (eql eop)))
+  eop)
+
 (defgeneric quant (object)
   (:documentation "The quant of OBJECT; a list representing when OBJECT is allowed to begin playing (`play-quant'), end playing (`end-quant'), or when a `pdef' is allowed to swap to its new definition (`end-quant'). `quant' will return the value of `play-quant', but sets both `play-quant' and `end-quant' when it is setf.
 
