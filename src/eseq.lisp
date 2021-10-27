@@ -146,7 +146,8 @@ See also: `as-pstream'")) ;; FIX: add as-score when finished
 
 (defclass eseq-pstream (pstream eseq)
   ((events-remaining :initarg :events-remaining :initform nil :documentation "The list of events left to be played in the pstream.")
-   (direct-p :initarg :direct-p :initform nil :documentation "Whether changes to the source eseq should affect this pstream immediately.")))
+   (direct-p :initarg :direct-p :initform nil :documentation "Whether changes to the source eseq should affect this pstream immediately."))
+  (:documentation "pstream for `eseq'."))
 
 (defmethod as-pstream ((eseq eseq))
   (with-slots (events) eseq

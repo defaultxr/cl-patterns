@@ -209,6 +209,7 @@
    #:eseq-add
    #:eseq-remove
    #:as-eseq
+   #:eseq-pstream
 
    ;;; backend.lisp
 
