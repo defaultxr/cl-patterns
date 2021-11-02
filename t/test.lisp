@@ -25,6 +25,11 @@
     (disable-backend :debug)
     (mapc 'enable-backend previously-enabled-backends)))
 
+(def-fixture temporary-pdef-dictionary ()
+  "Temporarily create a new pdef dictionary for testing."
+  (let ((*pdef-dictionary* (make-hash-table)))
+    (&body)))
+
 (test system-attributes
   "Check that the system has all the standard attributes"
   (let ((missing (system-missing-attributes :cl-patterns)))

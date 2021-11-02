@@ -261,7 +261,7 @@
   (is (equal (list :foo :bar)
              (keys (pbind :foo 1 :bar 2)))
       "keys doesn't work correctly for pbinds")
-  (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
+  (with-fixture temporary-pdef-dictionary ()
     (pdef :test-pat (pbind :foo 1 :bar :2))
     (is (equal (list :foo :bar)
                (keys (pdef :test-pat)))
