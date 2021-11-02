@@ -1020,7 +1020,7 @@
 
 (test pbeat*
   "Test pbeat*"
-  (with-fixture with-debug-backend-and-clock ()
+  (with-fixture debug-backend-and-clock ()
     (play (pbind :dur (pseq (list 1 1/2 1/4 1/4)) :x (pbeat*)))
     (clock-process *clock* 4)
     (let ((results (mapcar (fn (event-value _ :x))

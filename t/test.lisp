@@ -12,7 +12,7 @@
 
 (in-suite cl-patterns-tests)
 
-(def-fixture with-debug-backend-and-clock (&rest clock-args)
+(def-fixture debug-backend-and-clock (&rest clock-args)
   "Temporarily set the backend and clock for testing."
   (let ((previously-enabled-backends (enabled-backends))
         (*clock* (apply 'make-clock clock-args)))

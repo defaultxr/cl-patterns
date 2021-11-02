@@ -10,7 +10,7 @@
 
 (test clock
   "Test basic clock functionality"
-  (with-fixture with-debug-backend-and-clock (3/4)
+  (with-fixture debug-backend-and-clock (3/4)
     (is-true (= 3/4 (tempo *clock*))
              "clock's tempo is not set properly at creation time")
     (play (pbind :dur (pn 1 4)))
@@ -26,7 +26,7 @@
 (test swap-patterns
   "Test clock pattern swapping functionality (i.e. `end-quant')"
   (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
-    (with-fixture with-debug-backend-and-clock ()
+    (with-fixture debug-backend-and-clock ()
       (pdef 'test (pbind :x (pseries) :dur 1 :end-quant 4))
       (play (pdef 'test))
       (clock-process *clock* 5)
@@ -36,7 +36,7 @@
         (is-true (equal (list 0 1 2 3 4 5 6 7 8 0 -1) recents)
                  "clock does not swap redefined pdefs at the correct time according to their end-quant (got ~s)"
                  recents)))
-    (with-fixture with-debug-backend-and-clock ()
+    (with-fixture debug-backend-and-clock ()
       (pdef 'test (pbind :x (pseries 0 1 4)))
       (play (pdef 'test))
       (clock-process *clock* 2)
@@ -49,14 +49,14 @@
 
 (test play-expired-events
   "Test the clock's play-expired-events setting"
-  (with-fixture with-debug-backend-and-clock (4 :play-expired-events t)
+  (with-fixture debug-backend-and-clock (4 :play-expired-events t)
     (play (pbind :dur (pn 1 4)))
     (setf (beat *clock*) 5)
     (clock-process *clock* 2)
     (let ((recent (debug-recent-events 4)))
       (is-true (= 4 (length recent))
                "clock does not play expired events when play-expired-events is true")))
-  (with-fixture with-debug-backend-and-clock (4 :play-expired-events nil)
+  (with-fixture debug-backend-and-clock (4 :play-expired-events nil)
     (play (pbind :dur (pn 1/4 4)))
     (setf (beat *clock*) 5)
     (sleep 0.3)
