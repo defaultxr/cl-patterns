@@ -131,6 +131,17 @@
   ;; FIX: test more of the negative DIRECTION
   )
 
+(test find-object-by-id
+  "Test the `find-object-by-id' function"
+  (with-fixture temporary-pdef-dictionary ()
+    (is-false (cl-patterns::find-object-by-id '#:does-not-exist :default nil)
+              "find-object-by-id doesn't return nil for undefined keys")
+    (signals (simple-error "find-object-by-id doesn't return raise an error for undefined keys when :default is :error")
+      (cl-patterns::find-object-by-id '#:does-not-exist :default :error))
+    (pdef :foo (pn 1 1))
+    (is-true (cl-patterns::find-object-by-id :foo)
+             "find-object-by-id doesn't return true for defined keys")))
+
 (test tempo
   "Test the `tempo' function"
   ;; FIX

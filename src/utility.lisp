@@ -340,14 +340,13 @@ Example:
 See also: `play', `launch', `end', `stop'")
 
 (defun find-object-by-id (id &key default)
-  "Find an object identified by ID using `*dictionary-lookup-functions*'. Returns DEFAULT if no object was found. If DEFAULT is a symbol with name \"error\" then throw an error.
+  "Find an object identified by ID using `*dictionary-lookup-functions*'. Returns DEFAULT if no object was found, or signals an error if DEFAULT is the symbol :error.
 
 See also: `find-pdef'"
-  (dolist (func *dictionary-lookup-functions* (if (string= 'error default)
-                                                  (error "No object found with ID ~s" id)
-                                                  default))
-    (when-let ((res (ignore-errors (funcall func id))))
-      (return-from find-object-by-id res))))
+  (or (find-if (fn (ignore-errors (funcall _ id))) *dictionary-lookup-functions*)
+      (if (eql :error default)
+          (error "No object found with ID ~s" id)
+          default)))
 
 ;;; generics
 
