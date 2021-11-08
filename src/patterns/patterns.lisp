@@ -569,7 +569,8 @@ See also: `pattern-as-pstream'"))
 
 (defmethod print-object ((t-pstream t-pstream) stream)
   (with-slots (value length) t-pstream
-    (print-unreadable-object (t-pstream stream :type t) (prin1 value stream) (prin1 length stream))))
+    (print-unreadable-object (t-pstream stream :type t)
+      (format stream "~s ~s" value length))))
 
 (defmethod as-pstream ((value t))
   (t-pstream value))
