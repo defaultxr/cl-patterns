@@ -370,7 +370,7 @@ See also: `find-pdef'"
 
 A quant value takes the form (divisor phase offset) where all provided elements are numbers. Only the first element is required.
 
-- \"divisor\" is the divisor to quantize the clock to. The next time (mod (beats *clock*) divisor) is 0 is when OBJECT will start playing.
+- \"divisor\" is the divisor to quantize the clock to. The next time (mod (beat *clock*) divisor) is 0 is when OBJECT will start playing.
 - \"phase\" is the number of beats to add on to the position determined by \"divisor\".
 - \"offset\" is the number of seconds to add on to the position determined by \"divisor\" and \"phase\".
 

@@ -8,7 +8,7 @@
 (in-package #:cl-patterns/tests)
 
 (def-suite cl-patterns-tests
-    :description "cl-patterns tests suite.")
+  :description "cl-patterns tests suite.")
 
 (in-suite cl-patterns-tests)
 

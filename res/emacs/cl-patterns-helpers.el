@@ -1,4 +1,4 @@
-;;; cl-patterns-helpers.el --- helper functions for use with cl-patterns  -*- lexical-binding: t; -*-
+;;; cl-patterns-helpers.el --- helper functions for use with cl-patterns. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021 modula t.
 

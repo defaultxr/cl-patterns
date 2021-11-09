@@ -16,7 +16,7 @@ The type of event being played. Currently the following event types supported:
 In the future, the following additional event types (and others) will be supported as well:
 - ~play~ - Start playing a note. (known as ~on~ in SuperCollider or ~note-on~ in MIDI)
 - ~end~ - Release a note. (known as ~off~ in SuperCollider or ~note-off~ in MIDI)
-- ~free~ - Forcefully free an object (node, buffer, etc) from the backend.
+- ~stop~ - Forcefully stop/free an object (node, buffer, etc) from the backend.
 - ~backend~ - Send a backend-specific message to make it perform a non-standard action.
 ** ~instrument~
 Name of the synth you want to trigger.

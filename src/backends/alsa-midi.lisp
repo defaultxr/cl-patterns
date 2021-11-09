@@ -1,6 +1,7 @@
 (in-package #:cl-patterns)
 
 ;; FIX: add bend?
+;; FIX: allow non-midinote frequencies to be sent as midinote+midi detune (i.e. auto-convert :freq to those keys when enabled)
 
 ;;; utility functions
 
