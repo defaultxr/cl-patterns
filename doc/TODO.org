@@ -188,10 +188,41 @@ take into account these variables (and maybe others?):
 - ~*print-pretty*~
 - ~*print-length*~
 ...also look into ~make-load-form~ ?
-* Include Emacs skeletons and other functionality for writing patterns faster
+* DONE Include Emacs skeletons and other functionality for writing patterns faster
+CLOSED: [2021-11-11 Thu 12:03]
 * Subsystem for [[https://github.com/alex-gutev/generic-cl][generic-cl]] methods to make working with patterns even easier!
 * [[https://web.archive.org/web/20100110004824/http://www.pawfal.org/index.php?page=BetaBlocker][betablocker]]-inspired pattern (perhaps related to ~pfsm~ or ~pdfsm~ or the like?)
 * more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
 ** ~ipstream~
 * ~pswing~ pattern to apply swing to an input pattern
 * [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]]
+* "after actions"
+determine what pattern should be played or action should be taken at the end of this pattern, by providing a list to the ~:after~ slot/key of a pattern.
+- could theoretically be a replacement/generalization of ~loop-p~, i.e. ~loop-p~ would be the same as a "loop current" after action.
+- calculated when the pattern ends, by calling ~next~ on the pattern's ~:after~ key (so it can be provided either as a list or as a function/pattern).
+- ~next~ on a pattern should return the after action as a second value when the pattern is ending.
+- maybe the default action should be ~next~, which defaults to the current pattern if there are not other patterns with the same name prefix? i.e. that way it automatically loops the pattern until the next one is defined? the ~end~ function could just set the after action to ~stop~ or similar.
+- if the after action is ~next~, to find the "next pattern", do the following:
+1. if the pattern name has a dash in it, select up to the first (or last?) dash (i.e. ~NAME-~ if the name is ~NAME-1~) and find all that also start with ~NAME-~
+2. if the pattern has no dash, look for any patterns that start with a number (i.e. if ~NAME~, look for ~NAME1~, then ~NAME2~, etc)
+3. if none are found for steps 1 or 2, just repeat the same pattern.
+- when finding the next pattern, you can also specify the prefix to search patterns for, a list of patterns to select from, or other after action parameter(s)
+- should be possible to specify a number of times for the after action to apply, to i.e. be able to say "loop this pattern 4 times, then proceed to the next pattern"
+** the after action can be any of the following:
+- just a after action by name (coerced to a list of the form (AFTER-ACTION-NAME))
+- a list in the form (AFTER-ACTION-NAME &optional LIST-OF-PATTERNS) to provide a list of potential patterns for the after action to choose from (or maybe just after action parameter, possibly keys as well?)
+- just a pattern by name (if the pattern has the same name as a after action, the after action is selected)
+** list of possible after actions:
+- stop or end (remove this task/pattern from the clock)
+- back (play the one that was played before this) (maybe? then we'd have to store that information in the pattern too...)
+- next (sort all pdefs by name, then play the next one alphabetically? can also specify a pattern by name)
+- previous or prev (alphabetically?)
+- first (by finding all that start with the same prefix, i.e. if the pattern is named ~:FOO-2~ and patterns ~:FOO-1~ and ~:FOO-3~ also exist, first will select all patterns whose names start with ~:FOO-~, sort by name, and pick the first one)
+- last (like first but pick the last one instead)
+- random or rand (find all with same prefix, then pick a random one. can also specify the list of patterns to select from, in which case it basically expands to a ~prand~ of all applicable patterns)
+- other, xrandom, or xrand (same as random/rand except don't play the same pattern twice in a row)
+- round-robin or rr (select all patterns with the same name prefix, then either play the next one or the first one is this is the last one... does this differ from the "next" after action in any way?)
+- reverse-round-robin, rev-round-robin, rev-rr, or rrr (same as round-robin but pick previous or last instead of next/first)
+- this, same, or loop (repeat the same pattern)
+* ~estimate-length~ and ~estimate-dur~ methods
+* sort patterns from patterns.lisp into separate files based on category (same categories as patterns.org)
