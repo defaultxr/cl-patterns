@@ -1351,7 +1351,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
   (check-type name (and string-designator (not null)))
   (etypecase name
     (symbol name)
-    (string (my-intern name :keyword))))
+    (string (upcase-intern name :keyword))))
 
 (defgeneric pdef-name (pdef)
   (:documentation "The name (\"key\") of PDEF."))

@@ -17,7 +17,7 @@
            (let ((args (list :map map :key key :dur dur :repeats repeats)))
              (etypecase list
                (string
-                (apply #'pcycles (mapcar #'my-intern (coerce list 'list)) args))
+                (apply #'pcycles (mapcar #'upcase-intern (coerce list 'list)) args))
                ((or list pattern)
                 (apply #'make-instance 'pcycles :list list args))))))
 

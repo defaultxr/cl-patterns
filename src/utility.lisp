@@ -577,7 +577,7 @@ See also: `as-eseq'"))
 See also: `render'"
   (let ((backends (enabled-backends)))
     (dolist (backend backends)
-      (let ((sym (my-intern (concat backend "-" render-type) :keyword)))
+      (let ((sym (upcase-intern (concat backend "-" render-type) :keyword)))
         (when (find-method #'render nil (list t (list 'eql sym)) nil)
           (return-from find-backend-supporting-render (values sym backend)))))))
 
