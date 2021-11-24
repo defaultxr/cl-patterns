@@ -140,7 +140,11 @@
       (cl-patterns::find-object-by-id '#:does-not-exist :default :error))
     (pdef :foo (pn 1 1))
     (is-true (cl-patterns::find-object-by-id :foo)
-             "find-object-by-id doesn't return true for defined keys")))
+             "find-object-by-id doesn't return true for defined keys")
+    (let ((cl-patterns::*dictionary-lookup-functions* (list 'find-pdef)))
+      (is (eq (find-pdef :foo)
+              (cl-patterns::find-object-by-id :foo))
+          "find-object-by-id doesn't return the object itself when one is defined"))))
 
 (test tempo
   "Test the `tempo' function"
