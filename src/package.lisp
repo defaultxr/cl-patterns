@@ -178,9 +178,13 @@
 
    #:prest
 
-   #:find-pdef
+   ;;; pdef.lisp
+
+   #:pdef-p
    #:all-pdefs
+   #:all-pdef-names
    #:playing-pdefs
+   #:find-pdef
    #:pdef-name
    #:pdef-key
    #:pdef-pattern

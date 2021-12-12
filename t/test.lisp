@@ -27,7 +27,7 @@
 
 (def-fixture temporary-pdef-dictionary ()
   "Temporarily create a new pdef dictionary for testing."
-  (let ((*pdef-dictionary* (make-hash-table)))
+  (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
     (&body)))
 
 (test system-attributes

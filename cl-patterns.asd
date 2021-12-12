@@ -26,6 +26,7 @@
                (:file "event")
                (:module patterns
                 :components ((:file "patterns")
+                             (:file "pdef")
                              (:file "bjorklund")
                              (:file "cycles")
                              ;; (:file "metropolis")
@@ -121,6 +122,7 @@
                (:file "conversions")
                (:file "event")
                (:file "patterns")
+               (:file "pdef")
                (:file "bjorklund")
                (:file "cycles")
                (:file "tracker")
