@@ -3207,7 +3207,7 @@ See also: `pr', `ps'"
   ((patterns :default (list))
    (end-when-empty :default nil)
    (granularity :default 1/5)
-   (lock :state t :initform (bt:make-lock "ipstream patterns slot lock")))
+   (lock :state t :initform (bt:make-recursive-lock "ipstream patterns slot lock")))
   :documentation "Insertable pstream; a pstream that can be changed while it's running by inserting new patterns at a specified beat.")
 
 (defmethod as-pstream ((ipstream ipstream))
@@ -3216,7 +3216,7 @@ See also: `pr', `ps'"
                                :patterns (list)
                                :end-when-empty end-when-empty
                                :granularity granularity
-                               :lock (bt:make-lock "ipstream patterns slot lock"))))
+                               :lock (bt:make-recursive-lock "ipstream patterns slot lock"))))
       (dolist (pat patterns pstr)
         (etypecase pat
           (pattern
