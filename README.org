@@ -158,6 +158,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 - [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
 - [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - [[file:src/eseq.lisp][eseq.lisp]] - event sequence class and functionality.
+- [[file:src/triggy.lisp][triggy.lisp]] - a more realtime trigger-based sequencing.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/sugar.lisp][sugar.lisp]] - deprecated syntax sugar functions.

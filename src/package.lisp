@@ -215,6 +215,18 @@
    #:as-eseq
    #:eseq-pstream
 
+   ;;; triggy.lisp
+
+   #:tpattern
+   #:tpattern-to
+   #:tsend
+   #:trecv
+   #:tdelay
+   #:t-run
+   #:tdelay-add
+   #:tmaybe
+   #:tmetro
+
    ;;; backend.lisp
 
    #:register-backend

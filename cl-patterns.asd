@@ -35,6 +35,7 @@
                (:file "eseq")
                (:file "backend")
                (:file "clock")
+               (:file "triggy")
                ;; implementations don't currently push a symbol to *features* for extensible sequences.
                ;; the following line tests for the sequence package, which should only be available when extensible-sequence functionality is available.
                #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or))
