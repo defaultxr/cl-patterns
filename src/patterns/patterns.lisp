@@ -3085,9 +3085,8 @@ See also: `pclump'")
   (with-slots (pattern) paclump
     (unless *event*
       (return-from next eop))
-    (let ((max (loop :for key :in (keys *event*)
-                     :maximizing (length (ensure-list (event-value *event* key))))))
-      (next-upto-n pattern max))))
+    (next-upto-n pattern (reduce #'max (mapcar (fn (length (ensure-list (e _))))
+                                               (keys *event*))))))
 
 ;;; paccum
 ;; https://pcm.peabody.jhu.edu/~gwright3/stdmp2/docs/SuperCollider_Book/code/Ch%2020%20dewdrop%20and%20chucklib/dewdrop_lib/ddwPatterns/Help/Paccum.html
