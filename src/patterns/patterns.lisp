@@ -1977,28 +1977,32 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
                              list)))
             (apply #'multi-channel-funcall op (replace-prests nexts))))))))
 
-(defmacro make-pattern-for-function (function)
-  "Define a wrapper function named pFUNCTION whose definition is (pnary FUNCTION ...).
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun make-pattern-for-function (function)
+    "Generate Lisp of a wrapper function named pFUNCTION whose definition is (pnary FUNCTION ...).
 
 See also: `pnary'"
-  (let* ((pat-sym (intern (concat "P" (symbol-name function)) 'cl-patterns))
-         (argslist (function-arglist function))
-         (func-name (string-downcase (symbol-name function)))
-         (parsed (multiple-value-list (parse-ordinary-lambda-list argslist)))
-         (has-rest (third parsed))
-         (args (concatenate 'list (first parsed) (mapcar #'car (second parsed)) (ensure-list (third parsed)))))
-    `(progn
-       (defun ,pat-sym ,argslist
-         ,(concat "Syntax sugar for (pnary #'" func-name " ...).")
-         (,(if has-rest
-               'apply
-               'funcall)
-          #'pnary #',function ,@args))
-       (pushnew ',pat-sym *patterns*))))
+    (let* ((pat-sym (intern (concat 'p function) 'cl-patterns))
+           (argslist (function-arglist function))
+           (func-name (string-downcase function))
+           (full-func-name (if (eql (find-package 'cl-patterns) (symbol-package function))
+                               func-name
+                               (concat (string-downcase (package-name (symbol-package function))) ":" func-name)))
+           (parsed (multiple-value-list (parse-ordinary-lambda-list argslist)))
+           (has-rest (third parsed))
+           (args (append (first parsed) (mapcar #'car (second parsed)) (ensure-list (third parsed)))))
+      `(progn
+         (defun ,pat-sym ,argslist
+           ,(concat "Syntax sugar for (pnary #'" func-name " ...).
 
-#.(loop :for function :in (list '+ '- '* '/ '> '>= '< '<= '= '/= 'eql 'wrap)
-        :collect `(make-pattern-for-function ,function) :into res
-        :finally (return `(progn ,@res)))
+See also: `pnary', `" full-func-name "'")
+           (,(if has-rest
+                 'apply
+                 'funcall)
+            #'pnary #',function ,@args))
+         (pushnew ',pat-sym *patterns*)))))
+
+#.`(progn ,@(mapcar #'make-pattern-for-function '(+ - * / > >= < <= = /= eql wrap)))
 
 ;;; prerange
 
