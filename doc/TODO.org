@@ -226,3 +226,19 @@ determine what pattern should be played or action should be taken at the end of 
 - this, same, or loop (repeat the same pattern)
 * ~estimate-length~ and ~estimate-dur~ methods
 * sort patterns from patterns.lisp into separate files based on category (same categories as patterns.org)
+* more "effect" patterns that process incoming patterns. i.e. "probability" could be a pattern like:
+#+begin_src lisp
+  (pprobability PATTERN PROBABILITY &key (ON :event) (OFF :rest))
+#+end_src
+
+where PATTERN is the input pattern, PROBABILITY is the probability (can be static like ~1/2~ or dynamic like ~(pk :probability)~ for example), ON is what to do when the probability is true, OFF is what to do when it's false. ON and OFF can be static events, or they can be "preset actions", i.e.:
+
+- ~:event~ means pass the input event through unchanged
+- ~:rest~ means set the input event's note type to :rest
+* "event transformations", list of standard event transforms like ~:event~ and ~:rest~ above
+* use a ringbuffer (there's an implementation in worm; move it to mutility) for pstream history
+* consider [[https://github.com/Shinmera/parachute][parachute]] instead of fiveam
+* patterns like ~pfindur~ and ~psync~ should allow you to configure whether they cut the notes at the end of their ~maxdur~
+* allow the user to set default values for the ~repeats~ and ~length~ parameters instead of always being ~:inf~
+* [[https://ableton.github.io/link/][Link]] support
+** [[https://github.com/byulparan/LinkUGen][LinkUGen]] - possibly useful as a reference?
