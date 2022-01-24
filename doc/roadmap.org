@@ -2,34 +2,28 @@
 
 The future of cl-patterns.
 
-This is just a general overview of where this library is going. For more specific tasks and ideas, see [[file:TODO.org][TODO.org]].
+A list of the bigger changes and functionality planned for implementation, along with the approximate versions they're intended for. For a longer list of tasks and ideas, see [[file:TODO.org][TODO.org]].
 
-* 0.5
+* 0.5 (released)
 
 ** clean up ~clock.lisp~
-- perhaps use something other than ~local-time~
-- etc
 
-** DONE clean up ~event.lisp~ (improve ~event-method~, ~event-translation-method~, the ~event~ class, etc)
+** DONE clean up ~event.lisp~ (improve ~event-method~, ~event-translation-method~, the ~event~ class, etc.)
 CLOSED: [2017-10-25 Wed 18:49]
 
 ** DONE improve ~defpattern~ macro
 CLOSED: [2017-07-06 Thu 03:07]
 
-* 1.0
+* 0.6 (released)
 
 ** DONE SuperCollider backend
 CLOSED: [2019-11-09 Sat 15:17]
 
-** implementation of most common/useful SuperCollider patterns (see [[file:sc.org][sc.org]])
-
-** DONE [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests]] for all patterns, event keys, clock, etc
+** DONE [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests]] for all patterns, event keys, clock, etc.
 CLOSED: [2019-11-09 Sat 15:17]
 
 ** DONE documentation for all patterns and exported symbols
 CLOSED: [2019-11-09 Sat 15:17]
-
-** remove all (or most) "FIX"es in the code
 
 ** DONE properly handle lists in events (i.e. multi-channel expansion)
 CLOSED: [2018-08-09 Thu 19:35]
@@ -37,20 +31,156 @@ CLOSED: [2018-08-09 Thu 19:35]
 ** DONE get on quicklisp
 CLOSED: [2018-07-11 Wed 12:26]
 
-* 1.5
+* 0.7 (in progress)
 
-** Incudine backend
+** DONE initial ~eseq~ implementation
+CLOSED: [2021-11-11 Thu 11:05]
 
-** MIDI backend
+commit e73e3933b912326c2690fcf4260d9a648373539e and others
 
-* other (related) projects
+** DONE history and ~pstream-elt~ reimplementation (as an array instead of appending to a list)
+CLOSED: [2021-11-11 Thu 11:05]
 
-** basic GUI interfaces
+commit 163e86a6ffb82be31f15a563903e0b6ad362813a
 
-*** step sequencer
+** DONE ~render~ function
+CLOSED: [2021-11-11 Thu 11:05]
 
-*** performance overview
+commit a49a71542e5cf1b2226b5fc1e0a263bbf2e3315c
 
-**** shows what patterns are playing
+** DONE ~pdef~ improvements
+CLOSED: [2021-02-25 Thu 21:59]
 
-**** allows for some editing of patterns and variables graphically
+commit ebf7d158e01792844921a98c2a5e900d6405dc4d
+
+** DONE clock improvements
+CLOSED: [2021-03-16 Tue 22:59]
+
+commit ed10b6f7c8d86ccc62e28a465c7d75312cdbf9de
+commit d363c833b92320bf7c6293d2e3fa5b732be6e8c6 - condition-handler slot
+
+** DONE ~instrument-mapping~
+CLOSED: [2021-05-13 Thu 21:44]
+
+commit 49f8dba18556434bd1b095fcd2c0b42b8bddcf78
+
+** DONE ~prest~
+CLOSED: [2021-04-11 Sun 18:34]
+
+commit b4fba7ed7c011287eeab8282c4d771478c3b923e
+
+** DONE emacs helper libraries
+CLOSED: [2021-04-14 Wed 19:52]
+
+commit d384648c5e35cc64619c28b485b6a7a4b3e4a385
+
+** DONE pseudo-ugens
+CLOSED: [2021-05-13 Thu 21:19]
+
+commit 2c0ab678bb5c9229194773f41fdedc16a08ad5dd
+
+** DONE ~*post-pattern-output-processors*~
+CLOSED: [2021-05-13 Thu 21:44]
+
+commit 49f8dba18556434bd1b095fcd2c0b42b8bddcf78
+
+** DONE ~pyramid~
+CLOSED: [2021-07-27 Tue 21:35]
+
+commit c7a2aac40417641f7a1fdb6d4cda20e48401dcdf
+
+** DONE function auto-conversion in ~pb~
+CLOSED: [2021-08-09 Mon 14:32]
+
+commit 98037572e37dd83c2bc8610b14543e3fb4301480
+
+** DONE ~yield-output~ restart
+CLOSED: [2021-08-09 Mon 15:44]
+
+commit 77166dadf8bb70c77d80aea8d1323536561352a1
+
+** DONE improve conversions (defconversion)
+CLOSED: [2021-05-13 Thu 21:19]
+
+commit 2c0ab678bb5c9229194773f41fdedc16a08ad5dd
+
+** DONE use ~mutility:define-dictionary~ for pdefs instead of duplicating code
+CLOSED: [2022-01-24 Mon 03:56]
+
+commit e3a142271a350582632007b6da2690ab005a67f0
+
+** use ~eop~ instead of ~nil~ for end of pattern
+
+* 0.8
+
+** general refactoring
+
+*** more shared/inherited functionality, i.e. make ~pbind~, ~pmeta~, etc. all use a common set of functions to process arguments
+
+** "quantity objects"
+
+*** basically objects that represent values (i.e. for ~pitch~, ~volume~, etc.) with units to make them easier to use in functions and keep track of what they represent/convert between them. any keys like ~freq~, ~midinote~, ~amp~, etc. should automatically create a quantity object internally and store it in the pattern or event's ~pitch~, ~volume~, etc. key.
+
+** backend improvements
+
+*** make each enabled backend its own object so it can have its own parameters rather than relying on global variables
+
+*** implement ~disable-backend~ restart
+
+** clock improvements
+
+*** events with ~quant~ and ~latency~ set to ~0~ should be able to play "immediately" with no quantization like what happens now
+
+*** maybe the clock should "sleep" (end processing thread) when there are no tasks and automatically "wake up" when a task is added?
+
+*** full accuracy ~beat~ method
+
+*** stop using ~local-time~ to calculate times
+
+**** use internal-real-time instead? sbcl's internal-time-units-per-second is 1000000 which is higher than even most "pro audio" sampling rates go, but other implementations may have less. last i checked 1000 was the norm; is it acceptable?
+
+*** allow the clock to be paused and restarted
+
+*** generalize how the clock handles tasks, i.e. method/function to return a list of events within a specific time range, separated from the function that processes said events to backends. perhaps using ~ipstream~.
+
+* 0.9
+
+** envelopes
+
+** ranges (from mutility)
+
+** midi backend (which the more specific midi implementations such as ~alsa-midi~ can inherit from)
+
+** osc backend
+
+** renoise backend
+
+** incudine backend
+
+** continuous ("analog") patterns
+
+** fully implement ~set~, ~play~, ~end~, and ~stop~ event types
+
+** maybe remove ~mono~ event type and just implement some sort of monophony pattern that can be used as a filter/post-processing pattern?
+
+** trigger-based patterns
+
+* 1.0
+
+** remove all (or most) "FIX"es in the code
+
+** implementation of most common/useful SuperCollider patterns (see [[file:sc.org][sc.org]])
+
+* post-1.0
+
+** further backend integration
+
+*** functionality to translate patterns into SuperCollider UGen graphs, Incudine VUGs, etc.
+
+* related projects
+
+** [[https://github.com/defaultxr/thundersnow][thundersnow]]
+cl-patterns-based digital audio workstation and live coding laboratory.
+
+** [[https://github.com/defaultxr/bdef][bdef]]
+audio buffer abstraction with conveniences like auto-conversion, metadata, "splits", etc.
