@@ -47,9 +47,8 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                  (mapcan (fn (unless (state-slot-p _)
                                (if (optional-slot-p _)
                                    (prog1
-                                       (append (if optional-used
-                                                   (list)
-                                                   (list '&optional))
+                                       (append (unless optional-used
+                                                 (list '&optional))
                                                (list (list (car _) (getf (cdr _) :default))))
                                      (setf optional-used t))
                                    (list (car _)))))
@@ -73,15 +72,15 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
            ,(mapcar #'desugar-slot (remove-if #'state-slot-p slots))
            ,@(when documentation
                `((:documentation ,documentation))))
-         ,(unless defun ;; FIX: does this work properly for all patterns?
-            `(defmethod print-object ((,name ,name) stream)
-               (format stream "#<~s~{ ~s~}>" ',name
-                       (mapcar (lambda (slot) (slot-value ,name slot))
-                               ',(mapcar #'car (remove-if (lambda (slot)
-                                                            (or (state-slot-p slot)
-                                                                ;; FIX: don't show arguments that are set to the defaults?
-                                                                ))
-                                                          slots))))))
+         (defmethod print-object ((,name ,name) stream)
+           (print-unreadable-object (,name stream :type t)
+             (format stream "~{~s~#[~:; ~]~}"
+                     (mapcar (lambda (slot) (slot-value ,name slot))
+                             ',(mapcar #'car (remove-if (lambda (slot)
+                                                          (or (state-slot-p slot)
+                                                              ;; FIX: don't show arguments that are set to the defaults?
+                                                              ))
+                                                        slots))))))
          (defclass ,name-pstream (,super-pstream ,name)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
            (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
