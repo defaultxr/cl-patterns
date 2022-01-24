@@ -931,6 +931,9 @@ See also: `pbind', `pdef'"
       (pmeta pattern)
       pattern))
 
+(define-pbind-special-wrap-key pchain ;; basically the same as the :embed key, but we have it anyway for convenience.
+  (pchain pattern value))
+
 (define-pbind-special-wrap-key pparchain
   (pparchain pattern value))
 

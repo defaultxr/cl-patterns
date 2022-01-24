@@ -129,9 +129,10 @@ Results in ~(pdef value (pbind ...))~
 Unlike other wrap keys or init keys, this key is always processed last regardless of where it appears in the pbind.
 ** ~pmeta~
 Results in ~(pmeta (pbind ...))~
-
 ** ~pparchain~
 Results in ~(pparchain (pbind ...) value)~
+** ~pchain~
+Results in ~(pchain (pbind ...) value)~ -- effectively the same as the ~:embed~ key.
 
 * pbind special process keys
 
