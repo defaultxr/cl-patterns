@@ -2874,9 +2874,13 @@ See also: `psym', `parp', `pdef', `pbind'"
                    ((:r :repeat)
                     (setf res-pattern (pr res-pattern value)))
                    ((:inject)
-                    (setf res-pattern (pchain res-pattern value)))
+                    (setf res-pattern (if res-pattern
+                                          (pchain res-pattern value)
+                                          value)))
                    ((:step-inject :sinject)
-                    (setf res-pattern (pchain res-pattern (pn (next value))))))
+                    (setf res-pattern (if res-pattern
+                                          (pchain res-pattern (pn (next value)))
+                                          (pn (next value))))))
                  (if rest
                      (make-pstream rest res-pattern)
                      (let ((pstream (as-pstream res-pattern)))
