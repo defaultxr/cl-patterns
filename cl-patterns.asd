@@ -29,7 +29,6 @@
                              (:file "pdef")
                              (:file "bjorklund")
                              (:file "cycles")
-                             ;; (:file "metropolis")
                              (:file "tracker")
                              (:file "export")))
                (:file "eseq")
