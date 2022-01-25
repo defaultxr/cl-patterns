@@ -92,6 +92,7 @@ Patterns that allow you to write in a "pseudo-language" which may be more suited
 - ~ptracker~ - "Tracker-like" way to specify event patterns. Like ~pbind~ but with parameters as columns instead of rows.
 - ~pt~ - Syntax sugar for ~ptracker~ so you don't have to quote or write ~(list ...)~.
 - ~pcycles~ - [[https://tidalcycles.org/][TidalCycles]]-inspired syntax; divide time between the elements of a source list.
+- ~pmetropolis~ - [[https://intellijel.com/shop/eurorack/metropolix/][Metropolix]]-inspired pattern; mini-language specifying pitch, pulse count, and gate mode per step.
 
 * UGen patterns
 Patterns whose functionalities are based on UGens.
