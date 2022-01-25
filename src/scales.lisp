@@ -64,7 +64,7 @@ See also: `*abbreviations*'"
 (defun note-name-and-octave (note)
   "Given a note name, return a list consisting of its note number and its octave (defaulting to 5 if it's not specified).
 
-See also: `note-number', `note-name'"
+See also: `note-midinote', `note-name'"
   (let* ((str (string note))
          (note (remove-if-not (lambda (i)
                                 (or (alpha-char-p i)
@@ -74,23 +74,19 @@ See also: `note-number', `note-name'"
     (list (if (emptyp note) :c (make-keyword (string-upcase note)))
           (if (emptyp octave) 5 (parse-integer octave)))))
 
-(defun note-number (note)
-  "Given a note name or note number, return the note number.
+(uiop:with-deprecation (:style-warning)
+  (defun note-number (note)
+    "Deprecated alias for `note-midinote'.
 
 See also: `note-name', `note-name-and-octave', `note-midinote'"
-  (etypecase note
-    (number note)
-    (string-designator
-     (destructuring-bind (name octave) (note-name-and-octave note)
-       (+ (position name *note-names* :test #'position)
-          (* 12 octave))))))
+    (note-midinote note)))
 
 (defun note-name (note-number)
   "Given a note number, return its note name.
 
 Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\".
 
-See also: `note-number', `note-midinote'"
+See also: `note-midinote'"
   (car (elt-wrap *note-names* note-number)))
 
 (defun sharp-or-flat (string)
@@ -123,8 +119,8 @@ See also: `note-number', `note-midinote'"
    (octave-ratio :initarg :octave-ratio :accessor tuning-octave-ratio :documentation "The octave ratio of the tuning (i.e. what to multiply a pitch by to increase its octave by 1)."))
   (:documentation "Tuning definition."))
 
-(defmethod print-object ((this tuning) stream)
-  (format stream "(~s ~s)" 'tuning (tuning-name this)))
+(defmethod print-object ((tuning tuning) stream)
+  (format stream "(~s ~s)" 'tuning (tuning-name tuning)))
 
 (defvar *tunings* (make-hash-table)
   "Hash table mapping names and aliases to tuning definition objects.")
@@ -140,15 +136,14 @@ See also: `tuning', `define-scale', `define-chord'"
                                :octave-ratio octave-ratio)))
     (setf (gethash key *tunings*) tuning)
     (dolist (alias (remove-duplicates (append (generate-aliases key) aliases)))
-      (let ((existing (gethash alias *tunings*)))
-        (if existing
-            (if (symbolp existing)
-                (progn
-                  (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing tuning)
-                  (setf (gethash alias *tunings*) key))
-                (unless (eq existing tuning)
-                  (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing tuning)))
-            (setf (gethash alias *tunings*) key))))))
+      (if-let ((existing (gethash alias *tunings*)))
+        (if (symbolp existing)
+            (progn
+              (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing tuning)
+              (setf (gethash alias *tunings*) key))
+            (unless (eq existing tuning)
+              (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing tuning)))
+        (setf (gethash alias *tunings*) key)))))
 
 (defun all-tunings ()
   "Get a list of all defined tunings."
@@ -159,30 +154,29 @@ See also: `tuning', `define-scale', `define-chord'"
 (defgeneric tuning (object)
   (:documentation "Get a tuning by name."))
 
-(defmethod tuning ((object symbol))
-  (let ((tuning (gethash object *tunings*)))
-    (when tuning
-      (if (symbolp tuning)
-          (tuning tuning)
-          tuning))))
+(defmethod tuning ((symbol symbol))
+  (when-let ((tuning (gethash symbol *tunings*)))
+    (if (symbolp tuning)
+        (tuning tuning)
+        tuning)))
 
-(defmethod tuning ((object string))
-  (tuning (friendly-symbol object)))
+(defmethod tuning ((string string))
+  (tuning (friendly-symbol string)))
 
-(defmethod tuning ((object tuning))
-  object)
+(defmethod tuning ((tuning tuning))
+  tuning)
 
-(defmethod tuning-name ((this symbol))
-  (when this
-    (tuning-name (tuning this))))
+(defmethod tuning-name ((symbol symbol))
+  (when symbol
+    (tuning-name (tuning symbol))))
 
-(defmethod tuning-pitches ((this symbol))
-  (when this
-    (tuning-pitches (tuning this))))
+(defmethod tuning-pitches ((symbol symbol))
+  (when symbol
+    (tuning-pitches (tuning symbol))))
 
-(defmethod tuning-octave-ratio ((this symbol))
-  (when this
-    (tuning-octave-ratio (tuning this))))
+(defmethod tuning-octave-ratio ((symbol symbol))
+  (when symbol
+    (tuning-octave-ratio (tuning symbol))))
 
 ;;; Scala (.scl) scale file support
 ;; http://www.huygens-fokker.org/scala/scl_format.html
@@ -193,19 +187,20 @@ See also: `tuning', `define-scale', `define-chord'"
 Note that Scala refers to these as \"scales\" but in cl-patterns they are known as tunings."
   (with-open-file (stream file :direction :input :if-does-not-exist :error)
     (let* ((lines (loop :for line = (read-line stream nil 'eof)
-                     :if (eql line 'eof)
-                     :do (loop-finish)
-                     :unless (char= #\! (elt line 0))
-                     :collect (string-left-trim '(#\space) line)))
+                        :if (eql line 'eof)
+                          :do (loop-finish)
+                        :unless (char= #\! (elt line 0))
+                          :collect (string-left-trim '(#\space) line)))
            (name (car lines))
            (count (parse-integer (cadr lines)))
            (pitches (append (list 0)
-                            (mapcar (lambda (line) (let ((line (subseq line
-                                                                       (position-if (lambda (char) (char/= #\space char)) line)
-                                                                       (position-if (lambda (char) (char= #\space char)) line))))
-                                                     (if (position #\. line :test #'char=) ;; if it has a . it's a cents value
-                                                         (/ (read-from-string line) 100) ;; cents
-                                                         (ratio-midi (read-from-string line)))))
+                            (mapcar (lambda (line)
+                                      (let ((line (subseq line
+                                                          (position-if (lambda (char) (char/= #\space char)) line)
+                                                          (position #\space line :test #'char=))))
+                                        (if (position #\. line :test #'char=) ;; if it has a . it's a cents value
+                                            (/ (read-from-string line) 100) ;; cents
+                                            (ratio-midi (read-from-string line)))))
                                     (cddr lines))))
            (octave-ratio (car (last pitches)))
            (pitches (butlast pitches))
@@ -213,13 +208,13 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
       (when (/= (length pitches) count)
         (warn "There are ~a pitches listed in ~a but the file says there should be ~a pitches." (length pitches) file count))
       (unless (loop :for i :in (all-tunings)
-                 :if (equal (tuning-pitches i) pitches)
-                 :return (progn
-                           ;; (warn "~&Tuning already exists as ~a; adding aliases: ~a" (tuning-name i) aliases)
-                           ;; (apply #'define-tuning-aliases (tuning-name i) aliases)
-                           ;; FIX: should we just remove the already-defined tuning and re-add with all the aliases, or was there a reason we were doing define-tuning-aliases separately?
-                           ;; FIX: define scale aliases too
-                           t))
+                    :if (equal (tuning-pitches i) pitches)
+                      :return (progn
+                                ;; (warn "~&Tuning already exists as ~a; adding aliases: ~a" (tuning-name i) aliases)
+                                ;; (apply #'define-tuning-aliases (tuning-name i) aliases)
+                                ;; FIX: should we just remove the already-defined tuning and re-add with all the aliases, or was there a reason we were doing define-tuning-aliases separately?
+                                ;; FIX: define scale aliases too
+                                t))
         (define-tuning name pitches octave-ratio aliases)
         (define-scale name (iota (length pitches)) name aliases)))))
 
@@ -240,8 +235,8 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
    (tuning :initarg :tuning :accessor scale-tuning :documentation "The scale's `tuning'."))
   (:documentation "Scale definition."))
 
-(defmethod print-object ((this scale) stream)
-  (format stream "(~s ~s)" 'scale (scale-name this)))
+(defmethod print-object ((scale scale) stream)
+  (format stream "(~s ~s)" 'scale (scale-name scale)))
 
 (defvar *scales* (make-hash-table)
   "Hash table mapping names and aliases to scale definition objects.")
@@ -259,15 +254,14 @@ See also: `scale', `define-tuning', `define-chord'"
       (warn "Tuning ~s does not exist." tuning))
     (setf (gethash key *scales*) scale)
     (dolist (alias (remove-duplicates (append (generate-aliases key) aliases)))
-      (let ((existing (gethash alias *scales*)))
-        (if existing
-            (if (symbolp existing)
-                (progn
-                  (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing scale)
-                  (setf (gethash alias *scales*) key))
-                (unless (eq existing scale)
-                  (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing scale)))
-            (setf (gethash alias *scales*) key))))))
+      (if-let ((existing (gethash alias *scales*)))
+        (if (symbolp existing)
+            (progn
+              (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing scale)
+              (setf (gethash alias *scales*) key))
+            (unless (eq existing scale)
+              (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing scale)))
+        (setf (gethash alias *scales*) key)))))
 
 (defun all-scales ()
   "Get a list of all defined scales."
@@ -278,30 +272,29 @@ See also: `scale', `define-tuning', `define-chord'"
 (defgeneric scale (object)
   (:documentation "Get either a musical scale object by its name, or get the name of the scale of an event."))
 
-(defmethod scale ((object symbol))
-  (let ((scale (gethash object *scales*)))
-    (when scale
-      (if (symbolp scale)
-          (scale scale)
-          scale))))
+(defmethod scale ((symbol symbol))
+  (when-let ((scale (gethash symbol *scales*)))
+    (if (symbolp scale)
+        (scale scale)
+        scale)))
 
-(defmethod scale ((object string))
-  (scale (friendly-symbol object)))
+(defmethod scale ((string string))
+  (scale (friendly-symbol string)))
 
-(defmethod scale ((object scale))
-  object)
+(defmethod scale ((scale scale))
+  scale)
 
-(defmethod scale-name ((this symbol))
-  (when this
-    (scale-name (scale this))))
+(defmethod scale-name ((symbol symbol))
+  (when symbol
+    (scale-name (scale symbol))))
 
-(defmethod scale-notes ((this symbol))
-  (when this
-    (scale-notes (scale this))))
+(defmethod scale-notes ((symbol symbol))
+  (when symbol
+    (scale-notes (scale symbol))))
 
-(defmethod scale-tuning ((this symbol))
-  (when this
-    (scale-tuning (scale this))))
+(defmethod scale-tuning ((symbol symbol))
+  (when symbol
+    (scale-tuning (scale symbol))))
 
 ;; FIX: this is wrong for (scale-midinotes :major :root :a :octave :all) ; note how it produces numbers above midi range.
 (defun scale-midinotes (scale &key (root :c) (octave 5))
@@ -313,9 +306,10 @@ See also: `scale', `define-tuning', `define-chord'"
     (number (scale-midinotes scale :root root :octave (list octave octave)))
     (cons
      (let ((scale (scale scale))
-           (root (note-number root)))
+           (root (note-midinote root)))
        (loop :for i :from (car octave) :upto (cadr octave)
-             :append (mapcar (lambda (note) (note-midinote note :root root :octave i)) (scale-notes scale)))))))
+             :append (mapcar (lambda (note) (note-midinote note :root root :octave i))
+                             (scale-notes scale)))))))
 
 ;;; chords
 
@@ -334,8 +328,8 @@ See also: `scale', `define-tuning', `define-chord'"
    (scale :initarg :scale :accessor chord-scale :documentation "The scale that the chord is derived from."))
   (:documentation "Chord definition."))
 
-(defmethod print-object ((this chord) stream)
-  (format stream "(~s ~s)" 'chord (chord-name this)))
+(defmethod print-object ((chord chord) stream)
+  (format stream "(~s ~s)" 'chord (chord-name chord)))
 
 (defvar *chords* (make-hash-table)
   "Hash table mapping names and aliases to chord definition objects.")
@@ -353,15 +347,14 @@ See also: `scale', `define-tuning', `define-scale'"
       (warn "Scale ~s does not exist." scale))
     (setf (gethash key *chords*) chord)
     (dolist (alias (remove-duplicates (append (generate-aliases key) aliases)))
-      (let ((existing (gethash alias *chords*)))
-        (if existing
-            (if (symbolp existing)
-                (progn
-                  (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing chord)
-                  (setf (gethash alias *chords*) key))
-                (unless (eq existing chord)
-                  (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing chord)))
-            (setf (gethash alias *chords*) key))))))
+      (if-let ((existing (gethash alias *chords*)))
+        (if (symbolp existing)
+            (progn
+              (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing chord)
+              (setf (gethash alias *chords*) key))
+            (unless (eq existing chord)
+              (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing chord)))
+        (setf (gethash alias *chords*) key)))))
 
 (defun all-chords ()
   "Get a list of all defined chords."
@@ -372,34 +365,33 @@ See also: `scale', `define-tuning', `define-scale'"
 (defgeneric chord (object)
   (:documentation "Get a chord by name."))
 
-(defmethod chord ((object list))
+(defmethod chord ((list list))
   ;; FIX: allow for stuff like '(:c :major) etc
   )
 
-(defmethod chord ((object symbol))
-  (let ((chord (gethash object *chords*)))
-    (when chord
-      (if (symbolp chord)
-          (chord chord)
-          chord))))
+(defmethod chord ((symbol symbol))
+  (when-let ((chord (gethash symbol *chords*)))
+    (if (symbolp chord)
+        (chord chord)
+        chord)))
 
-(defmethod chord ((object string))
-  (chord (friendly-symbol object)))
+(defmethod chord ((string string))
+  (chord (friendly-symbol string)))
 
-(defmethod chord ((object chord))
-  object)
+(defmethod chord ((chord chord))
+  chord)
 
-(defmethod chord-name ((this symbol))
-  (when this
-    (chord-name (chord this))))
+(defmethod chord-name ((symbol symbol))
+  (when symbol
+    (chord-name (chord symbol))))
 
-(defmethod chord-scale ((this symbol))
-  (when this
-    (chord-scale (chord this))))
+(defmethod chord-scale ((symbol symbol))
+  (when symbol
+    (chord-scale (chord symbol))))
 
-(defmethod chord-indexes ((this symbol))
-  (when this
-    (chord-indexes (chord this))))
+(defmethod chord-indexes ((symbol symbol))
+  (when symbol
+    (chord-indexes (chord symbol))))
 
 (defmethod describe-object ((chord chord) stream)
   (with-slots (name scale) chord
@@ -424,15 +416,9 @@ See also: `scale', `define-tuning', `define-scale'"
 
 (defun chord-midinotes (chord &optional root (octave 5))
   "Get a list of the midi note numbers in the specified chord."
-  (flet ((mchord (root chord)
-           (mapcar #'+
-                   (circular-list (+ (* 12 octave) (note-number root)))
-                   (chord-notes (chord chord)))))
-    (if (null chord)
-        (progn
-          (error "Not done yet.")
-          nil)
-        (mchord root chord))))
+  (mapcar #'+
+          (circular-list (note-midinote root :octave octave))
+          (chord-notes (chord chord))))
 
 ;;; base set of tunings and scales (copied from SuperCollider)
 
