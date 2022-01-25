@@ -93,13 +93,17 @@
                    :scale scale))
 
 ;; FIX: does having a root argument actually make sense for this?
-(defconversion note-midinote (note &key (root 0 root-provided-p) (octave 5 octave-provided-p))
+(defconversion note-midinote (note &key (root 0) (octave 5))
   "Given a note, return its midi note number, taking into account the ROOT and OCTAVE if provided.
 
-See also: `note-freq', `note-number'"
+See also: `note-freq'"
   (etypecase note
-    (number (+ root (* octave 12) note))
-    (symbol (note-midinote (note-number note)))))
+    (number
+     (+ root (* octave 12) note))
+    (string-designator
+     (destructuring-bind (name octave) (note-name-and-octave note)
+       (+ (position name *note-names* :test #'position)
+          (* 12 octave))))))
 
 (defconversion midinote-note (midinote) ;; FIX: this should return the note number not note name.
   "Get the note of MIDINOTE. Currently just returns the note name."
@@ -108,7 +112,7 @@ See also: `note-freq', `note-number'"
 (defconversion note-freq (note &key (root 0) (octave 5))
   "Given a note, return its frequency in hertz, taking into account the ROOT and OCTAVE if provided.
 
-See also: `note-midinote', `note-number'"
+See also: `note-midinote'"
   (midinote-freq (note-midinote note :root root :octave octave)))
 
 (defconversion freq-note (freq &key (root 0) (octave 5) (scale :major))
