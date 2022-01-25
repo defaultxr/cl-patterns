@@ -3158,6 +3158,8 @@ See also: `pseries', `pgeom', `pwalk'"
                             (next start)))))
 
 ;;; ps
+;; https://pustota.basislager.org/_/sc-help/Help/Classes/PS.html
+;; https://pustota.basislager.org/_/sc-help/Help/Tutorials/PSx_stream_patterns.html
 
 (defpattern ps (pattern)
   (pattern
