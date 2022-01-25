@@ -116,6 +116,17 @@
       (is (equal out res)
           "(pyramid x 10) is not correct"))))
 
+(test nearp
+  "Test the `nearp' function"
+  (is-true (cl-patterns::nearp 4 1 5)
+           "nearp says 4 is not within 1 of 5")
+  (is-false (cl-patterns::nearp 4 1)
+            "nearp says 4 is within 1 of 0")
+  (is-true (cl-patterns::nearp 0.5 1 0)
+           "nearp says 0.5 is not within 1 of 0")
+  (is-true (cl-patterns::nearp 0.5 0.6 1)
+           "nearp says 0.5 is not within 0.6 of 1"))
+
 (test next-beat-for-quant
   "Test the `next-beat-for-quant' function"
   (is-true (= 0 (next-beat-for-quant 4 0))
