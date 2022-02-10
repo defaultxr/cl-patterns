@@ -62,11 +62,11 @@ See also: `bjorklund'"
 (defmethod as-pstream ((pbjorklund pbjorklund))
   (with-slots (pulses steps offset dur repeats) pbjorklund
     (make-instance 'pbjorklund-pstream
-                   :pulses pulses
-                   :steps steps
+                   :pulses (next pulses)
+                   :steps (next steps)
                    :offset (pattern-as-pstream offset)
-                   :dur dur
-                   :repeats repeats)))
+                   :dur (next dur)
+                   :repeats (next repeats))))
 
 (defmethod next ((pattern pbjorklund-pstream))
   (with-slots (number pulses steps offset dur repeats) pattern
