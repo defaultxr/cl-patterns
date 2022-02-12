@@ -242,3 +242,6 @@ where PATTERN is the input pattern, PROBABILITY is the probability (can be stati
 * allow the user to set default values for the ~repeats~ and ~length~ parameters instead of always being ~:inf~
 * [[https://ableton.github.io/link/][Link]] support
 ** [[https://github.com/byulparan/LinkUGen][LinkUGen]] - possibly useful as a reference?
+* make some kind of function or pattern to get the mouse position, a la the ~mouse-x~ and ~mouse-y~ UGens, except from the Lisp side so we don't have to proxy them from the SC server.
+as per issue #28
+* make the default value of ~repeats~ and ~length~ arguments customizable; perhaps on a per-pattern basis using class variables?
