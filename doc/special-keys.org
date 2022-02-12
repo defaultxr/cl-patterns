@@ -10,6 +10,7 @@ Some event keys are used to set standard parameters for the synth (i.e. ~instrum
 The type of event being played. Currently the following event types supported:
 - ~note~ - Play a note and release it after the number of beats specified by its ~sustain~ key.
 - ~rest~ - Don't play anything during this event.
+- ~set~ - NOTE: Not implemented yet. Only set the parameters of a synth; don't start or stop any notes.
 - ~mono~ - Either start a synth if none is playing, or set the synth's parameters if one is playing.
 - ~tempo~ - Change the tempo of the clock and backend to the value specified by the event's ~tempo~ key.
 
