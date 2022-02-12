@@ -197,10 +197,10 @@
 
    ;;; cycles.lisp
 
-   ;;; tracker.lisp
+   ;;; track.lisp
 
-   #:ptracker-row
-   #:ptracker-cell
+   #:ptrack-row
+   #:ptrack-cell
 
    #:pt
 

@@ -86,10 +86,10 @@
   :pfindur 4)")
 
 (define-skeleton pt-skeleton
-  "Insert a basic ptracker pattern."
+  "Insert a basic ptrack pattern."
   ""
   "(pdef :" _ "
-    (ptracker
+    (ptrack
      (list :note 0 :dur 1/4 :instrument :" (cl-patterns-guess-instrument) ")
      #T(- ;; 0
         -

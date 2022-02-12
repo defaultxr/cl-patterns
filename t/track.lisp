@@ -2,10 +2,10 @@
 
 (in-suite cl-patterns-tests)
 
-;;; tracker
+;;;; t/track.lisp - test `ptrack' and related functionality.
 
-(test ptracker
-  "Test ptracker"
+(test ptrack
+  "Test ptrack"
   (is (every-event-equal
        (list
         (event :degree 0 :dur 1/2)
@@ -17,7 +17,7 @@
         (event :degree 99 :dur 2 :bar 3)
         (event :degree 7 :dur 1/2))
        (next-upto-n
-        (ptracker
+        (ptrack
          (list :degree (pseries 0 1 8) :dur 1/2)
          (list
           (list)
@@ -29,28 +29,28 @@
           (list 99 :dur 2 :bar 3)
           (list)
           (list 99)))))
-      "ptracker yields incorrect results")
+      "ptrack yields incorrect results")
   (is (every-event-equal
        (list
         (event :foo 1)
         (event :foo 1)
         (event :foo 1))
        (next-upto-n
-        (ptracker (list :foo 1) (list (list :foo 1)) :repeats 3)))
-      "ptracker does not limit by repeats")
+        (ptrack (list :foo 1) (list (list :foo 1)) :repeats 3)))
+      "ptrack does not limit by repeats")
   (is (every-event-equal
        (list
         (event :foo 0)
         (event :foo 1)
         (event :foo 2))
        (next-upto-n
-        (ptracker (list :foo 1) (list (list :foo (pseries))) :repeats 3)))
-      "patterns embedded in ptracker rows are not used to generate values in ptracker's output events")
+        (ptrack (list :foo 1) (list (list :foo (pseries))) :repeats 3)))
+      "patterns embedded in ptrack rows are not used to generate values in ptrack's output events")
   (is (equal (list t t t)
              (mapcar (fn (numberp (event-value _ :foo)))
                      (next-upto-n
-                      (ptracker (list :foo 1) (list (list :foo (pseries))) :repeats 3))))
-      "functions in ptracker rows are not evalated to generate values in output events")
+                      (ptrack (list :foo 1) (list (list :foo (pseries))) :repeats 3))))
+      "functions in ptrack rows are not evalated to generate values in output events")
   (is (every-event-equal
        (list
         (event :dur 1/4 :type :rest)
@@ -58,24 +58,24 @@
         (event :dur 1/4)
         (event :dur 1/4 :foo 99))
        (next-n
-        (ptracker (list :dur 1/4)
+        (ptrack (list :dur 1/4)
                   (list
                    :r
                    :rest
                    (list)
                    (list :foo 99)))
         4))
-      "ptracker does not coerce to rests")
+      "ptrack does not coerce to rests")
   (is (every-event-equal
        (list
         (event :dur 1/4 :foo 3)
         (event :dur 1/4 :foo 3))
        (next-n
-        (ptracker (list :dur 1/4)
+        (ptrack (list :dur 1/4)
                   (list
                    (event :foo 3)))
         2))
-      "ptracker does not accept lines as events")
+      "ptrack does not accept lines as events")
   (is (every-event-equal
        (list
         (event :midinote 60 :dur 1)
@@ -84,7 +84,7 @@
         (event :midinote 60 :dur 1)
         (event :midinote 50 :dur 3/4)
         (event :midinote 40 :dur 1/2))
-       (next-n (ptracker (list :midinote 70 :dur 1/4)
+       (next-n (ptrack (list :midinote 70 :dur 1/4)
                          (list
                           (list 60)
                           (list '-)
@@ -96,19 +96,19 @@
                           (list 40)
                           (list '-)))
                6))
-      "ptracker does not continue the previous note when a line is a dash")
+      "ptrack does not continue the previous note when a line is a dash")
   (is (every-event-equal
        (list
         (event :midinote 60)
         (event :freq 40)
         (event :midinote 60)
         (event :freq 40))
-       (next-n (ptracker (list :midinote 60)
+       (next-n (ptrack (list :midinote 60)
                          (list
                           (list 60)
                           (list :freq 40)))
                4))
-      "ptracker steps don't override equivalent event keys"))
+      "ptrack steps don't override equivalent event keys"))
 
 (test pt
   "Test pt"

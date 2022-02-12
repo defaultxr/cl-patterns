@@ -89,8 +89,8 @@ Patterns that generate output based on an input function.
 
 * Mini-language patterns
 Patterns that allow you to write in a "pseudo-language" which may be more suited to specific tasks.
-- ~ptracker~ - "Tracker-like" way to specify event patterns. Like ~pbind~ but with parameters as columns instead of rows.
-- ~pt~ - Syntax sugar for ~ptracker~ so you don't have to quote or write ~(list ...)~.
+- ~ptrack~ - "Tracker-like" way to specify event patterns. Like ~pbind~ but with parameters as columns instead of rows.
+- ~pt~ - Syntax sugar for ~ptrack~ so you don't have to quote or write ~(list ...)~.
 - ~pcycles~ - [[https://tidalcycles.org/][TidalCycles]]-inspired syntax; divide time between the elements of a source list.
 
 * UGen patterns
