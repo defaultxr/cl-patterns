@@ -1,6 +1,8 @@
 (in-package #:cl-patterns)
 
-;;; pdef
+;;;; pdef.lisp - pdef and associated functionality to define and reference "named patterns".
+
+;;; TODO:
 ;; FIX: need to implement `reset' method and test to ensure end-condition works properly
 
 (defgeneric pdef-name (pdef)

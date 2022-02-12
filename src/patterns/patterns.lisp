@@ -1,5 +1,7 @@
 (in-package #:cl-patterns)
 
+;;;; patterns.lisp - basic pattern functionality (`defpattern', etc) and a variety of basic patterns implemented with it.
+
 ;;; pattern glue
 
 (defun make-default-event ()

@@ -2,6 +2,8 @@
 
 (in-suite cl-patterns-tests)
 
+;;;; t/doc.lisp - tests to ensure all patterns, functions, classes, etc are documented in docstrings, doc/, etc.
+
 ;;; cl-org-mode utility functions
 
 (defun child-nodes (node)

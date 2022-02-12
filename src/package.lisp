@@ -1,3 +1,6 @@
+;;;; package.lisp - definition for the cl-patterns package.
+;;; Note that additional exports are done in other files as well such as export.lisp.
+
 (uiop:define-package #:cl-patterns
   (:use #:cl
         #:alexandria

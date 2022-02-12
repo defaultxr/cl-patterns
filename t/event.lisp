@@ -2,7 +2,10 @@
 
 (in-suite cl-patterns-tests)
 
-;;; event (FIX: add more)
+;;;; t/event.lisp - tests for `event' and related functionality.
+
+;;; TODO:
+;; FIX: add more
 
 (test event
   "Test event functionality"

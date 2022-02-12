@@ -2,6 +2,8 @@
 
 (in-suite cl-patterns-tests)
 
+;;;; t/scales.lisp - tests for music theory-related functionality such as notes, tunings, scales, and chords.
+
 ;;; scales (FIX)
 
 (test chords

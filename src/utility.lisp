@@ -1,5 +1,7 @@
 (in-package #:cl-patterns)
 
+;;;; utility.lisp - various utility functions that are either fundamental to other functionality, or just don't belong anywhere else.
+
 ;;; customizable settings
 
 (defvar *cl-patterns-temporary-directory*

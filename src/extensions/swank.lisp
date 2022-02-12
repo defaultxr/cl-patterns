@@ -1,5 +1,7 @@
 (in-package #:cl-patterns)
 
+;;;; swank.lisp - extra functionality/creature comforts for Slime/Swank.
+
 ;; show the arguments of the function being called in pnary
 (defmethod swank::compute-enriched-decoded-arglist ((operator-form (eql 'pnary)) argument-forms)
   (let ((function-name-form (car argument-forms)))

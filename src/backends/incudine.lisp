@@ -1,5 +1,8 @@
 (in-package #:cl-patterns)
 
+;;;; incudine.lisp - the Incudine backend for cl-patterns.
+;;; http://incudine.sourceforge.net
+
 ;;; global settings
 
 (defvar *incudine-buffer-preview-dsp* :spt

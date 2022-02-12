@@ -1,5 +1,8 @@
 (in-package #:cl-patterns)
 
+;;;; backend.lisp - general functionality to implement cl-patterns sound server backends.
+;;; specific backends are defined in files in the src/backends/ directory.
+
 ;;; helpers
 
 (defun task-nodes (task &optional backend)

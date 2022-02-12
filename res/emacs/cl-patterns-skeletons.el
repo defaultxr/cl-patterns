@@ -1,4 +1,4 @@
-;;; cl-patterns-skeletons.el --- collection of skeletons  -*- lexical-binding: t; -*-
+;;;; cl-patterns-skeletons.el --- collection of cl-patterns-related skeletons. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021 modula t.
 

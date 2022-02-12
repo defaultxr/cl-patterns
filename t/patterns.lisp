@@ -2,7 +2,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; patterns
+;;;; t/patterns.lisp - tests for `pattern' functionality and the patterns defined in patterns.lisp.
 
 (test embedding
   "Test embedding patterns in patterns"

@@ -1,7 +1,7 @@
-;;; sc-compatibility.lisp - SuperCollider-compatible versions of cl-patterns patterns
-;; this is a major work in progress and is considered low priority. don't expect much.
+(in-package #:cl-patterns/sc-compatibility)
 
-(in-package #:cl-patterns/sc-compat)
+;;;; sc-compatibility.lisp - SuperCollider-compatible versions of cl-patterns patterns.
+;;; This is a major work in progress and is considered low priority, so don't expect much.
 
 ;;; punop
 

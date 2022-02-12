@@ -2,7 +2,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; pdef
+;;;; t/pdef.lisp - tests for `pdef' and related functionality.
 
 (test pdef
   "Test basic `pdef'-related functionality"

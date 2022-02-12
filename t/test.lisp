@@ -7,6 +7,8 @@
 
 (in-package #:cl-patterns/tests)
 
+;;;; t/test.lisp - basic tests and test utilities/fixtures/etc.
+
 (def-suite cl-patterns-tests
   :description "cl-patterns tests suite.")
 

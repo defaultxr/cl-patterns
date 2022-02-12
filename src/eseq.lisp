@@ -1,10 +1,12 @@
 (in-package #:cl-patterns)
 
-;;;; eseq - event sequence
-;; effectively just a list of events played in order
-;; eseq is much simpler than patterns and its methods make it easier to modify for some situations
-;; for example, eseq might be well-suited to building a piano roll interface around...
-;; (see https://github.com/defaultxr/thundersnow for a piano roll implementation)
+;;;; eseq.lisp - "event sequence"; editable, efficient, ordered sequence of `event's.
+;;; effectively just a list of events played in order
+;;; eseq is much simpler than patterns and its methods make it easier to modify for some situations
+;;; for example, eseq might be well-suited to building a piano roll interface around...
+;;; (see https://github.com/defaultxr/thundersnow for a piano roll implementation)
+
+;;; TODO:
 ;; FIX: need some way to keep events sorted when their beat is changed. should they notify the eseq?
 
 (defclass eseq (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)

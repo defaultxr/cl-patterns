@@ -2,6 +2,8 @@
 
 (in-suite cl-patterns-tests)
 
+;;;; t/eseq.lisp - tests for `eseq' and related functionality.
+
 (test eseq
   "Test basic eseq functionality"
   (is (= 2

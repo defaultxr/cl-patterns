@@ -1,6 +1,9 @@
 (in-package #:cl-patterns)
 
-;;; pbjorklund
+;;;; bjorklund.lisp - patterns that generate euclidean rhythms via the bjorklund algorithm.
+
+;;; TODO:
+;; FIX: change :dur parameter to be a total duration, like in pfindur, and maybe make a new :dur-mul or similar parameter to provide the functionality that :dur currently has.
 
 (defun bjorklund (pulses &optional steps (offset 0))
   "Generate a list representing a Euclidean rhythm using the Bjorklund algorithm. PULSES is the number of \"hits\" in the sequence, STEPS is number of divisions of the sequence, and OFFSET is the number to rotate the sequence by. This function returns a list, where 1 represents a note and 0 represents a rest. If you want to use bjorklund in a pattern, you may be more interested in `pbjorklund' instead, which returns events with the correct duration and type.

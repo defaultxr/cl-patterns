@@ -2,6 +2,8 @@
 
 (in-suite cl-patterns-tests)
 
+;;;; t/utility.lisp - tests for cl-patterns utility functions.
+
 (test gete
   "Test the `gete' function"
   (is (equal (iota *max-pattern-yield-length*)

@@ -2,7 +2,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; bjorklund
+;;;; t/bjorklund.lisp - tests for `bjorklund', `pbjorklund', and related functions.
 
 (test bjorklund
   ;; FIX

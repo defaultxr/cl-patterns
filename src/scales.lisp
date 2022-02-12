@@ -1,5 +1,7 @@
 (in-package #:cl-patterns)
 
+;;;; scales.lisp - "music theory" functionality; notes, tunings, scales, chords, and the relevant classes/functions to generate and query each.
+
 ;;; NOTES:
 ;; - 'key' is a scale including the root note. i.e. "g major" or the like.
 ;; - http://harmoniccycle.com/hc/music-08-chord-calc.htm
@@ -10,7 +12,7 @@
 ;; - https://atactionpark.github.io/
 ;; - https://www.solfej.io/chords/c-major - scale and chord finder site
 
-;;; utility
+;;; utilities
 
 (defparameter *abbreviations*
   (list

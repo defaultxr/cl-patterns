@@ -2,6 +2,8 @@
 
 (in-suite cl-patterns-tests)
 
+;;;; t/cycles.lisp - tests for `pcycles' and related functions.
+
 (test pcycles
   (is-true (every-event-equal (list (event :value :a :dur 1/3)
                                     (event :value :b :dur 1/3)

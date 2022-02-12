@@ -1,7 +1,8 @@
 (in-package #:cl-patterns)
 
-;;; pcycles
-;; inspired by tidalcycles
+;;;; cycles.lisp - divide the time of each "cycle" evenly among elements of an input list, a la TidalCycles.
+
+;;; TODO:
 ;; FIX: remove this and write it as regular functions instead?
 
 (defpattern pcycles (pattern)

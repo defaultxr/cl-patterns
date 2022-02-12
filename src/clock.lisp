@@ -1,6 +1,6 @@
 (in-package #:cl-patterns)
 
-;;; clock.lisp - play patterns in sync by running all patterns on a clock, with each clock in its own thread.
+;;;; clock.lisp - clocks, tasks, and other functionality related to playing patterns in sync.
 
 ;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
 ;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately N seconds before they're supposed to be heard, where N is the value of the clock's LATENCY slot.

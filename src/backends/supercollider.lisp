@@ -1,8 +1,10 @@
-;;; supercollider.lisp - the SuperCollider/cl-collider backend for cl-patterns.
+(in-package #:cl-patterns)
+
+;;;; supercollider.lisp - the SuperCollider/cl-collider backend for cl-patterns.
+
+;;; NOTES:
 ;; FIX: changing :instrument in pmono causes the old one to stay playing.
 ;; FIX: multichannel expansion breaks :mono
-
-(in-package #:cl-patterns)
 
 ;;; global settings
 

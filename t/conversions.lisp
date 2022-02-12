@@ -2,8 +2,11 @@
 
 (in-suite cl-patterns-tests)
 
-;;;; t/conversions.lisp - tests for unit conversion functions
-;; FIX: add more
+;;;; t/conversions.lisp - tests for unit conversion functions.
+
+;;; TODO:
+;; FIX: add more.
+
 ;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
 ;; This is why only some numbers are tested for db-amp, freq-midinote, etc.
 ;; The point here is mainly to guard against regressions, not to ensure that all functions have mathematically correct results.

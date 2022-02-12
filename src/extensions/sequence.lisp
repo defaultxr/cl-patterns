@@ -1,11 +1,9 @@
 (in-package #:cl-patterns)
 
-;;;; sequence.lisp
-;;; code to implement extensible sequences functionality.
-;;; at the moment, it is only supported by sbcl and abcl.
-
-;; https://github.com/guicho271828/common-lisp-extensions/issues/8
-;; http://www.sbcl.org/manual/#Extensible-Sequences
+;;;; sequence.lisp - extensible sequences functionality.
+;;; May not be supported on all Lisp implementations, but should be enabled automatically when cl-patterns is loaded on an implementation with support.
+;;; https://github.com/guicho271828/common-lisp-extensions/issues/8
+;;; http://www.sbcl.org/manual/#Extensible-Sequences
 
 ;;; scale
 

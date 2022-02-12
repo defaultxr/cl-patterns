@@ -2,7 +2,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; clock
+;;;; t/clock.lisp - tests for tasks, clocks, and related functionality.
 
 (test absolute-beats-to-timestamp
   "Test the `next-beat-for-quant' function"

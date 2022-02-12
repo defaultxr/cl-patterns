@@ -1,7 +1,6 @@
-;;; debug.lisp - the debug backend for cl-patterns.
-;; this is just used to print incoming backend events, for debugging purposes.
-
 (in-package #:cl-patterns)
+
+;;;; debug.lisp - the debug backend for cl-patterns; simply prints incoming events for debugging purposes.
 
 (defparameter *debug-print-events* nil
   "If T, the debug backend will print events it plays; if NIL, it will only record them to `*debug-backend-events*'.")

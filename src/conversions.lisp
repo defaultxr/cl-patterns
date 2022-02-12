@@ -1,5 +1,7 @@
 (in-package #:cl-patterns)
 
+;;;; conversions.lisp - functionality to convert between different units.
+
 ;;; defconversion
 
 (defvar *conversions* (make-hash-table)
