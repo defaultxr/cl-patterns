@@ -167,8 +167,9 @@ See also: `all-pdefs'"
   (play pattern))
 
 (defmethod playing-p ((pattern pattern) &optional (clock *clock*))
-  (find pattern (clock-tasks clock)
-        :key (fn (slot-value _ 'item))))
+  (when clock
+    (find pattern (clock-tasks clock)
+          :key (fn (slot-value _ 'item)))))
 
 (defmethod loop-p ((pattern pattern))
   (if (slot-boundp pattern 'loop-p)

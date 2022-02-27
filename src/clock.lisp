@@ -33,7 +33,8 @@
   (setf (slot-value item 'loop-p) nil))
 
 (defmethod playing-p ((task task) &optional (clock *clock*))
-  (position task (clock-tasks clock)))
+  (when clock
+    (position task (clock-tasks clock))))
 
 (defmethod loop-p ((task task))
   (if (slot-boundp task 'loop-p)

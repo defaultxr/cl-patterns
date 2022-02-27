@@ -119,8 +119,9 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
       (warn "~s has no connected task; try the `stop' method instead." pdef)))
 
 (defmethod playing-p ((pdef pdef) &optional (clock *clock*))
-  (find (pdef-name pdef) (clock-tasks clock)
-        :key (fn (ignore-errors (pdef-name (slot-value _ 'item))))))
+  (when clock
+    (find (pdef-name pdef) (clock-tasks clock)
+          :key (fn (ignore-errors (pdef-name (slot-value _ 'item)))))))
 
 (defmethod loop-p ((pdef pdef))
   (if (slot-boundp pdef 'loop-p)
