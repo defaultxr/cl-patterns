@@ -31,8 +31,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                             (symbolicate (car superclasses) '-pstream))))
     (labels ((desugar-slot (slot)
                "Convert a slot into something appropriate for defclass to handle."
-               (let ((name (car slot))
-                     (rest (cdr slot)))
+               (destructuring-bind (name . rest) slot
                  (append (list name)
                          (remove-from-plist rest :default :state)
                          (unless (position :initarg (keys rest))
@@ -46,27 +45,27 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
              (function-lambda-list (slots)
                "Generate the lambda list for the pattern's creation function."
                (let (optional-used)
-                 (mapcan (fn (unless (state-slot-p _)
-                               (if (optional-slot-p _)
-                                   (prog1
-                                       (append (unless optional-used
-                                                 (list '&optional))
-                                               (list (list (car _) (getf (cdr _) :default))))
-                                     (setf optional-used t))
-                                   (list (car _)))))
-                         slots)))
+                 (mappend (fn (unless (state-slot-p _)
+                                (if (optional-slot-p _)
+                                    (prog1
+                                        (append (unless optional-used
+                                                  (list '&optional))
+                                                (list (list (car _) (getf (cdr _) :default))))
+                                      (setf optional-used t))
+                                    (list (car _)))))
+                          slots)))
              (make-defun (pre-init)
                `(defun ,name ,(function-lambda-list slots)
                   ,documentation
                   ,@(when pre-init (list pre-init))
                   (make-instance ',name
-                                 ,@(mapcan (fn (unless (state-slot-p _)
-                                                 (list (make-keyword (car _)) (car _))))
-                                           slots))))
+                                 ,@(mappend (fn (unless (state-slot-p _)
+                                                  (list (make-keyword (car _)) (car _))))
+                                            slots))))
              (add-doc-to-defun (sexp)
                (if (and (listp sexp)
                         (position (car sexp) (list 'defun 'defmacro))
-                        (not (stringp (nth 3 sexp))))
+                        (not (stringp (fourth sexp))))
                    (append (subseq sexp 0 3) (list documentation) (subseq sexp 3))
                    sexp)))
       `(progn
