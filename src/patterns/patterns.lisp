@@ -152,9 +152,8 @@ See also: `all-pdefs'"
   (setf (slot-value pattern 'play-quant) (ensure-list value)))
 
 (defmethod end-quant ((pattern pattern))
-  (if (slot-boundp pattern 'end-quant)
-      (slot-value pattern 'end-quant)
-      nil))
+  (when (slot-boundp pattern 'end-quant)
+    (slot-value pattern 'end-quant)))
 
 (defmethod (setf end-quant) (value (pattern pattern))
   (setf (slot-value pattern 'end-quant) (ensure-list value)))
@@ -171,9 +170,8 @@ See also: `all-pdefs'"
           :key (fn (slot-value _ 'item)))))
 
 (defmethod loop-p ((pattern pattern))
-  (if (slot-boundp pattern 'loop-p)
-      (slot-value pattern 'loop-p)
-      nil))
+  (when (slot-boundp pattern 'loop-p)
+    (slot-value pattern 'loop-p)))
 
 (defmethod (setf loop-p) (value (pattern pattern))
   (setf (slot-value pattern 'loop-p) value))
