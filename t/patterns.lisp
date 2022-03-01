@@ -32,6 +32,83 @@
                (mapcar (lambda (e) (event-value e :foo)) (next-upto-n pstr 8))))
       "pstream's number is not accessible with pk"))
 
+(defun pattern-test-argument (argument)
+  "Generate sample data for testing a pattern. ARGUMENT is the name of the argument to generate test data for.
+
+See also: `pattern-test-arguments'"
+  (case (ensure-symbol argument 'keyword)
+    (:pairs (list :dur (pn 1/2 1)))
+    (:list (list 1 2))
+    (:end-when-empty t)
+    (:patterns (list (pbind :foo (pn 1 1))))
+    ((:pattern :arpeggiator) (pbind :dur (pn 1/2 1)))
+    (:direction-pattern (pseq (list 1) 1))
+    (:key :foo)
+    ((:func :function) (lambda (&rest x) (declare (ignore x)) 1))
+    (:operator #'+)
+    ((:weights :numbers) (list 1 1))
+    (:header (list :foo 1))
+    (:rows (list (list 1) (list 2)))
+    (:list-pat (list 1))
+    ((:index-pat :x :number) (pseq (list 0) 1))
+    (:instrument :default)
+    ((:repeats :length :dur :count :end :sync-quant :step :grow :deviation :hi :n :freq :mul :false :y :len :top :maxdur :tolerance :cycle :shift :offset) 1)
+    ((:start :mean :lo :phase :add :bottom :start-pos) 0)
+    (:test (lambda () t))
+    ((:step-pattern :true :input :trace) (pseq (list 1) 1))
+    ((:from-range :to-range) (list 0 1))
+    (:more-numbers (list 1))
+    (:sync-to 'pbind)
+    ((:wrap-at-end :stream :wrap-p) nil)
+    (:prefix "")
+    (t
+     (warn "pattern-test-argument: Argument ~s did not have a case; defaulting to 1." argument)
+     1)))
+
+(defun pattern-test-arguments (pattern)
+  "Generate sample arguments for testing PATTERN.
+
+See also: `pattern-test-argument'"
+  (case pattern
+    (pmeta (list :inject (t-pstream (event :foo 1))))
+    (pparchain (list (pbind :foo (pseq (list 1) 1))))
+    (ppc (list :foo (pseq (list 1) 1)))
+    (ipstream (list (list (pbind :dur (pn 1/2 1))) t))
+    (ptrack (list (list :foo 1) (list (list 1)) :repeats 1))
+    (pcycles (list (list :foo) :repeats 1))
+    (pbjorklund (list 1 2 :repeats 1))
+    (pnary (list '+ (pn 1 1) 1))
+    (pgeom* (list 1 2 2))
+    (pseries* (list 0 1 2))
+    (pexprand (list 0.1 1.0 1))
+    (t
+     (let ((args (function-arglist pattern)))
+       (multiple-value-bind (reqs opts rest) (parse-ordinary-lambda-list args)
+         (append (mapcar 'pattern-test-argument (append reqs (mapcar #'car opts)))
+                 (when rest
+                   (pattern-test-argument rest))))))))
+
+(test eop
+  "Test that eop is yielded as the last output for all limitable patterns"
+  (let ((patterns (remove-if (fn (or (macro-function _)
+                                     (position _ '(psplits ;; tested in bdef's tests
+                                                   prun ;; can't be used outside of pbinds
+                                                   ptime pbeat pbeat* ;; endless patterns
+                                                   p+ p- p* p/ ;; endless math patterns
+                                                   penv ;; not yet implemented
+                                                   pdef pk ;; defers to source pattern
+                                                   pbetablocker ptsbuf pperps pquantize)
+                                               :test #'string=)))
+                             (all-patterns))))
+    (dolist (pattern patterns)
+      (let ((args (pattern-test-arguments pattern)))
+        (is-true (eop-p (lastcar (next-n (apply pattern args) 10)))
+                 "(~s~{ ~s~}) did not yield eop at its end" pattern args))))
+  (is-true (eop-p (lastcar (next-n (pbind :foo (pseq (list 1) 1)
+                                          :bar (prun (pseq (list 4) 1)
+                                                     (pseq (list 1) 1)))
+                                   5)))
+           "~s did not yield eop at its end" 'prun))
 
 (test next
   "Test next and next-upto-n"
