@@ -57,23 +57,6 @@
              (cl-patterns::plist-set (list :foo :bar) :baz :qux))
       "plist-set returns incorrect results"))
 
-(test seq
-  "Test the `seq' function"
-  (is (equal (list 0 1 2 3)
-             (cl-patterns::seq :start 0 :end 3))
-      "seq doesn't work correctly when START is lower than END")
-  (is (equal (list 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3)
-             (cl-patterns::seq :start 20 :end 3))
-      "seq doesn't work correctly when START is higher than END")
-  (is (equal (list 0 2 4 6)
-             (cl-patterns::seq :start 0 :step 2 :end 6))
-      "seq doesn't work correctly with START, STEP, and END"))
-
-(test seq-range
-  "Test the `seq-range' function"
-  ;; FIX
-  )
-
 (test pyramid
   "Test the `pyramid' function"
   (let ((list (iota 11)))

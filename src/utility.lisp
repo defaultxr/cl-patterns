@@ -108,60 +108,6 @@ See also: `mapcar-longest', `split-event-by-lists'"
         plist)
       (append plist (list key value))))
 
-(defun seq (&key start end limit step (default :mean)) ;; FIX: deprecate and move to mutility
-  "Generate a sequence of numbers as a list.
-
-START is the start of the range, END is the end. LIMIT is a hard limit on the number of results in the sequence. STEP is the interval between each number in the sequence.
-
-When STEP is omitted and LIMIT is provided, the step is automatically calculated by dividing the range between LIMIT steps.
-
-If LIMIT is 1, DEFAULT is used to find the value. DEFAULT can be :START, :END, :MEAN, or another value. :START and :END mean the returned value is the value of those arguments. :MEAN means the mean value of START and END is used. If another value is provided, it is used as the default instead.
-
-See also: `seq-range'"
-  (cond ((and limit step)
-         (loop :for i :from start :upto end :by step :repeat limit
-               :collect i))
-        ((and limit (null step))
-         (if (= 1 limit)
-             (case default
-               (:mean (/ (+ start end) 2))
-               (:start start)
-               (:end end)
-               (t default))
-             (loop :for i :from start :upto end :by (/ (- end start) (1- limit))
-                   :collect i)))
-        ((and step (null limit))
-         (loop :for i :from start :upto end :by step
-               :collect i))
-        ((and (null step) (null limit))
-         (loop :repeat (1+ (abs (- end start)))
-               :with i := start
-               :collect i
-               :do (incf i (signum (- end start)))))))
-
-(defun seq-range (num &optional stop step) ;; FIX: deprecate and move to mutility
-  "Conveniently generate a sequence of numbers as a list. This function is based off Python's range() function, and thus has three ways of being called:
-
-With one argument NUM, generate a range from 0 to (1- NUM):
-
-;; (seq-range 4) ; => (0 1 2 3)
-
-With two arguments NUM and STOP, generate a range from NUM to (1- STOP):
-
-;; (seq-range 2 4) ; => (2 3)
-
-With three arguments NUM, STOP, and STEP, generate a range from NUM to (1- STOP), each step increasing by STEP:
-
-;; (seq-range 2 8 2) ; => (2 4 6)
-
-See also: `seq'"
-  (cond ((null stop)
-         (seq :start 0 :end (1- num)))
-        ((null step)
-         (seq :start num :end (1- stop)))
-        (t
-         (seq :start num :end (1- stop) :step step))))
-
 (defun pyramid (sequence &optional (pattern-type 1))
   "Return a new list whose elements have been reordered via one of 10 \"counting\" algorithms. This is based on and tested against SuperCollider's Array.pyramid method."
   (check-type sequence sequence)
