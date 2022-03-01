@@ -3,7 +3,7 @@
   :description "Pattern library for algorithmic music composition and performance in Common Lisp"
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :homepage "https://w.struct.ws/cl-patterns/"
   :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
   :mailto "defaultxr at gmail dot com"
@@ -45,7 +45,7 @@
   :description "cl-patterns with additional syntax sugar exports. Deprecated system; use the mutility library or manually import functions instead."
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :depends-on (#:cl-patterns)
   :serial t
   :components ((:file "src/sugar")))
@@ -55,7 +55,7 @@
   :description "cl-patterns with debug backend"
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :depends-on (#:cl-patterns)
   :serial t
   :components ((:file "src/backends/debug")))
@@ -65,7 +65,7 @@
   :description "cl-patterns with SuperCollider/cl-collider backend"
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :depends-on (#:cl-patterns
                #:cl-collider)
   :serial t
@@ -77,7 +77,7 @@
   :description "cl-patterns with Incudine backend"
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :depends-on (#:cl-patterns
                #:incudine)
   :serial t
@@ -88,7 +88,7 @@
   :description "cl-patterns with ALSA MIDI backend"
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :depends-on (#:cl-patterns
                #:cl-alsaseq)
   :serial t
@@ -99,7 +99,7 @@
   :description "cl-patterns with MIDI file functionality"
   :author "modula t."
   :license "MIT"
-  :version "0.6"
+  :version "0.7"
   :depends-on (#:cl-patterns
                #:midi)
   :serial t
