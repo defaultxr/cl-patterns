@@ -2170,26 +2170,26 @@ See also: `phistory'")
 ;;; pif
 
 (defpattern pif (pattern)
-  (test true false)
-  :documentation "\"If\" expression for patterns. TEST is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step. Also note that pif will continue to advance even if TEST yields nil; pif only yields nil if TRUE or FALSE do.
+  ((test)
+   (true)
+   (false :default nil))
+  :documentation "\"If\" expression for patterns. TEST is evaluated for each step, and if it's non-nil, the value of TRUE will be yielded, otherwise the value of FALSE will be. Note that TRUE and FALSE can be patterns, and if they are, they are only advanced in their respective cases, not for every step.
 
 Example:
 
-;; (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2)) (pseq '(3 nil 4))) 5)
-;; ;=> (1 2 3 NIL 4)")
+;; (next-n (pif (pseq '(t t nil nil nil)) (pseq '(1 2 3)) (pseq '(9 8 7))) 8)
+;; ;=> (1 2 9 8 7 3 1 9)
 
-(defmethod as-pstream ((pif pif))
-  (with-slots (test true false) pif
-    (make-instance 'pif-pstream
-                   :test (pattern-as-pstream test)
-                   :true (pattern-as-pstream true)
-                   :false (pattern-as-pstream false))))
+See also: `plazy', `pfunc'")
 
 (defmethod next ((pif pif-pstream))
   (with-slots (test true false) pif
-    (if (next test)
-        (next true)
-        (next false))))
+    (let ((nxt (next test)))
+      (if (eop-p nxt)
+          eop
+          (if nxt
+              (next true)
+              (next false))))))
 
 ;;; parp
 
