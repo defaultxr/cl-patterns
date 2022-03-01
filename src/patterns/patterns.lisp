@@ -2119,11 +2119,14 @@ See also: `pscratch'")
 
 (defmethod next ((phistory phistory-pstream))
   (with-slots (pattern step-pattern) phistory
-    (when-let ((next-step (next step-pattern)))
-      (next pattern)
-      (handler-case (pstream-elt pattern next-step)
-        (pstream-out-of-range ()
-          nil)))))
+    (let ((next-step (next step-pattern)))
+      (if (eop-p next-step)
+          eop
+          (progn
+            (next pattern)
+            (handler-case (pstream-elt pattern next-step)
+              (pstream-out-of-range ()
+                nil)))))))
 
 ;;; pscratch
 ;;
