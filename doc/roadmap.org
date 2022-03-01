@@ -109,7 +109,11 @@ CLOSED: [2022-01-24 Mon 03:56]
 
 commit e3a142271a350582632007b6da2690ab005a67f0
 
-** use ~eop~ instead of ~nil~ for end of pattern
+** DONE use ~eop~ instead of ~nil~ for end of pattern
+CLOSED: [2022-02-28 Mon 20:44]
+
+commit 6006cd5adb3cdfa6ea4080f9e7904717044f442a
+and others
 
 * 0.8
 
