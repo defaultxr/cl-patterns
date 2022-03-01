@@ -524,29 +524,20 @@ See also: `as-eseq'"))
   "Get the output and backend names of the first enabled backend that supports RENDER-TYPE (i.e. :buffer, :file, :score, etc), or nil if none support it.
 
 See also: `render'"
-  (let ((backends (enabled-backends)))
-    (dolist (backend backends)
-      (let ((sym (upcase-intern (concat backend "-" render-type) :keyword)))
-        (when (find-method #'render nil (list t (list 'eql sym)) nil)
-          (return-from find-backend-supporting-render (values sym backend)))))))
+  (dolist (backend (enabled-backends))
+    (let ((sym (upcase-intern (concat backend "-" render-type) :keyword)))
+      (when (find-method #'render nil (list t (list 'eql sym)) nil)
+        (return-from find-backend-supporting-render (values sym backend))))))
 
-(defmacro make-default-render-method (type)
-  "Generate a default `render' method."
-  `(defmethod render (object (output (eql ,type)) &rest args &key &allow-other-keys)
-     (let ((backend (getf args :backend)))
-       (if backend
-           (apply #'render object output args)
-           (if-let ((backend (find-backend-supporting-render ,type)))
-             (apply #'render object backend args)
-             (error "No enabled backend supports rendering as ~s." ,type))))))
-
-(defmacro make-default-render-methods ()
-  "Generate the default `render' methods for :buffer, :file, :score, etc."
-  `(progn
-     ,@(loop :for type :in (list :buffer :file :score)
-             :collect `(make-default-render-method ,type))))
-
-(make-default-render-methods)
+;; make default `render' methods for buffer, file, and score
+#.`(progn ,@(mapcar (lambda (type)
+                      `(defmethod render (object (output (eql ,type)) &rest args &key &allow-other-keys)
+                         (if-let ((backend (getf args :backend)))
+                           (apply #'render object output args)
+                           (if-let ((backend (find-backend-supporting-render ,type)))
+                             (apply #'render object backend args)
+                             (error "No enabled backend supports rendering as ~s." ,type)))))
+                    (list :buffer :file :score)))
 
 ;;; macros / MOP stuff
 
