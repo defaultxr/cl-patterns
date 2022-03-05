@@ -91,13 +91,13 @@ See also: `pattern-test-argument'"
 (test eop
   "Test that eop is yielded as the last output for all limitable patterns"
   (let ((patterns (remove-if (fn (or (macro-function _)
-                                     (position _ '(psplits ;; tested in bdef's tests
-                                                   prun ;; can't be used outside of pbinds
-                                                   ptime pbeat pbeat* ;; endless patterns
-                                                   p+ p- p* p/ ;; endless math patterns
-                                                   penv ;; not yet implemented
-                                                   pdef pk ;; defers to source pattern
-                                                   pbetablocker ptsbuf pperps pquantize)
+                                     (position _ '(:psplits ;; tested in bdef's tests
+                                                   :prun ;; can't be used outside of pbinds
+                                                   :ptime :pbeat :pbeat* ;; endless patterns
+                                                   :p+ :p- :p* :p/ ;; endless math patterns
+                                                   :penv ;; not yet implemented
+                                                   :pdef :pk ;; defers to source pattern
+                                                   :pbetablocker :ptsbuf :pperps :pquantize)
                                                :test #'string=)))
                              (all-patterns))))
     (dolist (pattern patterns)
