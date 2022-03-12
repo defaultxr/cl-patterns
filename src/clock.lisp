@@ -166,7 +166,7 @@ See also: `beat'"
 
 See also: `clock-remove', `play'"
   (unless clock
-    (error "cl-patterns clock is NIL; perhaps try (start-clock-loop) or (defparameter *clock* (make-clock))"))
+    (error "~S is null; perhaps try ~S or ~S" '*clock* '(start-clock-loop) '(defparameter *clock* (make-clock))))
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
       (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (play-quant item) (slot-value clock 'beat)))))
@@ -367,7 +367,7 @@ See also: `start-clock-loop', `clock-process'"
                         (let ((restart (if (member (clock-condition-handler clock) (list 'remove-task 'skip-event))
                                            (clock-condition-handler clock)
                                            'remove-task)))
-                          (warn "Task had condition ~s; invoked ~s restart and pushed the condition and stack to ~s's caught-conditions slot." e restart clock)
+                          (warn "Task had condition ~S; invoked ~S restart and pushed the condition and stack to ~S's ~S slot." e restart clock 'caught-conditions)
                           (push (list :condition e :stack (dissect:stack))
                                 (slot-value clock 'caught-conditions))
                           (invoke-restart restart))))))
