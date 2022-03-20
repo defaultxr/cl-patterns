@@ -39,7 +39,7 @@
 
 (defun normalized-sum (list)
   "Return a copy of LIST normalized so all of its numbers summed together equal 1."
-  (mapcar (lambda (x) (/ x (apply #'+ list))) list))
+  (mapcar (fn (/ _ (apply #'+ list))) list))
 
 (defun cumulative-list (list)
   "Return a copy of LIST where the elements previous are added to the current one.
@@ -48,9 +48,9 @@ Example:
 
 ;; (cumulative-list (list 1 2 3 4))
 ;; => (1 3 6 10)"
-  (loop :for element :in list
-     :for index :from 0
-     :collect (apply #'+ element (subseq list 0 index))))
+  (let ((cur 0))
+    (loop :for element :in list
+          :collect (incf cur element))))
 
 (defun index-of-greater-than (n list)
   "Get the index of the first element of LIST greater than N."
@@ -60,8 +60,10 @@ Example:
   (:documentation "Get the beat position of the ending of the last event in the ESEQ."))
 
 (defmethod last-dur ((list list))
-  (if (car list)
-      (reduce #'max list :key (lambda (ev) (+ (beat ev) (event-value ev :dur))))
+  (if list
+      (reduce #'max list
+              :key (fn (+ (beat _)
+                          (event-value _ :dur))))
       0))
 
 (defun mapcar-longest (function &rest lists)

@@ -169,7 +169,9 @@ See also: `clock-remove', `play'"
     (error "~S is null; perhaps try ~S or ~S" '*clock* '(start-clock-loop) '(defparameter *clock* (make-clock))))
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
-      (let ((task (make-instance 'task :item item :clock clock :start-beat (next-beat-for-quant (play-quant item) (slot-value clock 'beat)))))
+      (let ((task (make-instance 'task :item item
+                                       :clock clock
+                                       :start-beat (next-beat-for-quant (play-quant item) (slot-value clock 'beat)))))
         (push task tasks)
         task))))
 

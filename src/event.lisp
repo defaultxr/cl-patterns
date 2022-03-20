@@ -83,7 +83,8 @@ See also: `event', `e', `raw-event-value'"
   "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."
   (let ((cases (getf *event-special-keys* key)))
     (when (cadr cases) ;; remove keys that are different "units" of the same concept
-      (dolist (k (remove-if (lambda (c) (eql c t)) (keys (car cases))))
+      (dolist (k (remove-if (fn (eql _ t))
+                            (keys (car cases))))
         (remove-event-value event k)))
     (let ((rests (multi-channel-funcall #'rest-p value)))
       (when (and rests (find t (ensure-list rests)))
