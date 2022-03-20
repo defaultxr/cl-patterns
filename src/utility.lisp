@@ -202,15 +202,15 @@ See also: `mapcar-longest', `split-event-by-lists'"
 
 ;;; math stuff
 
-(defun nearp (number &optional (range 1) (of 0))
+(defun near-p (number &optional (range 1) (of 0))
   "Test whether NUMBER is within RANGE (bipolar) of OF.
 
 Examples:
 
-;; (nearp 4 1 5) ;; => t
-;; (nearp 4 1) ;; => nil
-;; (nearp 0.5) ;; => t
-;; (nearp 0.5 0.6 1) ;; => t
+;; (near-p 4 1 5) ;; => t
+;; (near-p 4 1) ;; => nil
+;; (near-p 0.5) ;; => t
+;; (near-p 0.5 0.6 1) ;; => t
 
 See also: `alexandria:clamp', `wrap'"
   (<= (abs (- number of))
