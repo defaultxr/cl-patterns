@@ -4,12 +4,6 @@
 
 ;;;; t/utility.lisp - tests for cl-patterns utility functions.
 
-(test gete
-  "Test the `gete' function"
-  (is (equal (iota *max-pattern-yield-length*)
-             (cl-patterns::gete (next-upto-n (pbind :foo (pseries))) :foo))
-      "gete returns incorrect results"))
-
 (test normalized-sum
   "Test the `normalized-sum' function"
   (is (= 1
