@@ -326,7 +326,7 @@ See also: `tempo'"))
   eop)
 
 (defgeneric quant (object)
-  (:documentation "The quant of OBJECT; a list representing when OBJECT is allowed to begin playing (`play-quant'), end playing (`end-quant'), or when a `pdef' is allowed to swap to its new definition (`end-quant'). `quant' will return the value of `play-quant', but sets both `play-quant' and `end-quant' when it is setf.
+  (:documentation "The quant of OBJECT; a list representing when OBJECT is allowed to begin playing (`play-quant'), end playing (`end-quant'), or when a `pdef' is allowed to swap to its new definition (`end-quant'). `quant' will return the value of `play-quant' as its first value and `end-quant' as its second, and sets both `play-quant' and `end-quant' when it is setf.
 
 A quant value takes the form (divisor phase offset) where all provided elements are numbers. Only the first element is required.
 
@@ -339,7 +339,8 @@ For example, a quant of (4) means it can start on any clock beat that is divisib
 See also: `play-quant', `end-quant', `next-beat-for-quant', `beat', `play'"))
 
 (defmethod quant ((object t))
-  (play-quant object))
+  (values (play-quant object)
+          (end-quant object)))
 
 (defmethod (setf quant) (value (object t))
   (let ((value (ensure-list value)))
