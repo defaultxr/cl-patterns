@@ -8,7 +8,7 @@
 (defgeneric pdef-name (pdef)
   (:documentation "The name (\"key\") of PDEF."))
 
-(uiop:with-deprecation (:style-warning)
+(uiop:with-deprecation (:warning)
   (defun pdef-key (pdef)
     "Deprecated alias for `pdef-name'."
     (pdef-name pdef))

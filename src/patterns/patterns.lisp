@@ -197,12 +197,11 @@ See also: `pattern-children'"
         res
         pattern)))
 
-(uiop:with-deprecation (:style-warning)
+(uiop:with-deprecation (:warning)
   (defun parent-pattern (pattern)
     "Deprecated alias for `pattern-parent'."
-    (pattern-parent pattern)))
+    (pattern-parent pattern))
 
-(uiop:with-deprecation (:style-warning)
   (defun parent-pbind (pattern)
     "Deprecated forward to `pattern-parent'. Use (pattern-parent PATTERN :class 'pbind) instead."
     (pattern-parent pattern :class 'pbind)))

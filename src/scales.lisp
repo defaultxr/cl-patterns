@@ -76,7 +76,7 @@ See also: `note-midinote', `note-name'"
     (list (if (emptyp note) :c (make-keyword (string-upcase note)))
           (if (emptyp octave) 5 (parse-integer octave)))))
 
-(uiop:with-deprecation (:style-warning)
+(uiop:with-deprecation (:warning)
   (defun note-number (note)
     "Deprecated alias for `note-midinote'.
 

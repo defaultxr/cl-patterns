@@ -32,7 +32,7 @@
 
 ;;; list stuff
 
-(uiop:with-deprecation (:style-warning)
+(uiop:with-deprecation (:warning)
   (defun gete (list key)
     "Get a list of the value of KEY for each event in LIST."
     (mapcar (fn (event-value _ key)) list)))
