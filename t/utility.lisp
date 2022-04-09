@@ -106,6 +106,21 @@
   (is-true (cl-patterns::near-p 0.5 0.6 1)
            "near-p says 0.5 is not within 0.6 of 1"))
 
+(test transpose
+  "Test the `transpose' function"
+  (is (= 880
+         (transpose 440 0 1))
+      "transpose is incorrect for transposing up 1 octave")
+  (is (= 220
+         (transpose 440 0 -1))
+      "transpose is incorrect for transposing down 1 octave")
+  (is (= (midinote-freq 51)
+         (transpose (midinote-freq 50) 1))
+      "transpose is incorrect for transposing up 1 semitone")
+  (is (= (midinote-freq 0)
+         (transpose (midinote-freq 3) -3))
+      "transpose is incorrect for transposing down 3 semitones"))
+
 (test next-beat-for-quant
   "Test the `next-beat-for-quant' function"
   (is-true (= 0 (next-beat-for-quant 4 0))

@@ -17,6 +17,7 @@
 
    #:multi-channel-funcall
    #:pyramid
+   #:transpose
    #:next-beat-for-quant
    #:rerange
 

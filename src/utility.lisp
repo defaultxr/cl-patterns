@@ -218,6 +218,11 @@ See also: `alexandria:clamp', `wrap'"
   (<= (abs (- number of))
       range))
 
+(defun transpose (freq &optional (semitones 0) (octaves 0))
+  "Transpose FREQ the specified number of SEMITONES and OCTAVES."
+  (let ((semi (+ semitones (* octaves 12.0d0))))
+    (* freq (expt 2 (/ semi 12.0d0)))))
+
 (defun next-beat-for-quant (&optional (quant 1) (beat (beat *clock*)) (direction 1))
   "Get the next valid beat for QUANT after BEAT. If DIRECTION is negative, finds the previous valid beat for QUANT.
 
