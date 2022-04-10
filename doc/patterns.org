@@ -53,6 +53,8 @@ Patterns that repeat or skip outputs from a source pattern.
 Patterns that generate output by transforming a source pattern.
 - ~pclump~ - Clump outputs of the source pattern together into lists of N elements.
 - ~paclump~ - Automatically clump the source's outputs into lists whose length matches the longest list in the current ~*event*~.
+- ~pfilter~ - Skip elements of a source pattern that a predicate function returns false for.
+- ~pfilter-out~ - Skip elements of a source pattern that a predicate function returns true for.
 
 * Constraint patterns
 Patterns that limit the number of, or values of, outputs from a source pattern.

@@ -93,7 +93,7 @@ See also: `pattern-test-argument'"
   (let ((patterns (remove-if (fn (or (macro-function _)
                                      (position _ '(:psplits ;; tested in bdef's tests
                                                    :prun ;; can't be used outside of pbinds
-                                                   :ptime :pbeat :pbeat* ;; endless patterns
+                                                   :ptime :pbeat :pbeat* :pfilter :pfilter-out ;; endless patterns
                                                    :p+ :p- :p* :p/ ;; endless math patterns
                                                    :penv ;; not yet implemented
                                                    :pdef :pk ;; defers to source pattern
@@ -1349,3 +1349,16 @@ See also: `pattern-test-argument'"
                                                 t 1/5)
                                       8))
       "ipstream doesn't correctly yield rests at the start when no subpatterns start at 0"))
+
+(test pfilter
+  "Test pfilter"
+  (is (equal (list 1 3 1 3 1 3)
+             (next-n (pfilter (pseq (list 1 2 3)) 'oddp) 6))
+      "pfilter yields incorrect results for oddp PREDICATE")
+  (is (equal (list 2 2 2 2 2 2)
+             (next-n (pfilter (pseq (list 1 2 3)) 2) 6))
+      "pfilter yields incorrect results for atom PREDICATE")
+  (is (equal (list 2 eop eop eop eop eop)
+             (next-n (pfilter (pseq (list 1 2 3) 1) 'evenp) 6))
+      "pfilter yields incorrect results for finite source patterns"))
+

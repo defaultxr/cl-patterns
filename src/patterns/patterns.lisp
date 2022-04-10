@@ -3279,3 +3279,44 @@ See also: `pr', `ps'"
 
 (export 'ipstream-insert)
 
+;;; pfilter
+
+(defpattern pfilter (pattern)
+  (pattern
+   (predicate :initform 'identity))
+  :documentation "Skip elements of a source pattern that PREDICATE returns false for. If PREDICATE is not a function, skip items that are `eql' to it.
+
+Example:
+
+;; (next-n (pfilter (pseq (list 1 2 3))
+;;                  2)
+;;         6)
+;; ;=> (1 3 1 3 1 3)
+
+;; (next-n (pfilter (pseries 0 1) 'evenp)
+;;         6)
+;; ;=> (1 3 5 7 9 11)
+
+See also: `pfilter-out', `pr', `pdurstutter'")
+
+(defmethod next ((pfilter pfilter-pstream))
+  (with-slots (pattern predicate) pfilter
+    (let ((func (if (function-designator-p predicate)
+                    predicate
+                    (lambda (input) (eql input predicate)))))
+      (loop :for res := (next pattern)
+            :if (or (eop-p res)
+                    (funcall func res))
+              :return res))))
+
+;;; pfilter-out
+
+(defun pfilter-out (pattern predicate)
+  "Skip elements of a source pattern that PREDICATE returns true for. If PREDICATE is not a function, skip items that are `eql' to it.
+
+See also: `pfilter'"
+  (pfilter pattern (if (function-designator-p predicate)
+                       (lambda (x) (not (funcall predicate x)))
+                       (lambda (x) (not (eql predicate x))))))
+
+(pushnew 'pfilter-out *patterns*)
