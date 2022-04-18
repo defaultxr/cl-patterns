@@ -212,7 +212,7 @@
 (defun cl-patterns-play-or-end-pdef (&optional stop) ;; FIX: list playing patterns first and write " (playing)" after each one.
   "Select a pdef to play or end. With a prefix argument, stop instead of end."
   (interactive "P")
-  (when-let* ((pdefs (cl-patterns-lisp-eval `(cl-patterns:all-pdefs)))
+  (when-let* ((pdefs (cl-patterns-lisp-eval `(cl-patterns:all-pdef-names)))
               (selection (completing-read "Pdef? " pdefs nil nil))
               (func (if stop "cl-patterns:play-or-stop" "cl-patterns:play-or-end")))
     (cl-patterns-lisp-interactive-eval (concat "(" func " " selection ")"))))
