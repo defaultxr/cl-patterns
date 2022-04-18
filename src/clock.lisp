@@ -134,8 +134,15 @@ See also: `beat'"
   (with-slots (timestamp-at-tempo beat-at-tempo) clock
     (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
 
-(defmethod (setf tempo) (value (item clock))
-  (clock-add (as-pstream (event :type :tempo :tempo value)) item))
+(defmethod (setf tempo) (value (clock clock))
+  (dolist (task (clock-tasks clock)) ; this tempo change event obsoletes any existing ones, so we remove them
+    (with-slots (item) task
+      (let ((event (pstream-source item)))
+        (when (and (event-p event)
+                   (eql (event-value event :type) :tempo)
+                   (null (beat event))) ; as long as they don't have a beat specified
+          (clock-remove task clock)))))
+  (clock-add (as-pstream (event :type :tempo :tempo value)) clock))
 
 (defmethod tempo ((number number))
   ;; convenience method to quickly set the tempo of the default clock
