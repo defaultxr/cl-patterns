@@ -714,7 +714,7 @@ See also: `define-pbind-special-wrap-key'")
 See also: `define-pbind-special-process-key'")
 
 (defclass pbind (pattern)
-  ((pairs :initarg :pairs :initform (list) :documentation "The pattern pairs of the pbind; a plist mapping its keys to their values."))
+  ((pairs :initarg :pairs :initform (list) :accessor pbind-pairs :documentation "The pattern pairs of the pbind; a plist mapping its keys to their values."))
   (:documentation "Please refer to the `pbind' documentation."))
 
 (defun pbind (&rest pairs)
