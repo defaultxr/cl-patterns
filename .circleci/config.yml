@@ -1,0 +1,21 @@
+version: 2.1
+
+jobs:
+  run-tests:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: "Install Roswell via CI script"
+          command: "curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh"
+      - run:
+          name: "Run tests"
+          command: "ros -e \"(ql-dist:install-dist \\\"http://dist.ultralisp.org/\\\" :prompt nil)
+                             (ql:quickload :cl-patterns/tests)
+                             (uiop:quit (if (fiveam:run! 'cl-patterns/tests::cl-patterns-tests) 0 1))\""
+
+workflows:
+  run-tests-workflow:
+    jobs:
+      - run-tests
