@@ -272,7 +272,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
         :for item := (and task (task-item task))
         :do (setf retries (if (eq task prev-task) (1+ retries) 0)
                   prev-task task)
-        :if (or (null item) (eop-p item)) ;; FIX: remove null when eop is done
+        :if (or (null item) (eop-p item))
           :do (loop-finish)
         :if (>= retries 32)
           :do (warn "Task ~s yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
