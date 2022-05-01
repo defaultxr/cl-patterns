@@ -846,7 +846,7 @@ The expressions in PAIRS are also automatically translated to equivalent pattern
 
 See also: `pbind', `pdef'"
   (if (length= 1 pairs)
-      `(pdef ,name ,@(pb-translate-body-functions pairs))
+      `(pdef ,name ,@pairs)
       `(pdef ,name (pbind ,@(pb-translate-body-functions pairs)))))
 
 (pushnew 'pb *patterns*)
