@@ -390,14 +390,14 @@ See also: `start-clock-loop', `clock-process'"
     (warn "The clock loop has stopped! You will likely need to create a new clock with (start-clock-loop) in order to play patterns again.")))
 
 (defun start-clock-loop (&rest clock-initargs &key (tempo 1) force &allow-other-keys)
-  "Convenience method to make a clock and start its loop in a new thread.
+  "Convenience method to make a clock and start its loop in a new thread if one isn't already started.
 
 With FORCE, make a new clock and thread even if one already appears to be running.
 
-See also: `clock-loop'"
-  (if (or (null *clock*)
-          (null (find "cl-patterns clock-loop" (bt:all-threads) :key #'bt:thread-name :test #'string-equal))
-          force)
+See also: `clock-loop', `*clock*'"
+  (if (or force
+          (null *clock*)
+          (null (find "cl-patterns clock-loop" (bt:all-threads) :key #'bt:thread-name :test #'string-equal)))
       (progn
         (setf *clock* (apply #'make-clock tempo :allow-other-keys t clock-initargs))
         (bt:make-thread (lambda () (clock-loop *clock*)) :name "cl-patterns clock-loop"))
