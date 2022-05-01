@@ -28,7 +28,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defpattern pdef (pattern)
-    ((name :reader pdef-name)
+    ((name :reader pdef-name :type string-designator)
      (pattern :accessor pdef-pattern)
      (pstream :initform nil :accessor pdef-pstream)
      (task :initform nil :accessor pdef-task)
@@ -45,6 +45,7 @@ Example:
 
 See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
     :defun (defun pdef (name &optional (pattern nil pattern-supplied-p))
+             (check-type name string-designator)
              (let ((pdef (ensure-gethash name *pdef-dictionary* (make-instance 'pdef :name name))))
                (when pattern-supplied-p
                  (setf (pdef-pattern pdef) pattern))
