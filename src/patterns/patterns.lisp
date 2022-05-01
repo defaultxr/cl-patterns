@@ -95,7 +95,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
                 (add-doc-to-defun defun)))
          (pushnew ',name *patterns*)))))
 
-(defparameter *max-pattern-yield-length* 256
+(defvar *max-pattern-yield-length* 256
   "The default maximum number of events or values that will be used by functions like `next-n' or patterns like `protate', in order to prevent hangs caused by infinite-length patterns.")
 
 ;;; pattern
