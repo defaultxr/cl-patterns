@@ -37,6 +37,8 @@
    #:ended-p
    #:play-or-stop
    #:play-or-end
+   #:play-solo
+   #:play-swap
    #:all-instruments
    #:playing-nodes
 

@@ -258,6 +258,48 @@
   ;; FIX
   )
 
+(test play-solo
+  "Test the `play-solo' function"
+  (with-fixture temporary-pdef-dictionary ()
+    (with-fixture debug-backend-and-clock ()
+      (pdef 'test (pbind :x (pseries) :end-quant 4))
+      (play (pdef 'test))
+      (clock-process *clock* 2)
+      (pdef 'test-2 (pbind :y (pseries) :end-quant 4))
+      (play (pdef 'test-2))
+      (clock-process *clock* 2)
+      (pdef 'test-play-solo (pbind :x (pseries) :end-quant 4))
+      (play-solo (pdef 'test-play-solo))
+      (clock-process *clock* 6)
+      (let ((tasks (clock-tasks *clock*)))
+        (is (length= 1 tasks)
+            "play-solo did not end all other patterns (clock-tasks: ~S)" tasks)
+        (is (eql 'test-play-solo
+                 (pdef-name (cl-patterns::task-item (car tasks))))
+            "play-solo did not play the specified pattern")))))
+
+(test play-swap
+  "Test the `play-swap' function"
+  (with-fixture temporary-pdef-dictionary ()
+    (with-fixture debug-backend-and-clock ()
+      (pdef 'test (pbind :x (pseries) :end-quant 1))
+      (play (pdef 'test))
+      (clock-process *clock* 2)
+      (pdef 'test-swap-from (pbind :y (pseries) :end-quant 1))
+      (play (pdef 'test-swap-from))
+      (clock-process *clock* 2)
+      (pdef 'test-swap-to (pbind :x (pseries) :end-quant 1))
+      (play-swap (pdef 'test-swap-to) (pdef 'test-swap-from))
+      (clock-process *clock* 6)
+      (let* ((tasks (clock-tasks *clock*))
+             (task-names (mapcar (fn (pdef-name (cl-patterns::task-item _))) tasks)))
+        (is (find 'test task-names)
+            "play-swap ended an unrelated task")
+        (is-false (find 'test-swap-from task-names)
+                  "play-swap didn't end the task we're swapping from")
+        (is (find 'test-swap-to task-names)
+            "play-swap didn't play the task we're swapping to")))))
+
 (test all-instruments
   "Test the `all-instruments' function"
   ;; FIX

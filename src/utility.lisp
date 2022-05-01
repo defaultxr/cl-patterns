@@ -488,6 +488,33 @@ See also: `eop-p', `last-output'"))
         nil)
       (play object)))
 
+(defun play-solo (object &key (stop-type 'end) (clock *clock*))
+  "End or stop all tasks on CLOCK and play OBJECT (or simply let it continue playing if it's already playing).
+
+See also: `play', `end', `stop', `play-swap'"
+  (let ((object-name (etypecase object
+                       (string-designator object)
+                       (pdef (pdef-name object))))
+        (stop-type (switch (stop-type :test 'string=)
+                     ('end 'end)
+                     ('stop 'stop))))
+    (mapc stop-type (remove-if (fn (eql (pdef-name (task-item _))
+                                        object-name))
+                               (clock-tasks clock)))
+    (unless (playing-p object)
+      (play object))))
+
+(defun play-swap (play end &key (stop-type 'end) (clock *clock*))
+  "Play PLAY, and end (or stop) END.
+
+See also: `play', `end', `stop', `play-solo'"
+  (let ((stop-type (switch (stop-type :test 'string=)
+                     ('end 'end)
+                     ('stop 'stop)))
+        (*clock* clock))
+    (play play)
+    (funcall stop-type end)))
+
 (defun all-instruments (&optional backend)
   "Get a list of the names of all instruments defined for BACKEND, or all enabled backends if none specified.
 
