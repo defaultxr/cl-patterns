@@ -323,7 +323,7 @@ See also: `events-in-range'"))
 (defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
-   (source :initarg :source :documentation "The source object (i.e. pattern) that this pstream was created from.")
+   (source :initarg :source :accessor pstream-source :documentation "The source object (i.e. pattern) that this pstream was created from.")
    (pstream-count :initarg :pstream-count :accessor pstream-count :type integer :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
    (beat :initform 0 :reader beat :type number :documentation "The number of beats that have elapsed since the start of the pstream.")
    (history :type vector :documentation "The history of outputs yielded by the pstream.")
