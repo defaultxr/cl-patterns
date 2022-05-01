@@ -25,7 +25,7 @@
 
 (test swap-patterns
   "Test clock pattern swapping functionality (i.e. `end-quant')"
-  (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
+  (with-fixture temporary-pdef-dictionary ()
     (with-fixture debug-backend-and-clock ()
       (pdef 'test (pbind :x (pseries) :dur 1 :end-quant 4))
       (play (pdef 'test))

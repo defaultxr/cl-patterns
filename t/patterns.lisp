@@ -223,12 +223,12 @@ See also: `pattern-test-argument'"
                                                           (pbind :dur (pn 1/2 4)))
                                                     1))))
            ":beat key is not correct for sequential subpatterns")
-  (is-true (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
-             (pb :c1 :dur (pn 1 4))
-             (pb :c2 :dur (pn 1 4))
-             (equal (list 0 1 2 3 4 5 6 7)
-                    (mapcar #'beat (next-upto-n (pseq (list (pdef :c1) (pdef :c2)) 1)))))
-           ":beat key is not correct for sequential pdef subpatterns")
+  (with-fixture temporary-pdef-dictionary ()
+    (pb :c1 :dur (pn 1 4))
+    (pb :c2 :dur (pn 1 4))
+    (is-true (equal (list 0 1 2 3 4 5 6 7)
+                    (mapcar #'beat (next-upto-n (pseq (list (pdef :c1) (pdef :c2)) 1))))
+             ":beat key is not correct for sequential pdef subpatterns"))
   (is-true (equal (mapcar #'beat (next-upto-n (pbind :dur (pn 1 1) :pdurstutter 3)))
                   (list 0 1/3 2/3))
            ":beat key of events from subpatterns is altered by the containing pattern next :around method"))
@@ -1125,22 +1125,19 @@ See also: `pattern-test-argument'"
 
 (test psym ;; FIX: add more
   "Test psym"
-  (is-true (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
-             (pdef :foo1 (pbind :dur (pn 1/2 8)))
-             (pdef :foo2 (pbind :dur (pn 2/3 8)))
-             (every-event-equal
-              (mapcar (lambda (e) (remove-event-value e :pdef))
-                      (next-upto-n (psym (pseq (list (list :foo1 :foo2)) 1))))
-              (next-upto-n (ppar (list (pdef-pattern (pdef :foo1))
-                                       (pdef-pattern (pdef :foo2)))))))
-           "psym and ppar don't yield the same outputs when provided the same patterns as inputs")
-  (is (every-event-equal
-       (list
-        (event :foo 0)
-        (event :foo 1)
-        (event :foo 2)
-        (event :foo 3))
-       (next-upto-n (psym (pseq (list (pbind :foo (pseries 0 1 4))) 1))))
+  (with-fixture temporary-pdef-dictionary ()
+    (pdef :foo1 (pbind :dur (pn 1/2 8)))
+    (pdef :foo2 (pbind :dur (pn 2/3 8)))
+    (is-true (every-event-equal (mapcar (lambda (e) (remove-event-value e :pdef))
+                                        (next-upto-n (psym (pseq (list (list :foo1 :foo2)) 1))))
+                                (next-upto-n (ppar (list (pdef-pattern (pdef :foo1))
+                                                         (pdef-pattern (pdef :foo2))))))
+             "psym and ppar don't yield the same outputs when provided the same patterns as inputs"))
+  (is (every-event-equal (list (event :foo 0)
+                               (event :foo 1)
+                               (event :foo 2)
+                               (event :foo 3))
+                         (next-upto-n (psym (pseq (list (pbind :foo (pseries 0 1 4))) 1))))
       "psym doesn't allow regular patterns to be used instead of symbols"))
 
 (test pchain
@@ -1214,7 +1211,7 @@ See also: `pattern-test-argument'"
 (test pmeta
   "Test pmeta"
   ;; FIX
-  (let ((cl-patterns::*pdef-dictionary* (make-hash-table)))
+  (with-fixture temporary-pdef-dictionary ()
     (pdef :foo (pbind :dur (pwhite 0.5 2.0 8)))
     (is (= 4
            (reduce #'+ (mapcar #'dur (next-upto-n (pmeta :pattern (pseq (list :foo) 1) :dur 4)))))
