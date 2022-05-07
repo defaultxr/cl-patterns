@@ -1369,14 +1369,14 @@ See also: `pfunc'")
 (defmethod next ((plazy plazy-pstream))
   (with-slots (func repeats current-pstream current-repeats-remaining) plazy
     (labels ((set-current-pstream ()
+               (unless (remaining-p plazy)
+                 (return-from next eop))
                (setf current-pstream (as-pstream (funcall func)))
                (decf-remaining plazy)))
-      (when (null current-repeats-remaining)
+      (unless current-repeats-remaining
         (setf current-repeats-remaining (next repeats)))
-      (when (null current-pstream)
+      (unless current-pstream
         (set-current-pstream))
-      (unless (remaining-p plazy)
-        (return-from next eop))
       (let ((nv (next current-pstream)))
         (if (eop-p nv)
             (progn

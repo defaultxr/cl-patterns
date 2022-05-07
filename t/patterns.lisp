@@ -679,10 +679,13 @@ See also: `pattern-test-argument'"
   (is-false (next-upto-n (plazy (lambda () eop)))
             "plazy yields incorrect outputs when its function returns eop")
   (is-false (next-upto-n (plazy (lambda () (pseq (list 1 2 3))) 0))
-            "plazy yields 0 outputs when REPEATS is 0")
+            "plazy does not yield 0 outputs when REPEATS is 0")
   (is (length= 14
                (next-upto-n (plazy (lambda () (random 20)) 14)))
-      "plazy yields the wrong number of outputs when REPEATS is provided"))
+      "plazy yields the wrong number of outputs when REPEATS is provided")
+  (is (length= 1
+               (next-upto-n (plazy (lambda () 'a) 1)))
+      "plazy yields the wrong number of outputs when REPEATS is 1"))
 
 (test protate
   "Test protate"
