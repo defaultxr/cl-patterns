@@ -146,7 +146,9 @@
   (cl-collider:release object))
 
 (defmethod playing-p ((node cl-collider::node) &optional (clock *clock*))
-  (find (cl-collider::id node) (cl-collider::node-watcher cl-collider:*s*)))
+  (declare (ignore clock))
+  (find (cl-collider::id node) (cl-collider::node-watcher (or (cl-collider::server node)
+                                                              cl-collider:*s*))))
 
 (defmethod play ((buffer cl-collider::buffer))
   (let* ((synth *cl-collider-buffer-preview-synth*)
