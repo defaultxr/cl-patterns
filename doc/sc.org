@@ -25,6 +25,8 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Place~ - done as ~place~.
 - ~Ppatlace~ - done as ~ppatlace~.
 - ~Pswitch~ - functionality covered by ~pindex~.
+- ~PseqFunc~ - functionality covered by ~pfunc~ and ~pseq~.
+- ~PserFunc~ - functionality covered by ~pfunc~ and ~pser~.
 * filter patterns
 - ~Pavaroh~
 - ~Pbus~
@@ -79,8 +81,16 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pmeanrand~
 - ~Ppoisson~
 - ~Pprob~
-- ~Plorenz~
 - ~Paccum~ - done as ~paccum~.
+* chaos patterns
+- ~Phenon~
+- ~Platoo~
+- ~Plorenz~
+- ~Pquad~
+- ~PlinCong~
+- ~Pstandard~
+- ~Pgbman~
+- ~Pfhn~
 * timing patterns
 - ~Pseg~
 - ~Penv~
@@ -116,6 +126,93 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pbjorklund~ - done as ~pbjorklund~.
 - ~PS~ - done as ~ps~.
 - ~Pspawn~ - functionality covered by ~pmeta~.
+- ~Pspawner~ - functionality covered by ~pmeta~.
+- ~Spawner~ - functionality covered by ~pmeta~.
+
+* more (unsorted):
+
+- ~Pcbrown~
+- ~Pevent~
+- ~Pstep3add~
+- ~PenvirGet~
+- ~Pstep2add~
+- ~Pstut~
+- ~PstepNfunc~
+
+- ~Ctl~
+- ~Parpf~ - parp fork
+- ~PnC~
+
+- ~PkEnv~ - env played at audio (kr) rate
+- ~PkLFO~
+
+- ~Ppostln~
+- ~PintC~
+- ~PintN~
+- ~Pfwd~
+- ~PbindProxy~
+- ~Pmod~
+- ~Pinject~
+- ~PintL~
+- ~Pline~
+- ~Phenon~
+- ~Pg~
+- ~Pfeed~
+- ~Parpm~
+- ~Ptrack~
+- ~Pmix~
+- ~PstepDur~
+- ~PstepNadd~
+- ~PTimePoints~
+- ~PAbstractGroup~
+- ~Paddpre~
+- ~Pmulpre~
+- ~Pselect~
+- ~Pfset~
+- ~Pwhile~
+- ~Preject~
+- ~Pcollect~
+- ~Pwhile1~
+- ~PcollectFinal~
+- ~Psym1~
+- ~Ptsym~
+- ~Pnsym~
+- ~Pnsym1~
+- ~Pstretchp~
+- ~Pfinval~
+- ~Pfintime~
+- ~Pflatten~
+- ~Pmul~
+- ~Padd~
+- ~Psetp~
+- ~Paddp~
+- ~Pmulp~
+- ~PparGroup~
+- ~Pgroup~
+- ~Pembedn~
+- ~PnNilSafe~
+- ~Pgate~
+- ~Pfxb~
+- ~Plimitsum~
+- ~Pmcvoss~
+- ~Pdefn~
+- ~PdegreeToKey~
+- ~Paccumbounce~
+- ~Pvbrown~
+- ~PbindMultiChan~
+- ~PbindArrayDefault~
+- ~Ppar2~
+- ~Pwshuf~
+- ~Phrand~
+- ~Pfpar~
+- ~Pgpar~
+- ~Ptpar~
+- ~Pgtpar~
+- ~Pslide1~
+- ~PslideNoWrap~
+- ~Pswitch1~
+- ~PlazyEnvir~
+- ~PlazyEnvirN~
 
 * Special keys
 Many (but not all) SuperCollider special keys are supported in cl-patterns. [[file:special-keys.org][special-keys.org]] lists all of the supported keys in cl-patterns, but the implementation/equivalent status of all of the SuperCollider special keys are listed here for convenience.
