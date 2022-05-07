@@ -237,7 +237,7 @@ where PATTERN is the input pattern, PROBABILITY is the probability (can be stati
 - ~:event~ means pass the input event through unchanged
 - ~:rest~ means set the input event's note type to :rest
 * "event transformations", list of standard event transforms like ~:event~ and ~:rest~ above
-* use a ringbuffer (there's an implementation in worm; move it to mutility) for pstream history
+* use ~mutility:ringbuffer~ for pstream history
 * consider [[https://github.com/Shinmera/parachute][parachute]] instead of fiveam
 * patterns like ~pfindur~ and ~psync~ should allow you to configure whether they cut the notes at the end of their ~maxdur~
 * allow the user to set default values for the ~repeats~ and ~length~ parameters instead of always being ~:inf~
@@ -246,3 +246,4 @@ where PATTERN is the input pattern, PROBABILITY is the probability (can be stati
 * make some kind of function or pattern to get the mouse position, a la the ~mouse-x~ and ~mouse-y~ UGens, except from the Lisp side so we don't have to proxy them from the SC server.
 as per issue #28
 * make the default value of ~repeats~ and ~length~ arguments customizable; perhaps on a per-pattern basis using class variables?
+* ~as-ugen~ function that can convert a pattern object into a ugen graph for supported backends
