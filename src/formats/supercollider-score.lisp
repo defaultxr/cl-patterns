@@ -35,51 +35,49 @@ See also: `render', `write-encoded-score'"))
                  dur
                  (last-dur events)))
         (node-id 999))
-    (flet ((def-name (sym)
-             (string-downcase (symbol-name sym))))
-      (append
-       ;; create default group
-       (list (list 0d0 (list "/g_new" 1 0 0)))
-       ;; load instruments (and make sure their definitions are written)
-       (loop :for inst :in instruments
-             :collect (list 0d0 (list "/d_load" (def-name inst)))
-             :do (write-synthdef-file inst))
-       ;; insert events
-       (dolist (event events)
-         (unless (rest-p event)
-           (let ((ebeat (beat event))
-                 (inst (instrument event))
-                 (cur-node (incf node-id)))
-             (push (list (float (dur-time (if dur
-                                              (min ebeat dur)
-                                              ebeat)
-                                          tempo)
-                                0d0)
-                         (append (list "/s_new"
-                                       (def-name inst)
-                                       cur-node
-                                       (or (event-value event :add-action) 0)
-                                       (event-value event :group))
-                                 (loop :for (k v) :on (backend-instrument-args-list inst event :supercollider) :by #'cddr
-                                       :append (list (def-name k)
-                                                     (typecase v
-                                                       (integer v)
-                                                       (number (coerce v 'single-float))
-                                                       (t v))))))
-                   gen-events)
-             (when (backend-instrument-has-gate-p inst :supercollider)
-               (let ((end-beat (+ ebeat (sustain event))))
-                 (push (list (float (dur-time (if dur
-                                                  (min end-beat dur)
-                                                  end-beat)
-                                              tempo)
-                                    0d0)
-                             (list "/n_set" cur-node "gate" 0))
-                       gen-events))))))
-       (sort gen-events #'< :key #'car)
-       ;; add last event to set output length
-       (when dur
-         (list (list (float dur 0d0) (list "/c_set" 0 0))))))))
+    (append
+     ;; create default group
+     (list (list 0d0 (list "/g_new" 1 0 0)))
+     ;; load instruments (and make sure their definitions are written)
+     (loop :for inst :in instruments
+           :collect (list 0d0 (list "/d_load" (string-downcase inst)))
+           :do (write-synthdef-file inst))
+     ;; insert events
+     (dolist (event events)
+       (unless (rest-p event)
+         (let ((ebeat (beat event))
+               (inst (instrument event))
+               (cur-node (incf node-id)))
+           (push (list (float (dur-time (if dur
+                                            (min ebeat dur)
+                                            ebeat)
+                                        tempo)
+                              0d0)
+                       (append (list "/s_new"
+                                     (string-downcase inst)
+                                     cur-node
+                                     (or (event-value event :add-action) 0)
+                                     (event-value event :group))
+                               (loop :for (k v) :on (backend-instrument-args-list inst event :supercollider) :by #'cddr
+                                     :append (list (string-downcase k)
+                                                   (typecase v
+                                                     (integer v)
+                                                     (number (coerce v 'single-float))
+                                                     (t v))))))
+                 gen-events)
+           (when (backend-instrument-has-gate-p inst :supercollider)
+             (let ((end-beat (+ ebeat (sustain event))))
+               (push (list (float (dur-time (if dur
+                                                (min end-beat dur)
+                                                end-beat)
+                                            tempo)
+                                  0d0)
+                           (list "/n_set" cur-node "gate" 0))
+                     gen-events))))))
+     (sort gen-events #'< :key #'car)
+     ;; add last event to set output length
+     (when dur
+       (list (list (float dur 0d0) (list "/c_set" 0 0)))))))
 
 (defmethod as-score ((pattern pattern) &rest args &key (tempo (tempo *clock*)) (dur (dur pattern)) (max-length *max-pattern-yield-length*) &allow-other-keys)
   (apply #'as-score (next-upto-n pattern max-length) args))
