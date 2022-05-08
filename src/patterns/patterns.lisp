@@ -8,7 +8,7 @@
   "Get `*event*' if it's not nil, or get a fresh empty event."
   (or *event* (event)))
 
-(defparameter *patterns* (list)
+(defvar *patterns* (list)
   "List of the names of all defined pattern types.")
 
 (defmacro defpattern (name superclasses slots &key documentation defun)
