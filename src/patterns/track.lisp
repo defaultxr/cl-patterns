@@ -7,7 +7,7 @@
 (defpattern ptrack (pattern)
   (header
    rows
-   (repeats :default :inf)
+   (repeats :initform :inf)
    (current-row :state t)
    (current-repeats-remaining :state t))
   :documentation "Defines an event pattern via a tracker-inspired notation. HEADER is a plist mapping the pattern's \"columns\" (keys) to their default values or to patterns that are used to generate the key's values for each output. ROWS is a list of lists, each sublist specifying the values for a step. Values can be specified on their own (in which case they're matched in order to the columns specified in the header) or by using Lisp's traditional key/value notation.

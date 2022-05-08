@@ -7,10 +7,10 @@
 
 (defpattern pcycles (pattern)
   (list
-   (map :default nil :initform nil)
-   (key :default :value :initform :value)
-   (dur :default 1 :initform 1)
-   (repeats :default :inf :initform :inf)
+   (map :initform nil)
+   (key :initform :value)
+   (dur :initform 1)
+   (repeats :initform :inf)
    (parsed-list :state t)
    (current-repeats-remaining :state t))
   :documentation "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
