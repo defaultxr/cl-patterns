@@ -1534,16 +1534,14 @@ Example:
 ;; ;=> (2 3 3 3 4 3 4 5 6 5)
 
 See also: `pwhite', `pexprand', `pgauss'"
-  ;; if only one argument is provided, we use it as the "hi" value
+  ;; if only one argument is provided, we use it as the "hi" value.
   :defun (defun pbrown (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (step 0.125 step-provided-p) (length :inf))
            (let ((lo (if hi-provided-p
                          lo
                          (if (integerp lo) 0 0.0)))
                  (hi (if hi-provided-p
                          hi
-                         (if lo-provided-p
-                             lo
-                             1))))
+                         (if lo-provided-p lo 1))))
              (make-instance 'pbrown
                             :lo lo
                             :hi hi
@@ -1566,7 +1564,8 @@ See also: `pwhite', `pexprand', `pgauss'"
       (when (member eop (list nlo nhi nstep))
         (return-from next eop))
       (unless current-value
-        (setf current-value (random-range nlo nhi)))
+        (setf current-value (random-range (min nlo nhi)
+                                          (max nlo nhi))))
       (incf current-value (random-range (* -1 nstep) nstep))
       (setf current-value (clamp current-value nlo nhi)))))
 
