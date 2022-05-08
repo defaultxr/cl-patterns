@@ -1500,8 +1500,8 @@ See also: `prand'")
 ;;; pwhite
 
 (defpattern pwhite (pattern)
-  ((lo :initform 0)
-   (hi :initform 1)
+  ((lo :initform 0.0)
+   (hi :initform 1.0)
    (length :initform :inf)
    (current-repeats-remaining :state t))
   :documentation "Linearly-distributed random numbers between LO and HI, inclusive.
@@ -1513,16 +1513,16 @@ Example:
 
 See also: `pexprand', `pbrown', `pgauss', `prand'"
   ;; if only one argument is provided, we use it as the "hi" value
-  :defun (defun pwhite (&optional (lo 0 lo-provided-p) (hi 1 hi-provided-p) (length :inf))
+  :defun (defun pwhite (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (length :inf))
            (make-instance 'pwhite
                           :lo (if hi-provided-p
                                   lo
-                                  0)
+                                  0.0)
                           :hi (if hi-provided-p
                                   hi
                                   (if lo-provided-p
                                       lo
-                                      1))
+                                      1.0))
                           :length length)))
 
 (defmethod as-pstream ((pwhite pwhite))
