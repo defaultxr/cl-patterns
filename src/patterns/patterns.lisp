@@ -1144,11 +1144,14 @@ Example:
 ;; (next-upto-n (pxrand '(1 2 3) 4))
 ;; ;=> (3 1 2 1)
 
-See also: `prand', `pwrand', `pwxrand'"
-  :defun (assert (or (not (listp list))
-                     (position-if-not (lambda (i) (eql i (car list))) list))
-                 (list)
-                 "~s's LIST argument must have at least two non-eql elements." 'pxrand))
+See also: `prand', `pwrand', `pwxrand'")
+
+(defmethod initialize-instance :after ((pxrand pxrand) &key)
+  (with-slots (list) pxrand
+    (assert (or (not (listp list))
+                (position-if-not (lambda (i) (eql i (car list))) list))
+            (list)
+            "~S's input list must have at least two non-eql elements." 'pxrand)))
 
 (defmethod next ((pxrand pxrand-pstream))
   (with-slots (list last-result) pxrand
@@ -1205,12 +1208,22 @@ Example:
 ;; (next-upto-n (pwxrand '(1 2 3) '(7 5 3) 10))
 ;; ;=> (1 2 1 2 1 3 1 2 1 2)
 
-See also: `prand', `pxrand', `pwrand'"
-  ;; FIX: maybe also take the weights into account to see that it doesn't get stuck?
-  :defun (assert (or (not (listp list))
-                     (position-if-not (lambda (i) (eql i (car list))) list))
-                 (list)
-                 "~s's input list must have at least two non-eql elements" 'pwxrand))
+See also: `prand', `pxrand', `pwrand'")
+
+(defmethod initialize-instance :after ((pwxrand pwxrand) &key)
+  (with-slots (list weights) pwxrand
+    (assert (or (not (listp list))
+                (and (position-if-not (fn (eql _ (car list))) list)
+                     (or (not (listp weights))
+                         (find-if-not 'numberp weights)
+                         (let ((effective-list (loop :for index :from 0
+                                                     :for elem :in list
+                                                     :for weight := (elt-wrap weights index)
+                                                     :if (plusp weight)
+                                                       :collect elem)))
+                           (position-if-not (fn (eql _ (car effective-list))) effective-list)))))
+            (list)
+            "~S's input list must have at least two non-eql accessible elements." 'pwxrand)))
 
 (defmethod next ((pwxrand pwxrand-pstream))
   (with-slots (list weights last-result) pwxrand
@@ -1218,11 +1231,12 @@ See also: `prand', `pxrand', `pwrand'"
       (return-from next eop))
     (decf-remaining pwxrand)
     (let* ((clist (next list))
-           (cweights (cumulative-list (if (eql weights :equal)
-                                          (let ((len (length clist)))
-                                            (make-list len :initial-element (/ 1 len)))
-                                          (normalized-sum (mapcar #'next (next weights)))))))
-      (setf last-result (loop :for res := (nth (index-of-greater-than (random 1.0) cweights) clist)
+           (clist-length (length clist))
+           (cweights (next weights))
+           (cweights (cumulative-list (if (eql cweights :equal)
+                                          (make-list clist-length :initial-element (/ 1 clist-length))
+                                          (normalized-sum (mapcar #'next cweights))))))
+      (setf last-result (loop :for res := (nth-wrap (index-of-greater-than (random 1.0) cweights) clist)
                               :if (or (not (slot-boundp pwxrand 'last-result))
                                       (not (eql res last-result)))
                                 :return res)))))
@@ -1244,8 +1258,10 @@ Example:
 ;; ;=> ((EVENT :FOO 0 :BAR :LESSER) (EVENT :FOO 6 :BAR :GREATER)
 ;;      (EVENT :FOO 7 :BAR :GREATER) (EVENT :FOO 8 :BAR :GREATER))
 
-See also: `pf', `pnary', `plazy', `pif'"
-  :defun (check-type func function))
+See also: `pf', `pnary', `plazy', `pif'")
+
+(defmethod initialize-instance :after ((pfunc pfunc) &key)
+  (check-type (slot-value pfunc 'func) function-designator))
 
 (defmethod as-pstream ((pfunc pfunc))
   (with-slots (func length) pfunc
@@ -1569,20 +1585,7 @@ Example:
 ;; (next-upto-n (pexprand 1.0 8.0 4))
 ;; ;=> (1.0420843091865208d0 1.9340168112124456d0 2.173209129035095d0 4.501371557329618d0)
 
-See also: `pwhite', `pbrown', `pgauss', `prand'"
-  :defun (defun pexprand (&optional (lo 0.0001) (hi 1.0) (length :inf))
-           (assert (and (numberp lo)
-                        (not (zerop lo)))
-                   (lo)
-                   "~s's LO argument must be a nonzero number; got ~s" 'pexprand lo)
-           (assert (and (numberp hi)
-                        (not (zerop hi)))
-                   (hi)
-                   "~s's HI argument must be a nonzero number; got ~s" 'pexprand hi)
-           (make-instance 'pexprand
-                          :lo lo
-                          :hi hi
-                          :length length)))
+See also: `pwhite', `pbrown', `pgauss', `prand'")
 
 (defmethod next ((pexprand pexprand-pstream))
   (with-slots (lo hi) pexprand
@@ -1591,6 +1594,14 @@ See also: `pwhite', `pbrown', `pgauss', `prand'"
     (decf-remaining pexprand)
     (let ((nlo (next lo))
           (nhi (next hi)))
+      (assert (and (numberp lo)
+                   (not (zerop lo)))
+              (lo)
+              "Got a zero for ~S's ~S slot" 'pexprand 'lo)
+      (assert (and (numberp hi)
+                   (not (zerop hi)))
+              (hi)
+              "Got a zero for ~S's ~S slot" 'pexprand 'hi)
       (when (or (eop-p nlo)
                 (eop-p nhi))
         (return-from next eop))
