@@ -326,6 +326,7 @@ See also: `events-in-range'"))
 
 ;;; pstream
 
+;; FIX: can we avoid making this inherit from pattern?
 (defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
@@ -1244,7 +1245,7 @@ See also: `prand', `pxrand', `pwrand'")
 ;;; pfunc
 
 (defpattern pfunc (pattern)
-  (func
+  ((func :type function-designator)
    (length :initform :inf)
    (current-repeats-remaining :state t))
   :documentation "Yield the result of evaluating FUNC. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
@@ -1254,7 +1255,9 @@ Example:
 ;; (next-upto-n (pfunc (lambda () (random 10)) 4))
 ;; ;=> ((5 2 8 9))
 ;;
-;; (next-upto-n (pbind :foo (pwhite 0 10 4) :bar (pfunc (lambda () (if (> (event-value *event* :foo) 5) :greater :lesser)))))
+;; (next-upto-n (pbind :foo (pwhite 0 10 4)
+;;                     :bar (pfunc (lambda ()
+;;                                   (if (> (event-value *event* :foo) 5) :greater :lesser)))))
 ;; ;=> ((EVENT :FOO 0 :BAR :LESSER) (EVENT :FOO 6 :BAR :GREATER)
 ;;      (EVENT :FOO 7 :BAR :GREATER) (EVENT :FOO 8 :BAR :GREATER))
 
@@ -1303,7 +1306,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
   (with-slots (pattern repeats) pr
     (make-instance 'pr-pstream
                    :pattern (as-pstream pattern)
-                   :repeats (pattern-as-pstream repeats))))
+                   :repeats (pattern-as-pstream repeats)))) ;; FIX: is this correct? usually :repeats is `as-pstream'
 
 (defmethod next ((pr pr-pstream))
   (with-slots (pattern repeats current-value current-repeats-remaining) pr
@@ -1430,9 +1433,9 @@ See also: `pr'")
       (let ((nv (next current-pstream)))
         (while (and (eop-p nv) rem)
           (decf-remaining pn)
-          (setf rem (remaining-p pn))
-          (setf current-pstream (as-pstream pattern))
-          (setf nv (next current-pstream)))
+          (setf rem (remaining-p pn)
+                current-pstream (as-pstream pattern)
+                nv (next current-pstream)))
         (if rem
             nv
             eop)))))
@@ -1492,8 +1495,9 @@ Example:
 ;; ;=> (7 2 4 5 7 10 4 8 10 2 3 5 9 2 5 4)
 
 See also: `pexprand', `pbrown', `pgauss', `prand'"
-  ;; if only one argument is provided, we use it as the "hi" value
+  ;; FIX: see about using a symbol for the unprovided slots and just check/process this initialization code in the `next' method instead.
   :defun (defun pwhite (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (length :inf))
+           ;; if only one argument is provided, we use it as the "hi" value.
            (make-instance 'pwhite
                           :lo (if hi-provided-p
                                   lo
@@ -1519,6 +1523,7 @@ See also: `pexprand', `pbrown', `pgauss', `prand'"
 
 ;;; pbrown
 
+;; FIX: make the initforms of hi onward a special symbol, and then check for that symbol in `next', rather than checking against the arguments of the `pbrown' function.
 (defpattern pbrown (pattern)
   ((lo :initform 0.0)
    (hi :initform 1.0)
@@ -1838,7 +1843,7 @@ See also: `place'")
 (defmethod next ((ppatlace ppatlace-pstream))
   (with-slots (number list) ppatlace
     (when (and (not (zerop number))
-               (not (zerop (length list)))
+               (not (length= 0 list))
                (zerop (mod number (length list))))
       (decf-remaining ppatlace))
     (when (or (not list)
@@ -2182,7 +2187,7 @@ See also: `pfindur'")
   (with-slots (count pattern) pfin
     (make-instance 'pfin-pstream
                    :pattern (as-pstream pattern)
-                   :count (next count)))) ;; FIX: should be able to use as a gate pattern
+                   :count (next count)))) ;; FIX: should be able to use as a gate pattern. remove this whole as-pstream block when it is possible.
 
 (defmethod next ((pfin pfin-pstream))
   (with-slots (pattern count number) pfin
@@ -2449,7 +2454,7 @@ See also: `pwalk'")
 (defpattern prun (pattern)
   (pattern
    (dur :initform 1)
-   (current-dur :state t))
+   (current-dur :state t :initform 0))
   :documentation "Run PATTERN \"independently\" of its parent, holding each value for DUR beats. Each of PATTERN's outputs is treated as if it lasted DUR beats, being continuously yielded during that time before moving on to the next output.
 
 Example:

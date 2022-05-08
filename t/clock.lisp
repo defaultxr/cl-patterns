@@ -16,7 +16,7 @@
     (play (pbind :dur (pn 1 4)))
     (clock-process *clock* 5)
     (is-true ;; when this test fails it's usually due to the `pstream-elt-future' function being wrong
-     (apply #'/= (mapcar (lambda (e) (event-value e :beat-at-start))
+     (apply #'/= (mapcar (fn (event-value _ :beat-at-start))
                          (debug-recent-events 4)))
      "events that should be separated are being played simultaneously")))
 

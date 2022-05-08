@@ -485,16 +485,13 @@ See also: `pattern-test-argument'"
 
 (test pseq
   "Test pseq"
-  (is (null
-       (next-upto-n (pseq (list 1 2 3) 0)))
-      "pseq yields the wrong number of outputs when REPEATS is 0")
-  (is (equal
-       (list 1 2 3 1 2 3 eop eop)
-       (next-n (pseq (list 1 2 3) 2) 8))
+  (is-false (next-upto-n (pseq (list 1 2 3) 0))
+            "pseq yields the wrong number of outputs when REPEATS is 0")
+  (is (equal (list 1 2 3 1 2 3 eop eop)
+             (next-n (pseq (list 1 2 3) 2) 8))
       "pseq yields wrong results when REPEATS is provided")
-  (is (equal
-       (list 1 2 3 1 2 3 eop)
-       (next-n (pseq (lambda () (list 1 2 3)) 2) 7))
+  (is (equal (list 1 2 3 1 2 3 eop)
+             (next-n (pseq (lambda () (list 1 2 3)) 2) 7))
       "pseq yields incorrect results when LIST is a function")
   (is (string= "" ;; FIX: this should be done for other patterns as well.
                (let* ((s (make-string-output-stream))
@@ -585,7 +582,7 @@ See also: `pattern-test-argument'"
        t))
    "pxrand yielded the same item twice in a row")
   (signals simple-error (pxrand (list 1 1 1))
-    "pxrand does not raise an error for insufficient differing elements in its input list")
+    "pxrand does not signal an error for insufficient differing elements in its input list")
   (is-false
    (find-if-not (fn (member _ (list 1 2)))
                 (next-upto-n (pxrand (pf (list 1 2)))))
@@ -609,30 +606,28 @@ See also: `pattern-test-argument'"
 
 (test pwxrand
   "Test pwxrand"
-  (is-true
-   (block pwxrand-test-1
-     (let ((prev))
-       (dolist (cur (next-n (pwxrand (list 1 2)) 1000))
-         (when (eql cur prev)
-           (return-from pwxrand-test-1 nil))
-         (setf prev cur))
-       t))
-   "pwxrand yielded the same item twice in a row")
-  (is-false
-   (position 0 (next-n (pwxrand (list 0 1 2) (list 0 1 1)) 1000))
-   "pwxrand yielded an item whose weight was 0")
+  (is-true (block pwxrand-test-1
+             (let (prev)
+               (dolist (cur (next-n (pwxrand (list 1 2)) 1000))
+                 (when (eql cur prev)
+                   (return-from pwxrand-test-1 nil))
+                 (setf prev cur))
+               t))
+           "pwxrand yielded the same item twice in a row")
+  (is-false (position 0 (next-n (pwxrand (list 0 1 2) (list 0 1 1)) 1000))
+            "pwxrand yielded an item whose weight was 0")
   (signals simple-error (pwxrand (list 1 1 1))
-    "pwxrand does not raise an error for insufficient differing elements in its input list")
-  (is-false
-   (find-if-not (fn (member _ (list 1 2)))
-                (next-upto-n (pwxrand (pf (list 1 2)))))
-   "pwxrand returned incorrect results for LIST as a pattern")
-  (is-false
-   (find 1 (mapcar #'freq
-                   (next-upto-n (pbind :foo 0
-                                       :freq (pwxrand (list 1 0 -1)
-                                                      (list (pk :foo) 1 1))))))
-   "pwxrand returned incorrect results for WEIGHTS with a pattern"))
+    "pwxrand does not signal an error for insufficient differing elements in its input list")
+  (signals simple-error (pwxrand (list 1 2 2) (list 0 1 1))
+    "pwxrand does not signal an error for insufficient differing elements in its input list, taking into account weights")
+  (is-false (find-if-not (fn (member _ (list 1 2)))
+                         (next-upto-n (pwxrand (pf (list 1 2)))))
+            "pwxrand returned incorrect results for LIST as a pattern")
+  (is-false (find 1 (mapcar #'freq
+                            (next-upto-n (pbind :foo 0
+                                                :freq (pwxrand (list 1 0 -1)
+                                                               (list (pk :foo) 1 1))))))
+            "pwxrand returned incorrect results for WEIGHTS with a pattern"))
 
 (test pfunc
   "Test pfunc"

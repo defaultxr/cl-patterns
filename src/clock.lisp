@@ -188,14 +188,11 @@ See also: `clock-remove', `play'"
 See also: `clock-add', `stop', `end'"
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
-      (setf tasks
-            (remove-if
-             (lambda (ctask)
-               (when-let ((eq (eq ctask task)))
-                 (dolist (backend (enabled-backends))
-                   (backend-task-removed task backend))
-                 eq))
-             tasks)))))
+      (setf tasks (remove-if (lambda (ctask)
+                               (when-let ((eq (eq ctask task)))
+                                 (dolist (backend (enabled-backends) eq)
+                                   (backend-task-removed task backend))))
+                             tasks)))))
 
 (defun clock-tasks (&optional (clock *clock*))
   "Get a list of all tasks running on CLOCK.
