@@ -595,8 +595,11 @@ See also: `pattern-as-pstream'"))
     (apply #'make-instance
            (intern (concat name '-pstream) (symbol-package name))
            (mapcan (fn (when (slot-boundp pattern _)
-                         (list (make-keyword _)
-                               (pattern-as-pstream (slot-value pattern _)))))
+                         (let ((kw (make-keyword _)))
+                           (list kw (funcall (if (member kw (list :length :repeats))
+                                                 #'as-pstream
+                                                 #'pattern-as-pstream)
+                                             (slot-value pattern _))))))
                    slots))))
 
 (defmethod as-pstream :around ((object t))
@@ -1034,24 +1037,18 @@ Example:
 
 See also: `pser', `eseq'")
 
-(defmethod as-pstream ((pseq pseq))
-  (with-slots (repeats list offset) pseq
-    (make-instance 'pseq-pstream
-                   :list (next list)
-                   :repeats (as-pstream repeats)
-                   :offset (pattern-as-pstream offset))))
-
 (defmethod next ((pseq pseq-pstream))
   (with-slots (number list offset) pseq
-    (when (and (plusp number)
-               (zerop (mod number (length list))))
-      (decf-remaining pseq))
-    (let ((off (next offset)))
-      (if (and (not (eop-p off))
-               (remaining-p pseq)
-               list)
-          (elt-wrap list (+ off number))
-          eop))))
+    (let ((list (next list)))
+      (when (and (plusp number)
+                 (zerop (mod number (length list))))
+        (decf-remaining pseq))
+      (let ((off (next offset)))
+        (if (and (not (eop-p off))
+                 (remaining-p pseq)
+                 list)
+            (elt-wrap list (+ off number))
+            eop)))))
 
 ;;; pser
 
@@ -1070,13 +1067,6 @@ Example:
 ;; ;=> (5 6 EOP)
 
 See also: `pseq'")
-
-(defmethod as-pstream ((pser pser))
-  (with-slots (list length offset) pser
-    (make-instance 'pser-pstream
-                   :list (next list)
-                   :length (as-pstream length)
-                   :offset (pattern-as-pstream offset))))
 
 (defmethod next ((pser pser-pstream))
   (with-slots (list offset current-index) pser
@@ -1134,12 +1124,6 @@ Example:
 
 See also: `pxrand', `pwrand', `pwxrand'")
 
-(defmethod as-pstream ((prand prand))
-  (with-slots (list length) prand
-    (make-instance 'prand-pstream
-                   :list (pattern-as-pstream list)
-                   :length (as-pstream length))))
-
 (defmethod next ((prand prand-pstream))
   (unless (remaining-p prand 'length)
     (return-from next eop))
@@ -1165,12 +1149,6 @@ See also: `prand', `pwrand', `pwxrand'"
                      (position-if-not (lambda (i) (eql i (car list))) list))
                  (list)
                  "~s's LIST argument must have at least two non-eql elements." 'pxrand))
-
-(defmethod as-pstream ((pxrand pxrand))
-  (with-slots (list length) pxrand
-    (make-instance 'pxrand-pstream
-                   :list (pattern-as-pstream list)
-                   :length (as-pstream length))))
 
 (defmethod next ((pxrand pxrand-pstream))
   (with-slots (list last-result) pxrand
@@ -1198,13 +1176,6 @@ Example:
 ;; ;=> (1 1 2 2 2 1 2 1 1 3)
 
 See also: `prand', `pxrand', `pwxrand'")
-
-(defmethod as-pstream ((pwrand pwrand))
-  (with-slots (list weights length) pwrand
-    (make-instance 'pwrand-pstream
-                   :list (pattern-as-pstream list)
-                   :weights (pattern-as-pstream weights)
-                   :length (as-pstream length))))
 
 (defmethod next ((pwrand pwrand-pstream))
   (with-slots (list weights) pwrand
@@ -1240,13 +1211,6 @@ See also: `prand', `pxrand', `pwrand'"
                      (position-if-not (lambda (i) (eql i (car list))) list))
                  (list)
                  "~s's input list must have at least two non-eql elements" 'pwxrand))
-
-(defmethod as-pstream ((pwxrand pwxrand))
-  (with-slots (list weights length) pwxrand
-    (make-instance 'pwxrand-pstream
-                   :list (pattern-as-pstream list)
-                   :weights (pattern-as-pstream weights)
-                   :length (as-pstream length))))
 
 (defmethod next ((pwxrand pwxrand-pstream))
   (with-slots (list weights last-result) pwxrand
@@ -1525,13 +1489,6 @@ See also: `pexprand', `pbrown', `pgauss', `prand'"
                                       1.0))
                           :length length)))
 
-(defmethod as-pstream ((pwhite pwhite))
-  (with-slots (lo hi length) pwhite
-    (make-instance 'pwhite-pstream
-                   :lo (pattern-as-pstream lo)
-                   :hi (pattern-as-pstream hi)
-                   :length (as-pstream length))))
-
 (defmethod next ((pwhite pwhite-pstream))
   (with-slots (lo hi) pwhite
     (unless (remaining-p pwhite 'length)
@@ -1582,14 +1539,6 @@ See also: `pwhite', `pexprand', `pgauss'"
                                           0.125))
                             :length length))))
 
-(defmethod as-pstream ((pbrown pbrown))
-  (with-slots (lo hi step length) pbrown
-    (make-instance 'pbrown-pstream
-                   :lo (pattern-as-pstream lo)
-                   :hi (pattern-as-pstream hi)
-                   :step (pattern-as-pstream step)
-                   :length (as-pstream length))))
-
 (defmethod next ((pbrown pbrown-pstream))
   (unless (remaining-p pbrown 'length)
     (return-from next eop))
@@ -1635,13 +1584,6 @@ See also: `pwhite', `pbrown', `pgauss', `prand'"
                           :hi hi
                           :length length)))
 
-(defmethod as-pstream ((pexprand pexprand))
-  (with-slots (lo hi length) pexprand
-    (make-instance 'pexprand-pstream
-                   :lo (pattern-as-pstream lo)
-                   :hi (pattern-as-pstream hi)
-                   :length (as-pstream length))))
-
 (defmethod next ((pexprand pexprand-pstream))
   (with-slots (lo hi) pexprand
     (unless (remaining-p pexprand 'length)
@@ -1669,13 +1611,6 @@ Example:
 ;; ;=> (0.08918811646370092d0 0.1745957067161632d0 0.7954678768273173d0 -1.2215823449671597d0)
 
 See also: `pwhite', `pexprand', `pbrown'")
-
-(defmethod as-pstream ((pgauss pgauss))
-  (with-slots (mean deviation length) pgauss
-    (make-instance 'pgauss-pstream
-                   :mean (pattern-as-pstream mean)
-                   :deviation (pattern-as-pstream deviation)
-                   :length (as-pstream length))))
 
 (defmethod next ((pgauss pgauss-pstream))
   (with-slots (mean deviation) pgauss
@@ -1705,13 +1640,6 @@ Example:
 ;; ;=> (1 3 5 7)
 
 See also: `pseries*', `pgeom', `paccum'")
-
-(defmethod as-pstream ((pseries pseries))
-  (with-slots (start step length) pseries
-    (make-instance 'pseries-pstream
-                   :start (pattern-as-pstream start)
-                   :step (pattern-as-pstream step)
-                   :length (as-pstream length))))
 
 (defmethod next ((pseries pseries-pstream))
   (with-slots (start step current-value) pseries
@@ -1767,13 +1695,6 @@ Example:
 ;; ;=> (1 2 4 8)
 
 See also: `pseries', `paccum'")
-
-(defmethod as-pstream ((pgeom pgeom))
-  (with-slots (start grow length) pgeom
-    (make-instance 'pgeom-pstream
-                   :start (pattern-as-pstream start)
-                   :grow (pattern-as-pstream grow)
-                   :length (as-pstream length))))
 
 (defmethod next ((pgeom pgeom-pstream))
   (with-slots (start grow current-value) pgeom
@@ -1854,7 +1775,7 @@ See also: `debug-recent-events'")
 (defpattern place (pattern)
   (list
    (repeats :initform :inf)
-   (current-repeat :state t)
+   (current-repeat :state t :initform 0)
    (current-repeats-remaining :state t))
   :documentation "Yield each value from LIST in sequence. If the value is a list, the first element of that list is yielded. The second time that sub-list is encountered, its second element will be yielded; the third time, the third element, and so on. REPEATS controls the number of times LIST is repeated.
 
@@ -1864,13 +1785,6 @@ Example:
 ;; ;=> (1 2 3 1 2 4 1 2 5)
 
 See also: `ppatlace'")
-
-(defmethod as-pstream ((place place))
-  (with-slots (list repeats) place
-    (make-instance 'place-pstream
-                   :list (next list)
-                   :repeats (as-pstream repeats)
-                   :current-repeat 0)))
 
 (defmethod next ((place place-pstream))
   (with-slots (number list current-repeat) place
@@ -3132,17 +3046,6 @@ See also: `pseries', `pgeom', `pwalk'"
                    :lo lo
                    :hi hi
                    :bound-by bound-by)))
-
-(defmethod as-pstream ((paccum paccum))
-  (with-slots (operator start step length lo hi bound-by) paccum
-    (make-instance 'paccum-pstream
-                   :operator (pattern-as-pstream operator)
-                   :start (pattern-as-pstream start)
-                   :step (pattern-as-pstream step)
-                   :length (as-pstream length)
-                   :lo (pattern-as-pstream lo)
-                   :hi (pattern-as-pstream hi)
-                   :bound-by (pattern-as-pstream bound-by))))
 
 (defmethod next ((paccum paccum-pstream))
   (with-slots (operator start step length lo hi bound-by current-value) paccum
