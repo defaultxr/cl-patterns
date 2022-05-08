@@ -247,4 +247,10 @@
    #:*performance-errors*
 
    #:clock-loop
-   #:start-clock-loop))
+   #:start-clock-loop)
+
+  ;; we include this here so that all defined patterns are re-exported if we re-evaluate the define-package form
+  #.(if (and (uiop:find-symbol* '*patterns* 'cl-patterns nil)
+             (symbol-value (uiop:find-symbol* '*patterns* 'cl-patterns nil)))
+        `(:export ,@(symbol-value (uiop:find-symbol* '*patterns* 'cl-patterns)))
+        (values)))
