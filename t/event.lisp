@@ -9,29 +9,23 @@
 
 (test event
   "Test event functionality"
-  (is (=
-       1
-       (event-value (event :dur 0 :sustain 1) :sustain))
+  (is (= 1
+         (event-value (event :dur 0 :sustain 1) :sustain))
       "event returns the wrong sustain when sustain is provided and dur is 0")
-  (is (=
-       0.8
-       (event-value (event) :sustain))
+  (is (= 0.8
+         (event-value (event) :sustain))
       "event returns the wrong default value for sustain")
-  (is (=
-       0.5
-       (event-value (event :dur 0 :legato 0.5) :legato))
+  (is (= 0.5
+         (event-value (event :dur 0 :legato 0.5) :legato))
       "event returns the wrong legato when legato is provided and dur is 0")
-  (is (=
-       0.8
-       (event-value (event) :legato))
+  (is (= 0.8
+         (event-value (event) :legato))
       "event returns the wrong default value for legato")
-  (is (=
-       1
-       (event-value (event) :dur))
+  (is (= 1
+         (event-value (event) :dur))
       "event returns the wrong default value for dur")
-  (is (eql
-       :default
-       (event-value (event) :instrument))
+  (is (eql :default
+           (event-value (event) :instrument))
       "event returns the wrong default value for instrument")
   (is (= (amp-db 0.125)
          (event-value (event :amp 0.125) :db))
@@ -69,15 +63,12 @@
 
 (test event-equal
   "Test event-equal"
-  (is-true
-   (event-equal (event :dur 1) (event :dur 1))
-   "event-equal doesn't return true for equivalent events")
-  (is-false
-   (event-equal (event :dur 1) (event :dur 1 :foo 2))
-   "event-equal doesn't return false for events with differing keys")
-  (is-true
-   (event-equal (list (event :foo 1)) (event :foo 1))
-   "event-equal doesn't consider an event to be equal to a list of the same event"))
+  (is-true (event-equal (event :dur 1) (event :dur 1))
+           "event-equal doesn't return true for equivalent events")
+  (is-false (event-equal (event :dur 1) (event :dur 1 :foo 2))
+            "event-equal doesn't return false for events with differing keys")
+  (is-true (event-equal (list (event :foo 1)) (event :foo 1))
+           "event-equal doesn't consider an event to be equal to a list of the same event"))
 
 (test every-event-equal
   "Test every-event-equal"
@@ -149,38 +140,33 @@
 
 (test split-event-by-lists
   "Test split-event-by-lists"
-  (is-true
-   (every-event-equal
-    (list (event :foo 1 :bar 1 :baz 3)
-          (event :foo 1 :bar 2 :baz 4)
-          (event :foo 1 :bar 1 :baz 5))
-    (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
-   "split-event-by-lists returns incorrect results")
-  (is-true
-   (every-event-equal
-    (list (event :foo 1 :bar 1 :baz 3)
-          (event :foo 1 :bar 2 :baz 4)
-          (event :foo 1 :bar 1 :baz 5))
-    (split-event-by-lists (event :foo (list 1) :bar (list 1 2) :baz (list 3 4 5))))
-   "split-event-by-lists returns incorrect results if one of the event values is a list of length 1")
-  (is-true
-   (equal (list 999)
-          (let ((event (event)))
-            (setf (beat event) 999)
-            (mapcar #'beat (split-event-by-lists event))))
-   "split-event-by-lists doesn't carry over the %beat slot for empty events")
-  (is-true
-   (equal (list 999 999 999)
-          (let ((event (event :midinote (list 40 50 60))))
-            (setf (beat event) 999)
-            (mapcar #'beat (split-event-by-lists event))))
-   "split-event-by-lists doesn't carry over the %beat slot for events with lists"))
+  (is-true (every-event-equal
+            (list (event :foo 1 :bar 1 :baz 3)
+                  (event :foo 1 :bar 2 :baz 4)
+                  (event :foo 1 :bar 1 :baz 5))
+            (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
+           "split-event-by-lists returns incorrect results")
+  (is-true (every-event-equal
+            (list (event :foo 1 :bar 1 :baz 3)
+                  (event :foo 1 :bar 2 :baz 4)
+                  (event :foo 1 :bar 1 :baz 5))
+            (split-event-by-lists (event :foo (list 1) :bar (list 1 2) :baz (list 3 4 5))))
+           "split-event-by-lists returns incorrect results if one of the event values is a list of length 1")
+  (is-true (equal (list 999)
+                  (let ((event (event)))
+                    (setf (beat event) 999)
+                    (mapcar #'beat (split-event-by-lists event))))
+           "split-event-by-lists doesn't carry over the %beat slot for empty events")
+  (is-true (equal (list 999 999 999)
+                  (let ((event (event :midinote (list 40 50 60))))
+                    (setf (beat event) 999)
+                    (mapcar #'beat (split-event-by-lists event))))
+           "split-event-by-lists doesn't carry over the %beat slot for events with lists"))
 
 (test combine-events-via-lists
   "Test combine-events-via-lists"
-  (is-true
-   (event-equal
-    (event :foo 1 :bar (list 2 3) :qux 4 :baz 5)
-    (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5)))
-   "combine-events-via-lists returns incorrect results"))
+  (is-true (event-equal
+            (event :foo 1 :bar (list 2 3) :qux 4 :baz 5)
+            (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5)))
+           "combine-events-via-lists returns incorrect results"))
 
