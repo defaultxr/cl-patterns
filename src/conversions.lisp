@@ -16,7 +16,21 @@
            (list :lambda-list ',lambda-list
                  :body ',body))))
 
-;;; amp/db
+;;; polarity
+
+(defconversion bipolar-unipolar (number)
+  "Convert a bipolar number (-1 to 1) to a unipolar number (0 to 1).
+
+See also: `unipolar-bipolar'"
+  (+ 1/2 (/ number 2)))
+
+(defconversion unipolar-bipolar (number)
+  "Convert a bipolar number (-1 to 1) to a unipolar number (0 to 1).
+
+See also: `bipolar-unipolar'"
+  (1- (* 2 number)))
+
+;;; volume
 
 (defconversion amp-db (amp)
   "Convert amplitude to decibels."
@@ -26,7 +40,7 @@
   "Convert decibels to amplitude."
   (expt 10 (* db 0.05)))
 
-;;; dur
+;;; duration
 
 (defconversion dur-time (dur &optional tempo)
   "Convert DUR in beats to time in seconds according to TEMPO in beats per second."
@@ -57,7 +71,42 @@
          1)
      freq))
 
-;;; freq/midinote/octave/root/degree
+;;; pitch
+;; pitch units hierarchy:
+;; - freq
+;;     - ctranspose - chromatic transposition, in 12ET units. added to :midinote.
+;;     - midinote - midi note number.
+;;       - root - scale root, given in 12ET midi note increments.
+;;       - octave - octave number for :note=0. the default is 4, mapping note 0 onto midi note 60 by default.
+;;       - steps-per-octave - how many note units map onto the octave. supports non-12ET temperaments.
+;;       - gtranspose - non-12ET transposition, in :note units. added to note.
+;;       - note - note number in any division of the octave. 0 is the scale root.
+;;         - degree - scale degree.
+;;         - scale - mapping of scale degrees onto semitones. major, for instance, is (0 2 4 5 7 9 11)
+;;         - steps-per-octave - same as above.
+;;         - mtranspose - modal transposition; added to degree.
+;;
+;; more info:
+;; https://doc.sccode.org/Tutorials/A-Practical-Guide/PG_07_Value_Conversions.html
+;; https://depts.washington.edu/dxscdoc/Help/Classes/Event.html
+;; https://depts.washington.edu/dxscdoc/Help/Classes/Integer.html
+
+;; rate
+
+(defconversion rate-freq (rate &optional (base-freq 440))
+  "Convert a playback rate RATE to a frequency, based on BASE-FREQ."
+  (* base-freq rate))
+
+(defconversion freq-rate (freq &optional (base-freq 440))
+  "Convert the frequency FREQ to a playback rate, based on BASE-FREQ. Useful to convert musical pitch information to a number usable for sample playback synths."
+  (/ freq base-freq))
+
+;; FIX: need `note-rate' and `rate-note' functions
+
+(defvar *c4-midinote* 60
+  "The MIDI note number of note C, octave 4. This sets the global tuning of the various pitch conversion functions.")
+
+;; midinote
 
 (defconversion midinote-freq (midinote)
   "Convert a midi note number to a frequency."
@@ -67,128 +116,220 @@
   "Convert a frequency to a midi note number."
   (+ 69d0 (* 12d0 (log (/ freq 440) 2d0))))
 
+(defconversion rate-midinote (rate &optional (base-note 69))
+  "Convert a playback rate to a midinote."
+  (freq-midinote (rate-freq rate (midinote-freq base-note))))
+
+(defconversion midinote-rate (midinote &optional (base-note 69))
+  "Convert a midinote to a playback rate."
+  (freq-rate (midinote-freq midinote) (midinote-freq base-note)))
+
+(defconversion ratio-midi (ratio) ;; rename to ratio-midi-transposition?
+  "Convert a frequency ratio to a difference in MIDI note numbers."
+  (* 12 (log ratio 2)))
+
+(defconversion midi-ratio (midi) ;; rename to midi-transposition-ratio?
+  "Convert a MIDI note number difference to a frequency ratio."
+  (expt 2 (/ midi 12)))
+
+;; octave
+
+(defconversion octave-freq (octave)
+  "Get the base frequency of OCTAVE."
+  (midinote-freq (octave-midinote octave)))
+
 (defconversion freq-octave (freq)
   "Get the octave number that the frequency FREQ occurs in."
   (midinote-octave (freq-midinote freq)))
 
+(defconversion octave-midinote (octave)
+  "Get the base (lowest) midi note number for OCTAVE."
+  (+ *c4-midinote* (* 12 (- octave 4))))
+
 (defconversion midinote-octave (midinote)
   "Get the octave number that MIDINOTE occurs in."
-  (truncate (/ midinote 12)))
+  (+ 4 (truncate (/ (- midinote *c4-midinote*) 12))))
 
-(defconversion midinote-degree (midinote &key root octave (scale :major))
-  "Get the degree of MIDINOTE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
-  (warn "#'midinote-degree is not done yet.")
-  (let* ((notes (scale-notes (scale (scale (or scale :major)))))
-         (octave (or octave (truncate (/ midinote 12))))
-         (diff (- midinote (* octave 12)))
-         (root (or root (- midinote ;; FIX
-                           (position diff notes)))) ;; FIX
-         )
-    (position midinote (mapcar (lambda (n) (+ (* octave 12) root n))
-                               notes))))
+;; note
 
-(defconversion freq-degree (freq &key root octave (scale :major))
+(defconversion note-freq (note &rest args &key (root 0) (octave 4) (steps-per-octave 12) (gtranspose 0) (octave-ratio 2))
+  "Given a note, return its frequency in hertz, taking into account the ROOT and OCTAVE if provided.
+
+See also: `note-midinote'"
+  (declare (ignore root octave steps-per-octave gtranspose octave-ratio))
+  (midinote-freq (apply #'note-midinote note args)))
+
+(defconversion freq-note (freq)
+  "Get the note for the frequency provided."
+  (midinote-note (freq-midinote freq)))
+
+(defconversion note-midinote (note &key (root 0) (octave 4 octave-provided-p) (steps-per-octave 12) (gtranspose 0) (octave-ratio 2))
+  "Given a note, return its midi note number, taking into account the OCTAVE if provided.
+
+See also: `note-freq'"
+  (when (string-designator-p note)
+    (let ((note-has-digit-p (position-if #'digit-char-p (string note))))
+      (destructuring-bind (name note-octave) (note-name-and-octave note)
+        (when (and octave-provided-p note-has-digit-p)
+          (warn "Ignoring ~S provided as OCTAVE to ~S because the note ~S already specifies the octave" octave 'note-midinote note))
+        (return-from note-midinote
+          (note-midinote (note-chromatic-index name)
+                         :root root
+                         :octave (if note-has-digit-p note-octave octave)
+                         :steps-per-octave steps-per-octave
+                         :gtranspose gtranspose)))))
+  (+ (* (+ (/ (+ note gtranspose root) steps-per-octave)
+           octave
+           -4)
+        (* 12 (log octave-ratio 2d0)))
+     *c4-midinote*))
+
+(defconversion midinote-note (midinote)
+  "Get the note name of MIDINOTE."
+  (make-keyword (concat (chromatic-index-note (mod midinote 12))
+                        (midinote-octave midinote))))
+
+(defconversion note-octave (note)
+  "Get the octave of NOTE."
+  (second (note-name-and-octave note)))
+
+(defconversion octave-note (octave)
+  "Get the note of OCTAVE."
+  (make-keyword (concat :c octave)))
+
+;; chromatic-index
+
+(defparameter *note-names* '((:c :b#) (:c# :db) (:d)
+                             (:d# :eb) (:e :fb) (:f :e#)
+                             (:f# :gb) (:g) (:g# :ab)
+                             (:a) (:a# :bb) (:b :cb))
+  "List of note names in the equal temperament 12-tone tuning.")
+
+(defconversion chromatic-index-freq (chromatic-index &optional (octave 4))
+  "Get the frequency of CHROMATIC-INDEX."
+  (midinote-freq (chromatic-index-midinote chromatic-index octave)))
+
+(defconversion freq-chromatic-index (freq)
+  "Get the chromatic index of FREQ."
+  (midinote-chromatic-index (freq-midinote freq)))
+
+(defconversion chromatic-index-midinote (chromatic-index &optional (octave 4))
+  "Get the midinote of CHROMATIC-INDEX."
+  (+ chromatic-index
+     *c4-midinote*
+     (* 12 (- octave 4))))
+
+(defconversion midinote-chromatic-index (midinote)
+  "Get the chromatic index of MIDINOTE."
+  (note-chromatic-index (midinote-note midinote)))
+
+(defconversion note-chromatic-index (note)
+  "Get the chromatic index of NOTE."
+  (etypecase note
+    (number note)
+    (string-designator
+     (position (chromatic-index-note note) *note-names*
+               :test (lambda (item list)
+                       (member item list :test #'string=))))))
+
+(defconversion chromatic-index-note (chromatic-index)
+  "Get the note of CHROMATIC-INDEX.
+
+Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\"."
+  (etypecase chromatic-index
+    (string-designator
+     (car (note-name-and-octave chromatic-index)))
+    (integer
+     (car (elt-wrap *note-names* chromatic-index)))))
+
+;; degree
+
+(defun degree-key (degree &key (scale (scale :major)) steps-per-octave (accidental 0))
+  "Get the note in SCALE at the index DEGREE, possibly overriding STEPS-PER-OCTAVE."
+  (check-type scale (or scale string-designator (and list (not null))))
+  (when (string-designator-p scale)
+    (let ((found-scale (scale scale)))
+      (unless found-scale
+        (error "No scale defined with name ~S." scale))
+      (return-from degree-key
+        (degree-key degree :scale found-scale :steps-per-octave steps-per-octave))))
+  (let* ((list (typecase scale
+                 (list scale)
+                 (scale (scale-notes scale))))
+         (steps-per-octave (or steps-per-octave (scale-steps-per-octave scale))) ;; FIX: need to implement scale-steps-per-octave
+         (base-key (+ (* steps-per-octave (floor degree (length list)))
+                      (elt-wrap list degree))))
+    (+ base-key (* accidental (/ steps-per-octave 12d0)))))
+
+(defconversion degree-freq (degree &rest args &key (root 0) (octave 4) (scale :major))
+  "Get the frequency of DEGREE, based on the ROOT, OCTAVE, and SCALE, if provided."
+  (declare (ignore root octave scale))
+  (midinote-freq (apply #'degree-midinote degree args)))
+
+(defconversion freq-degree (freq &key root octave (scale :major) quantization)
   "Convert a frequency to a scale degree."
   (midinote-degree (freq-midinote freq)
                    :root root
                    :octave octave
                    :scale scale))
 
-;; FIX: does having a root argument actually make sense for this?
-(defconversion note-midinote (note &key (root 0) (octave 5))
-  "Given a note, return its midi note number, taking into account the ROOT and OCTAVE if provided.
-
-See also: `note-freq'"
-  (etypecase note
-    (number
-     (+ root (* octave 12) note))
-    (string-designator
-     (destructuring-bind (name octave) (note-name-and-octave note)
-       (+ (position name *note-names* :test #'position)
-          (* 12 octave))))))
-
-(defconversion midinote-note (midinote) ;; FIX: this should return the note number not note name.
-  "Get the note of MIDINOTE. Currently just returns the note name."
-  (note-name midinote))
-
-(defconversion note-freq (note &key (root 0) (octave 5))
-  "Given a note, return its frequency in hertz, taking into account the ROOT and OCTAVE if provided.
-
-See also: `note-midinote'"
-  (midinote-freq (note-midinote note :root root :octave octave)))
-
-(defconversion freq-note (freq &key (root 0) (octave 5) (scale :major))
-  "Get the note number relative to the root from the frequency provided."
-  (degree-note (freq-degree freq :root root :octave octave :scale scale) scale))
-
-(defconversion degree-note (degree &optional (scale :major))
-  "Get the relative note number in the tuning of SCALE based on the DEGREE provided."
-  (let* ((scale (scale (or scale :major)))
-         (notes (scale-notes scale)))
-    (+ (elt-wrap notes degree)
-       (* (length (tuning-pitches (tuning (scale-tuning scale))))
-          (floor (/ degree (length notes)))))))
-
-;; FIX:
-;;
-;; implement OUTSIDE-SCALE-BEHAVIOR key for conversion functions involving scales:
-;;
-;; OUTSIDE-SCALE-BEHAVIOR determines what to do if the provided note isn't in the provided scale:
-;;
-;; - :round - round to the nearest note in the scale and return its degree
-;; - :truncate - truncate to the next note in the scale
-;; - :calculate - attempt to calculate the degree as-is, even if it causes non-integer results
-;; - :error - signal an error
-;; - :nil - return nil
-
-(defconversion note-degree (note &optional (scale :major)) ;; FIX: test this
-  "Get the degree of a note in the provided scale. If the note is not in the provided scale, truncate to the nearest note that is."
-  (labels ((find-in-notes (note notes)
-             (cond ((> (elt notes 0) note)
-                    (- (find-in-notes (+ 12 note) notes) 12))
-                   ((>= note 12)
-                    (+ (find-in-notes (- note 12) notes) 12))
-                   (t
-                    (1- (index-of-greater-than note notes))))))
-    (find-in-notes note (scale-notes scale))))
-
-(defconversion degree-midinote (degree &key (root 0) (octave 5) (scale :major))
+(defconversion degree-midinote (degree &key (root 0) (octave 4) (scale :major))
   "Get the midi note number of DEGREE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
-  (note-midinote (degree-note degree scale) :root root :octave octave))
+  (let ((steps-per-octave (scale-steps-per-octave scale)))
+    (note-midinote (degree-note degree
+                                :scale scale
+                                :steps-per-octave steps-per-octave)
+                   :root root
+                   :octave octave
+                   :steps-per-octave steps-per-octave
+                   :octave-ratio (tuning-octave-ratio (scale-tuning scale)))))
 
-(defconversion degree-freq (degree &key (root 0) (octave 5) (scale :major))
-  "Get the frequency of DEGREE, based on the ROOT, OCTAVE, and SCALE, if provided."
-  (midinote-freq (degree-midinote degree :root root :octave octave :scale scale)))
+(defconversion midinote-degree (midinote &key (root 0) (scale :major))
+  "Get the degree of MIDINOTE, taking into account the ROOT, OCTAVE, and SCALE, if provided."
+  (note-degree (midinote-note midinote)
+               :root root
+               :scale scale))
 
-(defconversion ratio-midi (ratio)
-  "Convert a frequency ratio to a difference in MIDI note numbers."
-  (* 12 (log ratio 2)))
+(defconversion degree-octave (degree)
+  "Get the octave of DEGREE."
+  (declare (ignore degree))
+  4)
 
-(defconversion midi-ratio (midi)
-  "Convert a MIDI note number difference to a frequency ratio."
-  (expt 2 (/ midi 12)))
+(defconversion octave-degree (octave)
+  "Get the degree of OCTAVE."
+  (declare (ignore octave))
+  0)
 
-(defconversion freq-rate (freq &optional (base-freq 440))
-  "Convert the frequency FREQ to a playback rate, based on BASE-FREQ. Useful to convert musical pitch information to a number usable for sample playback synths."
-  (/ freq base-freq))
+(defconversion degree-chromatic-index (degree &rest args &key (scale :major) steps-per-octave (mtranspose 0))
+  "Get the chromatic index of DEGREE."
+  (declare (ignore scale steps-per-octave mtranspose))
+  (note-chromatic-index (apply #'degree-note degree args)))
 
-(defconversion rate-freq (rate &optional (base-freq 440))
-  "Convert a playback rate RATE to a frequency, based on BASE-FREQ."
-  (* base-freq rate))
+(defconversion chromatic-index-degree (chromatic-index &rest args &key (root 0) (scale :major))
+  "Get the degree of CHROMATIC-INDEX."
+  (declare (ignore root scale))
+  (apply #'note-degree
+         (chromatic-index-note chromatic-index)
+         args))
 
-(defconversion midinote-rate (midinote &optional (base-note 69)) ;; FIX: support note names like :c4, :d4, :c#2 etc
-  "Convert a midinote to a playback rate."
-  (freq-rate (midinote-freq midinote) (midinote-freq base-note)))
+(defconversion degree-note (degree &key (scale :major) steps-per-octave (mtranspose 0))
+  "Get the note number of DEGREE in SCALE."
+  (degree-key (+ degree mtranspose)
+              :scale scale
+              :steps-per-octave (or steps-per-octave (scale-steps-per-octave scale))))
 
-(defconversion rate-midinote (rate &optional (base-note 69))
-  "Convert a playback rate to a midinote."
-  (freq-midinote (rate-freq rate (midinote-freq base-note))))
+(defconversion note-degree (note &key (root 0) (scale :major))
+  "Get the degree of a note in the provided scale. If the note is not in the provided scale, truncate to the nearest note that is."
+  (let* ((transposed-scale (mapcar (fn (+ _ root))
+                                   (scale-notes scale)))
+         (res (nearest (mod (note-chromatic-index note)
+                            (scale-steps-per-octave scale))
+                       transposed-scale)))
+    (position res transposed-scale :test #'=)))
 
-;; FIX: need `note-rate' and `rate-note' functions
+;;; MIDI stuff (FIX: move to midi backend? how many of these are actually needed?)
 
-;;; MIDI stuff
-
-(defconversion midi-truncate-clamp (number &optional (max 127))
+(defun midi-truncate-clamp (number &optional (max 127))
   "Truncate NUMBER and clamp it to the range 0..MAX (default 127)."
   (declare (number number))
   (clamp (truncate number) 0 max))
@@ -206,4 +347,3 @@ See also: `note-midinote'"
 
 Note that this function is meant for use with the MIDI backend; for frequency-to-midinote conversion without rounding, see `freq-midinote' instead."
   (round (freq-midinote frequency)))
-

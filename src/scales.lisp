@@ -57,26 +57,14 @@ See also: `*abbreviations*'"
 
 ;;; notes
 
-(defparameter *note-names* '((:c :b#) (:c# :db) (:d)
-                             (:d# :eb) (:e :fb) (:f :e#)
-                             (:f# :gb) (:g) (:g# :ab)
-                             (:a) (:a# :bb) (:b :cb))
-  "List of note names in the equal temperament 12-tone tuning.")
-
 (uiop:with-deprecation (:warning)
   (defun note-number (note)
-    "Deprecated alias for `note-midinote'.
+    "Deprecated alias for `note-chromatic-index'."
+    (note-chromatic-index note))
 
-See also: `note-name', `note-name-and-octave', `note-midinote'"
-    (note-midinote note)))
-
-(defun note-name (note-number)
-  "Given a note number, return its note name.
-
-Note that this function is not aware of context and thus always returns the first known name of each note, not necessarily the one that is \"correct\".
-
-See also: `note-midinote'"
-  (car (elt-wrap *note-names* note-number)))
+  (defun note-name (note)
+    "Deprecated alias for `chromatic-index-note'."
+    (chromatic-index-note note)))
 
 (defun sharp-or-flat (string)
   "Given STRING, return a number representing how many semitones above or below its number it represents, by counting sharps (#) and flats (b)."
@@ -316,7 +304,7 @@ See also: `scale', `define-tuning', `define-chord'"
   (etypecase octave
     (integer
      (let ((scale-notes (scale-notes scale))
-           (root-note-number (note-number root)))
+           (root-note-number (note-chromatic-index root)))
        (mapcar (lambda (note)
                  (+ note root-note-number (* octave 12)))
                scale-notes)))
@@ -417,7 +405,7 @@ See also: `scale', `define-tuning', `define-scale'"
             scale
             (scale-notes (scale scale))
             (chord-notes chord)
-            (mapcar #'note-name (chord-notes chord)))))
+            (mapcar #'chromatic-index-note (chord-notes chord)))))
 
 (defun chord-notes (chord)
   "Return a list consisting of the note numbers for CHORD."

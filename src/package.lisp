@@ -48,6 +48,9 @@
 
    ;;; conversions.lisp
 
+   #:bipolar-unipolar
+   #:unipolar-bipolar
+
    #:amp-db
    #:db-amp
 
@@ -56,26 +59,50 @@
    #:dur-freq
    #:freq-dur
 
+   #:rate-freq
+   #:freq-rate
+
+   #:*c4-midinote*
+
    #:midinote-freq
    #:freq-midinote
-   #:freq-octave
-   #:midinote-octave
-   #:midinote-degree
-   #:freq-degree
-   #:note-midinote
-   #:midinote-note
-   #:note-freq
-   #:freq-note
-   #:degree-note
-   #:note-degree
-   #:degree-midinote
-   #:degree-freq
+   #:rate-midinote
+   #:midinote-rate
    #:ratio-midi
    #:midi-ratio
-   #:freq-rate
-   #:rate-freq
-   #:midinote-rate
-   #:rate-midinote
+
+   #:octave-freq
+   #:freq-octave
+   #:octave-midinote
+   #:midinote-octave
+
+   #:note-freq
+   #:freq-note
+   #:note-midinote
+   #:midinote-note
+   #:note-octave
+   #:octave-note
+
+   #:*note-names*
+   #:chromatic-index-freq
+   #:freq-chromatic-index
+   #:chromatic-index-midinote
+   #:midinote-chromatic-index
+   #:chromatic-index-note
+   #:note-chromatic-index
+
+   #:degree-key
+
+   #:degree-freq
+   #:freq-degree
+   #:degree-midinote
+   #:midinote-degree
+   #:degree-octave
+   #:octave-degree
+   #:degree-chromatic-index
+   #:chromatic-index-degree
+   #:degree-note
+   #:note-degree
 
    #:midi-truncate-clamp
    #:bipolar-1-to-midi
@@ -84,10 +111,8 @@
 
    ;;; scales.lisp
 
-   #:*note-names*
-   #:note-number
-   #:note-name
-   #:scale-midinotes
+   #:note-number ;; deprecated
+   #:note-name ;; deprecated
 
    #:define-scale
    #:all-scales

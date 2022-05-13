@@ -40,7 +40,7 @@ Examples:
 ;; (note-name-and-octave :c-1) ;=> (:C -1)
 ;; (note-name-and-octave :d) ;=> (:D 4)
 
-See also: `note-midinote', `note-name'"
+See also: `note-midinote', `chromatic-index-note'"
   (let* ((str (string note))
          (note (remove-if-not (lambda (i)
                                 (or (alpha-char-p i)
@@ -236,9 +236,20 @@ Examples:
 ;; (near-p 0.5) ;; => t
 ;; (near-p 0.5 0.6 1) ;; => t
 
-See also: `alexandria:clamp', `wrap'"
+See also: `alexandria:clamp', `wrap', `nearest'"
   (<= (abs (- number of))
       range))
+
+(defun nearest (input list)
+  "Get the element in LIST nearest to INPUT.
+
+See also: `near-p'"
+  (reduce (lambda (a b)
+            (if (> (abs (- input a))
+                   (abs (- input b)))
+                b
+                a))
+          list))
 
 (defun transpose (freq &optional (semitones 0) (octaves 0))
   "Transpose FREQ the specified number of SEMITONES and OCTAVES."

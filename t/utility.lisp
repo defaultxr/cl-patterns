@@ -117,6 +117,11 @@
   (is-true (cl-patterns::near-p 0.5 0.6 1)
            "near-p says 0.5 is not within 0.6 of 1"))
 
+(test nearest
+  "Test the `nearest' function"
+  (is (= 5
+         (cl-patterns::nearest 3 (list 0 5 10)))))
+
 (test transpose
   "Test the `transpose' function"
   (is (= 880
