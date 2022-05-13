@@ -30,6 +30,28 @@
          string)
      pos)))
 
+(defun note-name-and-octave (note)
+  "Given a note name, return a list consisting of its note number and its octave (defaulting to 4 if it's not specified).
+
+Examples:
+
+;; (note-name-and-octave :c4) ;=> (:C 4)
+;; (note-name-and-octave :a#7) ;=> (:A# 7)
+;; (note-name-and-octave :c-1) ;=> (:C -1)
+;; (note-name-and-octave :d) ;=> (:D 4)
+
+See also: `note-midinote', `note-name'"
+  (let* ((str (string note))
+         (note (remove-if-not (lambda (i)
+                                (or (alpha-char-p i)
+                                    (char= i #\#)))
+                              str))
+         (octave (remove-if-not (fn (or (char= #\- _)
+                                        (digit-char-p _)))
+                                str)))
+    (list (if (emptyp note) :c (make-keyword (string-upcase note)))
+          (if (emptyp octave) 4 (parse-integer octave)))))
+
 ;;; list stuff
 
 (uiop:with-deprecation (:warning)

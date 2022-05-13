@@ -4,6 +4,17 @@
 
 ;;;; t/utility.lisp - tests for cl-patterns utility functions.
 
+(test note-name-and-octave
+  "Test the `note-name-and-octave' function"
+  (is (equalp (note-name-and-octave :c4)
+              '(:C 4)))
+  (is (equalp (note-name-and-octave :a#7)
+              '(:A# 7)))
+  (is (equalp (note-name-and-octave :c-1)
+              '(:C -1)))
+  (is (equalp (note-name-and-octave :d)
+              '(:D 4))))
+
 (test normalized-sum
   "Test the `normalized-sum' function"
   (is (= 1

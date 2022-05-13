@@ -63,19 +63,6 @@ See also: `*abbreviations*'"
                              (:a) (:a# :bb) (:b :cb))
   "List of note names in the equal temperament 12-tone tuning.")
 
-(defun note-name-and-octave (note)
-  "Given a note name, return a list consisting of its note number and its octave (defaulting to 5 if it's not specified).
-
-See also: `note-midinote', `note-name'"
-  (let* ((str (string note))
-         (note (remove-if-not (lambda (i)
-                                (or (alpha-char-p i)
-                                    (char= i #\#)))
-                              str))
-         (octave (remove-if-not #'digit-char-p str)))
-    (list (if (emptyp note) :c (make-keyword (string-upcase note)))
-          (if (emptyp octave) 5 (parse-integer octave)))))
-
 (uiop:with-deprecation (:warning)
   (defun note-number (note)
     "Deprecated alias for `note-midinote'.

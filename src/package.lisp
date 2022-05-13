@@ -15,6 +15,8 @@
    #:*clock*
    #:eop
 
+   #:note-name-and-octave
+
    #:multi-channel-funcall
    #:pyramid
    #:transpose
