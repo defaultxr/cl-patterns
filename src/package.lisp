@@ -95,12 +95,14 @@
    #:scale-name
    #:scale-notes
    #:scale-tuning
+   #:scale-steps-per-octave
 
    #:define-tuning
    #:all-tunings
    #:tuning
    #:tuning-name
    #:tuning-pitches
+   #:tuning-steps-per-octave
    #:tuning-octave-ratio
 
    #:load-scala-scale

@@ -99,6 +99,9 @@ See also: `note-midinote'"
 (defgeneric tuning-pitches (tuning)
   (:documentation "The actual semitone values of the tuning."))
 
+(defgeneric tuning-steps-per-octave (tuning)
+  (:documentation "The number of pitches per octave in the tuning."))
+
 (defgeneric tuning-octave-ratio (tuning)
   (:documentation "The octave ratio of the tuning (i.e. what to multiply a pitch by to increase its octave by 1)."))
 
@@ -163,6 +166,13 @@ See also: `tuning', `define-scale', `define-chord'"
   (when symbol
     (tuning-pitches (tuning symbol))))
 
+(defmethod tuning-steps-per-octave ((tuning tuning))
+  (length (tuning-pitches tuning)))
+
+(defmethod tuning-steps-per-octave ((symbol symbol))
+  (when symbol
+    (tuning-steps-per-octave (tuning symbol))))
+
 (defmethod tuning-octave-ratio ((symbol symbol))
   (when symbol
     (tuning-octave-ratio (tuning symbol))))
@@ -218,10 +228,13 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
 (defgeneric scale-tuning (scale)
   (:documentation "The scale's `tuning'."))
 
+(defgeneric scale-steps-per-octave (scale)
+  (:documentation "The number of pitches per octave in the scale's `tuning'."))
+
 (defclass scale (standard-object #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((name :initarg :name :accessor scale-name :documentation "The full name of the scale.")
-   (notes :initarg :notes :accessor scale-notes :documentation "The degrees of the scale.") ;; FIX: rename to degrees?
-   (tuning :initarg :tuning :accessor scale-tuning :documentation "The scale's `tuning'."))
+   (notes :initarg :notes :accessor scale-notes :documentation "The notes of the scale.")
+   (tuning :initarg :tuning :writer (setf scale-tuning) :documentation "The scale's `tuning'."))
   (:documentation "Scale definition."))
 
 (defmethod print-object ((scale scale) stream)
@@ -281,24 +294,35 @@ See also: `scale', `define-tuning', `define-chord'"
   (when symbol
     (scale-notes (scale symbol))))
 
+(defmethod scale-tuning ((scale scale))
+  (tuning (slot-value scale 'tuning)))
+
 (defmethod scale-tuning ((symbol symbol))
   (when symbol
     (scale-tuning (scale symbol))))
 
-;; FIX: this is wrong for (scale-midinotes :major :root :a :octave :all) ; note how it produces numbers above midi range.
-(defun scale-midinotes (scale &key (root :c) (octave 5))
+(defmethod scale-steps-per-octave ((scale scale))
+  (tuning-steps-per-octave (slot-value scale 'tuning)))
+
+(defmethod scale-steps-per-octave ((symbol symbol))
+  (when symbol
+    (scale-steps-per-octave (scale symbol))))
+
+(defun scale-midinotes (scale &key (root :c) (octave 4))
   "Given a scale, return its midi note numbers. OCTAVE can be a number, a 2-element list denoting an octave range, or :all, for the full octave range (0-9)."
-  (typecase octave
-    (symbol (if (eql :all octave)
-                (scale-midinotes scale :root root :octave (list 0 9))
-                (error "Invalid OCTAVE argument for scale-midinotes; try :all, a number, or a 2-element list denoting a range instead.")))
-    (number (scale-midinotes scale :root root :octave (list octave octave)))
+  (check-type octave (or number list (eql :all)))
+  (when (eql octave :all)
+    (return-from scale-midinotes (scale-midinotes scale :root root :octave (list 0 9))))
+  (etypecase octave
+    (integer
+     (let ((scale-notes (scale-notes scale))
+           (root-note-number (note-number root)))
+       (mapcar (lambda (note)
+                 (+ note root-note-number (* octave 12)))
+               scale-notes)))
     (cons
-     (let ((scale (scale scale))
-           (root (note-midinote root)))
-       (loop :for i :from (car octave) :upto (cadr octave)
-             :append (mapcar (lambda (note) (note-midinote note :root root :octave i))
-                             (scale-notes scale)))))))
+     (loop :for octave :from (first octave) :upto (second octave)
+           :append (scale-midinotes scale :root root :octave octave)))))
 
 ;;; chords
 
