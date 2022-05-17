@@ -123,6 +123,7 @@ See also: `pattern-test-argument'"
                   (mapcar #'freq
                           (handler-bind ((error
                                            (lambda (e)
+                                             (declare (ignore e))
                                              (invoke-restart 'cl-patterns::yield-output 69))))
                             (next-upto-n (pb :test :freq (p/ 1 (pseq (a 1 2 0 2 1) 1)))))))
            "The yield-output restart does not work properly"))
