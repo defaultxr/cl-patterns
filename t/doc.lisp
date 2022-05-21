@@ -1,8 +1,8 @@
+;;;; t/doc.lisp - tests to ensure all patterns, functions, classes, etc are documented in docstrings, doc/, etc.
+
 (in-package #:cl-patterns/tests)
 
 (in-suite cl-patterns-tests)
-
-;;;; t/doc.lisp - tests to ensure all patterns, functions, classes, etc are documented in docstrings, doc/, etc.
 
 ;;; cl-org-mode utility functions
 
@@ -25,11 +25,11 @@
              (typep node 'cl-org-mode::outline-node))
            (recurse (node contains)
              (loop :for header :in (child-nodes node)
-                :if (and (outline-node-p header)
-                         (search contains (slot-value header 'cl-org-mode::heading)))
-                :return header
-                :if (outline-node-p header)
-                :do (recurse header contains))))
+                   :if (and (outline-node-p header)
+                            (search contains (slot-value header 'cl-org-mode::heading)))
+                     :return header
+                   :if (outline-node-p header)
+                     :do (recurse header contains))))
     (recurse node contains)))
 
 
@@ -45,8 +45,8 @@
 Returns nil if none of the keys are missing, otherwise returns the list of undocumented keys."
   (let ((wrap-header (find-org-header node header-name)))
     (loop :for key :in keys
-       :if (not (find-org-header wrap-header (string-downcase (symbol-name key))))
-       :collect key)))
+          :unless (find-org-header wrap-header (string-downcase key))
+            :collect key)))
 
 ;;; org files
 
@@ -68,10 +68,11 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
                                           :append (process-nodes (child-nodes node)))))
                        (process-nodes nodes)))
          (code-texts (flatten (mapcar #'find-code-text list-items)))
-         (missing (remove-if (lambda (pat) (position pat code-texts :test #'string-equal)) (mapcar #'symbol-name (all-patterns)))))
+         (missing (remove-if (lambda (pat)
+                               (position (symbol-name pat) code-texts :test #'string-equal))
+                             (all-patterns))))
     (is-false missing
-              "some patterns are not documented in patterns.org: ~a"
-              missing)))
+              "some patterns are not documented in patterns.org: ~a" missing)))
 
 (test special-keys.org
   "Make sure the special keys are documented"
@@ -79,17 +80,14 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
                                     "pbind special init keys"
                                     (keys cl-patterns::*pbind-special-init-keys*))))
     (is-false missing
-              "some pbind init keys are not documented: ~a"
-              missing))
+              "some pbind init keys are not documented: ~a" missing))
   (let ((missing (find-missing-keys *special-keys.org*
                                     "pbind special wrap keys"
                                     (keys cl-patterns::*pbind-special-wrap-keys*))))
     (is-false missing
-              "some pbind wrap keys are not documented: ~a"
-              missing))
+              "some pbind wrap keys are not documented: ~a" missing))
   (let ((missing (find-missing-keys *special-keys.org*
                                     "pbind special process keys"
                                     (keys cl-patterns::*pbind-special-process-keys*))))
     (is-false missing
-              "some pbind process keys are not documented: ~a"
-              missing)))
+              "some pbind process keys are not documented: ~a" missing)))
