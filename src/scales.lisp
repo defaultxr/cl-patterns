@@ -67,7 +67,15 @@ See also: `*abbreviations*'"
     (chromatic-index-note note)))
 
 (defun sharp-or-flat (string)
-  "Given STRING, return a number representing how many semitones above or below its number it represents, by counting sharps (#) and flats (b)."
+  "Given STRING, return a number representing how many semitones above or below its number it represents, by counting sharps (#) and flats (b).
+
+Example:
+
+;; (sharp-or-flat \"#\") ;=> 1
+;; (sharp-or-flat \"##\") ;=> 2
+;; (sharp-or-flat \"b\") ;=> -1
+
+See also: `note-name-and-octave', `index-and-offset'"
   (+ (* -1 (count #\b string :test #'string-equal))
      (count #\# string :test #'string-equal)))
 
