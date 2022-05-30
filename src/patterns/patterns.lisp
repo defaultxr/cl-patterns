@@ -1072,6 +1072,7 @@ See also: `pseq'")
 (defmethod next ((pser pser-pstream))
   (with-slots (list offset current-index) pser
     (let ((remaining (remaining-p pser 'length))
+          (list (next list))
           (off (next offset)))
       (when (or (not remaining)
                 (eop-p off))
