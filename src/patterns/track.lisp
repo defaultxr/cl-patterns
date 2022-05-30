@@ -5,8 +5,8 @@
 ;;; ptrack
 
 (defpattern ptrack (pattern)
-  (header
-   rows
+  ((header :initform nil)
+   (rows :initform (make-list 16))
    (repeats :initform :inf)
    (current-row :state t)
    (current-repeats-remaining :state t))
