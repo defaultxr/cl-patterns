@@ -235,6 +235,7 @@
 
    ;;; track.lisp
 
+   #:ptrack-rows
    #:ptrack-row
    #:ptrack-cell
 

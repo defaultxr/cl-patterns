@@ -110,6 +110,12 @@ See also: `pt', `pcycles', `pbind'"
     ((member :error) (error "No ~a at ~s exists in ~s." (string-downcase type) name ptrack))
     (null nil)))
 
+(defgeneric ptrack-rows (ptrack &key if-does-not-exist)
+  (:documentation "Get the list of rows from PTRACK."))
+
+(defmethod ptrack-rows (ptrack &key if-does-not-exist)
+  (slot-value ptrack 'rows))
+
 (defgeneric ptrack-row (ptrack row &key if-does-not-exist)
   (:documentation "Get the plist for ROW from PTRACK."))
 
