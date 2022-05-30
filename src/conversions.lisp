@@ -38,7 +38,7 @@ See also: `bipolar-unipolar'"
 
 (defconversion db-amp (db)
   "Convert decibels to amplitude."
-  (expt 10 (* db 0.05)))
+  (expt 10 (/ db 20)))
 
 ;;; duration
 
