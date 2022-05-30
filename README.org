@@ -186,6 +186,7 @@ Don't cut yourself on these. These are the weaker parts of the library; they're 
 
 *** extensions
 
+- [[file:src/extensions/generic-cl.lisp][generic-cl.lisp]] - additional methods for [[https://github.com/alex-gutev/generic-cl][generic-cl]]. enable by loading the ~cl-patterns/generic-cl~ subsystem.
 - [[file:src/extensions/sequence.lisp][sequence.lisp]] - additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].
 - [[file:src/extensions/swank.lisp][swank.lisp]] - creature comforts for slime/swank users.
 - [[file:src/extensions/slynk.lisp][slynk.lisp]] - creature comforts for sly/slynk users.

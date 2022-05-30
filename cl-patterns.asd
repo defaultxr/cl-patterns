@@ -50,6 +50,17 @@
   :serial t
   :components ((:file "src/sugar")))
 
+(asdf:defsystem #:cl-patterns/generic-cl
+  :name "cl-patterns/generic-cl"
+  :description "cl-patterns with additional methods for generic-cl"
+  :author "modula t."
+  :license "MIT"
+  :version "0.7"
+  :depends-on (#:cl-patterns
+               #:generic-cl)
+  :serial t
+  :components ((:file "src/extensions/generic-cl")))
+
 (asdf:defsystem #:cl-patterns/debug
   :name "cl-patterns/debug"
   :description "cl-patterns with debug backend"
