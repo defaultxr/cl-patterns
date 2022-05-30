@@ -121,6 +121,7 @@
    #:scale-notes
    #:scale-tuning
    #:scale-steps-per-octave
+   #:scale-midinotes
 
    #:define-tuning
    #:all-tunings
