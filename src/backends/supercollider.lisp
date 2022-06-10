@@ -117,10 +117,13 @@
 (defmacro make-cl-collider-conversion-pseugen (function)
   "Convert FUNCTION, a function from `*conversions*', into a cl-collider pseudo-ugen using `define-cl-collider-pseugen'."
   (let* ((val (gethash function *conversions*))
-         (lambda-list (getf val :lambda-list))
-         (body (getf val :body)))
-    `(define-cl-collider-pseugen ,function ,lambda-list
-       ,@body)))
+         (lambda-list (getf val :lambda-list)))
+    (multiple-value-bind (body declarations docstring) (parse-body (getf val :body) :documentation t)
+      `(define-cl-collider-pseugen ,function ,lambda-list
+         ,docstring
+         ,@declarations
+         (block ,function
+           ,@body)))))
 
 ;; convert all of the functions in `*conversions*'
 #.(loop :for function :in (keys *conversions*)
