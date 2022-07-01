@@ -190,8 +190,8 @@ See also: `clock-add', `stop', `end'"
     (bt:with-recursive-lock-held (tasks-lock)
       (setf tasks (remove-if (lambda (ctask)
                                (when-let ((eq (eq ctask task)))
-                                 (dolist (backend (enabled-backends) eq)
-                                   (backend-task-removed task backend))))
+                                 (dolist (backend (all-backends :enabled-p t) eq)
+                                   (backend-task-removed backend task))))
                              tasks)))))
 
 (defun clock-tasks (&optional (clock *clock*))
@@ -238,7 +238,7 @@ See also: `clock-tasks'"
 
 (defmethod clock-process-event (clock task event type)
   (dolist (backend (event-backends event))
-    (backend-play-event event task backend)))
+    (backend-play-event backend event task)))
 
 (defun can-swap-now-p (pstream &optional (beat (beat *clock*)))
   "Whether PSTREAM can swap to its new definition, based on `end-quant', `end-condition', `ended-p', and BEAT (the current beat of the clock)."

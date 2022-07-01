@@ -1074,7 +1074,7 @@ See also: `pattern-test-argument'"
     (play (pbind :dur (pseq (list 1 1/2 1/4 1/4)) :x (pbeat*)))
     (clock-process *clock* 4)
     (let ((results (mapcar (fn (event-value _ :x))
-                           (nreverse (debug-recent-events 8)))))
+                           (nreverse (debug-backend-recent-events (find-backend 'debug-backend) 8)))))
       (is (equal (list 0 1 3/2 7/4 2 3 7/2 15/4) results)
           "pbeat* doesn't correctly read the clock's beat; got ~s" results))))
 

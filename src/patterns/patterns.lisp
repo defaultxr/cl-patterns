@@ -1756,7 +1756,7 @@ See also: `pgeom', `pseries', `pseries*'"
    (stream :initform t))
   :documentation "Print the PREFIX and each output of TRACE to STREAM. If TRACE is t, print `*event*'. If TRACE is a different symbol, print the value of that symbol in `*event*'. If TRACE is a pattern, ptrace yields its output unaffected. Otherwise, it yields t.
 
-See also: `debug-recent-events'")
+See also: `debug-backend', `debug-backend-recent-events'")
 
 (defmethod as-pstream ((ptrace ptrace))
   (with-slots (trace prefix stream) ptrace

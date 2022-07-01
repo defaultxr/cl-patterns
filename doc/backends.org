@@ -45,7 +45,7 @@ The following is a table giving information on the various known backends as wel
 Basic sequencing, in which cl-patterns' own clock triggers events.
 
 *** standard backend methods
-Basic methods like ~enable-backend~, ~start-backend~, etc.
+Basic methods like ~make-backend~, ~backend-start~, etc.
 
 *** clock sync
 Synchronize the backend's own clock with the cl-patterns clock.
@@ -97,7 +97,7 @@ Note that this is subject to change, and that the information below may not refl
 ** Generic functions
 The following is a list of some of the generic functions defined by cl-patterns. The list is roughly ordered from most to least important for implementing a backend.
 
-# FIX: this list isn't actually fully ordered yet. additionally, it may be good to separate *-backend functions like start-backend from object functions like play, end, etc.
+# FIX: this list isn't actually fully ordered yet. additionally, it may be good to separate *-backend functions like backend-start from object functions like play, end, etc.
 
 *** clock functions
 - ~peek~
@@ -107,8 +107,8 @@ The following is a list of some of the generic functions defined by cl-patterns.
 - ~as-pstream~ - ?
 - ~last-output~ - ?
 *** backend functions
-- ~start-backend~
-- ~stop-backend~
+- ~backend-start~
+- ~backend-stop~
 - ~backend-play-event~
 - ~backend-tempo-change-at~
 - ~backend-task-removed~

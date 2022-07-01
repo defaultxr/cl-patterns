@@ -5,6 +5,9 @@
 ;; FIX: add bend?
 ;; FIX: allow non-midinote frequencies to be sent as midinote+midi detune (i.e. auto-convert :freq to those keys when enabled)
 
+(defclass alsa-midi (backend)
+  ((name :initform "ALSA MIDI")))
+
 ;;; utility functions
 
 (defun alsa-midi-panic (&key channel manually-free)
@@ -109,42 +112,42 @@ See also: `alsa-midi-instrument-program-number'"
 
 ;;; backend functions
 
-(defmethod start-backend ((backend (eql :alsa-midi)) &key)
+(defmethod backend-start ((backend alsa-midi) &key)
   (unless (elt (midihelper:inspect-midihelper) 5)
     (midihelper:start-midihelper)))
 
-(defmethod stop-backend ((backend (eql :alsa-midi)))
+(defmethod backend-stop ((backend alsa-midi))
   (midihelper:stop-midihelper))
 
-(defmethod backend-instrument-controls (instrument (backend (eql :alsa-midi)))
+(defmethod backend-instrument-controls ((backend alsa-midi) instrument)
   (remove-if #'numberp (keys *alsa-midi-cc-map*)))
 
-(defmethod backend-all-instruments ((backend (eql :alsa-midi)))
+(defmethod backend-all-instruments ((backend alsa-midi))
   (keys *alsa-midi-instrument-map*))
 
-(defmethod backend-all-nodes ((backend (eql :alsa-midi)))
+(defmethod backend-all-nodes ((backend alsa-midi))
   nil)
 
-(defmethod backend-node-p (object (backend (eql :alsa-midi)))
+(defmethod backend-node-p ((backend alsa-midi) object)
   nil)
 
-(defmethod backend-panic ((backend (eql :alsa-midi)))
+(defmethod backend-panic ((backend alsa-midi))
   (alsa-midi-panic))
 
-(defmethod backend-timestamps-for-event (event task (backend (eql :alsa-midi)))
+(defmethod backend-timestamps-for-event ((backend alsa-midi) event task)
   nil)
 
-(defmethod backend-proxys-node (id (backend (eql :alsa-midi)))
+(defmethod backend-proxys-node ((backend alsa-midi) id)
   nil)
 
-(defmethod backend-control-node-at (time (channel number) params (backend (eql :alsa-midi)))
+(defmethod backend-control-node-at ((backend alsa-midi) time (channel number) params)
   ;; FIX
   #+nil (midihelper:ev-cc channel note velocity))
 
-(defmethod backend-control-node-at (time node params (backend (eql :alsa-midi)))
+(defmethod backend-control-node-at ((backend alsa-midi) time node params)
   nil)
 
-(defmethod backend-play-event (event task (backend (eql :alsa-midi)))
+(defmethod backend-play-event ((backend alsa-midi) event task)
   (let ((pgm (alsa-midi-instrument-program-number (event-value event :instrument))))
     (when (or pgm (find :alsa-midi (ensure-list (event-value event :backend))))
       (let* ((type (event-value event :type))
@@ -175,12 +178,8 @@ See also: `alsa-midi-instrument-program-number'"
              (midihelper:send-event (midihelper:ev-noteoff channel note velocity))))
          :name "cl-patterns temporary alsa midi note thread")))))
 
-(defmethod backend-task-removed (task (backend (eql :alsa-midi)))
+(defmethod backend-task-removed ((backend alsa-midi) task)
   ;; FIX
   )
-
-(register-backend :alsa-midi)
-
-;; (enable-backend :alsa-midi)
 
 (export '(alsa-midi-panic alsa-midi-instrument-program-number alsa-midi-cc-mapping get-alsa-midi-cc-mapping alsa-midi-set-cc-mapping set-alsa-midi-cc-mapping alsa-midi-remap-key-value))

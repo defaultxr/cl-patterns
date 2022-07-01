@@ -6,7 +6,7 @@
 
 ;; once that is done, start the SuperCollider server if you haven't already:
 
-(cl-patterns:start-backend :supercollider)
+(cl-patterns:backend-start 'supercollider)
 
 ;; (Note: if you get an error, make sure that sc:*sc-synth-program* is the same as the output of "which scsynth" from your command line. You may also need to set sc:*sc-plugin-paths* if you get errors about UGens not being installed.)
 

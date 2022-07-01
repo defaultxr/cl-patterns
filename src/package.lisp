@@ -254,13 +254,22 @@
 
    ;;; backend.lisp
 
-   #:register-backend
+   #:backend
+   #:all-backend-types
    #:all-backends
-   #:enabled-backends
+   #:backend-p
+   #:find-backend
+   #:make-backend
+   #:backend-start
+   #:backend-stop
+
+   ;; deprecated functions
+   #:register-backend
    #:enable-backend
    #:disable-backend
    #:start-backend
    #:stop-backend
+   #:enabled-backends
 
    ;;; clock.lisp
 

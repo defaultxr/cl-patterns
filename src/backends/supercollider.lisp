@@ -6,53 +6,95 @@
 ;; FIX: changing :instrument in pmono causes the old one to stay playing.
 ;; FIX: multichannel expansion breaks :mono
 
-;;; global settings
+(defclass supercollider (backend)
+  ((name :initform "cl-collider")
+   (server :initarg :server :accessor backend-server :type cl-collider::server :documentation "The `cl-collider::server' object for the backend.")
+   (buffer-preview-synth :initarg :buffer-preview-synth :initform :spt :accessor backend-buffer-preview-synth :type symbol :documentation "The name of the synth to use to preview buffers.")
+   (num-ugens :initform 0 :accessor backend-num-ugens :type (integer 0) :documentation "The last-reported number of UGens running on the server.")
+   (num-synths :initform 0 :accessor backend-num-synths :type (integer 0) :documentation "The last-reported number of Synths running on the server.")
+   (num-groups :initform 0 :accessor backend-num-groups :type (integer 0) :documentation "The last-reported number of Groups active on the server.")
+   (num-definitions :initform 0 :accessor backend-num-definitions :type (integer 0) :documentation "The last-reported number of SynthDefs known by the server.")
+   (last-status-reply-time :initform nil :accessor backend-last-status-reply-time :type (or null integer) :documentation "The internal-real-time when we last got a status update from the backend.")
+   (status-request-interval :initform 7/10 :accessor backend-status-request-interval :type (real 0) :documentation "The time in seconds to sleep between each status request to the backend.")
+   (status-requester-thread :initform nil :accessor backend-status-requester-thread :type (or null bt:thread) :documentation "The thread periodically requesting status updates from the backend, or nil if it is not currently running."))
+  (:documentation "cl-patterns SuperCollider backend via the cl-collider system."))
 
-(defvar *cl-collider-buffer-preview-synth* :spt
-  "The name of the synth to use to `play' a buffer.")
+(defmethod initialize-instance :after ((backend supercollider) &rest args &key (host "127.0.0.1") (port 4444) just-connect-p &allow-other-keys)
+  (let ((server-options (apply #'cl-collider:make-server-options :allow-other-keys t args)))
+    (setf (backend-server backend) (cl-collider:make-external-server (backend-name backend)
+                                                                     :server-options server-options
+                                                                     :host host
+                                                                     :port port
+                                                                     :just-connect-p just-connect-p))
+    backend))
 
-;;; backend functions
+(defmethod backend-start ((backend supercollider) &rest rest &key (set-cl-collider-default-p t) force-boot-p &allow-other-keys)
+  (declare (ignore rest))
+  (let ((server (backend-server backend)))
+    (unless (and set-cl-collider-default-p
+                 (null cl-collider:*s*))
+      (setf cl-collider:*s* server))
+    (if (and (cl-collider:boot-p server)
+             (not force-boot-p))
+        (warn "Server ~s for backend ~s appears to be already booted." server backend)
+        (cl-collider:server-boot server))))
 
-(defmethod start-backend ((backend (eql :supercollider)) &rest rest &key (name "cl-collider") (host "localhost") (port 4444) just-connect-p &allow-other-keys)
-  (setf cl-collider:*s* (cl-collider:make-external-server
-                         name
-                         :server-options (apply #'cl-collider:make-server-options
-                                                (remove-from-plist rest :name :host :port :just-connect-p))
-                         :host host
-                         :port port
-                         :just-connect-p just-connect-p))
-  (cl-collider:server-boot cl-collider:*s*))
+(defmethod backend-stop ((backend supercollider))
+  (cl-collider:server-quit (backend-server backend)))
 
-(defmethod stop-backend ((backend (eql :supercollider)))
-  (cl-collider:server-quit cl-collider:*s*))
+(defmethod backend-start-status-tracker ((backend supercollider))
+  (cl-collider:add-reply-responder
+   "/status.reply"
+   (lambda (_ ugens synths groups definitions average-cpu peak-cpu nominal-sample-rate actual-sample-rate)
+     (declare (ignore _ average-cpu peak-cpu actual-sample-rate))
+     (setf (backend-num-ugens backend) ugens
+           (backend-num-synths backend) synths
+           (backend-num-groups backend) groups
+           (backend-num-definitions backend) definitions
+           (cl-collider::server-options-hardware-samplerate (cl-collider:server-options (backend-server backend))) nominal-sample-rate
+           (backend-last-status-reply-time backend) (get-internal-real-time))))
+  (with-slots (status-requester-thread) backend
+    (unless (and status-requester-thread
+                 (bt:thread-alive-p status-requester-thread))
+      (setf status-requester-thread (bt:make-thread (lambda ()
+                                                      (sleep 1)
+                                                      (while (and (backend-status-requester-thread backend)
+                                                                  (cl-collider:boot-p (backend-server backend)))
+                                                        (cl-collider:server-status (backend-server backend))
+                                                        (sleep (backend-status-request-interval backend)))
+                                                      (setf (backend-status-requester-thread backend) nil))
+                                                    :name "SuperCollider server status requester")))))
 
-(defmethod backend-instrument-controls (instrument (backend (eql :supercollider)))
+;; (defmethod backend-status ((backend supercollider) &optional ()))
+
+(defmethod backend-instrument-controls ((backend supercollider) instrument)
   (mapcar #'car (cl-collider:synthdef-metadata instrument :controls)))
 
-(defmethod backend-all-instruments ((backend (eql :supercollider)))
+(defmethod backend-all-instruments ((backend supercollider))
   (keys cl-collider::*synthdef-metadata*))
 
-(defmethod backend-all-nodes ((backend (eql :supercollider)))
+(defmethod backend-all-nodes ((backend supercollider))
   ;; cl-collider doesn't store the node objects themselves, so this method creates its own node objects.
   ;; unfortunately, that means that the objects returned by this function won't have all information, such as the 'name slot.
-  (loop :for id :in (cl-collider::node-watcher cl-collider:*s*)
-        :unless (member id (list 0 1))
-          :collect (make-instance 'cl-collider::node :id id :server cl-collider:*s* :name nil)))
+  (let ((server (backend-server backend)))
+    (loop :for id :in (cl-collider::node-watcher server)
+          :unless (member id (list 0 1))
+            :collect (make-instance 'cl-collider::node :id id :server server :name nil))))
 
-(defmethod backend-node-p (object (backend (eql :supercollider)))
+(defmethod backend-node-p ((backend supercollider) object)
   (typep object 'cl-collider::node))
 
-(defmethod backend-panic ((backend (eql :supercollider)))
-  (cl-collider:group-free-all cl-collider:*s*))
+(defmethod backend-panic ((backend supercollider))
+  (cl-collider:group-free-all (backend-server backend)))
 
-(defmethod backend-timestamps-for-event (event task (backend (eql :supercollider)))
+(defmethod backend-timestamps-for-event ((backend supercollider) event task)
   (let ((time (if-let ((timestamp (raw-event-value event :timestamp-at-start)))
                 (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9))
                 (cl-collider:now))))
     (list time (+ time (dur-time (sustain event))))))
 
-(defmethod backend-proxys-node (id (backend (eql :supercollider)))
-  (let ((proxy-table (cl-collider::node-proxy-table cl-collider::*s*)))
+(defmethod backend-proxys-node ((backend supercollider) id)
+  (let ((proxy-table (cl-collider::node-proxy-table (backend-server backend))))
     (etypecase id
       (symbol
        (gethash id proxy-table))
@@ -70,23 +112,23 @@
        ;; thus causing the ID stored in the node object to be invalid.
        (backend-proxys-node (cl-collider::name id) :supercollider)))))
 
-(defmethod backend-control-node-at (time (node symbol) params (backend (eql :supercollider)))
+(defmethod backend-control-node-at ((backend supercollider) time (node symbol) params)
   (cl-collider:at time
     (apply #'cl-collider:synth node params)))
 
-(defmethod backend-control-node-at (time (node cl-collider::node) params (backend (eql :supercollider)))
+(defmethod backend-control-node-at ((backend supercollider) time (node cl-collider::node) params)
   (cl-collider:at time
     (apply #'cl-collider:ctrl node params)))
 
-(defmethod backend-convert-object ((object cl-collider::buffer) key (backend (eql :supercollider)))
+(defmethod backend-convert-object ((backend supercollider) (object cl-collider::buffer) key)
   (declare (ignore key))
   (cl-collider:bufnum object))
 
-(defmethod backend-convert-object ((object cl-collider::bus) key (backend (eql :supercollider)))
+(defmethod backend-convert-object ((backend supercollider) (object cl-collider::bus) key)
   (declare (ignore key))
   (cl-collider:busnum object))
 
-(defmethod backend-convert-object ((object cl-collider::node) key (backend (eql :supercollider)))
+(defmethod backend-convert-object ((backend supercollider) (object cl-collider::node) key)
   (let ((bus (if (eql key :out)
                  (cl-collider:synthdef-metadata object :input-bus)
                  (or (cl-collider:synthdef-metadata object :output-bus)
@@ -95,7 +137,7 @@
         (cl-collider:busnum bus)
         object)))
 
-(defmethod backend-convert-object ((object cl-collider::group) key (backend (eql :supercollider)))
+(defmethod backend-convert-object ((backend supercollider) (object cl-collider::group) key)
   (declare (ignore key))
   (cl-collider::id object))
 
@@ -154,9 +196,10 @@
                                                               cl-collider:*s*))))
 
 (defmethod play ((buffer cl-collider::buffer))
-  (let* ((synth *cl-collider-buffer-preview-synth*)
+  (let* ((backend (find-backend 'supercollider))
+         (synth (backend-buffer-preview-synth backend))
          (synthdef-controls (mapcar #'car (cl-collider:synthdef-metadata synth :controls))))
-    (play (event :backend :supercollider
+    (play (event :backend 'supercollider ;; backend ; FIX: should support using the backend object itself rather than just the symbol
                  ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument synth
                  (find-if (lambda (x) ;; buffer or bufnum argument
@@ -177,6 +220,4 @@
               o-args)))
     (apply #'cl-collider:buffer-write buffer path o-args)))
 
-(register-backend :supercollider)
 
-;; (enable-backend :supercollider)

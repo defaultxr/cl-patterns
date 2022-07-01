@@ -174,8 +174,8 @@
      `(cl:mapcar
        (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))
        (cl-patterns::backend-instrument-controls
-        ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument)))
-        (cl:car (cl-patterns:enabled-backends)))))))
+        (cl:car (cl-patterns:all-backends :enabled-p t :started-p t))
+        ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument))))))))
 
 ;;; Commands
 
