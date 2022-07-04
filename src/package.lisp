@@ -111,19 +111,10 @@
 
    ;;; scales.lisp
 
-   #:note-number ;; deprecated
-   #:note-name ;; deprecated
+   #:note-number ; deprecated
+   #:note-name ; deprecated
 
    #:tone-matrix
-
-   #:define-scale
-   #:all-scales
-   #:scale
-   #:scale-name
-   #:scale-notes
-   #:scale-tuning
-   #:scale-steps-per-octave
-   #:scale-midinotes
 
    #:define-tuning
    #:all-tunings
@@ -134,6 +125,15 @@
    #:tuning-octave-ratio
 
    #:load-scala-scale
+
+   #:define-scale
+   #:all-scales
+   #:scale
+   #:scale-name
+   #:scale-notes
+   #:scale-tuning
+   #:scale-steps-per-octave
+   #:scale-midinotes
 
    #:define-chord
    #:all-chords
@@ -186,16 +186,20 @@
 
    #:pattern
    #:pattern-p
+   #:all-patterns
+
+   #:pattern-parent
+   #:parent-pattern ; deprecated
+   #:parent-pbind ; deprecated
+   #:pattern-children
+   #:pstream-count
+   #:pattern-metadata
+
    #:pstream-p
    #:as-pstream
    #:pattern-as-pstream
+
    #:t-pstream
-   #:all-patterns
-   #:pattern-parent
-   #:parent-pattern
-   #:parent-pbind
-   #:pattern-children
-   #:pattern-metadata
 
    #:peek
    #:peek-n
@@ -207,7 +211,6 @@
    #:pstream
    #:pstream-elt
    #:pstream-elt-future
-   #:pstream-count
 
    #:*post-pattern-output-processors*
    #:instrument-mapping
