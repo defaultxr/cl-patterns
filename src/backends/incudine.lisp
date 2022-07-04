@@ -167,9 +167,7 @@ See also: `timestamp-incudine-samples'"
     (play (event :backend 'incudine
                  ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument dsp
-                 (find-if (fn (position _ (list 'buffer 'bufnum) :test #'string-equal))
-                          dsp-controls)
-                 buffer
+                 (find-buffer-symbol dsp-controls) buffer
                  :dur 16
                  :quant 0
                  :latency 0))))

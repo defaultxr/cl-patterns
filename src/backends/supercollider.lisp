@@ -202,10 +202,7 @@
     (play (event :backend 'supercollider ;; backend ; FIX: should support using the backend object itself rather than just the symbol
                  ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument synth
-                 (find-if (lambda (x) ;; buffer or bufnum argument
-                            (position x (list 'buffer 'bufnum) :test #'string-equal))
-                          synthdef-controls)
-                 buffer
+                 (find-buffer-symbol synthdef-controls) buffer
                  :dur 16
                  :quant 0))))
 

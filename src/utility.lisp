@@ -224,6 +224,13 @@ See also: `mapcar-longest', `split-event-by-lists'"
              (setf (elt res k) (elt-wrap sequence j))
              (incf k))))))))
 
+(defun find-buffer-symbol (sequence)
+  "Get the name and index of the symbol in SEQUENCE that represents the buffer argument. This is typically either :buffer or :bufnum."
+  (loop :for idx :from 0
+        :for i :being :the :elements :of sequence
+        :if (member i '(:buffer :bufnum) :test #'string-equal)
+          :do (return-from find-buffer-symbol (values i idx))))
+
 ;;; math stuff
 
 (defun near-p (number &optional (range 1) (of 0))
