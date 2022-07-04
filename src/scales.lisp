@@ -87,6 +87,44 @@ See also: `note-name-and-octave', `index-and-offset'"
     (string (cons (parse-integer num :junk-allowed t)
                   (sharp-or-flat num)))))
 
+;;; additional music theory functions
+
+(defun tone-matrix (tones &optional transformation)
+  "Generate a tone matrix from TONES. Supports symbols t and e for 10 and 11, respectively, but only returns numbers. TRANSFORMATION can be :inversion, :retrograde, or :retrograde-inversion (or a 3-letter abbreviation of any of the above)."
+  (let* ((tones (mapcar (lambda (elem)
+                          (etypecase elem
+                            (integer elem)
+                            (symbol (cond ((string= t elem)
+                                           10)
+                                          ((string= :e elem)
+                                           11)))))
+                        tones))
+         (length (length tones))
+         (diffs (loop :repeat (1- length)
+                      :for (one two) :on tones
+                      :collect (- one two))))
+    (labels ((row-head (row-number last-row)
+               (mod (+ (first last-row)
+                       (nth row-number diffs))
+                    12))
+             (generate-row (row-number last-row)
+               (when (nth row-number diffs)
+                 (let* ((num (row-head row-number last-row))
+                        (row (cons num (loop :for diff :in diffs
+                                             :do (setf num (mod (- num diff) 12))
+                                             :collect num))))
+                   (cons row (generate-row (1+ row-number) row))))))
+      (let ((res (cons tones (generate-row 0 tones))))
+        (case (make-keyword transformation)
+          (:nil
+           res)
+          ((:inversion :inv)
+           (flop res))
+          ((:retrograde :ret)
+           (mapcar #'reverse res))
+          ((:retrograde-inversion :ret-inv :inv-ret :rin :rei :retinv :invret)
+           (flop (mapcar #'reverse res))))))))
+
 ;;; tunings
 
 (defgeneric tuning-name (tuning)

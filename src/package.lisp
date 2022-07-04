@@ -114,6 +114,8 @@
    #:note-number ;; deprecated
    #:note-name ;; deprecated
 
+   #:tone-matrix
+
    #:define-scale
    #:all-scales
    #:scale
