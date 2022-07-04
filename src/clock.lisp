@@ -19,9 +19,9 @@
   (:documentation "An item scheduled to be run on the clock."))
 
 (defmethod print-object ((task task) stream)
-  (with-slots (item) task
-    (print-unreadable-object (task stream :type t)
-      (format stream ":ITEM ~s" item))))
+  (print-unreadable-object (task stream :type t)
+    (with-slots (item) task
+      (format stream "~S ~S" :item item))))
 
 (defmethod beat ((task task))
   (beat (task-item task)))
@@ -105,8 +105,9 @@ See also: `task-pattern', `clock-tasks'"
   (:documentation "A musical time-based clock defining a tempo and pulse that its tasks synchronize to."))
 
 (defmethod print-object ((clock clock) stream)
-  (with-slots (tempo beat) clock
-    (format stream "#<~s :tempo ~s (~s bpm) :beat ~f>" 'clock tempo (* tempo 60) beat)))
+  (print-unreadable-object (clock stream :type t)
+    (with-slots (tempo beat) clock
+      (format stream "~S ~S (~S BPM) ~S ~F" :tempo tempo (* tempo 60) :beat beat))))
 
 (defun make-clock (&optional (tempo 1) &key (latency 1/10) play-expired-events condition-handler)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
@@ -231,7 +232,7 @@ See also: `clock-tasks'"
                 beat-at-tempo (raw-event-value event :beat-at-start))
           (dolist (timestamp timestamps)
             (apply 'backend-tempo-change-at clock timestamp)))
-        (warn "Tempo change event ~a has invalid :tempo parameter; ignoring." event))))
+        (warn "Tempo change event ~S has invalid :tempo parameter; ignoring." event))))
 
 (defmethod clock-process-event (clock task event (type (eql :rest)))
   nil)
@@ -272,7 +273,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
         :if (or (null item) (eop-p item))
           :do (loop-finish)
         :if (>= retries 32)
-          :do (warn "Task ~s yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
+          :do (warn "Task ~S yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
               (clock-remove task)
         :else
           :if (and (can-swap-now-p item (beat clock))
@@ -298,7 +299,7 @@ See also: `clock-loop', `clock-tasks', `make-clock'"
                                     (eql t (slot-value clock 'play-expired-events)))
                                 (clock-process-event clock task event (event-value event :type))
                                 (when (eql :warn (slot-value clock 'play-expired-events))
-                                  (warn "Clock skipped expired event ~s from task ~s" event task))))))))
+                                  (warn "Clock skipped expired event ~S from task ~S." event task))))))))
                 (skip-event ()
                   :report "Skip this event, preserving the task on the clock so it can be run again."
                   nil)

@@ -55,12 +55,12 @@ See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
 
 (defmethod print-object ((pdef pdef) stream)
   (with-slots (name) pdef
-    (format stream "(~s ~s)" 'pdef name)))
+    (format stream "(~S ~S)" 'pdef name)))
 
 (defmethod print-object ((pdef pdef-pstream) stream)
   (with-slots (name) pdef
     (print-unreadable-object (pdef stream :type t)
-      (format stream "~s" name))))
+      (format stream "~S" name))))
 
 (defun playing-pdefs (&optional (clock *clock*))
   "Get a list of the names of all pdefs playing on CLOCK.
@@ -117,7 +117,7 @@ See also: `all-pdefs', `playing-nodes', `playing-p'"
 (defmethod end ((pdef pdef))
   (if (pdef-task pdef)
       (end (pdef-task pdef))
-      (warn "~s has no connected task; try the `stop' method instead." pdef)))
+      (warn "~S has no associated task; try ~S instead." pdef 'stop)))
 
 (defmethod playing-p ((pdef pdef) &optional (clock *clock*))
   (when clock

@@ -36,7 +36,7 @@
       (setf cl-collider:*s* server))
     (if (and (cl-collider:boot-p server)
              (not force-boot-p))
-        (warn "Server ~s for backend ~s appears to be already booted." server backend)
+        (warn "Server ~S for backend ~S appears to be already booted; use ~S argument to force." server backend :force-boot-p)
         (cl-collider:server-boot server))))
 
 (defmethod backend-stop ((backend supercollider))

@@ -332,7 +332,7 @@ See also: `play', `launch', `end', `stop'")
 
 See also: `find-pdef'"
   (dolist (func *dictionary-lookup-functions* (if (eql :error default)
-                                                  (error "No object found with ID ~s" id)
+                                                  (error "No object found with ID ~S" id)
                                                   default))
     (when-let ((res (ignore-errors (funcall func id))))
       (return-from find-object-by-id res))))
@@ -608,7 +608,7 @@ See also: `render'"
                            (apply #'render object output args)
                            (if-let ((backend (find-backend-supporting-render ,type)))
                              (apply #'render object backend args)
-                             (error "No enabled backend supports rendering as ~s." ,type)))))
+                             (error "No enabled backend supports rendering as ~S." ,type)))))
                     (list :buffer :file :score)))
 
 ;;; macros / MOP stuff

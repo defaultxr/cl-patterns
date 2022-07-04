@@ -24,7 +24,7 @@
 
 (defmethod print-object ((pcycles pcycles) stream)
   (with-slots (list map key dur repeats) pcycles
-    (format stream "(~s ~s~@[ :MAP ~s~]~@[ :KEY ~s~]~@[ :DUR ~s~]~@[ :REPEATS ~s~])"
+    (format stream "(~S ~S~@[ :MAP ~S~]~@[ :KEY ~S~]~@[ :DUR ~S~]~@[ :REPEATS ~S~])"
             'pcycles list
             map
             (unless (eql :value key) key)

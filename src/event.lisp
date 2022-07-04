@@ -19,13 +19,13 @@
   (:documentation "Class representing a musical event."))
 
 (defmethod print-object ((item event) stream)
-  (format stream "(~s~{ ~s ~s~})" 'event (event-plist item)))
+  (format stream "(~S~{ ~S ~S~})" 'event (event-plist item)))
 
 (defun event (&rest params)
   "Create an event, using the PARAMS as its keys/values.
 
 See also: `event-value', `event-p', `e', `*event*'"
-  (assert (evenp (length params)) (params) "PARAMS must be a list of key/value pairs; got ~s" params)
+  (assert (evenp (length params)) (params) "PARAMS must be a list of key/value pairs; got ~S" params)
   (let ((ev (make-instance 'event)))
     (doplist (key value params ev)
       (setf (event-value ev key) value))))
@@ -115,7 +115,7 @@ See also: `event-value', `event', `*event*'"
 (defun (setf e) (value key)
   (if (event-p *event*)
       (setf (event-value *event* key) value)
-      (error "Can't setf (e ~s); *EVENT* is not currently set to an event." key)))
+      (error "Can't setf ~S; ~S is not currently set to an event." `(e ,key) '*event*)))
 
 ;;; methods for generic functions
 

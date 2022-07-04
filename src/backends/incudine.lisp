@@ -29,7 +29,7 @@ See also: `timestamp-incudine-samples'"
   (let* ((start-samples (backend-start-samples backend))
          (diff (- samples start-samples)))
     (when (minusp diff)
-      (warn "incudine-samples-timestamp: SAMPLES (~s) occurs before backend-start-samples (~s); result may be inaccurate." samples start-samples))
+      (warn "incudine-samples-timestamp: SAMPLES (~S) occurs before backend-start-samples (~S); result may be inaccurate." samples start-samples))
     (local-time:timestamp+ (backend-start-timestamp backend) (/ diff (incudine:rt-sample-rate)) :sec)))
 
 (defvar *incudine-start-timestamp* nil
@@ -81,8 +81,8 @@ See also: `timestamp-incudine-samples'"
 
 (defmethod backend-start ((backend incudine) &key)
   (unless *clock*
-    (warn "cl-patterns' *CLOCK* is nil; starting the clock on your behalf with START-CLOCK-LOOP: ~s."
-          (start-clock-loop)))
+    (warn "cl-patterns' ~S is nil; starting the clock on your behalf with ~S: ~S."
+          '*clock* 'start-clock-loop (start-clock-loop)))
   (incudine:rt-start)
   (setf *incudine-start-timestamp* (local-time:now)
         *incudine-start-samples* (incudine:now)))
@@ -149,7 +149,7 @@ See also: `timestamp-incudine-samples'"
                   (incf incudine::*last-node-id*)))) ;; can we reserve a node ID with `incudine.vug::with-reserved-node' or the like?
       (apply #'incudine:at time (fdefinition dsp) :id id params)
       (incudine:node id)) ;; this will show :ID NIL but it does actually point to the correct node.
-    (error "Unable to find an Incudine DSP with name ~s." node)))
+    (error "Unable to find an Incudine DSP with name ~S." node)))
 
 (defmethod play ((node incudine:node))
   t)

@@ -31,16 +31,16 @@
   "Check that the system has all the standard attributes"
   (let ((missing (system-missing-attributes :cl-patterns)))
     (is-false missing
-              "The asdf system definition is missing attributes: ~s" missing)))
+              "The asdf system definition is missing attributes: ~S" missing)))
 
 (test undocumented-symbols
   "Check for any undocumented exported symbols"
   (let ((undocumented (undocumented-symbols :cl-patterns)))
     (is-false undocumented
-              "some exported symbols do not have docstrings: ~s" undocumented)))
+              "some exported symbols do not have docstrings: ~S" undocumented)))
 
 (test docstrings-broken-links
   "Check for any broken links in docstrings of exported symbols"
   (let ((symbols (docstrings-with-broken-links :cl-patterns)))
     (is-false symbols
-              "some exported symbols have docstrings that contain broken links: ~s" symbols)))
+              "some exported symbols have docstrings that contain broken links: ~S" symbols)))

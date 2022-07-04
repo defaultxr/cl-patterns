@@ -62,7 +62,7 @@ See also: `pattern-test-arguments'"
     ((:wrap-at-end :stream :wrap-p) nil)
     (:prefix "")
     (t
-     (warn "pattern-test-argument: Argument ~s did not have a case; defaulting to 1." argument)
+     (warn "pattern-test-argument: Argument ~S did not have a case; defaulting to 1." argument)
      1)))
 
 (defun pattern-test-arguments (pattern)
@@ -103,12 +103,12 @@ See also: `pattern-test-argument'"
     (dolist (pattern patterns)
       (let ((args (pattern-test-arguments pattern)))
         (is-true (eop-p (lastcar (next-n (apply pattern args) 10)))
-                 "(~s~{ ~s~}) did not yield eop at its end" pattern args))))
+                 "(~S~{ ~S~}) did not yield ~S at its end" pattern args eop))))
   (is-true (eop-p (lastcar (next-n (pbind :foo (pseq (list 1) 1)
                                           :bar (prun (pseq (list 4) 1)
                                                      (pseq (list 1) 1)))
                                    5)))
-           "~s did not yield eop at its end" 'prun))
+           "~S did not yield ~S at its end" 'prun eop))
 
 (test next
   "Test next and next-upto-n"
@@ -140,7 +140,8 @@ See also: `pattern-test-argument'"
          (*max-pattern-yield-length* num))
     (is (= num
            (length (next-upto-n (pbind :foo 1 :bar 2))))
-        "pbind doesn't yield the correct number of events by default for a *max-pattern-yield-length* of ~a"
+        "pbind doesn't yield the correct number of events by default for a ~S of ~A"
+        '*max-pattern-yield-length*
         num))
   (is (every-event-equal (list (event) (event) (event))
                          (next-n (pbind) 3))
@@ -740,7 +741,7 @@ See also: `pattern-test-argument'"
   (let* ((len (random *max-pattern-yield-length*))
          (res (length (next-upto-n (pwhite 0 1 len)))))
     (is (= len res)
-        "pwhite yields the wrong number of outputs (expected ~s, got ~s)" len res)))
+        "pwhite yields the wrong number of outputs (expected ~S, got ~S)" len res)))
 
 (test pbrown
   "Test pbrown"
@@ -760,7 +761,7 @@ See also: `pattern-test-argument'"
   (let* ((len (random *max-pattern-yield-length*))
          (res (length (next-upto-n (pbrown 0 1 0.125 len)))))
     (is (= len res)
-        "pbrown yields the wrong number of outputs (expected ~s, got ~s)" len res)))
+        "pbrown yields the wrong number of outputs (expected ~S, got ~S)" len res)))
 
 (test pexprand
   "Test pexprand"
@@ -772,7 +773,7 @@ See also: `pattern-test-argument'"
   (let* ((len (random *max-pattern-yield-length*))
          (res (length (next-upto-n (pgauss 8 8 len)))))
     (is (= len res)
-        "pgauss yields the wrong number of outputs (expected ~s, got ~s)" len res)))
+        "pgauss yields the wrong number of outputs (expected ~S, got ~S)" len res)))
 
 (test pseries
   "Test pseries"
@@ -795,13 +796,13 @@ See also: `pattern-test-argument'"
         "pseries* yields the wrong number of outputs"))
   (for-all ((num (gen-integer :min 0)))
     (is (= num (next (pseries* num 2 4)))
-        "pseries* did not yield START as the first output (when provided with ~a as START)"
+        "pseries* did not yield START as the first output (when provided with ~A as START)"
         num))
   (for-all ((end (gen-integer :min -40 :max 40))
             (len (gen-integer :min 2 :max 40)))
     (is (= end
            (lastcar (next-upto-n (pseries* 50 end len))))
-        "pseries*'s last output is incorrect when END is ~a and LENGTH is ~a"
+        "pseries*'s last output is incorrect when END is ~A and LENGTH is ~A"
         end len)))
 
 (test pgeom
@@ -822,18 +823,18 @@ See also: `pattern-test-argument'"
   (for-all ((len (gen-integer :min 2 :max 128)))
     (is (length= len
                  (next-upto-n (pgeom* 1 2 len)))
-        "pgeom* yields the wrong number of outputs when LENGTH is ~a"
+        "pgeom* yields the wrong number of outputs when LENGTH is ~A"
         len))
   (for-all ((start (gen-integer)))
     (is (= start (next (pgeom* start 2 4)))
-        "pgeom* did not yield START as the first output (when ~a provided as START)"
+        "pgeom* did not yield START as the first output (when ~A provided as START)"
         start))
   (for-all ((end (gen-integer :min -40 :max 40))
             (len (gen-integer :min 2 :max 20)))
     (let ((res (lastcar (next-upto-n (pgeom* 50 end len)))))
       (is (> 1
              (abs (- end res)))
-          "pgeom*'s last output is nowhere near END (it is ~a when END is ~a and LENGTH is ~a)"
+          "pgeom*'s last output is nowhere near END (it is ~A when END is ~A and LENGTH is ~A)"
           res end len))))
 
 (test ptrace
@@ -845,7 +846,7 @@ See also: `pattern-test-argument'"
         "ptrace doesn't correctly pass TRACE's output events"))
   (let ((s (make-string-output-stream)))
     (next-upto-n (ptrace (pseq (list 1 2 3) 1) "foo" s))
-    (is (string= (format nil "foo 1~%foo 2~%foo 3~%foo ~s~%" eop)
+    (is (string= (format nil "foo 1~%foo 2~%foo 3~%foo ~S~%" eop)
                  (get-output-stream-string s))
         "ptrace doesn't print the correct trace output to its STREAM"))
   (let ((s (make-string-output-stream)))
@@ -1076,7 +1077,7 @@ See also: `pattern-test-argument'"
     (let ((results (mapcar (fn (event-value _ :x))
                            (nreverse (debug-backend-recent-events (find-backend 'debug-backend) 8)))))
       (is (equal (list 0 1 3/2 7/4 2 3 7/2 15/4) results)
-          "pbeat* doesn't correctly read the clock's beat; got ~s" results))))
+          "pbeat* doesn't read the clock's beat correctly; got ~S" results))))
 
 (test ptime
   ;; FIX
@@ -1223,7 +1224,7 @@ See also: `pattern-test-argument'"
            (reduce #'+ (next-upto-n (pts (pbind :dur (pwhite 1 64 12))
                                          dur))
                    :key #'dur))
-        "pts doesn't correctly timestretch a pattern to a duration of ~a"
+        "pts doesn't correctly timestretch a pattern to a duration of ~A"
         dur)))
 
 (test pwalk
@@ -1314,7 +1315,7 @@ See also: `pattern-test-argument'"
           "ipstream-insert doesn't insert at the current beat")
       (let ((res (mapcar #'beat (remove-if #'rest-p (next-upto-n ipstr)))))
         (is-false (set-difference lst res)
-                  "ipstream outputs don't occur on the correct beats: should be ~s but got ~s" lst res))))
+                  "ipstream outputs don't occur on the correct beats: should be ~S but got ~S" lst res))))
   (is (every-event-equal (list (event :x 1 :dur 1 :delta 1/5)
                                (event :type :rest :delta 1/5)
                                (event :type :rest :delta 1/5)

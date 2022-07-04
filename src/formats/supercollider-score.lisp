@@ -19,7 +19,7 @@ See also: `as-score', `render', `write-encoded-score'"
     (if meta
         (eval `(cl-collider:defsynth ,synth ,(getf meta :controls)
                  ,@(getf meta :body)))
-        (error "Couldn't find metadata for a synthdef with name ~s." synth))))
+        (error "Couldn't find metadata for a synthdef with name ~S." synth))))
 
 (defgeneric as-score (object &key tempo dur max-length)
   (:documentation "Convert an object into score format.
@@ -88,7 +88,7 @@ See also: `render', `write-encoded-score'"))
 See also: `as-score', `write-encoded-score'"
   (format stream "[~%")
   (dolist (item score)
-    (format stream "  [~f, [~{~s, ~}]],~%" (car item) (cadr item)))
+    (format stream "  [~F, [~{~S, ~}]],~%" (first item) (second item)))
   (format stream "]~%"))
 
 (defun write-encoded-score (score stream)

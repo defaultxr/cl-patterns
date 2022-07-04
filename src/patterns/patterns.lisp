@@ -81,7 +81,7 @@ See also: `pattern', `pdef', `all-patterns'"
                `((:documentation ,documentation))))
          (defmethod print-object ((,name ,name) stream)
            (print-unreadable-object (,name stream :type t)
-             (format stream "~{~s~#[~:; ~]~}"
+             (format stream "~{~S~^ ~}"
                      (mapcar (lambda (slot) (slot-value ,name slot))
                              ',(mapcar #'car (remove-if (lambda (slot)
                                                           (or (state-slot-p slot)
@@ -90,7 +90,7 @@ See also: `pattern', `pdef', `all-patterns'"
                                                         slots))))))
          (defclass ,name-pstream (,super-pstream ,name)
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
-           (:documentation ,(format nil "pstream for `~a'." (string-downcase (symbol-name name)))))
+           (:documentation ,(format nil "pstream for `~A'." (string-downcase name))))
          ,(let* ((gen-func-p (or (null defun)
                                  (and (listp defun)
                                       (position (car defun) (list 'assert 'check-type)))))
@@ -350,7 +350,7 @@ See also: `events-in-range'"))
 (defmethod print-object ((pstream pstream) stream)
   (with-slots (number) pstream
     (print-unreadable-object (pstream stream :type t)
-      (format stream "~s ~s" :number number))))
+      (format stream "~S ~S" :number number))))
 
 (defun pstream-p (object)
   "True if OBJECT is a pstream.
@@ -544,7 +544,7 @@ See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-m
               (and (listp value)
                    (evenp (list-length value))))
           (value)
-          "~s's VALUE argument must be a symbol, a number, or a plist; got ~s instead" 'instrument-mapping value)
+          "~S's VALUE argument must be a symbol, a number, or a plist; got ~S instead" 'instrument-mapping value)
   (if value
       (setf (gethash instrument *instrument-map*) value)
       (remhash instrument *instrument-map*)))
@@ -575,7 +575,7 @@ See also: `pattern-as-pstream'"))
 (defmethod print-object ((t-pstream t-pstream) stream)
   (with-slots (value length) t-pstream
     (print-unreadable-object (t-pstream stream :type t)
-      (format stream "~s ~s" value length))))
+      (format stream "~S ~S" value length))))
 
 (defmethod as-pstream ((value t))
   (t-pstream value))
@@ -620,7 +620,7 @@ See also: `pattern-as-pstream'"))
 (define-condition pstream-out-of-range ()
   ((index :initarg :index :reader pstream-elt-index))
   (:report (lambda (condition stream)
-             (format stream "The index ~d falls outside the scope of the pstream's history." (pstream-elt-index condition)))))
+             (format stream "The index ~D falls outside the scope of the pstream's history." (pstream-elt-index condition)))))
 
 (defun pstream-elt-index-to-history-index (pstream index)
   "Given INDEX, an absolute index into PSTREAM's history, return the actual index into the current recorded history of the pstream.
@@ -737,7 +737,7 @@ Example:
 ;; ;=> ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) EOP)
 
 See also: `pmono', `pb'"
-  (assert (evenp (length pairs)) (pairs) "~s's PAIRS argument must be a list of key/value pairs." 'pbind)
+  (assert (evenp (length pairs)) (pairs) "~S's PAIRS argument must be a list of key/value pairs." 'pbind)
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
   (let* ((res-pairs (list))
@@ -784,7 +784,7 @@ See also: `pmono', `pb'"
 (setf (documentation 'pbind 'type) (documentation 'pbind 'function))
 
 (defmethod print-object ((pbind pbind) stream)
-  (format stream "(~s~{ ~s ~s~})" 'pbind (slot-value pbind 'pairs)))
+  (format stream "(~S~{ ~S ~S~})" 'pbind (slot-value pbind 'pairs)))
 
 (defmethod %pattern-children ((pbind pbind))
   (mapcan (lambda (slot)
@@ -867,7 +867,7 @@ See also: `pbind', `pdef'"
 
 (defmethod print-object ((pbind pbind-pstream) stream)
   (print-unreadable-object (pbind stream :type t)
-    (format stream "~{~s ~s~^ ~}" (slot-value pbind 'pairs))))
+    (format stream "~{~S ~S~^ ~}" (slot-value pbind 'pairs))))
 
 (defmethod as-pstream ((pbind pbind))
   (let ((name (class-name (class-of pbind)))
@@ -1011,7 +1011,7 @@ See also: `pbind', `pbind''s :type key"
   "pmono defines a mono instrument event pstream. It's effectively the same as `pbind' with its :type key set to :mono.
 
 See also: `pbind'"
-  (assert (evenp (length pairs)) (pairs) "~s's PAIRS argument must be a list of key/value pairs." 'pmono)
+  (assert (evenp (length pairs)) (pairs) "~S's PAIRS argument must be a list of key/value pairs." 'pmono)
   (apply #'pbind
          :instrument instrument
          :type :mono
@@ -1771,19 +1771,19 @@ See also: `debug-backend', `debug-backend-recent-events'")
           (stream (next stream)))
       (if (eql trace t)
           (progn
-            (format stream "~&~@[~a ~]~s~%" prefix *event*)
+            (format stream "~&~@[~A ~]~S~%" prefix *event*)
             t)
           (typecase trace
             ((or list symbol)
              (progn
-               (format stream "~&~@[~a ~]~{~{~s: ~s~}~#[~:; ~]~}~%" prefix
+               (format stream "~&~@[~A ~]~{~{~S: ~S~}~#[~:; ~]~}~%" prefix
                        (mapcar (lambda (symbol)
                                  (list symbol (event-value *event* symbol)))
                                (ensure-list trace)))
                t))
             (pattern
              (let ((res (next trace)))
-               (format stream "~&~@[~a ~]~s~%" prefix res)
+               (format stream "~&~@[~A ~]~S~%" prefix res)
                res)))))))
 
 ;;; place
@@ -2474,7 +2474,7 @@ See also: `beat', `pbeat'")
 (defmethod as-pstream ((prun prun))
   (with-slots (pattern dur) prun
     (unless (pattern-parent prun :class 'pbind)
-      (error "~s cannot be used outside of a pbind" prun))
+      (error "~S cannot be used outside of a pbind" prun))
     (make-instance 'prun-pstream
                    :pattern (as-pstream pattern)
                    :dur (pattern-as-pstream dur)

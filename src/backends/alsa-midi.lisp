@@ -53,7 +53,7 @@ See also: `alsa-midi-instrument-program-number'"
       (let ((num (parse-integer (subseq sym-name 2) :junk-allowed t)))
         (when (and (integerp num)
                    (<= 0 num 127))
-          (list num (format nil "CC ~s" num) key 'identity))))))
+          (list num (format nil "CC ~S" num) key 'identity))))))
 
 (defun alsa-midi-cc-mapping (key)
   "Get the CC mapping parameters for a CC number or an event key."

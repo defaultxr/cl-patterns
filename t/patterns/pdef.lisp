@@ -50,7 +50,7 @@
                 "find-pdef doesn't return nil for nonexistent pdefs when :errorp is false"))
     (let ((length (length (all-pdefs))))
       (is (= 4 length)
-          "all-pdefs didn't return the correct number of elements in its result (all-pdefs result length: ~s; pdef-dictionary: ~s)"
+          "all-pdefs didn't return the correct number of elements in its result (all-pdefs result length: ~S; pdef-dictionary: ~S)"
           length
           cl-patterns::*pdef-dictionary*))
     (is-true (set-equal (list :x :x2 :x3 :x4)

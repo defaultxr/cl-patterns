@@ -72,7 +72,7 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
                                (position (symbol-name pat) code-texts :test #'string-equal))
                              (all-patterns))))
     (is-false missing
-              "some patterns are not documented in patterns.org: ~a" missing)))
+              "some patterns are not documented in patterns.org: ~A" missing)))
 
 (test special-keys.org
   "Make sure the special keys are documented"
@@ -80,14 +80,14 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
                                     "pbind special init keys"
                                     (keys cl-patterns::*pbind-special-init-keys*))))
     (is-false missing
-              "some pbind init keys are not documented: ~a" missing))
+              "some pbind init keys are not documented: ~A" missing))
   (let ((missing (find-missing-keys *special-keys.org*
                                     "pbind special wrap keys"
                                     (keys cl-patterns::*pbind-special-wrap-keys*))))
     (is-false missing
-              "some pbind wrap keys are not documented: ~a" missing))
+              "some pbind wrap keys are not documented: ~A" missing))
   (let ((missing (find-missing-keys *special-keys.org*
                                     "pbind special process keys"
                                     (keys cl-patterns::*pbind-special-process-keys*))))
     (is-false missing
-              "some pbind process keys are not documented: ~a" missing)))
+              "some pbind process keys are not documented: ~A" missing)))

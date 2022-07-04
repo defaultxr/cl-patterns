@@ -12,13 +12,11 @@
 ;; (defmethod beat ((this midi::voice-message)) ;; FIX: doesn't work, since we don't have division information here?
 ;;   (/ (midi:message-time i) division))
 
-(defparameter *unknowns* (list))
-
 (defun midi-track-as-pattern (track division)
-  "Translate a list of MIDI events from the `midi' system into a cl-patterns pattern."
+  "Translate a list of MIDI events from the `midi' system into a cl-patterns pattern. Returns two values: the pattern, and a list of events that were not parsed."
   (let (results
+        unparsed
         (pseq (pseq (list) 1)))
-    (setf *unknowns* (list))
     (setf (slot-value pseq 'list)
           (nreverse
            (dolist (msg track results)
@@ -36,7 +34,7 @@
                                                results))))
                   (if note-on
                       (setf (event-value note-on :sustain) (- (/ (midi:message-time msg) division) (event-value note-on :beat)))
-                      (warn "Couldn't find the associated event for this note off message: ~s" msg))))
+                      (warn "Couldn't find the associated event for this note off message: ~S" msg))))
                (midi:sequence/track-name-message
                 (setf (pattern-metadata pseq :track-name) (slot-value msg 'midi::text)))
                (midi:program-change-message
@@ -50,9 +48,9 @@
                ;; (midi:time-signature-message
                ;;  )
                (t
-                (push msg *unknowns*)
-                (warn "Unknown MIDI event type: ~s; pushed to *UNKNOWNS*." msg))))))
-    pseq))
+                (push msg unparsed)
+                (warn "Unknown MIDI event type for event ~S; pushed to unparsed list." msg))))))
+    (values pseq unparsed)))
 
 (defun midifile-as-patterns (midifile)
   "Open MIDIFILE with the `midi' system and get its tracks as cl-patterns patterns."

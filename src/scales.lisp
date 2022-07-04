@@ -108,7 +108,7 @@ See also: `note-name-and-octave', `index-and-offset'"
   (:documentation "Tuning definition."))
 
 (defmethod print-object ((tuning tuning) stream)
-  (format stream "(~s ~s)" 'tuning (tuning-name tuning)))
+  (format stream "(~S ~S)" 'tuning (tuning-name tuning)))
 
 (defvar *tunings* (make-hash-table)
   "Hash table mapping names and aliases to tuning definition objects.")
@@ -127,10 +127,10 @@ See also: `tuning', `define-scale', `define-chord'"
       (if-let ((existing (gethash alias *tunings*)))
         (if (symbolp existing)
             (progn
-              (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing tuning)
+              (warn "Replacing existing alias \"~S\" (for ~S) with an alias for ~S." alias existing tuning)
               (setf (gethash alias *tunings*) key))
             (unless (eq existing tuning)
-              (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing tuning)))
+              (warn "Ignoring alias ~S that points to ~S (while trying to add it as an alias for ~S)." alias existing tuning)))
         (setf (gethash alias *tunings*) key)))))
 
 (defun all-tunings ()
@@ -201,11 +201,11 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
            (pitches (butlast pitches))
            (aliases (append (list (file-namestring (subseq file 0 (search ".scl" file :from-end t)))) aliases)))
       (when (/= (length pitches) count)
-        (warn "There are ~a pitches listed in ~a but the file says there should be ~a pitches." (length pitches) file count))
+        (warn "There are ~A pitches listed in ~A but the file says there should be ~A pitches." (length pitches) file count))
       (unless (loop :for i :in (all-tunings)
                     :if (equal (tuning-pitches i) pitches)
                       :return (progn
-                                ;; (warn "~&Tuning already exists as ~a; adding aliases: ~a" (tuning-name i) aliases)
+                                ;; (warn "~&Tuning already exists as ~A; adding aliases: ~A" (tuning-name i) aliases)
                                 ;; (apply #'define-tuning-aliases (tuning-name i) aliases)
                                 ;; FIX: should we just remove the already-defined tuning and re-add with all the aliases, or was there a reason we were doing define-tuning-aliases separately?
                                 ;; FIX: define scale aliases too
@@ -234,7 +234,7 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
   (:documentation "Scale definition."))
 
 (defmethod print-object ((scale scale) stream)
-  (format stream "(~s ~s)" 'scale (scale-name scale)))
+  (format stream "(~S ~S)" 'scale (scale-name scale)))
 
 (defvar *scales* (make-hash-table)
   "Hash table mapping names and aliases to scale definition objects.")
@@ -249,16 +249,16 @@ See also: `scale', `define-tuning', `define-chord'"
                               :notes notes
                               :tuning tuning)))
     (unless (tuning tuning)
-      (warn "Tuning ~s does not exist." tuning))
+      (warn "Tuning ~S does not exist." tuning))
     (setf (gethash key *scales*) scale)
     (dolist (alias (remove-duplicates (append (generate-aliases key) aliases)))
       (if-let ((existing (gethash alias *scales*)))
         (if (symbolp existing)
             (progn
-              (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing scale)
+              (warn "Replacing existing alias \"~S\" (for ~S) with an alias for ~S." alias existing scale)
               (setf (gethash alias *scales*) key))
             (unless (eq existing scale)
-              (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing scale)))
+              (warn "Ignoring alias ~S that points to ~S (while trying to add it as an alias for ~S)." alias existing scale)))
         (setf (gethash alias *scales*) key)))))
 
 (defun all-scales ()
@@ -338,7 +338,7 @@ See also: `scale', `define-tuning', `define-chord'"
   (:documentation "Chord definition."))
 
 (defmethod print-object ((chord chord) stream)
-  (format stream "(~s ~s)" 'chord (chord-name chord)))
+  (format stream "(~S ~S)" 'chord (chord-name chord)))
 
 (defvar *chords* (make-hash-table)
   "Hash table mapping names and aliases to chord definition objects.")
@@ -353,16 +353,16 @@ See also: `scale', `define-tuning', `define-scale'"
                               :scale scale
                               :indexes indexes)))
     (unless (scale scale)
-      (warn "Scale ~s does not exist." scale))
+      (warn "Scale ~S does not exist." scale))
     (setf (gethash key *chords*) chord)
     (dolist (alias (remove-duplicates (append (generate-aliases key) aliases)))
       (if-let ((existing (gethash alias *chords*)))
         (if (symbolp existing)
             (progn
-              (warn "Replacing existing alias \"~s\" (for ~s) with an alias for ~s..." alias existing chord)
+              (warn "Replacing existing alias \"~S\" (for ~S) with an alias for ~S." alias existing chord)
               (setf (gethash alias *chords*) key))
             (unless (eq existing chord)
-              (warn "Ignoring alias ~s that points to ~s (while trying to add it as an alias for ~s)." alias existing chord)))
+              (warn "Ignoring alias ~S that points to ~S (while trying to add it as an alias for ~S)." alias existing chord)))
         (setf (gethash alias *chords*) key)))))
 
 (defun all-chords ()
@@ -404,7 +404,7 @@ See also: `scale', `define-tuning', `define-scale'"
 
 (defmethod describe-object ((chord chord) stream)
   (with-slots (name scale) chord
-    (format stream "~&~s is a chord named ~a,~%with possible abbreviations ~a.~%It takes notes from the ~a scale, which has notes ~s.~%Therefore, this chord contains the notes ~s,~%which are also known as ~a.~%"
+    (format stream "~&~S is a chord named ~A,~%with possible abbreviations ~A.~%It takes notes from the ~A scale, which has notes ~S.~%Therefore, this chord contains the notes ~S,~%which are also known as ~A.~%"
             chord
             name
             (loop :for i :in (keys *chords*)
