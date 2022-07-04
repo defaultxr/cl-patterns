@@ -247,3 +247,4 @@ where PATTERN is the input pattern, PROBABILITY is the probability (can be stati
 as per issue #28
 * make the default value of ~repeats~ and ~length~ arguments customizable; perhaps on a per-pattern basis using class variables?
 * ~as-ugen~ function that can convert a pattern object into a ugen graph for supported backends
+* pattern for doing feedback in patterns
