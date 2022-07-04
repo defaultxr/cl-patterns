@@ -1,16 +1,20 @@
 (in-package #:cl-patterns)
 
 ;;;; eseq.lisp - "event sequence"; editable, efficient, ordered sequence of `event's.
-;;; effectively just a list of events played in order
-;;; eseq is much simpler than patterns and its methods make it easier to modify for some situations
-;;; for example, eseq might be well-suited to building a piano roll interface around...
-;;; (see https://github.com/defaultxr/thundersnow for a piano roll implementation)
+;; eseq is much simpler than regular patterns and its methods make it easier to modify in some situations.
+;; for example, eseq might be well-suited to building a piano roll interface around...
+;; (see https://github.com/defaultxr/thundersnow for a piano roll implementation)
 
 ;;; TODO:
 ;; FIX: need some way to keep events sorted when their beat is changed. should they notify the eseq?
 
+(defgeneric eseq-events (object)
+  (:documentation "The list of events in the `eseq'.
+
+Note that eseq's events slot should not be modified directly as it expects its events to be kept in order. Instead, use `eseq-add', `eseq-remove', or setf `eseq-events'."))
+
 (defclass eseq (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
-  ((events :initarg :events :initform (list) :accessor eseq-events :type list :documentation "The actual list of events that the eseq contains. Don't add events to this directly, as eseq expects them to be in order by beat. Instead use the `eseq-add' function.")
+  ((events :initarg :events :initform (list) :reader eseq-events :type list :documentation #.(documentation 'eseq-events 'function))
    (dur :initarg :dur :type (or null number) :documentation "The duration of the eseq. If the slot is unbound, defaults to `last-dur' rounded up to the next multiple of the eseq's `play-quant'.")
    (play-quant :initarg :play-quant :documentation "A list of numbers representing when the eseq's pstream can start playing. See `play-quant'.")
    (end-quant :initarg :end-quant :initform nil :documentation "A list of numbers representing when the eseq pstream can end playing or be swapped out for its source's new definition. See `end-quant'.")
@@ -38,8 +42,12 @@
 See also: `eseq'"
   (typep object 'eseq))
 
-(defgeneric eseq-events (object)
-  (:documentation "Get the list of events from an `eseq'. Don't set this directly, as eseq expects its events to be in order by beat. Instead use `eseq-add' and `eseq-remove'"))
+(defmethod (setf eseq-events) (value (eseq eseq))
+  (with-slots (events) eseq
+    (dolist (removed (set-difference events value :test #'event-equal))
+      (eseq-remove eseq removed))
+    (dolist (added (set-difference value events :test #'event-equal))
+      (eseq-add eseq added))))
 
 (defmethod play-quant ((eseq eseq))
   (if (slot-boundp eseq 'play-quant)
