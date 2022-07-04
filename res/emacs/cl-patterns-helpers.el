@@ -73,11 +73,10 @@
 
 (defun cl-patterns-generate-random-name (&optional length)
   "Generate a random \"name\". This is used as the default function for `cl-patterns-name-generator', to generate a name for a skeleton when the user supplies only a period."
-  (coerce (let (res)
+  (concat (let (res)
             (dotimes (n (or length (+ 3 (random 10))) res)
               (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res))
-            (push ?: res))
-          'string))
+            (push ?: res))))
 
 (defun cl-patterns-increase-number-suffix (string)
   "Increase the number at the end of STRING by 1. If there is no number at the end of STRING, suffix it with \"-1\". Note that dashes count as a separator, not as a negative sign."
