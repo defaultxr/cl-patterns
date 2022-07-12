@@ -44,7 +44,6 @@ A framework for musical expression in Lisp with a focus on music theory. (Unrela
 A native Lisp graphical user interface library. Uses Lisp idioms and ideas for the development of user interaction modes. May be useful for visualization of pattern or other musical data, and interaction with the Lisp process.
 
 ** [[https://github.com/borodust/trivial-gamekit][trivial-gamekit]]
-
 A library for getting into gamedev with Common Lisp; a very simple interface to graphics, audio, and input. Acts as a stepping stone to (the not yet stabilized) cl-bodge.
 
 ** [[https://github.com/borodust/cl-bodge][cl-bodge]]
@@ -58,17 +57,20 @@ Common Lisp environment for the creation of visual art, game prototyping, etc. S
 
 * Common Lisp extensions
 
-** [[https://github.com/vseloved/rutils][rutils]]
-"Radical Utilities for Common Lisp". Extends Common Lisp with many additional functions and syntactic sugar.
+** [[https://github.com/ruricolist/serapeum][Serapeum]]
+"Utilities beyond Alexandria"; a large collection of useful utility functionality whose goal is to fill in the gaps in Common Lisp.
 
 ** [[https://github.com/alex-gutev/generic-cl/][generic-cl]]
 Provides generic function wrappers over various functions in the Common Lisp standard, such as equality predicates and sequence operations. The goal of this wrapper is to provide a standard interface to common operations, such as testing for the equality of two objects, which is extensible to user-defined types.
 
+** [[http://series.sourceforge.net/][series]]
+"A series is a data structure much like a sequence, with similar kinds of operations. The difference is that in many situations, operations on series may be composed functionally and yet execute iteratively, without the need to construct intermediate series values explicitly. In this manner, series provide both the clarity of a functional programming style and the efficiency of an iterative programming style."
+
 ** [[https://github.com/rongarret/ergolib][ergolib]]
 "A library designed to make programming in Common Lisp easier".
 
-** [[http://series.sourceforge.net/][series]]
-"A series is a data structure much like a sequence, with similar kinds of operations. The difference is that in many situations, operations on series may be composed functionally and yet execute iteratively, without the need to construct intermediate series values explicitly. In this manner, series provide both the clarity of a functional programming style and the efficiency of an iterative programming style."
+** [[https://github.com/vseloved/rutils][rutils]]
+"Radical Utilities for Common Lisp". Extends Common Lisp with many additional functions and syntactic sugar.
 
 * Non-CL
 
@@ -98,6 +100,3 @@ A Python library for creating and manipulating musical patterns, designed for us
 
 ** [[https://opusmodus.com][Opusmodus]]
 A comprehensive computer-aided environment for the whole work of music composition; a virtual space where a composer can develop ideas and experiments for projects large and small.
-
-** [[https://twitter.com/Nifflas/status/1393138296147124228][Ynglet's realtime generated music interface]]
-A meditative side scrolling swimming game with fully generative music. The link is to a video of the music UI.
