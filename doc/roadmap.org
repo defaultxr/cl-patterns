@@ -130,7 +130,7 @@ and others
 *** DONE make each enabled backend its own object so it can have its own parameters rather than relying on global variables
 CLOSED: [2022-06-30 Thu 20:28]
 
-*** implement ~disable-backend~ restart
+*** implement ~backend-disable~ restart
 
 ** clock improvements
 
