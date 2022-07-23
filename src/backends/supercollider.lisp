@@ -202,7 +202,8 @@
     (play (event :backend 'supercollider ;; backend ; FIX: should support using the backend object itself rather than just the symbol
                  ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
                  :instrument synth
-                 (find-buffer-symbol synthdef-controls) buffer
+                 ;; FIX: should we "need" `make-keyword' here? shouldn't the control names should just be in the correct package already?
+                 (make-keyword (find-buffer-symbol synthdef-controls)) buffer
                  :dur 16
                  :quant 0))))
 
