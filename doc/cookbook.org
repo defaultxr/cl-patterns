@@ -27,7 +27,7 @@ With the [[https://github.com/defaultxr/bdef][bdef]] library, you can convenient
   (bdef :song "/path/to/song.wav")
 
   (pbind :instrument :spt
-         :bufnum (bdef :song)
+         :buffer (bdef :song)
          :split (pseries 0 1 (splits-length (bdef :song)))
          :legato 1
          :embed (psplits))
