@@ -14,7 +14,7 @@ The primary backend that cl-patterns is developed against, a Lisp interface to t
 Another supported backend for cl-patterns. Written from the ground up and designed to be used with Lisp.
 
 ** [[https://github.com/ormf/cm][Common Music]]
-The original Lisp music library. This repository is a fork of the last version before the project switched over to using Scheme exclusively.
+The original Common Lisp music library. This repository is a fork of the last version before the project switched over to using Scheme exclusively.
 
 ** [[http://repmus.ircam.fr/openmusic/home][OpenMusic]]
 An object-oriented visual programming environment for musical composition based on Common Lisp. It may also be used as an all-purpose visual interface to Lisp programming. At a more specialized level, a set of provided classes and libraries make it a very convenient environment for music composition.
