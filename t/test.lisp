@@ -1,3 +1,5 @@
+;;;; t/test.lisp - basic tests and test utilities/fixtures/etc for the cl-patterns test suite.
+
 (defpackage #:cl-patterns/tests
   (:use #:cl
         #:cl-patterns
@@ -6,8 +8,6 @@
         #:fiveam))
 
 (in-package #:cl-patterns/tests)
-
-;;;; t/test.lisp - basic tests and test utilities/fixtures/etc for the cl-patterns test suite.
 
 (def-suite cl-patterns-tests
   :description "cl-patterns tests suite.")
@@ -35,12 +35,12 @@
 
 (test undocumented-symbols
   "Check for any undocumented exported symbols"
-  (let ((undocumented (undocumented-symbols :cl-patterns)))
+  (let ((undocumented (package-undocumented-symbols :cl-patterns)))
     (is-false undocumented
               "some exported symbols do not have docstrings: ~S" undocumented)))
 
 (test docstrings-broken-links
   "Check for any broken links in docstrings of exported symbols"
-  (let ((symbols (docstrings-with-broken-links :cl-patterns)))
+  (let ((symbols (package-docstrings-with-broken-links :cl-patterns)))
     (is-false symbols
               "some exported symbols have docstrings that contain broken links: ~S" symbols)))
