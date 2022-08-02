@@ -19,6 +19,9 @@ The original Lisp music library. This repository is a fork of the last version b
 ** [[http://repmus.ircam.fr/openmusic/home][OpenMusic]]
 An object-oriented visual programming environment for musical composition based on Common Lisp. It may also be used as an all-purpose visual interface to Lisp programming. At a more specialized level, a set of provided classes and libraries make it a very convenient environment for music composition.
 
+** [[https://github.com/defaultxr/cl-wav-synth][cl-wav-synth]]
+A wav file editor; "manipulate wav files; express noises as you think". This is a maintained and un-bit-rotted fork of [[https://cl-wav-synth.common-lisp.dev][Philippe Brochard's cl-wav-synth]].
+
 ** [[https://github.com/mdedwards/slippery-chicken][slippery chicken]]
 Slippery chicken is a specialised algorithmic composition program written in the general programming language Common Lisp and its object-oriented extension, the Common Lisp Object System (CLOS). The project's main aim was, and to an extent still is, to facilitate a melding of electronic and instrumental sound worlds, not just at the sonic but at the structural level.
 
