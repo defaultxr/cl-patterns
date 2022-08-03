@@ -157,6 +157,7 @@ The ALSA MIDI backend has some functionality complete and should be usable for b
 *** patterns
 
 - [[file:src/patterns/patterns.lisp][patterns.lisp]] - general pattern macros and functionality + the standard set of patterns; includes the ~pattern~ superclass, ~pbind~, ~pseq~, ~pk~, etc.
+- [[file:src/patterns/pdef.lisp][pdef.lisp]] - ~pdef~ and associated functionality to define and reference "named patterns".
 - [[file:src/patterns/bjorklund.lisp][bjorklund.lisp]] - Euclidean pattern functionality such as ~pbjorklund~, etc.
 - [[file:src/patterns/cycles.lisp][cycles.lisp]] - TidalCycles-inspired patterns and notation, i.e. ~pcycles~, etc.
 - [[file:src/patterns/track.lisp][track.lisp]] - tracker-inspired patterns and notation, i.e. ~ptrack~ and associated functions, macros, reader macros, etc.
