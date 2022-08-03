@@ -1,9 +1,8 @@
-(in-package #:cl-patterns)
-
 ;;;; alsa-midi.lisp - backend to output MIDI via ALSA.
-
 ;; FIX: add bend?
 ;; FIX: allow non-midinote frequencies to be sent as midinote+midi detune (i.e. auto-convert :freq to those keys when enabled)
+
+(in-package #:cl-patterns)
 
 (defclass alsa-midi (backend)
   ((name :initform "ALSA MIDI")))

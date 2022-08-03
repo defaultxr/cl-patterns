@@ -1,7 +1,7 @@
-(in-package #:cl-patterns)
-
 ;;;; incudine.lisp - the Incudine backend for cl-patterns.
 ;;; http://incudine.sourceforge.net
+
+(in-package #:cl-patterns)
 
 (defclass incudine (backend)
   ((name :initform "Incudine")

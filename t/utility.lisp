@@ -1,8 +1,9 @@
+;;;; t/utility.lisp - tests for cl-patterns utility functions.
+
 (in-package #:cl-patterns/tests)
 
 (in-suite cl-patterns-tests)
 
-;;;; t/utility.lisp - tests for cl-patterns utility functions.
 
 (test note-name-and-octave
   "Test the `note-name-and-octave' function"

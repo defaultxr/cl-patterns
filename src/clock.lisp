@@ -1,12 +1,12 @@
-(in-package #:cl-patterns)
-
 ;;;; clock.lisp - clocks, tasks, and other functionality related to playing patterns in sync.
+;;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
+;;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately N seconds before they're supposed to be heard, where N is the value of the clock's LATENCY slot.
+;;; For efficiency, the clock processes LATENCY seconds worth of events at a time and sends them with timestamps to the relevant backend (see backend.lisp), which then converts the event to whatever format the backend server understands.
+;;;
+;;; FIX:
+;;; - investigate syncing to internal time or time of day instead of local-time? https://github.com/jamieforth/osc/blob/79d25ca4e0a4a04135b6bc56231c6b9bb058f1d4/osc.lisp#L279
 
-;; This clock uses the local-time system to calculate the exact time each event should occur. This calculated time is then passed to the relevant backend. Thus there should be no jitter from cl-patterns, in theory.
-;; The reason we have a clock at all is so that patterns can be changed while they're playing. When a pattern is played, its events are not all generated immediately; they're generated approximately N seconds before they're supposed to be heard, where N is the value of the clock's LATENCY slot.
-;; For efficiency, the clock processes LATENCY seconds worth of events at a time and sends them with timestamps to the relevant backend (see backend.lisp), which then converts the event to whatever format the backend server understands.
-
-;; FIX: investigate syncing to internal time or time of day instead of local-time? https://github.com/jamieforth/osc/blob/79d25ca4e0a4a04135b6bc56231c6b9bb058f1d4/osc.lisp#L279
+(in-package #:cl-patterns)
 
 ;;; task
 

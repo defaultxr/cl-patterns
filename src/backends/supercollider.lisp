@@ -1,10 +1,9 @@
-(in-package #:cl-patterns)
-
 ;;;; supercollider.lisp - the SuperCollider/cl-collider backend for cl-patterns.
+;;; FIX:
+;;; - changing :instrument in pmono causes the old one to stay playing.
+;;; - multichannel expansion breaks :mono
 
-;;; NOTES:
-;; FIX: changing :instrument in pmono causes the old one to stay playing.
-;; FIX: multichannel expansion breaks :mono
+(in-package #:cl-patterns)
 
 (defclass supercollider (backend)
   ((name :initform "cl-collider")

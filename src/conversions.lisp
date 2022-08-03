@@ -1,6 +1,6 @@
-(in-package #:cl-patterns)
-
 ;;;; conversions.lisp - functionality to convert between different units.
+
+(in-package #:cl-patterns)
 
 ;;; defconversion
 

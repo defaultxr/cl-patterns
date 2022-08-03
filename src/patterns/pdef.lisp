@@ -1,9 +1,8 @@
-(in-package #:cl-patterns)
-
 ;;;; pdef.lisp - pdef and associated functionality to define and reference "named patterns".
+;;; FIX:
+;;; - implement `reset' method and test to ensure end-condition works properly
 
-;;; TODO:
-;; FIX: need to implement `reset' method and test to ensure end-condition works properly
+(in-package #:cl-patterns)
 
 (defgeneric pdef-name (pdef)
   (:documentation "The name (\"key\") of PDEF."))
@@ -33,7 +32,7 @@
      (pstream :initform nil :accessor pdef-pstream)
      (task :initform nil :accessor pdef-task)
      (current-pstream :state t))
-    :documentation "Define a named pattern, with NAME being the name of the pattern and PATTERN the pattern itself. Named patterns are stored by name in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is being played, the changes won't be audible until either PATTERN ends, or the pdef's `end-quant' time is reached (if non-nil). Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
+    :documentation "Define a named pattern, with NAME being the name of the pattern and PATTERN the pattern itself. Named patterns are stored in a global dictionary and can be referred back to by calling `pdef' without supplying PATTERN. The global dictionary also keeps track of the pdef's pstream when `play' is called on it. If a pdef is redefined while it is being played, the changes won't be audible until either PATTERN ends, or the pdef's `end-quant' time is reached (if non-nil). Note that, unlike bare patterns, pdefs loop by default when played (`loop-p').
 
 Example:
 

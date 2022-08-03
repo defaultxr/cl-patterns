@@ -1,9 +1,10 @@
-(in-package #:cl-patterns)
-
 ;;;; backend.lisp - general functionality to implement cl-patterns sound server backends.
 ;;; specific backends are defined in files in the src/backends/ directory.
 
+(in-package #:cl-patterns)
+
 ;;; helpers
+;; FIX: move these?
 
 (defun task-nodes (task &optional backend)
   "Get the list of nodes for TASK for the specified backend. If BACKEND is nil, get all of the resources for TASK regardless of backend."

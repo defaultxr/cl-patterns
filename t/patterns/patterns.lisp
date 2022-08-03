@@ -1,8 +1,8 @@
+;;;; t/patterns.lisp - tests for `pattern' functionality and the patterns defined in patterns.lisp.
+
 (in-package #:cl-patterns/tests)
 
 (in-suite cl-patterns-tests)
-
-;;;; t/patterns.lisp - tests for `pattern' functionality and the patterns defined in patterns.lisp.
 
 (test embedding
   "Test embedding patterns in patterns"
