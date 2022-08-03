@@ -47,7 +47,9 @@ See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
              (check-type name string-designator)
              (let ((pdef (ensure-gethash name *pdef-dictionary* (make-instance 'pdef :name name))))
                (when pattern-supplied-p
-                 (setf (pdef-pattern pdef) pattern))
+                 (setf (pdef-pattern pdef) pattern)
+                 (unless (pattern-parent pattern)
+                   (setf (slot-value pattern 'parent) pdef)))
                pdef))))
 
 (define-dictionary pdef :define-class-functions t)
