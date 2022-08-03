@@ -1246,7 +1246,7 @@ See also: `prand', `pxrand', `pwrand'")
 ;;; pfunc
 
 (defpattern pfunc (pattern)
-  ((func :type function-designator)
+  ((func :type (or function-designator pattern))
    (length :initform :inf)
    (current-repeats-remaining :state t))
   :documentation "Yield the result of evaluating FUNC. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
@@ -1265,19 +1265,25 @@ Example:
 See also: `pf', `pnary', `plazy', `pif'")
 
 (defmethod initialize-instance :after ((pfunc pfunc) &key)
-  (check-type (slot-value pfunc 'func) function-designator))
+  (check-type (slot-value pfunc 'func) (or function-designator pattern)))
 
 (defmethod as-pstream ((pfunc pfunc))
   (with-slots (func length) pfunc
     (make-instance 'pfunc-pstream
-                   :func func
+                   :func (pattern-as-pstream func)
                    :length (as-pstream length))))
 
 (defmethod next ((pfunc pfunc-pstream))
   (unless (remaining-p pfunc 'length)
     (return-from next eop))
   (decf-remaining pfunc)
-  (funcall (slot-value pfunc 'func)))
+  (with-slots (func) pfunc
+    (etypecase func
+      (function-designator (funcall func))
+      (pstream (let ((nxt (next func)))
+                 (if (eop-p nxt)
+                     eop
+                     (funcall nxt)))))))
 
 ;;; pf
 

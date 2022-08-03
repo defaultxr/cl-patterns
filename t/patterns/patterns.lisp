@@ -669,7 +669,12 @@ See also: `pattern-test-argument'"
          (next (pfunc (lambda () (+ 2 2)))))
       "pfunc yields incorrect results")
   (is (length= 4 (next-upto-n (pfunc (lambda () (random 10)) 4)))
-      "pfunc yields the wrong number of results when LENGTH is provided."))
+      "pfunc yields the wrong number of results when LENGTH is provided.")
+  (is (equal (list 2 4 2 4)
+             (next-upto-n (pfunc (pseq (list (lambda () 2)
+                                             (lambda () 4))
+                                       2))))
+      "pfunc does not accept patterns for its FUNC"))
 
 (test pr
   "Test pr"
