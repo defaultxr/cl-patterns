@@ -160,7 +160,7 @@ See also: `pattern-test-argument'"
                               (next-n (pb :foo :bar (pseq (list 0 (truncate (/ 5 2))) 1)) 2))
            "pb doesn't correctly avoid translating functions inside non-translatable functions"))
 
-(test parent ;; FIX: make sure all patterns are given parents
+(test parent
   "Test whether patterns have the correct parent information"
   (is-true (let ((pb (pbind :foo (pseq (list 1 2 3)))))
              (eql (pattern-parent (getf (slot-value pb 'cl-patterns::pairs) :foo))
@@ -173,7 +173,36 @@ See also: `pattern-test-argument'"
   (is-true (let* ((child (pn 1 4))
                   (parent (pbind :foo child)))
              (eq parent (pattern-parent child :class 'pbind)))
-           "pattern-parent with :class 'pbind does not give correct results"))
+           "pattern-parent with :class 'pbind does not give correct results")
+  (flet ((gen-pattern (pattern)
+           (let ((child (pseq (list 1) 1)))
+             (values (case pattern
+                       (pbind (pbind :foo child))
+                       (pwalk (pwalk (list 1 2) child))
+                       (pindex (pindex (list 1 2) child))
+                       (pdurstutter (pdurstutter (pseq (list 1) 1) child))
+                       (psync (psync (pbind :dur 1) child))
+                       (pfindur (pfindur (pbind :dur 1) child))
+                       (pfin (pfin child 1))
+                       (pif (pif child 1))
+                       (pscratch (pscratch child (pseq (list 0) 1)))
+                       (phistory (phistory child (pseq (list 0) 1)))
+                       (pfuture (pfuture child (pseq (list 0) 1)))
+                       (prerange (prerange child (list 0 1) (list 1 0)))
+                       (parp (parp child (pbind :foo (pseq (list 1 2 3)))))
+                       (ptsbuf (ptsbuf child 4))
+                       (pdef (pdef :foo child))
+                       (ptrack (ptrack (list :foo child) (list 0)))
+                       (pbjorklund (pbjorklund 3 4 :offset child))
+                       (peql (peql child 1))
+                       (t (ignore-errors (funcall pattern child))))
+                     child))))
+    (dolist (pattern (all-patterns))
+      (when (and (find-class pattern nil) ; skip pseudo-patterns like `pb', `pf', `prs', etc
+                 (function-arglist pattern))
+        (is (multiple-value-bind (parent child) (gen-pattern pattern)
+              (eq parent (pattern-parent child)))
+            "~S did not set itself as the parent of its child" pattern)))))
 
 (test children
   "Test whether children of a pattern can be accessed"
