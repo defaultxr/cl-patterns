@@ -59,9 +59,17 @@ See also: `note-midinote', `chromatic-index-note'"
     "Get a list of the value of KEY for each event in LIST."
     (mapcar (fn (event-value _ key)) list)))
 
-(defun normalized-sum (list)
-  "Return a copy of LIST normalized so all of its numbers summed together equal 1."
-  (mapcar (fn (/ _ (apply #'+ list))) list))
+(defun normalized-sum (list &optional (sum 1))
+  "Get a copy of LIST \"normalized\" so all of its numbers summed together equal SUM.
+
+Examples:
+
+;; (normalized-sum (list 1 1 1 1)) ;=> (1/4 1/4 1/4 1/4)
+;; (normalized-sum (list 1 2 3) 2) ;=> (1/3 2/3 1)
+
+See also: `cumulative-list'"
+  (let ((div-by (/ (apply #'+ list) sum)))
+    (mapcar (fn (/ _ div-by)) list)))
 
 (defun cumulative-list (list)
   "Return a copy of LIST where the elements previous are added to the current one.
