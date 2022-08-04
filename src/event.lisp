@@ -193,8 +193,9 @@ See also: `every-event-equal', `events-lists-differing-keys'"
                        events)
           :collect key))
 
-(defun events-lists-differing-keys (&rest lists) ;; FIX: what is this for? is it needed?
-  "Get a list of the keys that differ between respective event in LISTS.
+(uiop:with-deprecation (:style-warning)
+  (defun events-lists-differing-keys (&rest lists)
+    "Get a list of the keys that differ between respective event in LISTS.
 
 Example:
 
@@ -203,8 +204,8 @@ Example:
 ;; => (NIL (:FOO) (:FOO))
 
 See also: `every-event-equal'"
-  (loop :for idx :from 0 :below (reduce #'max (mapcar #'length lists))
-        :collect (apply #'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists))))
+    (loop :for idx :from 0 :below (reduce #'max (mapcar #'length lists))
+          :collect (apply #'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists)))))
 
 (defun combine-events (&rest events)
   "Get a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
