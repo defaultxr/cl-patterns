@@ -72,15 +72,15 @@ See also: `cumulative-list'"
     (mapcar (fn (/ _ div-by)) list)))
 
 (defun cumulative-list (list)
-  "Return a copy of LIST where the elements previous are added to the current one.
+  "Get a fresh version of LIST where each element is the sum of it and the previous elements.
 
 Example:
 
-;; (cumulative-list (list 1 2 3 4))
-;; => (1 3 6 10)"
+;; (cumulative-list (list 1 2 3 4)) ;=> (1 3 6 10)
+
+See also: `normalized-sum'"
   (let ((cur 0))
-    (loop :for element :in list
-          :collect (incf cur element))))
+    (mapcar (fn (incf cur _)) list)))
 
 (defun index-of-greater-than (n list)
   "Get the index of the first element of LIST greater than N."
