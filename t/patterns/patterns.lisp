@@ -1242,15 +1242,6 @@ See also: `pattern-test-argument'"
            (beat pstr)))
       "ppar doesn't have the same duration as its longest subpattern"))
 
-(test pmeta
-  "Test pmeta"
-  ;; FIX
-  (with-fixture temporary-pdef-dictionary ()
-    (pdef :foo (pbind :dur (pwhite 0.5 2.0 8)))
-    (is (= 4
-           (reduce #'+ (mapcar #'dur (next-upto-n (pmeta :pattern (pseq (list :foo) 1) :dur 4)))))
-        "pmeta's :dur key doesn't work properly")))
-
 (test pts
   "Test pts"
   (let ((dur (random-range 1 8)))

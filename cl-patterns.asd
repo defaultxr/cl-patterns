@@ -27,6 +27,7 @@
                (:module patterns
                 :components ((:file "patterns")
                              (:file "pdef")
+                             (:file "pmeta")
                              (:file "bjorklund")
                              (:file "cycles")
                              (:file "track")
@@ -134,6 +135,7 @@
                (:module patterns
                 :components ((:file "patterns")
                              (:file "pdef")
+                             (:file "pmeta")
                              (:file "bjorklund")
                              (:file "cycles")
                              (:file "track")))
