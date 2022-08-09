@@ -26,7 +26,7 @@ See also: `as-score', `render', `write-encoded-score'"
 
 See also: `render', `write-encoded-score'"))
 
-(defmethod as-score ((events list) &key (tempo (tempo *clock*)) (dur nil dur-provided-p) (max-length *max-pattern-yield-length*))
+(defmethod as-score ((events list) &key (tempo (tempo *clock*)) (dur nil dur-provided-p) (max-length *max-pattern-yield-length*) (backend (find-backend 'supercollider)))
   ;; FIX: handle :set events, :mono, etc
   (declare (ignore max-length))
   (let ((instruments (remove-duplicates (mapcar #'instrument events)))
@@ -58,14 +58,14 @@ See also: `render', `write-encoded-score'"))
                                      cur-node
                                      (or (event-value event :add-action) 0)
                                      (event-value event :group))
-                               (loop :for (k v) :on (backend-instrument-args-list inst event :supercollider) :by #'cddr
+                               (loop :for (k v) :on (backend-instrument-args-list backend inst event) :by #'cddr
                                      :append (list (string-downcase k)
                                                    (typecase v
                                                      (integer v)
                                                      (number (coerce v 'single-float))
                                                      (t v))))))
                  gen-events)
-           (when (backend-instrument-has-gate-p inst :supercollider)
+           (when (backend-instrument-has-gate-p backend inst)
              (let ((end-beat (+ ebeat (sustain event))))
                (push (list (float (dur-time (if dur
                                                 (min end-beat dur)
