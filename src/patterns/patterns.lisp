@@ -250,7 +250,7 @@ See also: `pattern-parent'"
 
 See also: `next', `peek-n', `peek-upto-n'"))
 
-(defun peek-n (pstream n)
+(defun peek-n (pstream &optional (n *max-pattern-yield-length*))
   "Peek at the next N results of a pstream, without advancing it forward in the process.
 
 See also: `peek', `peek-upto-n', `next', `next-n'"
