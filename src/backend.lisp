@@ -67,12 +67,14 @@ See also: `all-backend-types', `enabled-backends'"
 See also: `find-backend', `all-backends'"
   (typep object 'backend))
 
-(defun find-backend (name-or-type &key enabled-p)
-  "Find a registered backend whose name or type matches NAME-OR-TYPE. With ENABLED-P, only search through currently enabled backends.
+(defun find-backend (backend &key enabled-p)
+  "Find a registered backend whose name or type matches BACKEND. With ENABLED-P, only search through currently enabled backends.
 
 See also: `all-backends', `enabled-backends'"
-  (find-if (fn (or (string-equal name-or-type (backend-name _))
-                   (string-equal name-or-type (class-name (class-of _)))))
+  (when (typep backend 'backend)
+    (return-from find-backend backend))
+  (find-if (fn (or (string-equal backend (backend-name _))
+                   (string-equal backend (class-name (class-of _)))))
            (if enabled-p
                (enabled-backends)
                (all-backends))))
