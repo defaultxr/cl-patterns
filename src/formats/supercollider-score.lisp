@@ -19,7 +19,7 @@ See also: `as-score', `render', `write-encoded-score'"
     (if meta
         (eval `(cl-collider:defsynth ,synth ,(getf meta :controls)
                  ,@(getf meta :body)))
-        (error "Couldn't find metadata for a synthdef with name ~S." synth))))
+        (cerror "Couldn't find metadata for a synthdef with name ~S." synth))))
 
 (defgeneric as-score (object &key tempo dur max-length)
   (:documentation "Convert an object into score format.
