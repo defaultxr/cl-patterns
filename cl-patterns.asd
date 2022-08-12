@@ -140,6 +140,7 @@
                              (:file "bjorklund")
                              (:file "cycles")
                              (:file "track")))
+               ;; FIX: add formats/ tests
                (:file "eseq")
                ;; (:file "backend")
                (:file "render")
