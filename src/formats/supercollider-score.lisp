@@ -11,9 +11,9 @@
   (:documentation "A list of instructions for the SuperCollider server to `render' in non-realtime."))
 
 (defun write-synthdef-file (synth)
-  "Helper function to write the synthdef file for SYNTH to the synthdef path.
+  "Write the synthdef file for SYNTH to the synthdef directory. This is used by `as-supercollider-score' to ensure the non-realtime SuperCollider server is able to load the instruments in the score when rendering.
 
-See also: `as-supercollider-score', `render', `write-encoded-score'"
+See also: `as-supercollider-score', `render', `supercollider-score-write-encoded'"
   (let ((cl-collider::*synth-definition-mode* :load)
         (meta (cl-collider:synthdef-metadata synth)))
     (if meta
@@ -24,7 +24,7 @@ See also: `as-supercollider-score', `render', `write-encoded-score'"
 (defgeneric as-supercollider-score (object &key tempo dur max-length)
   (:documentation "Convert an object into SuperCollider's score format.
 
-See also: `render', `write-encoded-score'"))
+See also: `render', `supercollider-score-write-encoded'"))
 
 (defmethod as-supercollider-score ((events list) &key (backend (find-backend 'supercollider)) (tempo (tempo *clock*)) (max-length *max-pattern-yield-length*) (duration nil) (dur nil) &allow-other-keys)
   ;; FIX: handle :set events, :mono, etc
@@ -93,77 +93,73 @@ See also: `render', `write-encoded-score'"))
   (let ((*clock* (make-clock tempo)))
     (apply #'as-supercollider-score (next-upto-n object max-length) args)))
 
-(defun score-as-sclang-code (score &optional (stream t))
+(defun supercollider-score-sclang-code (score &optional (stream t)) ; FIX: not exported or used anywhere
   "Write SCORE to STREAM as sclang code.
 
-See also: `as-supercollider-score', `write-encoded-score'"
+See also: `as-supercollider-score', `supercollider-score-write-encoded'"
   (format stream "[~%")
   (dolist (item score)
     (format stream "  [~F, [~{~S, ~}]],~%" (first item) (second item)))
   (format stream "]~%"))
 
-(defun write-encoded-score (score stream)
+(defun supercollider-score-write-encoded (score stream)
   "Write SCORE as an encoded score to STREAM. Note that the score's events must be in order based on start time, and all start times must be double floats. Additionally, all instrument parameters must be either integers or single floats."
   (dolist (bundle score)
     (let ((msg (sc-osc::encode-bundle (cadr bundle) (- (car bundle) osc::+unix-epoch+))))
       (write-sequence (osc::encode-int32 (length msg)) stream)
       (write-sequence msg stream))))
 
-(defmethod render ((list list) (filename string) &rest args &key sample-rate (sample-format :int24))
-  (assert (member sample-format (list :int16 :int24 :int32 :float :double)) (sample-format))
-  (when (event-p (car list))
-    (return-from render (apply #'render (as-score list) filename args)))
-  (let ((sample-rate (or sample-rate
+(defmethod render (object (output (eql :supercollider-file)) &rest args &key (backend (find-backend 'supercollider)) output-filename (channels 2) sample-rate (sample-format :int24))
+  (check-type output-filename pathname-designator)
+  (check-type channels (integer 1))
+  (check-type sample-format (member :int16 :int24 :int32 :float :double))
+  (let ((score (typecase object
+                 (supercollider-score object)
+                 (list (if (event-p (car object))
+                           (apply #'as-supercollider-score object args)
+                           (if (and (numberp (caar object))
+                                    (listp (cadr object)))
+                               object
+                               (error "OBJECT does not appear to be a list of events or a score"))))
+                 (t (apply #'as-supercollider-score object args))))
+        (sample-rate (or sample-rate
                          (let ((s-sr (cl-collider::server-options-hardware-samplerate
-                                      (cl-collider::server-options cl-collider:*s*))))
+                                      (cl-collider::server-options
+                                       (backend-server backend)))))
                            (unless (zerop s-sr)
                              s-sr))
                          48000))
         (osc-bin-file (generate-temporary-file-name :directory "/tmp/cl-patterns/osc/"
                                                     :extension "osc"))
-        (extension (pathname-type filename)))
+        (extension (pathname-type output-filename)))
     (with-open-file (stream osc-bin-file :direction :output :element-type '(unsigned-byte 8)
                                          :if-exists :rename-and-delete :if-does-not-exist :create)
-      (write-encoded-score list stream))
-    (let ((result (multiple-value-list
-                   (uiop:run-program (list "scsynth"
-                                           "-o" "2" ;; 2 output channels
-                                           "-N" ;; non-realtime rendering
-                                           osc-bin-file ;; OSC command file
-                                           "_" ;; input audio file (underscore means none)
-                                           filename ;; output audio file
-                                           (write-to-string sample-rate) ;; sample rate
-                                           (if (position extension (list "wav" "aiff") :test #'string-equal) ;; header format
-                                               extension
-                                               "WAV")
-                                           (string-downcase (symbol-name sample-format))) ;; sample format
-                                     :ignore-error-status t
-                                     :output (list :string :stripped t)
-                                     :error-output (list :string :stripped t)))))
-      (apply #'values (if (zerop (third result))
-                          filename
-                          nil)
-             result))))
+      (supercollider-score-write-encoded score stream))
+    (multiple-value-bind (standard-output error-output return-value)
+        (uiop:run-program (list "scsynth"
+                                "-o" (write-to-string channels) ; number of channels
+                                "-N" ; non-realtime rendering
+                                osc-bin-file ; OSC command file
+                                "_" ; input audio file (underscore means none)
+                                output-filename ; output audio file
+                                (write-to-string sample-rate) ; sample rate
+                                (if (find extension '(wav aiff) :test #'string-equal) ; header format
+                                    extension
+                                    "WAV")
+                                (string-downcase sample-format)) ; sample format
+                          :ignore-error-status t
+                          :output '(:string :stripped t)
+                          :error-output '(:string :stripped t))
+      (if (zerop return-value)
+          output-filename
+          (values nil standard-output error-output return-value)))))
 
-(defmethod render ((event event) output &rest args &key &allow-other-keys)
-  ;; if the user wants to render a lone event without an explicitly-set beat, we assume they just want the event without its `beat' offset.
-  ;; if the user is rendering multiple "tracks" then they will be provided as lists of events or as a pstream, pattern, etc, in which case we don't remove the `beat'.
-  (apply #'render
-         (as-score (if (eql t (nth-value 1 (beat event)))
-                       (list (combine-events event (event :beat 0)))
-                       (list event)))
-         output
-         args))
-
-(defmethod render ((pattern pattern) output &rest args &key &allow-other-keys)
-  (apply #'render (as-score pattern) output args))
-
-(defmethod render ((pattern pattern) (output (eql :score)) &rest args &key &allow-other-keys)
-  (apply #'as-score pattern args))
-
-(defmethod render (object (output (eql :supercollider)) &rest args &key &allow-other-keys)
+(defmethod render (object (output (eql :supercollider-buffer)) &rest args &key &allow-other-keys)
   (let ((wav-file-name (generate-temporary-file-name
                         :directory (namestring (merge-pathnames "wav/" *cl-patterns-temporary-directory*))
                         :extension "wav")))
     (apply #'render object wav-file-name args)
     (cl-collider:buffer-read wav-file-name)))
+
+(defmethod render (object (output (eql :supercollider-score)) &rest args &key &allow-other-keys)
+  (apply #'as-supercollider-score object args))
