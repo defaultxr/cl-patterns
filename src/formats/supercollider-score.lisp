@@ -1,10 +1,10 @@
-(in-package #:cl-patterns)
-
 ;;;; supercollider-score.lisp - support for importing/exporting SuperCollider score files.
 ;;; Primarily for non-realtime (NRT) synthesis; also used by the `render' method to implement pattern rendering.
-
+;;;
 ;;; NOTES:
 ;; http://doc.sccode.org/Classes/Score.html
+
+(in-package #:cl-patterns)
 
 (defclass supercollider-score ()
   ((list :initarg :list :accessor score-list :documentation "The list of directives in the score."))
