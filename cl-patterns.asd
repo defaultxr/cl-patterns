@@ -34,6 +34,7 @@
                              (:file "export")))
                (:file "eseq")
                (:file "backend")
+               (:file "render")
                (:file "clock")
                ;; implementations don't currently push a symbol to *features* for extensible sequences.
                ;; the following line tests for the sequence package, which should only be available when extensible-sequence functionality is available.
@@ -141,6 +142,7 @@
                              (:file "track")))
                (:file "eseq")
                ;; (:file "backend")
+               (:file "render")
                (:file "clock")
                (:file "doc"))
   :perform (test-op (op c)

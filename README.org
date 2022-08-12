@@ -151,6 +151,7 @@ The ALSA MIDI backend has some functionality complete and should be usable for b
 - [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
 - [[file:src/eseq.lisp][eseq.lisp]] - event sequence class and functionality.
 - [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
+- [[file:src/render.lisp][render.lisp]] - generic functionality for rendering patterns.
 - [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
 - [[file:src/sugar.lisp][sugar.lisp]] - deprecated syntax sugar functions.
 

@@ -327,11 +327,6 @@
   ;; FIX
   )
 
-(test render
-  "Test the `render' function"
-  ;; FIX
-  )
-
 (test keys
   "Test cl-patterns `keys' methods"
   (is (equal (list :foo :bar)
