@@ -32,7 +32,7 @@
             (unless (eql :inf repeats) repeats))))
 
 (defun pcycles-parse-list (list &key map (dur 1) (key :value))
-  (let ((map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest)))))
+  (let ((map (concatenate 'list map (list :- (event :type :rest) :_ (event :type :rest) :. (event :type :rest)))))
     (labels ((recurse (list subdur)
                (mapcar (fn (if (consp _)
                                (recurse _ (* subdur (/ 1 (length _))))
