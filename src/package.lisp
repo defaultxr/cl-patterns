@@ -9,8 +9,6 @@
 
    ;;; utility.lisp
 
-   #:*cl-patterns-temporary-directory*
-
    #:*event*
    #:*clock*
    #:eop
@@ -43,8 +41,6 @@
    #:play-swap
    #:all-instruments
    #:playing-nodes
-
-   #:render
 
    ;;; conversions.lisp
 
@@ -275,6 +271,11 @@
    #:start-backend
    #:stop-backend
    #:enabled-backends
+
+   ;;; render.lisp
+
+   #:*cl-patterns-temporary-directory*
+   #:render
 
    ;;; clock.lisp
 
