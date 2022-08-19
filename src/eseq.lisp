@@ -24,7 +24,7 @@ Note that eseq's events slot should not be modified directly as it expects its e
    (metadata :initarg :metadata :initform (make-hash-table) :type hash-table :documentation "Hash table of additional data associated with the eseq, accessible with the `pattern-metadata' function.")))
 
 (defmethod print-object ((eseq eseq) stream)
-  (format stream "(~S ~S~#[~; :METADATA ~S~])" 'eseq (eseq-events eseq) (hash-table-plist (pattern-metadata eseq))))
+  (format stream "(~S ~S~@[ :METADATA ~S~])" 'eseq (eseq-events eseq) (hash-table-plist (pattern-metadata eseq))))
 
 (defun eseq (&optional events &key source metadata)
   "Create an eseq containing the specified events and metadata."
