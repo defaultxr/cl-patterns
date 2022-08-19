@@ -1,5 +1,3 @@
-(in-package #:cl-patterns)
-
 ;;;; event.lisp - event class and functionality to get, set, and coerce event values, plus definitions for standard event keys.
 
 ;;; TODO:
@@ -7,6 +5,8 @@
 ;; FIX: need to test weird scales/tunings to make sure they're converting correctly, etc.
 ;; FIX: implement more keys and event types (see TODO.org)
 ;; FIX: (play (event :octave 2)) doesn't work properly (it still plays the default note)
+
+(in-package #:cl-patterns)
 
 ;;; event basics
 
@@ -67,22 +67,22 @@ See also: `event', `e', `raw-event-value'"
   (when (eop-p event)
     (return-from event-value (values nil nil)))
   (let* ((cases (car (getf *event-special-keys* key)))
-         (cases (if (not (position key (keys cases))) ;; FIX: move this to when the special-key is defined instead?
-                    (append (list key (lambda (event) (raw-event-value event key))) cases)
-                    cases))
+         (cases (if (position key (keys cases)) ; FIX: move this to when the special-key is defined instead?
+                    cases
+                    (list* key (lambda (event) (raw-event-value event key)) cases)))
          (cases-keys (keys cases))
          (key (car (or (member-if (lambda (k) (position k (keys event))) cases-keys)
                        (member t cases-keys))))
          (func (getf cases key))
-         (res (if (null func)
-                  (list nil nil)
-                  (multiple-value-list (funcall func event)))))
-    (values (car res) (or (cadr res) key))))
+         (res (if func
+                  (multiple-value-list (funcall func event))
+                  (list nil nil))))
+    (values (first res) (or (second res) key))))
 
 (defun (setf event-value) (value event key)
   "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."
   (let ((cases (getf *event-special-keys* key)))
-    (when (cadr cases) ;; remove keys that are different "units" of the same concept
+    (when (second cases) ; remove keys that are different units of the same quantity
       (dolist (k (remove-if (fn (eql _ t))
                             (keys (car cases))))
         (remove-event-value event k)))
@@ -177,7 +177,7 @@ See also: `every-event-equal'"
           (t (equal event-1 event-2)))))
 
 (defun every-event-equal (&rest lists)
-  "Test if all the events in LISTS are equivalent. Similar to (every #'event-equal LIST-1 LIST-2...) except that it will fail if the lists are not the same length.
+  "Test if all the events in LISTS are equivalent. Like (every #'event-equal LIST-1 LIST-2 ...) but returns false if the lists are not the same length.
 
 See also: `event-equal', `events-differing-keys'"
   (and (apply #'length= lists)
@@ -213,15 +213,15 @@ See also: `every-event-equal'"
 See also: `copy-event', `split-event-by-lists', `combine-events-via-lists'"
   (when (position eop events)
     (return-from combine-events eop))
-  (let ((ne (event)))
-    (dolist (ev events ne)
+  (let ((new-event (event)))
+    (dolist (ev events new-event)
       (dolist (key (keys ev))
         (if-let ((val (event-value ev key)))
-          (setf (event-value ne key) val)
+          (setf (event-value new-event key) val)
           (return-from combine-events nil)))
-      (unless (raw-event-value ne :beat)
+      (unless (raw-event-value new-event :beat)
         (when-let ((ibeat (slot-value ev '%beat)))
-          (setf (slot-value ne '%beat) ibeat))))))
+          (setf (slot-value new-event '%beat) ibeat))))))
 
 (defun copy-event (event)
   "Get a new event that is a copy of EVENT.
@@ -496,7 +496,7 @@ See also: `rate', `midinote', `degree'")
 
 (define-event-special-key :rate ((t (let ((res (multiple-value-list (event-value event :freq))))
                                       (values (freq-rate (car res) (event-value event :base-freq))
-                                              (cadr res)))))
+                                              (second res)))))
   ;; we don't do remove-keys because other frequency keys are not exact synonyms.
   ;; it's also conceivable that some instruments may use both :rate and :freq.
   :define-methods t
