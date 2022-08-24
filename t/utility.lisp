@@ -4,6 +4,14 @@
 
 (in-suite cl-patterns-tests)
 
+(test string-replace
+  "Test the `string-replace' function"
+  (is (string= "barbar"
+               (cl-patterns::string-replace "foobar" "foo" "bar"))
+      "string-replace gives wrong results when replacing \"foo\" with \"bar\" in \"foobar\"")
+  (is (string= "barbarfoo"
+               (cl-patterns::string-replace "foobarfoo" "foo" "bar"))
+      "string-replace gives wrong results when replacing \"foo\" with \"bar\" in \"foobarfoo\""))
 
 (test note-name-and-octave
   "Test the `note-name-and-octave' function"
