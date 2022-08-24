@@ -128,3 +128,18 @@
                    :r)
                6))
       "pt does not expand properly"))
+
+(test track-shorthand
+  "Test the functionality for the ptrack shorthand reader macro (#T, `cl-patterns::track-shorthand')"
+  (is (equal '(list
+               (list 1 2)
+               (list 3 4)
+               (list 5)
+               (list 6)
+               (list 7 8))
+             (cl-patterns::track-shorthand (make-string-input-stream "(1 2
+3 4
+5
+6
+7 8)") #\# #\T))
+      "track-shorthand does not divide its input into lists by newlines"))
