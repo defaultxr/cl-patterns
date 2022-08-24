@@ -138,7 +138,7 @@ See also: `beat'"
 (defmethod (setf tempo) (value (clock clock))
   (dolist (task (clock-tasks clock)) ; this tempo change event obsoletes any existing ones, so we remove them
     (with-slots (item) task
-      (let ((event (pstream-source item)))
+      (let ((event (pattern-source item)))
         (when (and (event-p event)
                    (eql (event-value event :type) :tempo)
                    (null (beat event))) ; as long as they don't have a beat specified

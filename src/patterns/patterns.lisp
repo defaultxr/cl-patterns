@@ -106,6 +106,9 @@ See also: `pattern', `pdef', `all-patterns'"
 
 ;;; pattern
 
+(defgeneric pattern-source (pattern)
+  (:documentation "The source object that this object was created from. For example, for a `pstream', this would be the pattern that `as-pstream' was called on."))
+
 (defgeneric pstream-count (pattern)
   (:documentation "The number of pstreams that have been made of this pattern."))
 
@@ -113,6 +116,7 @@ See also: `pattern', `pdef', `all-patterns'"
   ((play-quant :initarg :play-quant :documentation "A list of numbers representing when the pattern's pstream can start playing. See `play-quant' and `quant'.")
    (end-quant :initarg :end-quant :accessor end-quant :type list :documentation "A list of numbers representing when a pattern can end playing and when a `pdef' can be swapped out for a new definition. See `end-quant' and `quant'.")
    (end-condition :initarg :end-condition :initform nil :accessor end-condition :type (or null function) :documentation "Nil or a function that is called by the clock with the pattern as its argument to determine whether the pattern should end or swap to a new definition.")
+   (source :initarg :source :initform nil :accessor pattern-source :documentation "The source object that this object was created from. For example, for a `pstream', this would be the pattern that `as-pstream' was called on.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :documentation "Whether or not the pattern should loop when played.")
    (cleanup :initarg :cleanup :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
@@ -330,7 +334,6 @@ See also: `events-in-range'"))
 (defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
-   (source :initarg :source :accessor pstream-source :documentation "The source object (i.e. pattern) that this pstream was created from.")
    (pstream-count :initarg :pstream-count :accessor pstream-count :type integer :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
    (beat :initform 0 :reader beat :type number :documentation "The number of beats that have elapsed since the start of the pstream.")
    (history :type vector :documentation "The history of outputs yielded by the pstream.")

@@ -184,6 +184,7 @@
    #:pattern-p
    #:all-patterns
 
+   #:pattern-source
    #:pattern-parent
    #:parent-pattern ; deprecated
    #:parent-pbind ; deprecated
