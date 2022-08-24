@@ -91,12 +91,12 @@ See also: `pattern-test-argument'"
 (test eop
   "Test that eop is yielded as the last output for all limitable patterns"
   (let ((patterns (remove-if (fn (or (macro-function _)
-                                     (position _ '(:psplits ;; tested in bdef's tests
-                                                   :prun ;; can't be used outside of pbinds
-                                                   :ptime :pbeat :pbeat* :pfilter :pfilter-out ;; endless patterns
-                                                   :p+ :p- :p* :p/ ;; endless math patterns
-                                                   :penv ;; not yet implemented
-                                                   :pdef :pk ;; defers to source pattern
+                                     (position _ '(:psplits ; tested in bdef's tests
+                                                   :prun ; can't be used outside of pbinds
+                                                   :ptime :pbeat :pbeat* :pfilter :pfilter-out ; endless patterns
+                                                   :p+ :p- :p* :p/ ; endless math patterns
+                                                   :penv ; not yet implemented
+                                                   :pdef :pk ; defers to source pattern
                                                    :pbetablocker :ptsbuf :pperps :pquantize)
                                                :test #'string=)))
                              (all-patterns))))
@@ -271,12 +271,6 @@ See also: `pattern-test-argument'"
   (is-false (pstream-p (pseq (list 1)))
             "pstream-p returns incorrect results for patterns"))
 
-(test t-pstream
-  "Test `t-pstream' functionality"
-  (is (equal (list 3 3 3 eop eop)
-             (next-n (t-pstream 3 3) 5))
-      "t-pstream yields incorrect results"))
-
 (test pstream-count
   "Test `pstream-count' functionality"
   (is-true (= 0 (pstream-count (pbind :foo 1)))
@@ -292,6 +286,25 @@ See also: `pattern-test-argument'"
                          (lst (loop :repeat 20 :collect (as-pstream pb))))
                     (mapcar #'pstream-count lst)))
            "pstream-count does not return the correct value for pstreams"))
+
+(test t-pstream
+  "Test functionality of non-patterns as pstreams"
+  (is (equal (list 3 3 3 eop eop)
+             (next-n (t-pstream 3 3) 5))
+      "t-pstream yields incorrect results")
+  (is (= 1
+         (length (next-upto-n (as-pstream 69))))
+      "pstreams made from numbers are yielding the wrong number of outputs")
+  (is (= 1
+         (length (next-upto-n (as-pstream (lambda () (random 420))))))
+      "pstreams made from functions are yielding the wrong number of outputs")
+  (is (= 3
+         (length (next-upto-n (pseq (list 1 2 3) 1))))
+      "patterns don't yield the correct number of values when their parameters are values coerced to pstreams")
+  (is (= 5
+         (let ((*max-pattern-yield-length* 5))
+           (length (next-upto-n (pfunc (lambda () (random 64)))))))
+      "pfunc yields the wrong number of outputs when a function used as its input"))
 
 (test post-pattern-output-processors
   "Test `*post-pattern-output-processors*' functionality"
@@ -351,30 +364,14 @@ See also: `pattern-test-argument'"
                                 :pdurstutter (pseq (list 3 2 1)))))
            "pbind's pr and/or pdurstutter special keys do not work correctly"))
 
-(test special-wrap-keys ;; FIX: should work for all filter patterns
+(test special-wrap-keys ; FIX: should work for all filter patterns
   "Test behavior of wrap keys"
   (is (every-event-equal
        (list (event :foo 0 :x 1) (event :foo 1 :x 2) (event :foo 1 :x 2) (event :foo 2 :x 3) (event :foo 2 :x 3) (event :foo 2 :x 3))
        (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
       "pk in pr's repeats parameter can't access keys from pbind in pr's pattern parameter"))
 
-(test t-pstream
-  "Test functionality of non-patterns as pstreams"
-  (is (= 1
-         (length (next-upto-n (as-pstream 69))))
-      "pstreams made from numbers are yielding the wrong number of outputs")
-  (is (= 1
-         (length (next-upto-n (as-pstream (lambda () (random 420))))))
-      "pstreams made from functions are yielding the wrong number of outputs")
-  (is (= 3
-         (length (next-upto-n (pseq (list 1 2 3) 1))))
-      "patterns don't yield the correct number of values when their parameters are values coerced to pstreams")
-  (is (= 5
-         (let ((*max-pattern-yield-length* 5))
-           (length (next-upto-n (pfunc (lambda () (random 64)))))))
-      "pfunc yields the wrong number of outputs when a function used as its input"))
-
-(test remaining-p ;; FIX: test this for all patterns that use it.
+(test remaining-p ; FIX: test this for all patterns that use it.
   "Test the behavior of the `remaining-p' function"
   (is (equal (list 1 2 3)
              (next-upto-n (pseq (list 1 2 3) 1)))
@@ -524,13 +521,13 @@ See also: `pattern-test-argument'"
   (is (equal (list 1 2 3 1 2 3 eop)
              (next-n (pseq (lambda () (list 1 2 3)) 2) 7))
       "pseq yields incorrect results when LIST is a function")
-  (is (string= "" ;; FIX: this should be done for other patterns as well.
+  (is (string= "" ; FIX: this should be done for other patterns as well.
                (let* ((s (make-string-output-stream))
                       (*standard-output* s))
                  (as-pstream (pseq (list 1 2 3) (lambda () (print 3))))
                  (get-output-stream-string s)))
       "pseq's REPEATS argument is evaluated before `next' is called")
-  (is (equalp (vector 1 2 3 1 2 3 1 2 3 1 2 3 eop) ;; FIX: do this for other patterns as well.
+  (is (equalp (vector 1 2 3 1 2 3 1 2 3 1 2 3 eop) ; FIX: do this for other patterns as well.
               (let* ((foo 1)
                      (bar (as-pstream (pseq (list 1 2 3) (pfunc (lambda () foo))))))
                 (next-n bar 10) ;=> (1 2 3 1 2 3 1 2 3 1)
@@ -693,7 +690,7 @@ See also: `pattern-test-argument'"
   (is (equal (list 1 1 2 eop)
              (next-n (pr (pseq (list 1 2 3) 1) (pseq (list 2 1 0) 1)) 4))
       "pr does not skip elements when REPEATS is 0")
-  (is (equal ;; FIX: make sure this works for all filter patterns (parp, etc)
+  (is (equal ; FIX: make sure this works for all filter patterns (parp, etc)
        (list 1 2 2 3 3 3 1 2 2 3 3 3)
        (mapcar (fn (event-value _ :x))
                (next-upto-n
@@ -757,7 +754,7 @@ See also: `pattern-test-argument'"
       "pshuf yields the wrong number of outputs when REPEATS is specified")
   (is (equal
        (list 1 2 3 4 5)
-       (next-upto-n (pseq (list 1 2 3 4 5) 1))) ;; this list must be quoted and must be the same as one of the ones used in the pshuf test above.
+       (next-upto-n (pseq (list 1 2 3 4 5) 1))) ; this list must be quoted and must be the same as one of the ones used in the pshuf test above.
       "pshuf destructively modifies its input list"))
 
 (test pwhite
@@ -925,7 +922,7 @@ See also: `pattern-test-argument'"
 (test prerange
   "Test prerange"
   (is (equal (list 10 20 30)
-             (mapcar #'round ;; needed because of floating point rounding errors
+             (mapcar #'round ; needed because of floating point rounding errors
                      (next-upto-n (prerange (pseq (list -1 -2 -3) 1)
                                             (list 0 -10)
                                             (list 0 100)))))
@@ -1157,7 +1154,7 @@ See also: `pattern-test-argument'"
                                            2))))
            "prun doesn't support numbers as its DUR"))
 
-(test psym ;; FIX: add more
+(test psym ; FIX: add more
   "Test psym"
   (with-fixture temporary-pdef-dictionary ()
     (pdef :foo1 (pbind :dur (pn 1/2 8)))
@@ -1225,7 +1222,7 @@ See also: `pattern-test-argument'"
            "ppar yields incorrect outputs when its LIST has only one pattern")
   (is-false (typep (quant (as-pstream (ppar (list (pseq (list 1 2 3) 1)))))
                    'pstream)
-            "patterns that use the default as-pstream method have their quant converted to a t-pstream" ;; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
+            "patterns that use the default as-pstream method have their quant converted to a t-pstream" ; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
             )
   (is (< 10 (length (next-upto-n (ppar (list (pbind :x (pn 1 4)) (pbind :y (pseries)))) 20)))
       "ppar doesn't continue with the rest of the patterns after one ends")
