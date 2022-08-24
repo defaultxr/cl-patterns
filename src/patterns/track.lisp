@@ -1,6 +1,6 @@
-(in-package #:cl-patterns)
-
 ;;;; track.lisp - tracker-inspired pattern class and associated functionality.
+
+(in-package #:cl-patterns)
 
 ;;; ptrack
 
@@ -125,7 +125,7 @@ See also: `pt', `pcycles', `pbind'"
      (slot-value ptrack 'cl-patterns::header))
     ((integer 0)
      (let ((rows (slot-value ptrack 'cl-patterns::rows)))
-       (elt rows row))) ;; FIX: check if exists
+       (elt rows row))) ; FIX: check if exists
     (t
      (ptrack-does-not-exist ptrack 'row row if-does-not-exist))))
 
@@ -136,7 +136,7 @@ See also: `pt', `pcycles', `pbind'"
     ((integer 0)
      (setf (nth row (slot-value ptrack 'cl-patterns::rows)) value))))
 
-(defgeneric ptrack-cell (ptrack row key &key if-does-not-exist) ;; FIX: implement if-does-not-exist
+(defgeneric ptrack-cell (ptrack row key &key if-does-not-exist) ; FIX: implement if-does-not-exist
   (:documentation "Get the value of a cell from ptrack (i.e. the value at that location if specified, or the generated value if not specified). Can also be used on a ptrack-pstream to get the generated values from it. Returns three values:
 
 - the value of the cell
@@ -217,15 +217,15 @@ See also: `ptrack'"
                                      (declare (ignore xx yy))
                                      (values :+ptrack-shorthand-separator-symbol+)))
     (let* ((input (read-preserving-whitespace stream nil nil))
-           (rows (remove-if #'null (split-sequence input :+ptrack-shorthand-separator-symbol+))))
+           (rows (remove nil (sequence-split input :+ptrack-shorthand-separator-symbol+))))
       `(list ,@(mapcar (lambda (row)
-                         (append (list 'list)
-                                 (mapcar (lambda (atom)
-                                           (if (and (symbolp atom)
-                                                    (string= "-" (symbol-name atom)))
-                                               :-
-                                               atom))
-                                         row)))
+                         (list* 'list
+                                (mapcar (lambda (atom)
+                                          (if (and (symbolp atom)
+                                                   (string= "-" atom))
+                                              :-
+                                              atom))
+                                        row)))
                        rows)))))
 
 (defun t-short (stream char subchar)
