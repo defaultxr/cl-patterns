@@ -197,6 +197,7 @@
    #:pattern-as-pstream
 
    #:t-pstream
+   #:t-pstream-p
    #:t-pstream-value
    #:t-pstream-length
 

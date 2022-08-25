@@ -586,6 +586,12 @@ See also: `pattern-as-pstream'"))
     (print-unreadable-object (t-pstream stream :type t)
       (format stream "~S ~S" value length))))
 
+(defun t-pstream-p (object)
+  "True if OBJECT is a `t-pstream'.
+
+See also: `t-pstream', `as-pstream'"
+  (typep object 't-pstream))
+
 (defmethod as-pstream ((value t))
   (t-pstream value))
 
