@@ -1246,7 +1246,12 @@ See also: `pattern-test-argument'"
                                              (pbind :dur (pn 1/16 16)))))))
            (next-upto-n pstr)
            (beat pstr)))
-      "ppar doesn't have the same duration as its longest subpattern"))
+      "ppar doesn't have the same duration as its longest subpattern")
+  (with-fixture temporary-pdef-dictionary ()
+    (pdef :foo (pbind :dur (pn 1 4)))
+    (pdef :bar (pbind :dur (pn 1/2 4)))
+    (is (length= 8 (remove-if #'rest-p (next-upto-n (ppar (list :foo :bar)))))
+        "ppar does not give the correct number of outputs when its PATTERNS is a list of pattern names")))
 
 (test pts
   "Test pts"
