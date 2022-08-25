@@ -197,6 +197,8 @@
    #:pattern-as-pstream
 
    #:t-pstream
+   #:t-pstream-value
+   #:t-pstream-length
 
    #:peek
    #:peek-n

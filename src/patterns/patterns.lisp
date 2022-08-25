@@ -563,9 +563,15 @@ See also: `pattern-as-pstream'"))
       (as-pstream thing)
       thing))
 
+(defgeneric t-pstream-value (object)
+  (:documentation "The value that is yielded by the t-pstream."))
+
+(defgeneric t-pstream-length (object)
+  (:documentation "The number of times to yield the value."))
+
 (defclass t-pstream (pstream)
-  ((value :initarg :value :initform nil :documentation "The value that is yielded by the t-pstream.")
-   (length :initarg :length :initform 1 :documentation "The number of times to yield the value."))
+  ((value :initarg :value :initform nil :accessor t-pstream-value :documentation "The value that is yielded by the t-pstream.")
+   (length :initarg :length :initform 1 :accessor t-pstream-length :documentation "The number of times to yield the value."))
   (:documentation "Pattern stream object that by default yields its value only once."))
 
 (defun t-pstream (value &optional (length 1))

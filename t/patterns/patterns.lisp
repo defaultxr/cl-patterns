@@ -304,7 +304,12 @@ See also: `pattern-test-argument'"
   (is (= 5
          (let ((*max-pattern-yield-length* 5))
            (length (next-upto-n (pfunc (lambda () (random 64)))))))
-      "pfunc yields the wrong number of outputs when a function used as its input"))
+      "pfunc yields the wrong number of outputs when a function used as its input")
+  (let ((obj :foo))
+    (is (eq obj (t-pstream-value (as-pstream obj)))
+        "t-pstream-value does not return the object the t-pstream was made from")
+    (is (= 4 (t-pstream-length (make-instance 't-pstream :value obj :length 4)))
+        "t-pstream-length does not return the length of the t-pstream")))
 
 (test post-pattern-output-processors
   "Test `*post-pattern-output-processors*' functionality"
