@@ -174,7 +174,11 @@ See also: `beat'"
 
 See also: `clock-remove', `play'"
   (unless clock
-    (error "~S is null; perhaps try ~S or ~S" '*clock* '(start-clock-loop) '(defparameter *clock* (make-clock))))
+    (restart-case
+        (error "~S is null; perhaps try ~S or ~S" 'clock '(start-clock-loop) '(defparameter *clock* (make-clock)))
+      (start-clock ()
+        :report (lambda (stream) (format stream "Start the clock loop with ~S" '(start-clock-loop)))
+        (start-clock-loop))))
   (with-slots (tasks tasks-lock) clock
     (bt:with-recursive-lock-held (tasks-lock)
       (let ((task (make-instance 'task :item item
