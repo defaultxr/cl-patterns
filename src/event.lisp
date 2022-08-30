@@ -366,7 +366,8 @@ Additionally, because :define-methods is true, we can also do the following:
 
 (define-event-special-key :tempo ((t (if (and (boundp '*clock*) (not (null *clock*)))
                                          (values (tempo *clock*) :tempo)
-                                         1))))
+                                         1)))
+  :define-methods t)
 
 (define-event-special-key :beat ((t (or (raw-event-value event :beat)
                                         (slot-value event '%beat)))))
