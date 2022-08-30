@@ -158,8 +158,8 @@
            "next-beat-for-quant returned the wrong result for a QUANT with negative phase")
   (is-true (= 1 (next-beat-for-quant 0.25 1.1 -1))
            "next-beat-for-quant returned the wrong result for a negative DIRECTION")
-  ;; FIX: test more of the negative DIRECTION
-  )
+  (is-true (= 0 (next-beat-for-quant (list 0.25 -1) 1.1 -1))
+           "next-beat-for-quant returned the wrong result for a negative DIRECTION and negative quant phase"))
 
 (test find-object-by-id
   "Test the `find-object-by-id' function"
