@@ -15,13 +15,7 @@ Note that eseq's events slot should not be modified directly as it expects its e
 
 (defclass eseq (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
   ((events :initarg :events :initform (list) :reader eseq-events :type list :documentation #.(documentation 'eseq-events 'function))
-   (dur :initarg :dur :type (or null number) :documentation "The duration of the eseq. If the slot is unbound, defaults to `last-dur' rounded up to the next multiple of the eseq's `play-quant'.")
-   (play-quant :initarg :play-quant :documentation "A list of numbers representing when the eseq's pstream can start playing. See `play-quant'.")
-   (end-quant :initarg :end-quant :initform nil :documentation "A list of numbers representing when the eseq pstream can end playing or be swapped out for its source's new definition. See `end-quant'.")
-   (loop-p :initarg :loop-p :documentation "Whether or not the eseq should loop when played.")
-   (pstream-count :initform 0 :reader pstream-count :documentation "The number of pstreams that have been made of this eseq.")
-   (source :initarg :source :documentation "The source object (i.e. pattern) that the eseq was created from, or nil if it was original.")
-   (metadata :initarg :metadata :initform (make-hash-table) :type hash-table :documentation "Hash table of additional data associated with the eseq, accessible with the `pattern-metadata' function.")))
+   (dur :initarg :dur :initform nil :type (or null number) :documentation "The duration of the eseq. If the slot is nil, it defaults to `last-dur' rounded up to the next multiple of the eseq's `play-quant'.")))
 
 (defmethod print-object ((eseq eseq) stream)
   (format stream "(~S ~S~@[ :METADATA ~S~])" 'eseq (eseq-events eseq) (hash-table-plist (pattern-metadata eseq))))
@@ -130,8 +124,7 @@ See also: `eseq-add'"))
   (last-dur (eseq-events eseq)))
 
 (defmethod dur ((eseq eseq))
-  (if (slot-boundp eseq 'dur)
-      (slot-value eseq 'dur)
+  (or (slot-value eseq 'dur)
       (next-beat-for-quant (car (play-quant eseq)) (last-dur eseq))))
 
 (defgeneric as-eseq (object)
