@@ -178,8 +178,10 @@
 
 (test tempo
   "Test the `tempo' function"
-  ;; FIX
-  )
+  (is (= 2.5 (tempo (event :tempo 2.5)))
+      "tempo does not return correct results for events")
+  (is (= 9.2 (tempo (make-clock 9.2)))
+      "tempo does not return correct results for clocks"))
 
 (test beat
   "Test the `beat' function"
