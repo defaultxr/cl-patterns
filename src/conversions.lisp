@@ -347,3 +347,24 @@ Note that this function is not aware of context and thus always returns the firs
 
 Note that this function is meant for use with the MIDI backend; for frequency-to-midinote conversion without rounding, see `freq-midinote' instead."
   (round (freq-midinote frequency)))
+
+(defconversion boolean-to-midi (boolean)
+  "Convert BOOLEAN to a MIDI value.
+
+Examples:
+
+;; ;; false/\"off\" values:
+;; (boolean-to-midi nil) ;=> 0
+;; (boolean-to-midi 0) ;=> 0
+;; (boolean-to-midi 63) ;=> 63
+
+;; ;; true/\"on\" values:
+;; (boolean-to-midi t) ;=> 127
+;; (boolean-to-midi 64) ;=> 64
+;; (boolean-to-midi 127) ;=> 127
+
+See also: `parse-boolean'"
+  (typecase boolean
+    (integer boolean)
+    (rational (if (>= boolean 0.5) 127 0))
+    (boolean (if boolean 127 0))))
