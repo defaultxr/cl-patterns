@@ -130,7 +130,7 @@ See also: `beat'"
   (with-slots (tempo timestamp-at-tempo beat-at-tempo) clock
     (+ beat-at-tempo (* tempo (local-time:timestamp-difference (local-time:now) timestamp-at-tempo)))))
 
-(defun absolute-beats-to-timestamp (beats clock)
+(defun absolute-beats-to-timestamp (beats &optional (clock *clock*)) ; FIX: should this be moved to conversions.lisp?
   "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's beat-at-tempo slot."
   (with-slots (timestamp-at-tempo beat-at-tempo) clock
     (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
