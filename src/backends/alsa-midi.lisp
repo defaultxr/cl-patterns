@@ -71,7 +71,7 @@ See also: `alsa-midi-instrument-program-number'"
   "Set a mapping for CC-NUMBER. When EVENT-KEY is seen in an event being played by the alsa-midi backend, its value will be converted using the function specified by MAPPER, and then that value will be set for CC number CC-NUMBER just before the note itself is triggered. DESCRIPTION is a description of what the CC controls."
   (setf (gethash cc-number *alsa-midi-cc-map*)
         (list cc-number description event-key mapper))
-  (when event-key
+  (dolist (event-key (ensure-list event-key))
     (setf (gethash event-key *alsa-midi-cc-map*) cc-number)))
 
 (uiop:with-deprecation (:warning)
