@@ -39,7 +39,6 @@ See also: `alsa-midi-instrument-program-number'"
       (remhash instrument *alsa-midi-instrument-map*)))
 
 ;;; cc mapping
-;; http://nickfever.com/music/midi-cc-list
 
 (defvar *alsa-midi-cc-map* (make-hash-table)
   "Hash table mapping CC numbers to metadata and event key names to CC numbers.")
@@ -89,20 +88,63 @@ See also: `alsa-midi-instrument-program-number'"
           (list (midi-truncate-clamp (parse-integer (subseq sym-name 3))) (midi-truncate-clamp value))
           nil))))
 
-;; set default cc mappings
+;;; default cc mappings
+;; http://nickfever.com/music/midi-cc-list
+;; https://anotherproducer.com/online-tools-for-musicians/midi-cc-list/
+;; https://www.presetpatch.com/midi-cc-list.aspx
+
 (mapc (fn (apply #'alsa-midi-set-cc-mapping _))
-      '((1 "Vibrato/Modulation" :vibrato unipolar-1-to-midi)
+      '((0 "Bank select (MSB)" :bank-msb)
+        (1 "Modulation/Vibrato" (:mod :vibrato :wheel) unipolar-1-to-midi)
+        (2 "Breath controller" :breath unipolar-1-to-midi)
+        (4 "Foot pedal" :foot-pedal unipolar-1-to-midi)
+        (5 "Portamento time" (:porta-time :portamento-time) unipolar-1-to-midi)
+        (7 "Volume" :volume unipolar-1-to-midi)
         (8 "Balance" :balance bipolar-1-to-midi)
         (10 "Pan" :pan bipolar-1-to-midi)
-        (71 "Resonance/Timbre" :res unipolar-1-to-midi)
-        (72 "Release" :release)
-        (73 "Attack" :attack)
-        (74 "Cutoff/Brightness" :ffreq frequency-to-midi)
-        (84 "Portamento amount" :porta)
-        (91 "Reverb" :reverb)
-        (92 "Tremolo" :tremolo)
-        (93 "Chorus" :chorus)
-        (94 "Phaser" :phaser)))
+        (11 "Expression pedal" (:expression :expression-pedal) unipolar-1-to-midi)
+        (12 "Effect 1" :effect-1 unipolar-1-to-midi)
+        (13 "Effect 2" :effect-2 unipolar-1-to-midi)
+        (32 "Bank select (LSB)" :bank-lsb)
+        (33 "Modulation (LSB)" (:mod-lsb :vibrato-lsb :wheel-lsb))
+        (34 "Breath controller (LSB)" :breath-lsb)
+        (36 "Foot pedal (LSB)" :foot-pedal-lsb)
+        (37 "Portamento time (LSB)" (:porta-time-lsb :portamento-time-lsb))
+        (39 "Volume (LSB)" :volume-lsb)
+        (42 "Pan (LSB)" :pan-lsb)
+        (43 "Expression pedal (LSB)" (:expression-lsb :expression-pedal-lsb))
+        (44 "Effect 1 (LSB)" :effect-1-lsb)
+        (45 "Effect 2 (LSB)" :effect-2-lsb)
+        (64 "Sustain pedal on/off" :sustain-pedal boolean-to-midi)
+        (65 "Portamento on/off" :sustain-pedal boolean-to-midi)
+        (66 "Sostenuto on/off" :sostenuto boolean-to-midi)
+        (67 "Soft pedal on/off" :soft-pedal boolean-to-midi)
+        (68 "Legato on/off" (:legato-on :legato-enable) boolean-to-midi)
+        (69 "Hold pedal on/off" (:hold-pedal-on :hold-pedal-enable :hold-on :hold-enable) boolean-to-midi)
+        (71 "Filter resonance/Timbre" :res unipolar-1-to-midi)
+        (72 "Amp envelope release" :release)
+        (73 "Amp envelope attack" :attack)
+        (74 "Filter cutoff/Brightness" :ffreq frequency-to-midi)
+        (76 "Vibrato rate" :vibrato-rate unipolar-1-to-midi)
+        (77 "Vibrato depth" :vibrato-depth unipolar-1-to-midi)
+        (78 "Vibrato delay" :vibrato-delay unipolar-1-to-midi)
+        (84 "Portamento amount" (:porta :portamento :portamento-amount) unipolar-1-to-midi)
+        (91 "Reverb amount" (:reverb :reverb-amount) unipolar-1-to-midi)
+        (92 "Tremolo amount" (:tremolo :tremolo-amount) unipolar-1-to-midi)
+        (93 "Chorus amount" (:chorus :chorus-amount) unipolar-1-to-midi)
+        (94 "Detune amount" (:detuning :detune-amount) unipolar-1-to-midi)
+        (95 "Phaser amount" (:phaser :phaser-amount) unipolar-1-to-midi)
+        (120 "Channel mute/Sound off" :channel-mute boolean-to-midi)
+        (121 "Reset controllers" :reset-controllers boolean-to-midi)
+        (122 "Local keyboard enable" :local-keyboard-enable boolean-to-midi)
+        (123 "Release all notes/MIDI panic" (:release-all :midi-panic :all-notes-off) boolean-to-midi)
+        (124 "OMNI mode off" (:omni-mode-off :omni-mode-disable))
+        (125 "OMNI mode on" (:omni-mode-on :omni-mode-enable))
+        (126 "Mono mode on/Unison mode on" (:mono-mode-on :mono-mode-enable))
+        (127 "Poly mode on" (:poly-mode-on :poly-mode-enable))))
+
+(defvar *undefined-midi-ccs* (a 3 9 14 15 20..31 85..90 102..119)
+  "List of MIDI CC numbers that are left undefined (\"free\") in the MIDI specification.")
 
 ;;; current channel instruments
 
