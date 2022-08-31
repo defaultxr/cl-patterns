@@ -1,11 +1,10 @@
+;;;; t/conversions.lisp - tests for unit conversion functions.
+;;; TODO:
+;; FIX: add more.
+
 (in-package #:cl-patterns/tests)
 
 (in-suite cl-patterns-tests)
-
-;;;; t/conversions.lisp - tests for unit conversion functions.
-
-;;; TODO:
-;; FIX: add more.
 
 ;; NOTE: Many of the conversion functions are affected by floating point rounding errors.
 ;; This is why we use `mutility:approx=' for many of these comparisons rather than `cl:='.
@@ -122,5 +121,3 @@
   (is (= 2
          (freq-rate 2600 1300))
       "freq-rate conversion is not correct when base-freq is provided"))
-
-
