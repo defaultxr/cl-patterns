@@ -90,12 +90,6 @@
                   (events-differing-keys (event :foo 1 :bar 5) (event :foo 1 :bar 5) (event :bar 5)))
            "events-differing-keys doesn't return keys that are missing from some events"))
 
-(test events-lists-differing-keys
-  (is (equal (list nil nil (list :bar))
-             (events-lists-differing-keys (list (event :foo 1 :bar 2) (event :foo 3 :bar 4) (event :foo 3 :bar 5))
-                                          (list (event :foo 1 :bar 2) (event :foo 3 :bar 4) (event :foo 3 :bar 6))))
-      "events-lists-differing-keys returns incorrect results"))
-
 (test combine-events
   "Test combine-events"
   (is-true (event-equal

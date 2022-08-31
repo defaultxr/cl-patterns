@@ -207,7 +207,7 @@ See also: `pattern-children'"
         res
         pattern)))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun parent-pattern (pattern)
     "Deprecated alias for `pattern-parent'."
     (pattern-parent pattern))

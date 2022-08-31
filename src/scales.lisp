@@ -57,7 +57,7 @@ See also: `*abbreviations*'"
 
 ;;; notes
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun note-number (note)
     "Deprecated alias for `note-chromatic-index'."
     (note-chromatic-index note))

@@ -152,7 +152,7 @@
    #:event-equal
    #:every-event-equal
    #:events-differing-keys
-   #:events-lists-differing-keys
+   #:events-lists-differing-keys ; deprecated
    #:combine-events
    #:copy-event
    #:split-event-by-lists

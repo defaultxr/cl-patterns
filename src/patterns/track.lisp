@@ -171,7 +171,7 @@ See also: `ptrack', `ptrack-row'"))
     (setf (getf row-plist key) value
           (ptrack-row ptrack row) row-plist)))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun ptracker (&rest args)
     "Deprecated alias for `ptrack'."
     (apply #'ptrack args)))

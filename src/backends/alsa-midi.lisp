@@ -61,7 +61,7 @@ See also: `alsa-midi-instrument-program-number'"
         (gethash key-map *alsa-midi-cc-map*)
         key-map)))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun get-alsa-midi-cc-mapping (key)
     "Deprecated in favor of `alsa-midi-cc-mapping'."
     (alsa-midi-cc-mapping key)))
@@ -73,7 +73,7 @@ See also: `alsa-midi-instrument-program-number'"
   (dolist (event-key (ensure-list event-key))
     (setf (gethash event-key *alsa-midi-cc-map*) cc-number)))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun set-alsa-midi-cc-mapping (cc-number description &optional event-key (mapper 'midi-truncate-clamp))
     "Deprecated in favor of `alsa-midi-set-cc-mapping'."
     (alsa-midi-set-cc-mapping cc-number description event-key mapper)))

@@ -48,7 +48,7 @@ See also: `note-midinote', `chromatic-index-note'"
 
 ;;; list stuff
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun gete (list key)
     "Get a list of the value of KEY for each event in LIST."
     (mapcar (fn (event-value _ key)) list)))

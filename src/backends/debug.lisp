@@ -16,7 +16,7 @@
 (defun debug-backend-recent-events (&optional (backend (find-backend 'debug-backend)) (n 10))
   "Get the N most recent events recorded to the debug backend (most recent first). You will of course need to enable the debug backend first in order to record events with it.
 
-See also: `debug-clear-events', `ptrace'"
+See also: `ptrace'"
   (loop :for i :in (slot-value backend 'recent-events)
         :repeat n
         :collect i))
@@ -46,7 +46,7 @@ See also: `debug-backend-recent-events'"
   (warn "Using ~S is deprecated; please use ~S instead." '*debug-backend-events* 'debug-backend-recent-events)
   (debug-backend-recent-events (find-backend 'debug-backend)))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun debug-recent-events (&optional (n 10))
     "Deprecated alias for `debug-backend-recent-events'."
     (debug-backend-recent-events (find-backend 'debug-backend) n))

@@ -53,7 +53,7 @@ See also: `raw-event-value', `event-value'"
     (setf event-plist (plist-set event-plist key value)))
   value)
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun raw-set-event-value (event key value)
     "Set the value of KEY to VALUE in EVENT without running any conversion functions. Deprecated; use (setf (raw-event-value EVENT KEY) VALUE) instead."
     (setf (raw-event-value event key) value)))
@@ -186,14 +186,14 @@ See also: `event-equal', `events-differing-keys'"
 (defun events-differing-keys (&rest events)
   "Get a list of keys that differ between EVENTS.
 
-See also: `every-event-equal', `events-lists-differing-keys'"
+See also: `every-event-equal'"
   (loop :for key :in (remove-duplicates (flatten (mapcar (lambda (event) (keys event)) events)))
         :unless (every (lambda (event) (equal (event-value (nth 0 events) key)
                                               (event-value event key)))
                        events)
           :collect key))
 
-(uiop:with-deprecation (:style-warning)
+(uiop:with-deprecation (:warning)
   (defun events-lists-differing-keys (&rest lists)
     "Get a list of the keys that differ between respective event in LISTS.
 
