@@ -317,13 +317,11 @@ See also: `pattern-test-argument'"
 
 (test post-pattern-output-processors
   "Test `*post-pattern-output-processors*' functionality"
-  (defun increase-foo (event pstream)
-    "Helper function for the post-pattern-output-processors test."
-    (declare (ignore pstream))
-    (when (nth-value 1 (event-value event :foo))
-      (incf (event-value event :foo)))
-    event)
-  (let ((*post-pattern-output-processors* (list 'increase-foo)))
+  (let ((*post-pattern-output-processors* (list (lambda (event pstream)
+                                                  (declare (ignore pstream))
+                                                  (when (nth-value 1 (event-value event :foo))
+                                                    (incf (event-value event :foo)))
+                                                  event))))
     (is-true (equal (list 1 2 3)
                     (mapcar (rcurry #'event-value :foo)
                             (next-n (pbind :foo (pseries)) 3)))
