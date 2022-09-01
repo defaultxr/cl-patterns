@@ -1,5 +1,3 @@
-(in-package #:cl-patterns)
-
 ;;;; eseq.lisp - "event sequence"; editable, efficient, ordered sequence of `event's.
 ;; eseq is much simpler than regular patterns and its methods make it easier to modify in some situations.
 ;; for example, eseq might be well-suited to building a piano roll interface around...
@@ -7,6 +5,8 @@
 
 ;;; TODO:
 ;; FIX: need some way to keep events sorted when their beat is changed. should they notify the eseq?
+
+(in-package #:cl-patterns)
 
 (defgeneric eseq-events (object)
   (:documentation "The list of events in the `eseq'.
@@ -130,7 +130,7 @@ See also: `eseq-add'"))
 (defgeneric as-eseq (object)
   (:documentation "Convert OBJECT to an `eseq'.
 
-See also: `as-pstream'")) ;; FIX: add as-score when finished
+See also: `as-pstream'")) ; FIX: add `as-score' when finished
 
 (defmethod as-eseq ((symbol symbol))
   (as-eseq (find-pdef symbol t)))
