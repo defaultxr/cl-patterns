@@ -68,9 +68,10 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
                                           :append (process-nodes (child-nodes node)))))
                        (process-nodes nodes)))
          (code-texts (flatten (mapcar #'find-code-text list-items)))
-         (missing (remove-if (lambda (pat)
-                               (position (symbol-name pat) code-texts :test #'string-equal))
-                             (all-patterns))))
+         (missing (remove-duplicates
+                   (remove-if (lambda (pat)
+                                (position (symbol-name pat) code-texts :test #'string-equal))
+                              (all-patterns)))))
     (is-false missing
               "some patterns are not documented in patterns.org: ~A" missing)))
 
