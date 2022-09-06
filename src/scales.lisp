@@ -461,7 +461,7 @@ See also: `scale', `define-tuning', `define-scale'"
                  (cdr io))))
           (chord-indexes chord)))
 
-(defun chord-midinotes (chord &optional root (octave 5))
+(defun chord-midinotes (chord &optional (root 0) (octave 5))
   "Get a list of the midi note numbers in the specified chord."
   (mapcar #'+
           (circular-list (note-midinote root :octave octave))
