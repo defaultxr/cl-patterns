@@ -694,8 +694,8 @@ See also: `scale', `define-tuning', `define-scale'"
 (dolist (chord
          `(("Augmented Triad" (0 2 4#) :major (:augtri))
            ("Diminished Triad" (0 2b 4b) :major (:dimtri))
-           ("Major Triad" (0 2 4) :major (:major :majtri))
-           ("Minor Triad" (0 2b 4) :major (:minor :mintri))
+           ("Major Triad" (0 2 4) :major (:major :maj :majtri))
+           ("Minor Triad" (0 2b 4) :major (:minor :min :mintri))
            ("Suspended 2nd Triad" (0 1 4) :major (:sus2tri))
            ("Suspended 4th Triad" (0 3 4) :major (:sus4tri))
            ("Major 6th" (0 2 4 5) :major (:maj6))
