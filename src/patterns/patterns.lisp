@@ -1328,7 +1328,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
   (with-slots (pattern repeats) pr
     (make-instance 'pr-pstream
                    :pattern (as-pstream pattern)
-                   :repeats (pattern-as-pstream repeats)))) ;; FIX: is this correct? usually :repeats is `as-pstream'
+                   :repeats (pattern-as-pstream repeats))))
 
 (defmethod next ((pr pr-pstream))
   (with-slots (pattern repeats current-value current-repeats-remaining) pr
@@ -1337,7 +1337,9 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
                     current-value
                     (not (value-remaining-p current-repeats-remaining))))
       (setf current-value (next pattern))
-      (when (eop-p current-value)
+      (when (or (eop-p current-value)
+                (and (slot-boundp pr 'current-repeats-remaining)
+                     (eop-p current-repeats-remaining)))
         (return-from next eop))
       (setf current-repeats-remaining
             (let ((*event* (if (event-p current-value)
