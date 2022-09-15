@@ -1017,6 +1017,9 @@ Example:
 See also: `pbind', `pbind''s :type key"
   (make-instance 'prest :value value))
 
+(defmethod print-object ((prest prest) stream)
+  (format stream "(~S ~S)" 'prest (slot-value prest 'value)))
+
 (defmethod rest-p ((prest prest))
   t)
 
