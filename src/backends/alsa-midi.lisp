@@ -196,7 +196,6 @@ See also: `alsa-midi-instrument-program-number'"
                                                (event-value event :chan)
                                                0)
                                            15))
-             (pgm (or pgm 0))
              (note (midi-truncate-clamp (event-value event :midinote)))
              (velocity (unipolar-1-to-midi (event-value event :amp))) ; FIX: maybe this shouldn't be linear?
              (time (or (raw-event-value event :timestamp-at-start) (local-time:now)))
