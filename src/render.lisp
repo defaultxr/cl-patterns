@@ -1,4 +1,5 @@
 ;;;; render.lisp - generic functionality for rendering patterns.
+;; FIX: doesn't work when the path is relative
 
 (in-package #:cl-patterns)
 
@@ -6,6 +7,7 @@
   (merge-pathnames "cl-patterns/" (uiop:temporary-directory))
   "The default directory to store `render'ed files in.")
 
+;; FIX: implement padding-duration key
 (defgeneric render (object output &key backend tempo max-length max-pattern-yield-length duration max-duration max-output-duration &allow-other-keys)
   (:documentation "Render a pattern or other object as audio or other format. OUTPUT is what the pattern should be rendered as. It can be one of the following values:
 

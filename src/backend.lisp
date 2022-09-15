@@ -33,7 +33,7 @@
   ((name :initarg :name :accessor backend-name :type string-designator :documentation "The name of the backend instance.")
    (enabled-p :initarg :enabled-p :initform t :accessor backend-enabled-p :type boolean :documentation "Whether this backend instance is currently enabled. Events being played will only be sent to enabled and running backends.")
    (started-p :initarg :started-p :initform nil :accessor backend-started-p :type boolean :documentation "Whether the backend is current enabled and running.")
-   (input-processors :initarg :input-processors :initform nil :accessor backend-input-processors :type list :documentation "List of functions that process incoming events. Similar to `*post-pattern-output-processors*' but per-backend.") ;; FIX: implement
+   (input-processors :initarg :input-processors :initform nil :accessor backend-input-processors :type list :documentation "List of functions that process incoming events. Similar to `*post-pattern-output-processors*' but per-backend.") ; FIX: implement
    (metadata :initarg :metadata :initform nil :accessor backend-metadata :type list :documentation "Additional metadata associated with the backend instance."))
   (:documentation "Abstract superclass for backends."))
 
@@ -115,13 +115,13 @@ See also: `backend-start', `backend-enabled-p'"))
 (defmethod backend-stop :after ((backend backend))
   (setf (backend-started-p backend) nil))
 
-;; (defgeneric backend-handles-event-p (backend event) ;; FIX: is this needed?
+;; (defgeneric backend-handles-event-p (backend event) ; FIX: is this needed?
 ;;   (:documentation "True if BACKEND is currently available to handle EVENT."))
 
 ;; (defmethod backend-handles-event-p (backend event)
 ;;   )
 
-(defun enabled-backends () ;; FIX: remove this?
+(defun enabled-backends () ; FIX: remove this?
   "Get a list of all enabled backends.
 
 See also: `all-backends', `backend-enabled-p'"
@@ -241,7 +241,7 @@ See also: `backend-task-removed'"))
 (defmethod backend-tempo-change-at (backend clock timestamp)
   nil)
 
-(defgeneric backend-task-added (backend task) ;; FIX: when created, backend objects should be sent all current tasks
+(defgeneric backend-task-added (backend task) ; FIX: when created, backend objects should be sent all current tasks
   (:documentation "Called when TASK is added to the clock so BACKEND can prepare any related state.
 
 See also: `backend-task-removed'"))
@@ -254,11 +254,11 @@ See also: `backend-task-removed'"))
 
 See also: `backend-play-event'"))
 
-(defmethod backend-task-removed (backend task) ;; FIX: this code should probably be run by the clock rather than a backend method since it should apply to all backends (maybe?)
+(defmethod backend-task-removed (backend task) ; FIX: this code should probably be run by the clock rather than a backend method since it should apply to all backends (maybe?)
   (let ((item (slot-value task 'item))
         (nodes (task-nodes task backend)))
     (if (event-p item)
-        (mapc 'stop nodes) ;; FIX: this doesn't work because the preview synth doesn't have a gate argument, and non-gated synths aren't kept in task's backend-resources slot.
+        (mapc #'stop nodes) ; FIX: this doesn't work because the preview synth doesn't have a gate argument, and non-gated synths aren't kept in task's backend-resources slot.
         (let ((last-output (last-output item)))
           (dolist (node nodes)
             (backend-control-node-at backend
@@ -287,23 +287,23 @@ See also: `backend-play-event'"))
 
 (defmethod backend-instrument-args-list (backend instrument event)
   (if-let ((controls (backend-instrument-controls backend instrument)))
-    (let ((instrument-params (remove-if (lambda (arg) ;; for parameters unspecified by the event, we fall back to the instrument's defaults, NOT the event's...
-                                          (unless (string-equal arg :sustain) ;; ...with the exception of sustain, which the instrument should always get.
+    (let ((instrument-params (remove-if (lambda (arg) ; for parameters unspecified by the event, we fall back to the instrument's defaults, NOT the event's...
+                                          (unless (string-equal arg :sustain) ; ...with the exception of sustain, which the instrument should always get.
                                             (multiple-value-bind (value key) (event-value event arg)
                                               (declare (ignore value))
                                               (eql key t))))
-                                        (append controls (list :group :to :id))))) ;; FIX: this is for the supercollider backend; genericize this
+                                        (append controls (list :group :to :id))))) ; FIX: this is for the supercollider backend; genericize this
       ;; get the value of each of the instrument's arguments from the event...
       (loop :for param :in instrument-params
             :for sparam := (make-keyword (string-upcase param))
             :for val := (backend-convert-object backend (event-value event sparam) sparam)
             :if (or (eql :gate sparam)
                     val)
-              :append (list (if (eql :group sparam) ;; :group is an alias for :to
+              :append (list (if (eql :group sparam) ; :group is an alias for :to
                                 :to
                                 sparam)
                             (if (eql :gate sparam) 1 val))))
-    (copy-list (event-plist event)))) ;; if we don't have data for the instrument, all we can do is return the plist for the event and hope for the best.
+    (copy-list (event-plist event)))) ; if we don't have data for the instrument, all we can do is return the plist for the event and hope for the best.
 
 (defgeneric backend-all-instruments (backend)
   (:documentation "Get a list of the names of all defined synths (synthdefs, dsps, etc) for the specified backend.

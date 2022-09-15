@@ -467,7 +467,7 @@ See also: `remaining-p'"
                            (pattern
                             (if (typep pattern '(or function t-pstream))
                                 res
-                                (progn ;; if `next' returns a pattern, we push it to the pattern stack as a pstream
+                                (progn ; if `next' returns a pattern, we push it to the pattern stack as a pstream
                                   (let ((pstr (as-pstream res)))
                                     (setf (slot-value pstr 'start-beat) (beat pattern))
                                     (push pstr pattern-stack))
@@ -2153,6 +2153,7 @@ See also: `plazy', `pfunc'")
               (next false))))))
 
 ;;; parp
+;; FIX: should this be like `pchain' and accept an arbitrary number of input patterns?
 
 (defpattern parp (pattern)
   (pattern

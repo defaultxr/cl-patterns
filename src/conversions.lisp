@@ -7,6 +7,7 @@
 (defvar *conversions* (make-hash-table)
   "Hash table storing conversion function definitions and metadata.")
 
+;; FIX: maybe separate out name into FROM and TO, so some conversions can be auto-generated?
 (defmacro defconversion (name lambda-list &body body)
   "Define a conversion, storing function definition information so it can be used later to define \"pseudo-ugens\" for synthesis definitions in supported backends."
   `(progn
@@ -223,7 +224,7 @@ See also: `note-freq'"
   "Get the chromatic index of MIDINOTE."
   (note-chromatic-index (midinote-note midinote)))
 
-(defconversion note-chromatic-index (note)
+(defconversion note-chromatic-index (note) ; FIX: should we allow tuning/scale args here, to ensure integers are within the chromatic-index range?
   "Get the chromatic index of NOTE."
   (etypecase note
     (number note)

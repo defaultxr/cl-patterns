@@ -92,7 +92,7 @@ Here's the recommended setup to load these libraries automatically via your Emac
 
 The above should also work with slime; just replace all instances of "sly" with "slime".
 
-* Current Status
+* Status
 
 Right now, the library may be described as being in a "late alpha" stage, as fewer and fewer major changes are still being made. Most of the included patterns and exported functionality now have relatively stable APIs as well as tests to guard against regressions. There may still be the occasional change of functionality in the library, though most user-facing changes will be gracefully deprecated and documented in commit messages, so check those if you have any issues after updating.
 

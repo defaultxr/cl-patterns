@@ -481,7 +481,7 @@ See also: `rate', `midinote', `degree'")
                                    (t 5))
   :remove-keys (:freq :note :midinote))
 
-(define-event-special-key :root ((t 0)) ;; FIX: can we derive this when :freq, :midinote, :degree, etc are available?
+(define-event-special-key :root ((t 0)) ; FIX: can we derive this when :freq, :midinote, :degree, etc are available?
   :remove-keys (:freq :note :midinote))
 
 (define-event-special-key :octave ((:freq (freq-octave (raw-event-value event :freq)))

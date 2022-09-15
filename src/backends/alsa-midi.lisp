@@ -198,7 +198,7 @@ See also: `alsa-midi-instrument-program-number'"
                                            15))
              (pgm (or pgm 0))
              (note (midi-truncate-clamp (event-value event :midinote)))
-             (velocity (unipolar-1-to-midi (event-value event :amp))) ;; FIX: maybe this shouldn't be linear?
+             (velocity (unipolar-1-to-midi (event-value event :amp))) ; FIX: maybe this shouldn't be linear?
              (time (or (raw-event-value event :timestamp-at-start) (local-time:now)))
              (extra-params (loop :for key :in (keys event)
                                  :for cc-mapping := (alsa-midi-remap-key-value key (event-value event key))
@@ -212,7 +212,7 @@ See also: `alsa-midi-instrument-program-number'"
              (midihelper:send-event (midihelper:ev-pgmchange channel pgm))
              (setf (nth channel *alsa-midi-channels-instruments*) pgm))
            (dolist (param extra-params)
-             (midihelper:send-event (midihelper:ev-cc channel (car param) (cadr param))))
+             (midihelper:send-event (midihelper:ev-cc channel (first param) (second param))))
            (unless (eql type :set)
              (midihelper:send-event (midihelper:ev-noteon channel note velocity))
              (sleep (max 0 (dur-time (sustain event) (tempo (task-clock task)))))

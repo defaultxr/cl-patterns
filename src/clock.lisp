@@ -161,15 +161,15 @@ See also: `beat'"
 
 (defun deprecated-latency ()
   "Deprecated alias for `(clock-latency *clock*)'."
-  (warn "Using *latency* is deprecated; please use (clock-latency) instead.")
+  (warn "Using *latency* is deprecated; please use `clock-latency' instead.")
   (clock-latency))
 
 (defun (setf deprecated-latency) (value)
   "Deprecated alias for `(setf (clock-latency *clock*) ...)'."
-  (warn "Using *latency* is deprecated; please use (clock-latency) instead.")
+  (warn "Using *latency* is deprecated; please use `clock-latency' instead.")
   (setf (clock-latency) value))
 
-(defun clock-add (item &optional (clock *clock*)) ;; FIX: take event :beat into account
+(defun clock-add (item &optional (clock *clock*)) ; FIX: take event :beat into account
   "Add ITEM (usually a `pstream') to CLOCK's tasks. Generally you don't need to use this directly and would use `play' instead.
 
 See also: `clock-remove', `play'"

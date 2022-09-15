@@ -248,3 +248,13 @@ as per issue #28
 * make the default value of ~repeats~ and ~length~ arguments customizable; perhaps on a per-pattern basis using class variables?
 * ~as-ugen~ function that can convert a pattern object into a ugen graph for supported backends
 * pattern for doing feedback in patterns
+* some kind of bytebeat pattern
+* function to get information about event/pattern keys
+Since more and more special keys are being defined, there should be a programmatic way to query what a key can do.
+Such a function should take into account all of the following:
+- event builtins/conversions
+- information on event types
+- pbind special keys (init, wrap, process)
+- pmeta special keys
+- backend-specific keys (i.e. the ones for MIDI backends like alsa-midi)
+- others?
