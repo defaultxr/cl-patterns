@@ -42,7 +42,10 @@
   (is-true (let ((*clock* (make-clock 9/7)))
              (equal (list 9/7 :tempo)
                     (multiple-value-list (event-value (event) :tempo))))
-           "event-value doesn't provide :tempo when getting the tempo from *clock*"))
+           "event-value doesn't provide :tempo when getting the tempo from *clock*")
+  (is-true (= 110
+              (event-value (event :octave 2) :freq))
+           "(event :octave 2) doesn't set the correct freq"))
 
 (test event-beat
   "Test the beat key for events"
