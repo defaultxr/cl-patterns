@@ -447,7 +447,7 @@ See also: `sustain', `dur'")
                                                       :octave (event-value event :octave)
                                                       :scale (event-value event :scale)))
                                  (t 440))
-  :remove-keys (:midinote :degree :root :octave)
+  :remove-keys (:note :midinote :degree :root :octave)
   :define-methods t
   :documentation "Frequency of the note, in Hz.
 
