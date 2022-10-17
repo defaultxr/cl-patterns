@@ -33,8 +33,10 @@ Volume of the synth.
 Stereo panning of the synth's output.
 ** ~tempo~
 Set the clock's tempo.
-** ~dur~ / ~delta~
-How long before the next note starts. ~dur~ also affects the sustain time of the note (see ~sustain~ / ~legato~, below)
+** ~delta~
+Time in beats before the next note starts.
+** ~dur~
+ also affects the hold time (sustain, in beats) of the note (see ~sustain~ / ~legato~, below)
 ** ~beat~
 When the event should play, relative to the start of the pattern.
 ** ~sustain~ / ~legato~
