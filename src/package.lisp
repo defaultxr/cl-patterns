@@ -165,10 +165,11 @@
 
    #:pan
 
-   #:dur
-   #:legato
-   #:sustain
    #:delta
+   #:dur
+
+   #:sustain
+   #:legato
 
    #:freq
    #:midinote
