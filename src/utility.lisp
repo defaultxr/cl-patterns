@@ -13,6 +13,18 @@
 (defparameter eop 'eop
   "End Of Pattern; the symbol yielded by patterns after their last output.")
 
+;;; symbol stuff
+
+(defun pattern-pstream-class-name (pattern)
+  "Get the name of the pstream class for PATTERN."
+  (let ((pattern-name (etypecase pattern
+                        (class (class-name pattern))
+                        (standard-object (class-name (class-of pattern)))
+                        (null (error "~S is not a pattern class name" pattern))
+                        (symbol pattern))))
+    (intern (concat (symbol-name pattern-name) "-PSTREAM")
+            (symbol-package pattern))))
+
 ;;; string stuff
 
 (defun string-replace (string old new)

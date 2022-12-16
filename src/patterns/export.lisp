@@ -4,6 +4,6 @@
 
 (dolist (pattern *patterns*)
   (export pattern)
-  (let ((pstream-class (intern (concat (symbol-name pattern) "-PSTREAM") 'cl-patterns)))
+  (let ((pstream-class (pattern-pstream-class-name pattern)))
     (when (find-class pstream-class nil)
       (export pstream-class))))

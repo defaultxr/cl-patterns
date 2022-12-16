@@ -350,6 +350,15 @@ See also: `pattern-test-argument'"
                       4))
              "instrument-mapping does not map correctly")))
 
+(test as-pstream
+  "Test `as-pstream' and related functionality"
+  (is (pstream-p (let ((*print-case* :downcase))
+                   (as-pstream (pbind :foo 1))))
+      "as-pstream does not return a pstream for pbind when *print-case* is :downcase")
+  (is (pstream-p (let ((*print-case* :downcase))
+                   (as-pstream (pseq (list 1 2 3)))))
+      "as-pstream does not return a pstream for pseq when *print-case* is :downcase"))
+
 (test special-keys
   "Test pbind special keys"
   (is-true (every-event-equal

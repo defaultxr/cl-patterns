@@ -27,7 +27,7 @@ DEFUN can either be a full defun form for the pattern, or an expression which wi
 See also: `pattern', `pdef', `all-patterns'"
   (let* ((superclasses (or superclasses (list 'pattern)))
          (slots (mapcar #'ensure-list slots))
-         (name-pstream (symbolicate name '-pstream))
+         (name-pstream (pattern-pstream-class-name name))
          (super-pstream (if (eql 'pattern (car superclasses))
                             'pstream
                             (symbolicate (car superclasses) '-pstream))))
@@ -609,7 +609,7 @@ See also: `t-pstream', `as-pstream'"
          (name (class-name class))
          (slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots class)))))
     (apply #'make-instance
-           (intern (concat name '-pstream) (symbol-package name))
+           (pattern-pstream-class-name name)
            (mapcan (fn (when (slot-boundp pattern _)
                          (let ((kw (make-keyword _)))
                            (list kw (funcall (if (member kw (list :length :repeats))
@@ -888,7 +888,7 @@ See also: `pbind', `pdef'"
   (let ((name (class-name (class-of pbind)))
         (slots (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots (class-of pbind)))))
     (apply #'make-instance
-           (intern (concat name "-PSTREAM") (symbol-package name))
+           (pattern-pstream-class-name name)
            (loop :for slot :in slots
                  :for slot-kw := (make-keyword slot)
                  :for bound := (slot-boundp pbind slot)
@@ -1943,7 +1943,7 @@ See also: `pfunc', `p+', `p-', `p*', `p/'"
     "Generate Lisp of a wrapper function named pFUNCTION whose definition is (pnary FUNCTION ...).
 
 See also: `pnary'"
-    (let* ((pat-sym (intern (concat 'p function) 'cl-patterns))
+    (let* ((pat-sym (intern (concat "P" (symbol-name function)) 'cl-patterns))
            (argslist (function-arglist function))
            (func-name (string-downcase function))
            (full-func-name (if (eql (find-package 'cl-patterns) (symbol-package function))
