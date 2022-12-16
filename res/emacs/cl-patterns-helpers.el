@@ -208,13 +208,25 @@
   (interactive)
   (cl-patterns-play-or-end-context t))
 
-(defun cl-patterns-play-or-end-pdef (&optional stop) ;; FIX: list playing patterns first and write " (playing)" after each one.
+(defun cl-patterns--playing-stopped-pdefs ()
+  "Get a list of two elements: a list of playing pdefs' names, and a list of non-playing/stopped pdefs' names."
+  (cl-patterns-lisp-eval
+   `(cl:let* ((playing (cl-patterns:playing-pdef-names))
+              (all (cl-patterns:all-pdef-names)))
+             (cl:list playing (cl:remove-if (cl:lambda (pdef) (cl:member pdef playing))
+                                            all)))))
+
+(defun cl-patterns-play-or-end-pdef (&optional stop)
   "Select a pdef to play or end. With a prefix argument, stop instead of end."
   (interactive "P")
-  (when-let* ((pdefs (cl-patterns-lisp-eval `(cl-patterns:all-pdef-names)))
-              (selection (completing-read "Pdef? " pdefs nil nil))
+  (when-let* ((playing-stopped (cl-patterns--playing-stopped-pdefs))
+              (pdefs (append (mapcar (lambda (pdef)
+                                       (format "%s (playing)" pdef))
+                                     (first playing-stopped))
+                             (mapcar #'symbol-name (second playing-stopped))))
+              (selection (completing-read (concat "Play or " (if stop "stop" "end") ": ") pdefs nil nil))
               (func (if stop "cl-patterns:play-or-stop" "cl-patterns:play-or-end")))
-    (cl-patterns-lisp-interactive-eval (concat "(" func " " selection ")"))))
+    (cl-patterns-lisp-interactive-eval (concat "(" func " " (first (split-string selection)) ")"))))
 
 (defun cl-patterns-play-or-stop-pdef ()
   "Select a pdef to play or stop."
