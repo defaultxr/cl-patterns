@@ -226,6 +226,7 @@
    #:all-pdefs
    #:all-pdef-names
    #:playing-pdefs
+   #:playing-pdef-names
    #:find-pdef
    #:pdef-name
    #:pdef-key

@@ -66,11 +66,16 @@ See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
 (defun playing-pdefs (&optional (clock *clock*))
   "Get a list of the names of all pdefs playing on CLOCK.
 
-See also: `all-pdefs', `playing-nodes', `playing-p'"
-  (loop :for task :in (clock-tasks clock)
-        :for item := (slot-value task 'item)
-        :if (ignore-errors (pdef-name item))
-          :collect (pdef-name item)))
+See also: `playing-pdef-names', `all-pdefs', `playing-nodes', `playing-p'"
+  (mapcar #'task-item (clock-tasks clock)))
+
+(defun playing-pdef-names (&optional (clock *clock*))
+  "Get a list of the names of all pdefs playing on CLOCK.
+
+See also: `playing-pdefs', `all-pdefs', `playing-nodes', `playing-p'"
+  (loop :for pdef :in (playing-pdefs clock)
+        :for name := (ignore-errors (pdef-name pdef))
+        :if name :collect name))
 
 (defmethod pdef-name ((pbind pbind))
   (getf (slot-value pbind 'pairs) :pdef))
