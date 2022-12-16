@@ -34,16 +34,13 @@ See also: `pattern', `pdef', `all-patterns'"
     (labels ((desugar-slot (slot)
                "Convert a slot into something appropriate for defclass to handle."
                (destructuring-bind (name . rest) slot
-                 (when (member :default (keys rest))
-                   (warn "The :default key in ~S slots is deprecated; please use :initform instead." 'defpattern)) ;; FIX: remove after August 2022
                  (append (list name)
-                         (remove-from-plist rest :default :state) ;; FIX: remove :default after August 2022
+                         (remove-from-plist rest :state)
                          (unless (position :initarg (keys rest))
                            (list :initarg (make-keyword name))))))
              (optional-slot-p (slot)
                "Whether the slot is optional or not. A slot is considered optional if an initform is provided."
-               (or (position :default (keys (cdr slot))) ;; FIX: remove after August 2022
-                   (position :initform (keys (cdr slot)))))
+               (position :initform (keys (cdr slot))))
              (state-slot-p (slot)
                "Whether the slot is a pstream state slot or not. Pstream state slots only appear as slots for the pattern's pstream class and not for the pattern itself."
                (position :state (keys (cdr slot))))
@@ -55,8 +52,7 @@ See also: `pattern', `pdef', `all-patterns'"
                                     (prog1
                                         (append (unless optional-used
                                                   (list '&optional))
-                                                (list (list (car _) (or (getf (cdr _) :initform)
-                                                                        (getf (cdr _) :default))))) ;; FIX: remove after August 2022
+                                                (list (list (car _) (getf (cdr _) :initform))))
                                       (setf optional-used t))
                                     (list (car _)))))
                           slots)))
