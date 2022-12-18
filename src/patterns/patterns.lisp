@@ -30,7 +30,7 @@ See also: `pattern', `pdef', `all-patterns'"
          (name-pstream (pattern-pstream-class-name name))
          (super-pstream (if (eql 'pattern (car superclasses))
                             'pstream
-                            (symbolicate (car superclasses) '-pstream))))
+                            (pattern-pstream-class-name (car superclasses)))))
     (labels ((desugar-slot (slot)
                "Convert a slot into something appropriate for defclass to handle."
                (destructuring-bind (name . rest) slot
