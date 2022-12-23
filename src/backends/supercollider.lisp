@@ -109,7 +109,7 @@
        ;; even if we're provided a node object, we still look it up in cl-collider's node-proxy-table.
        ;; this is because if the node was a proxy, it may have been redefined, which would cause its ID to change
        ;; thus causing the ID stored in the node object to be invalid.
-       (backend-proxys-node (cl-collider::name id) :supercollider)))))
+       (backend-proxys-node backend (cl-collider::name id))))))
 
 (defmethod backend-control-node-at ((backend supercollider) time (node symbol) params)
   (cl-collider:at time
