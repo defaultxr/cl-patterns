@@ -64,7 +64,7 @@
   "(bdef "
   (let* ((filename (read-file-name "bdef file? " cl-patterns-bdef-default-directory))
          (suggestion (concat ":" (cl-patterns-friendly-string (file-name-base filename))))
-         (sym (cl-patterns-read-name "bdef name? (. to autogenerate) " suggestion (list (cl-patterns-increase-number-suffix (cl-patterns-guess-bdef))))))
+         (sym (cl-patterns-read-name "bdef name? (. to autogenerate) " suggestion (mapcar 'cl-patterns-increase-number-suffix (remove nil (list (cl-patterns-guess-bdef)))))))
     (concat sym " \"" (replace-regexp-in-string "\"" "\\\"" (abbreviate-file-name filename) t t) "\""))
   ")")
 
@@ -74,8 +74,8 @@
   "(pb " (let* ((instrument (cl-patterns-select-instrument "pb instrument? "))
                 (name (cl-patterns-read-name "pb name? (. to autogenerate) "
                                              nil
-                                             (list (cl-patterns-increase-number-suffix (cl-patterns-guess-pdef))
-                                                   (cl-patterns-increase-number-suffix instrument))))
+                                             (mapcar 'cl-patterns-increase-number-suffix
+                                                     (remove nil (list (cl-patterns-guess-pdef) instrument)))))
                 (args (cl-patterns-instrument-arguments instrument))
                 (buf-arg (or (member "BUFFER" args)
                              (member "BUFNUM" args))))
