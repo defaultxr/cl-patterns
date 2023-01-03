@@ -71,12 +71,28 @@
                                         ,string)))
       (replace-regexp-in-string "[^A-Za-z0-9-]+" "-" string)))
 
-(defun cl-patterns-generate-random-name (&optional length)
-  "Generate a random \"name\". This is used as the default function for `cl-patterns-name-generator', to generate a name for a skeleton when the user supplies only a period."
+(defun cl-patterns-random-word (&optional file)
+  "Get a random word from FILE, which defaults to /usr/share/dict/words. If no such file exists, simply returns nil."
+  (let ((file (or file "/usr/share/dict/words")))
+    (when (file-exists-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (delete-matching-lines "'s$")
+        (goto-line (random (count-lines (point-min) (point-max))))
+        (downcase (thing-at-point 'word))))))
+
+(defun cl-patterns-random-letters (&optional length)
+  "Generate a string of random letters of the specified LENGTH. If no length is provided, a random length between 3 and 12 letters is chosen."
   (concat (let (res)
             (dotimes (n (or length (+ 3 (random 10))) res)
-              (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res))
-            (push ?: res))))
+              (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res)))))
+
+(defun cl-patterns-generate-random-name ()
+  "Generate a random \"name\" by either grabbing a random word from the system dictionary file if it exists, or generating random letters.
+
+This is used as the default function for `cl-patterns-name-generator', to generate a name for a skeleton when the user supplies only a period."
+  (concat ":" (or (cl-patterns-random-word)
+                  (cl-patterns-random-letters))))
 
 (defun cl-patterns-increase-number-suffix (string)
   "Increase the number at the end of STRING by 1. If there is no number at the end of STRING, suffix it with \"-1\". Note that dashes count as a separator, not as a negative sign."
