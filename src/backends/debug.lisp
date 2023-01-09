@@ -35,6 +35,9 @@ See also: `debug-backend-recent-events'"
 (defmethod backend-task-removed ((backend debug-backend) task)
   (format (debug-backend-print-stream backend) "~&Debug: task removed: ~S~%" task))
 
+(defmethod backend-timestamps-for-event ((backend debug-backend) event task)
+  nil)
+
 (export '(debug-backend-recent-events debug-backend-clear-recent-events debug-recent-events debug-clear-events *debug-print-events*))
 
 ;;; deprecated
