@@ -226,24 +226,31 @@ See also: `clock-tasks'"
 
 (defmethod clock-process-event (clock task event (type (eql :tempo)))
   (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
-    (if (and (numberp (event-value event :tempo))
-             (plusp (event-value event :tempo)))
-        (let* ((backends (event-backends event))
-               (timestamps (loop :for backend :in backends
-                                 :collect (list (car (backend-timestamps-for-event event task backend)) backend))))
-          (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
-                tempo (event-value event :tempo)
-                beat-at-tempo (raw-event-value event :beat-at-start))
-          (dolist (timestamp timestamps)
-            (apply 'backend-tempo-change-at clock timestamp)))
-        (warn "Tempo change event ~S has invalid :tempo parameter; ignoring." event))))
+    (unless (and (numberp (event-value event :tempo))
+                 (plusp (event-value event :tempo)))
+      (warn "Tempo change event ~S has invalid :tempo parameter; ignoring." event)
+      (return-from clock-process-event))
+    (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
+          tempo (event-value event :tempo)
+          beat-at-tempo (raw-event-value event :beat-at-start))
+    (dolist (backend (event-backends event))
+      (backend-tempo-change-at backend clock (backend-timestamps-for-event backend event task)))))
 
 (defmethod clock-process-event (clock task event (type (eql :rest)))
   nil)
 
 (defmethod clock-process-event (clock task event type)
   (dolist (backend (event-backends event))
-    (backend-play-event backend event task)))
+    (restart-case
+        (backend-play-event backend event task)
+      (backend-skip-event ()
+        :report (lambda (stream)
+                  (format stream "Skip this event on ~S." backend))
+        nil)
+      (backend-disable ()
+        :report (lambda (stream)
+                  (format stream "Disable backend ~S." backend))
+        (setf (backend-enabled-p backend) nil)))))
 
 (defun can-swap-now-p (pstream &optional (beat (beat *clock*)))
   "Whether PSTREAM can swap to its new definition, based on `end-quant', `end-condition', `ended-p', and BEAT (the current beat of the clock)."
