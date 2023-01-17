@@ -48,7 +48,8 @@ See also: `find-pdef', `all-pdefs', `pb', `pmeta', `ps'"
              (let ((pdef (ensure-gethash name *pdef-dictionary* (make-instance 'pdef :name name))))
                (when pattern-supplied-p
                  (setf (pdef-pattern pdef) pattern)
-                 (unless (pattern-parent pattern)
+                 (when (and (pattern-p pattern)
+                            (not (pattern-parent pattern)))
                    (setf (slot-value pattern 'parent) pdef)))
                pdef))))
 
