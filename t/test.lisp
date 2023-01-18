@@ -16,11 +16,13 @@
 
 (def-fixture debug-backend-and-clock (&rest clock-args)
   "Temporarily set the backend and clock for testing."
-  (let ((cl-patterns::*backends* (list (make-backend 'debug-backend)))
-        (*clock* (apply #'make-clock clock-args)))
-    (debug-backend-clear-recent-events)
-    (&body)
-    (debug-backend-clear-recent-events)))
+  (let* ((*clock* (apply #'make-clock clock-args))
+         (cl-patterns::*backends* nil)
+         (backend (make-backend 'debug-backend)))
+    (debug-backend-clear-recent-events backend)
+    (unwind-protect (&body)
+      (debug-backend-clear-recent-events backend)
+      (backend-stop backend))))
 
 (def-fixture temporary-pdef-dictionary ()
   "Temporarily create a new pdef dictionary for testing."
