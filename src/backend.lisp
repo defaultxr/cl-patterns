@@ -227,7 +227,6 @@ See also: `backend-task-removed'"))
                          (setf (task-nodes task backend) nil))
                        (setf (task-nodes task backend) (list node)))))
                (let ((node (backend-control-node-at backend (first time) instrument params)))
-                 (print 'note)
                  ;; FIX: should add NODE to the task's backend-resources slot, then free it when it stops
                  (when (backend-instrument-has-gate-p backend instrument)
                    (backend-control-node-at backend (second time) node (list :gate 0)))))))))))
