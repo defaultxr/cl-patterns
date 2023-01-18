@@ -62,14 +62,20 @@ See also: `psym', `parp', `pdef', `pbind'"
 (defgeneric process-pattern-key-value (pattern key value)
   (:documentation "Process a key/value pair for a pattern like `pbind' or `pmeta'."))
 
-(defmethod process-pattern-key-value ((pmeta pmeta) (key (eql :pattern)) (value pattern))
-  value)
+(defun pmeta-ensure-pattern-value (value)
+  (etypecase value
+    (pattern value)
+    (symbol (pdef value))
+    (list (ppar value))))
 
-(defmethod process-pattern-key-value ((pmeta pmeta) (key (eql :pattern)) (value symbol))
-  (pdef value))
+(defmethod process-pattern-key-value ((pmeta pmeta) (key (eql :pattern)) value)
+  (let ((value (pmeta-ensure-pattern-value value)))
+    (with-slots (current-pstream) pmeta
+      (if current-pstream
+          (pchain current-pstream value)
+          value))))
 
-(defmethod process-pattern-key-value ((pmeta pmeta) (key (eql :pattern)) (value list))
-  (ppar value))
+;; FIX: pfindur and psync should probably handle :inf themselves
 
 (defmethod process-pattern-key-value ((pmeta pmeta) (key (eql :findur)) value)
   (with-slots (current-pstream) pmeta
