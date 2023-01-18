@@ -364,7 +364,7 @@ See also: `pstream', `as-pstream'"
 
 (defmethod ended-p ((pstream pstream))
   (with-slots (number future-number) pstream
-    (and (not (= 0 (- number future-number)))
+    (and (not (zerop (- number future-number)))
          (eop-p (pstream-elt pstream -1)))))
 
 (defmethod events-in-range ((pstream pstream) min max)
