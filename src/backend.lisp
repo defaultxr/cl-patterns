@@ -210,7 +210,7 @@ See also: `backend-task-removed'"))
            (if (or (eql type :mono)
                    (backend-node-p backend instrument))
                (let ((node (backend-control-node-at backend
-                                                    (car time)
+                                                    (first time)
                                                     (let ((nodes (task-nodes task backend)))
                                                       (cond (nodes
                                                              (car nodes))
@@ -223,22 +223,14 @@ See also: `backend-task-removed'"))
                              (not (backend-instrument-has-gate-p backend instrument)))
                    (if (< (legato event) 1)
                        (progn
-                         (backend-control-node-at backend
-                                                  (cadr time)
-                                                  node
-                                                  (list :gate 0))
+                         (backend-control-node-at backend (second time) node (list :gate 0))
                          (setf (task-nodes task backend) nil))
                        (setf (task-nodes task backend) (list node)))))
-               (let ((node (backend-control-node-at backend
-                                                    (car time)
-                                                    instrument
-                                                    params)))
+               (let ((node (backend-control-node-at backend (first time) instrument params)))
+                 (print 'note)
                  ;; FIX: should add NODE to the task's backend-resources slot, then free it when it stops
                  (when (backend-instrument-has-gate-p backend instrument)
-                   (backend-control-node-at backend
-                                            (cadr time)
-                                            node
-                                            (list :gate 0)))))))))))
+                   (backend-control-node-at backend (second time) node (list :gate 0)))))))))))
 
 (defgeneric backend-tempo-change-at (backend clock timestamp)
   (:documentation "Set the backend's tempo to NEW-TEMPO at the timestamp provided."))
