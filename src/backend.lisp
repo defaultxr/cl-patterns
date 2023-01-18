@@ -112,6 +112,11 @@ See also: `backend-stop', `backend-enabled-p', `make-backend'"))
 
 See also: `backend-start', `backend-enabled-p'"))
 
+(defmethod backend-stop ((backend symbol))
+  (dolist (c-backend (all-backends))
+    (when (string-equal backend (backend-name c-backend))
+      (backend-stop c-backend))))
+
 (defmethod backend-stop :after ((backend backend))
   (setf (backend-started-p backend) nil))
 
@@ -312,6 +317,9 @@ See also: `backend-all-nodes'"))
 
 (defmethod backend-all-instruments (backend)
   nil)
+
+(defmethod backend-all-instruments ((backend symbol))
+  (backend-all-instruments (find-backend backend)))
 
 (defgeneric backend-all-nodes (backend)
   (:documentation "Get a list of all active nodes for the specified backend.
