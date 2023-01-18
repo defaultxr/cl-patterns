@@ -221,25 +221,19 @@ See also: `clock-tasks'"
   (dolist (task (clock-tasks clock))
     (clock-remove task clock)))
 
-(defgeneric clock-process-event (clock task event type)
-  (:documentation "Process EVENT on CLOCK. TASK is the associated task, and TYPE is the event type."))
-
-(defmethod clock-process-event (clock task event (type (eql :tempo)))
-  (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
-    (unless (and (numberp (event-value event :tempo))
-                 (plusp (event-value event :tempo)))
-      (warn "Tempo change event ~S has invalid :tempo parameter; ignoring." event)
-      (return-from clock-process-event))
-    (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
-          tempo (event-value event :tempo)
-          beat-at-tempo (raw-event-value event :beat-at-start))
-    (dolist (backend (event-backends event))
-      (backend-tempo-change-at backend clock (backend-timestamps-for-event backend event task)))))
-
-(defmethod clock-process-event (clock task event (type (eql :rest)))
-  nil)
-
-(defmethod clock-process-event (clock task event type)
+(defun clock-process-event (clock task event type)
+  "Process EVENT on CLOCK. TASK is the associated task, and TYPE is the event type."
+  (when (eql type :tempo)
+    (with-slots (timestamp-at-tempo tempo beat-at-tempo) clock
+      (unless (and (numberp (event-value event :tempo))
+                   (plusp (event-value event :tempo)))
+        (warn "Tempo change event ~S has invalid :tempo parameter; ignoring." event)
+        (return-from clock-process-event))
+      (setf timestamp-at-tempo (raw-event-value event :timestamp-at-start)
+            tempo (event-value event :tempo)
+            beat-at-tempo (raw-event-value event :beat-at-start))
+      (dolist (backend (event-backends event))
+        (backend-tempo-change-at backend clock (backend-timestamps-for-event backend event task)))))
   (dolist (backend (event-backends event))
     (restart-case
         (backend-play-event backend event task)
