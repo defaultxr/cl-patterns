@@ -63,10 +63,11 @@ See also: `psym', `parp', `pdef', `pbind'"
   (:documentation "Process a key/value pair for a pattern like `pbind' or `pmeta'."))
 
 (defun pmeta-ensure-pattern-value (value)
+  (check-type value (not null))
   (etypecase value
     (pattern value)
-    (symbol (pdef value))
-    (list (ppar value))))
+    (list (ppar value))
+    (symbol (pdef value))))
 
 (defmethod process-pattern-key-value ((pmeta pmeta) (key (eql :pattern)) value)
   (let ((value (pmeta-ensure-pattern-value value)))
@@ -153,7 +154,7 @@ See also: `psym', `parp', `pdef', `pbind'"
                                                 (loop :for (key value) :on pattern :by #'cddr
                                                       :append (list key (next value)))
                                                 (let ((nxt (next pattern)))
-                                                  (typecase nxt
+                                                  (etypecase nxt
                                                     (event (event-plist nxt))
                                                     (symbol (if (eop-p nxt)
                                                                 (list :none eop)
