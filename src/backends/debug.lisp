@@ -45,36 +45,4 @@ See also: `debug-backend-recent-events'"
 (defmethod backend-timestamps-for-event ((backend debug-backend) event task)
   nil)
 
-(export '(debug-backend-print-stream debug-backend-events debug-backend-recent-events debug-backend-clear-recent-events debug-recent-events debug-clear-events *debug-print-events*))
-
-;;; deprecated
-
-(define-symbol-macro *debug-backend-events* (deprecated-debug-backend-events))
-
-(defun deprecated-debug-backend-events ()
-  "Deprecated alias for `(debug-backend-recent-events (find-backend 'debug-backend))'."
-  (warn "Using ~S is deprecated; please use ~S instead." '*debug-backend-events* 'debug-backend-recent-events)
-  (debug-backend-recent-events (find-backend 'debug-backend)))
-
-(uiop:with-deprecation (:error)
-  (defun debug-recent-events (&optional (n 10))
-    "Deprecated alias for `debug-backend-recent-events'."
-    (debug-backend-recent-events (find-backend 'debug-backend) n))
-
-  (defun debug-clear-events ()
-    "Deprecated alias for `debug-backend-clear-recent-events'."
-    (debug-backend-clear-recent-events (find-backend 'debug-backend))))
-
-(define-symbol-macro *debug-print-events* (deprecated-debug-print-events))
-
-(setf (documentation '*debug-print-events* 'variable) "Deprecated variable; use (debug-backend-print-stream (find-backend 'debug-backend)) instead.")
-
-(defun deprecated-debug-print-events ()
-  "Deprecated alias for (debug-backend-print-stream (find-backend 'debug-backend))."
-  (warn "Using ~S is deprecated; please use ~S instead." '*debug-print-events* 'debug-backend-print-stream)
-  (debug-backend-print-stream (find-backend 'debug-backend)))
-
-(defun (setf deprecated-debug-print-events) (value)
-  "Deprecated alias for (setf (debug-backend-print-stream (find-backend 'debug-backend)) ...)."
-  (warn "Using ~S is deprecated; please use ~S instead." '*debug-print-events* 'debug-backend-print-stream)
-  (setf (debug-backend-print-stream (find-backend 'debug-backend)) value))
+(export '(debug-backend-print-stream debug-backend-events debug-backend-recent-events debug-backend-clear-recent-events))
