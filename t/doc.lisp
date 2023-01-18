@@ -52,21 +52,13 @@ Returns nil if none of the keys are missing, otherwise returns the list of undoc
 
 (defparameter *special-keys.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/special-keys.org")))
 
-(defparameter *patterns.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/patterns.org")))
+(defparameter *patterns.org* (asdf:system-relative-pathname :cl-patterns "doc/patterns.org"))
 
 ;;; tests
 
 (test patterns.org
   "Make sure all patterns are listed in patterns.org"
-  (let* ((nodes (child-nodes *patterns.org*))
-         (list-items (labels ((process-nodes (nodes)
-                                (loop :for node :in nodes
-                                      :if (typep node 'cl-org-mode::text-node)
-                                        :append (text-list-items (node-text node))
-                                      :else
-                                        :if (typep node 'cl-org-mode::outline-node)
-                                          :append (process-nodes (child-nodes node)))))
-                       (process-nodes nodes)))
+  (let* ((list-items (file-extract-org-lists *patterns.org*))
          (code-texts (flatten (mapcar #'find-code-text list-items)))
          (missing (remove-duplicates
                    (remove-if (lambda (pat)
