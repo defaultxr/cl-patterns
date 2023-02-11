@@ -1,9 +1,9 @@
-(in-package #:cl-patterns)
-
 ;;;; cycles.lisp - divide the time of each "cycle" evenly among elements of an input list, a la TidalCycles.
 
 ;;; TODO:
 ;; FIX: remove this and write it as regular functions instead?
+
+(in-package #:cl-patterns)
 
 (defpattern pcycles (pattern)
   (list
@@ -46,7 +46,7 @@
                        list)))
       (flatten (recurse list (/ 1 (length list)))))))
 
-(defmethod as-pstream ((pcycles pcycles)) ;; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
+(defmethod as-pstream ((pcycles pcycles)) ; FIX: maybe make pcycles parse in the 'next' method instead of at construction time?
   (with-slots (list map key dur repeats) pcycles
     (make-instance 'pcycles-pstream
                    :list list

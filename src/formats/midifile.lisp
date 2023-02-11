@@ -1,15 +1,15 @@
-(in-package #:cl-patterns)
-
 ;;;; midifile.lisp - functionality to interact with MIDI files.
 ;;; i.e. read a MIDI file as a pattern, or write a pattern as MIDI.
 
 ;;; NOTES:
 ;; - https://www.recordingblogs.com/wiki/time-division-of-a-midi-file
 
+(in-package #:cl-patterns)
+
 (defmethod midinote ((this midi::voice-message))
   (slot-value this 'midi::key))
 
-;; (defmethod beat ((this midi::voice-message)) ;; FIX: doesn't work, since we don't have division information here?
+;; (defmethod beat ((this midi::voice-message)) ; FIX: doesn't work, since we don't have division information here?
 ;;   (/ (midi:message-time i) division))
 
 (defun midi-track-as-pattern (track division)

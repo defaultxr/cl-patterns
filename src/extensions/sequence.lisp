@@ -1,9 +1,9 @@
-(in-package #:cl-patterns)
-
 ;;;; sequence.lisp - extensible sequences functionality.
 ;;; May not be supported on all Lisp implementations, but should be enabled automatically when cl-patterns is loaded on an implementation with support.
 ;;; https://github.com/guicho271828/common-lisp-extensions/issues/8
 ;;; http://www.sbcl.org/manual/#Extensible-Sequences
+
+(in-package #:cl-patterns)
 
 ;;; scale
 
@@ -41,7 +41,7 @@
 ;;; pstream
 
 (defmethod sequence:length ((this pstream))
-  (slot-value this 'number)) ;; FIX: this should use the history-length pstream slot instead once it is implemented
+  (slot-value this 'number)) ; FIX: this should use the history-length pstream slot instead once it is implemented
 
 (defmethod sequence:elt ((this pstream) index)
   (pstream-elt this index))
@@ -51,11 +51,11 @@
 
 (defmethod sequence:adjust-sequence ((this pstream) length &key initial-element initial-contents)
   (declare (ignore initial-element initial-contents))
-  (sequence:protocol-unimplemented 'sequence:adjust-sequence this)) ;; FIX?
+  (sequence:protocol-unimplemented 'sequence:adjust-sequence this)) ; FIX?
 
 (defmethod sequence:make-sequence-like ((this pstream) length &key initial-element initial-contents)
   (declare (ignore initial-element initial-contents))
-  (sequence:protocol-unimplemented 'sequence:make-sequence-like this)) ;; FIX?
+  (sequence:protocol-unimplemented 'sequence:make-sequence-like this)) ; FIX?
 
 (defmethod sequence:emptyp ((this pstream))
   (and (ended-p this)

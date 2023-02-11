@@ -1,7 +1,7 @@
-(in-package #:cl-patterns)
-
 ;;;; generic-cl.lisp - methods implementing generic-cl functionality for cl-patterns classes.
 ;;; https://alex-gutev.github.io/generic-cl/
+
+(in-package #:cl-patterns)
 
 (defmethod generic-cl:get (key (object event) &optional default)
   (multiple-value-bind (result exists) (event-value object key)

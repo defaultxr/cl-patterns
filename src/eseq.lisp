@@ -175,7 +175,7 @@ See also: `as-pstream'"))
                                  (dur eseq))))
             (combine-events next (event :delta (- after-beat (beat next)))))))))
 
-(defmethod next ((eseq eseq-pstream)) ;; if events are not necessarily ordered
+(defmethod next ((eseq eseq-pstream)) ; if events are not necessarily ordered
   (flet ((first-event (events)
            (most #'< events :key #'beat)))
     (with-slots (number beat events source events-remaining direct-p) eseq

@@ -1,11 +1,11 @@
-(in-package #:cl-patterns/tests)
-
-(in-suite cl-patterns-tests)
-
 ;;;; t/event.lisp - tests for `event' and related functionality.
 
 ;;; TODO:
 ;; FIX: add more
+
+(in-package #:cl-patterns/tests)
+
+(in-suite cl-patterns-tests)
 
 (test event
   "Test event functionality"

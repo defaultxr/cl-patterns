@@ -125,11 +125,11 @@ See also: `bipolar-unipolar'"
   "Convert a midinote to a playback rate."
   (freq-rate (midinote-freq midinote) (midinote-freq base-note)))
 
-(defconversion ratio-midi (ratio) ;; rename to ratio-midi-transposition?
+(defconversion ratio-midi (ratio) ; FIX: rename to ratio-midi-transposition?
   "Convert a frequency ratio to a difference in MIDI note numbers."
   (* 12 (log ratio 2)))
 
-(defconversion midi-ratio (midi) ;; rename to midi-transposition-ratio?
+(defconversion midi-ratio (midi) ; FIX: rename to midi-transposition-ratio?
   "Convert a MIDI note number difference to a frequency ratio."
   (expt 2 (/ midi 12)))
 
@@ -257,7 +257,7 @@ Note that this function is not aware of context and thus always returns the firs
   (let* ((list (typecase scale
                  (list scale)
                  (scale (scale-notes scale))))
-         (steps-per-octave (or steps-per-octave (scale-steps-per-octave scale))) ;; FIX: need to implement scale-steps-per-octave
+         (steps-per-octave (or steps-per-octave (scale-steps-per-octave scale))) ; FIX: need to implement scale-steps-per-octave
          (base-key (+ (* steps-per-octave (floor degree (length list)))
                       (elt-wrap list degree))))
     (+ base-key (* accidental (/ steps-per-octave 12d0)))))

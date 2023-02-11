@@ -1,8 +1,8 @@
+;;;; t/track.lisp - test `ptrack' and related functionality.
+
 (in-package #:cl-patterns/tests)
 
 (in-suite cl-patterns-tests)
-
-;;;; t/track.lisp - test `ptrack' and related functionality.
 
 (test ptrack
   "Test ptrack"
@@ -59,11 +59,11 @@
         (event :dur 1/4 :foo 99))
        (next-n
         (ptrack (list :dur 1/4)
-                  (list
-                   :r
-                   :rest
-                   (list)
-                   (list :foo 99)))
+                (list
+                 :r
+                 :rest
+                 (list)
+                 (list :foo 99)))
         4))
       "ptrack does not coerce to rests")
   (is (every-event-equal
@@ -72,8 +72,8 @@
         (event :dur 1/4 :foo 3))
        (next-n
         (ptrack (list :dur 1/4)
-                  (list
-                   (event :foo 3)))
+                (list
+                 (event :foo 3)))
         2))
       "ptrack does not accept lines as events")
   (is (every-event-equal
@@ -85,16 +85,16 @@
         (event :midinote 50 :dur 3/4)
         (event :midinote 40 :dur 1/2))
        (next-n (ptrack (list :midinote 70 :dur 1/4)
-                         (list
-                          (list 60)
-                          (list '-)
-                          (list '-)
-                          (list '-)
-                          (list 50)
-                          (list '-)
-                          (list '-)
-                          (list 40)
-                          (list '-)))
+                       (list
+                        (list 60)
+                        (list '-)
+                        (list '-)
+                        (list '-)
+                        (list 50)
+                        (list '-)
+                        (list '-)
+                        (list 40)
+                        (list '-)))
                6))
       "ptrack does not continue the previous note when a line is a dash")
   (is (every-event-equal
@@ -104,9 +104,9 @@
         (event :midinote 60)
         (event :freq 40))
        (next-n (ptrack (list :midinote 60)
-                         (list
-                          (list 60)
-                          (list :freq 40)))
+                       (list
+                        (list 60)
+                        (list :freq 40)))
                4))
       "ptrack steps don't override equivalent event keys"))
 

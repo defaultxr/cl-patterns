@@ -1,6 +1,6 @@
-(in-package #:cl-patterns)
-
 ;;;; export.lisp - automatically export all the patterns in `*patterns*'.
+
+(in-package #:cl-patterns)
 
 (dolist (pattern *patterns*)
   (export pattern)

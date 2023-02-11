@@ -1,8 +1,8 @@
+;;;; t/clock.lisp - tests for tasks, clocks, and related functionality.
+
 (in-package #:cl-patterns/tests)
 
 (in-suite cl-patterns-tests)
-
-;;;; t/clock.lisp - tests for tasks, clocks, and related functionality.
 
 (test absolute-beats-to-timestamp
   "Test the `next-beat-for-quant' function"

@@ -173,7 +173,7 @@
 
 ;;; convenience methods
 
-(defun cl-collider-proxy (id) ;; FIX: remove this and just make `find-object-by-id' call `backend-proxys-node' for each enabled/registered backend?
+(defun cl-collider-proxy (id) ; FIX: remove this and just make `find-object-by-id' call `backend-proxys-node' for each enabled/registered backend?
   "Get the object representing the `cl-collider:proxy' with the given name."
   (backend-proxys-node id :supercollider))
 
@@ -198,8 +198,8 @@
   (let* ((backend (find-backend 'supercollider))
          (synth (backend-buffer-preview-synth backend))
          (synthdef-controls (mapcar #'car (cl-collider:synthdef-metadata synth :controls))))
-    (play (event :backend 'supercollider ;; backend ; FIX: should support using the backend object itself rather than just the symbol
-                 ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
+    (play (event :backend 'supercollider ; backend ; FIX: should support using the backend object itself rather than just the symbol
+                 ;; :type :play ; to avoid automatically stopping it ; FIX: implement this note type
                  :instrument synth
                  ;; FIX: should we "need" `make-keyword' here? shouldn't the control names should just be in the correct package already?
                  (make-keyword (find-buffer-symbol synthdef-controls)) buffer

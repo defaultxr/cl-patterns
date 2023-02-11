@@ -1,5 +1,3 @@
-(in-package #:cl-patterns)
-
 ;;;; scales.lisp - "music theory" functionality; notes, tunings, scales, chords, and the relevant classes/functions to generate and query each.
 
 ;;; NOTES:
@@ -11,6 +9,8 @@
 ;; - http://openmusictheory.com/scales.html
 ;; - https://atactionpark.github.io/
 ;; - https://www.solfej.io/chords/c-major - scale and chord finder site
+
+(in-package #:cl-patterns)
 
 ;;; utilities
 
@@ -231,8 +231,8 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
                                       (let ((line (subseq line
                                                           (position-if (lambda (char) (char/= #\space char)) line)
                                                           (position #\space line :test #'char=))))
-                                        (if (position #\. line :test #'char=) ;; if it has a . it's a cents value
-                                            (/ (read-from-string line) 100) ;; cents
+                                        (if (position #\. line :test #'char=) ; if it has a . it's a cents value
+                                            (/ (read-from-string line) 100) ; cents
                                             (ratio-midi (read-from-string line)))))
                                     (cddr lines))))
            (octave-ratio (car (last pitches)))
@@ -523,7 +523,7 @@ See also: `scale', `define-tuning', `define-scale'"
   (let ((t-tuning (cadr tuning)))
     (apply #'define-tuning
            (car tuning)
-           (if (eql t (car t-tuning)) ;; tunings lists that start with t need to be ratio-midi'd.
+           (if (eql t (car t-tuning)) ; tunings lists that start with t need to be ratio-midi'd.
                (mapcar #'ratio-midi (cdr t-tuning))
                t-tuning)
            (cddr tuning))))

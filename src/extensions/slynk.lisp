@@ -1,6 +1,6 @@
-(in-package #:cl-patterns)
-
 ;;;; slynk.lisp - extra functionality/creature comforts for Sly/Slynk.
+
+(in-package #:cl-patterns)
 
 ;; show the arguments of the function being called in pnary
 (defmethod slynk::compute-enriched-decoded-arglist ((operator-form (eql 'pnary)) argument-forms)

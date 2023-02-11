@@ -1,6 +1,6 @@
-(in-package #:cl-patterns)
-
 ;;;; patterns.lisp - basic pattern functionality (`defpattern', etc) and a variety of basic patterns implemented with it.
+
+(in-package #:cl-patterns)
 
 ;;; pattern glue
 
@@ -328,7 +328,7 @@ See also: `events-in-range'"))
 
 ;; FIX: can we avoid making this inherit from pattern?
 (defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
-  ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ;; FIX: rename to this-index ?
+  ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ; FIX: rename to this-index ?
    (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
    (pstream-count :initarg :pstream-count :accessor pstream-count :type integer :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
    (beat :initform 0 :reader beat :type number :documentation "The number of beats that have elapsed since the start of the pstream.")
@@ -425,7 +425,7 @@ See also: `value-remaining-p', `decf-remaining'"
             (symbol (eql rem-key :inf))
             (number (if (plusp rem-key)
                         t
-                        (set-next))) ;; if it's already set to 0, it was decf'd to 0 in the pattern, so we get the next one. if the next is 0, THEN we return nil.
+                        (set-next))) ; if it's already set to 0, it was decf'd to 0 in the pattern, so we get the next one. if the next is 0, THEN we return nil.
             (otherwise nil))))))
 
 (defun decf-remaining (pattern &optional (key 'current-repeats-remaining))
@@ -625,7 +625,7 @@ See also: `t-pstream', `as-pstream'"
       (incf (slot-value object 'pstream-count)))
     pstream))
 
-(defmethod as-pstream ((pstream pstream)) ;; prevent pstreams from being "re-converted" to pstreams
+(defmethod as-pstream ((pstream pstream)) ; prevent pstreams from being "re-converted" to pstreams
   pstream)
 
 (define-condition pstream-out-of-range ()
@@ -648,10 +648,10 @@ Example:
 
 ;; (let ((pstream (as-pstream (pseq '(1 2 3)))))
 ;;   (next pstream) ;=> 1
-;;   (pstream-elt pstream 0) ;=> 1 ;; first item in the pstream's history
+;;   (pstream-elt pstream 0) ;=> 1 ; first item in the pstream's history
 ;;   (next pstream) ;=> 2
-;;   (pstream-elt pstream 1) ;=> 2 ;; second item in the pstream's history
-;;   (pstream-elt pstream -1)) ;=> 2 ;; most recent item in the pstream's history
+;;   (pstream-elt pstream 1) ;=> 2 ; second item in the pstream's history
+;;   (pstream-elt pstream -1)) ;=> 2 ; most recent item in the pstream's history
 
 See also: `pstream-elt-future', `phistory'"
   (check-type n integer)
@@ -666,7 +666,7 @@ See also: `pstream-elt-future', `phistory'"
           (elt history (pstream-elt-index-to-history-index pstream real-index))
           (error 'pstream-out-of-range :index n)))))
 
-(defun pstream-history-advance-by (pstream index) ;; FIX: add tests for this
+(defun pstream-history-advance-by (pstream index) ; FIX: add tests for this
   "Convert a history index (i.e. a positive number provided to `pstream-elt-future') to the amount that the history must be advanced by.
 
 If the provided index is before the earliest item in history, the result will be a negative number denoting how far beyond the earliest history the index is.
@@ -708,7 +708,7 @@ See also: `pstream-elt', `phistory'"
         ;; since the array is of finite size, requesting more from the future than history is able to hold would result in the oldest elements of the future being overwritten with the newest, thus severing the timeline...
         (error 'pstream-out-of-range :index n))
       (let ((prev-future-number future-number))
-        (setf future-number 0) ;; temporarily set it to 0 so the `next' method runs normally
+        (setf future-number 0) ; temporarily set it to 0 so the `next' method runs normally
         (loop :repeat advance-by
               :for next := (next pstream)
               :if (event-p next)
@@ -902,7 +902,7 @@ See also: `pbind', `pdef'"
            (declare (ignorable value pattern))
            ,@body)))
 
-;; (define-pbind-special-init-key inst ;; FIX: this should be part of event so it will affect the event as well. maybe just rename to 'synth'?
+;; (define-pbind-special-init-key inst ; FIX: this should be part of event so it will affect the event as well. maybe just rename to something else?
 ;;   (list :instrument value))
 
 (define-pbind-special-init-key loop-p
@@ -951,7 +951,7 @@ See also: `pbind', `pdef'"
       (pmeta pattern)
       pattern))
 
-(define-pbind-special-wrap-key pchain ;; basically the same as the :embed key, but we have it anyway for convenience.
+(define-pbind-special-wrap-key pchain ; basically the same as the :embed key, but we have it anyway for convenience.
   (pchain pattern value))
 
 (define-pbind-special-wrap-key pparchain
@@ -1442,7 +1442,7 @@ Example:
 
 See also: `pr'")
 
-(defmethod as-pstream ((pn pn)) ;; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
+(defmethod as-pstream ((pn pn)) ; need this so that PATTERN won't be automatically converted to a pstream when the pn is.
   (with-slots (pattern repeats) pn
     (make-instance 'pn-pstream
                    :pattern pattern
@@ -1499,7 +1499,7 @@ See also: `prand'")
       (unless rem
         (return-from next eop))
       (when (eql :reset rem)
-        (setf shuffled-list (shuffle (copy-list list)))) ;; alexandria:shuffle destructively modifies the list, so we use copy-list in case the user provided a quoted list as input.
+        (setf shuffled-list (shuffle (copy-list list)))) ; alexandria:shuffle destructively modifies the list, so we use copy-list so as to avoid unexpected side effects.
       (nth (mod number (length shuffled-list))
            shuffled-list))))
 
@@ -1691,7 +1691,7 @@ See also: `pseries*', `pgeom', `paccum'")
       (prog1
           current-value
         (if (numberp nxt)
-            (incf current-value nxt) ;; FIX: current-value should be CURRENT value, not the next one! also write tests for this!
+            (incf current-value nxt) ; FIX: current-value should be CURRENT value, not the next one! also write tests for this!
             (setf current-value eop))))))
 
 ;;; pseries*
@@ -2211,7 +2211,7 @@ See also: `pfindur'")
   (with-slots (count pattern) pfin
     (make-instance 'pfin-pstream
                    :pattern (as-pstream pattern)
-                   :count (next count)))) ;; FIX: should be able to use as a gate pattern. remove this whole as-pstream block when it is possible.
+                   :count (next count)))) ; FIX: should be able to use as a gate pattern. remove this whole as-pstream block when it is possible.
 
 (defmethod next ((pfin pfin-pstream))
   (with-slots (pattern count number) pfin
@@ -2418,13 +2418,13 @@ Note: May give inaccurate results if the clock's tempo changes occur more freque
 
 Example:
 
-;; (setf (tempo *clock*) 1) ;; 60 BPM
+;; (setf (tempo *clock*) 1) ; 60 BPM
 ;; (next-n (pbind :dur 1 :time (ptime)) 2)
 ;; ;=> ((EVENT :DUR 1 :TIME 0) (EVENT :DUR 1 :TIME 1.0))
 
 See also: `pbeat', `prun', `beat'")
 
-(defmethod next ((ptime ptime-pstream)) ;; FIX: take into account the previous tempo if it has been changed since the last-beat-checked.
+(defmethod next ((ptime ptime-pstream)) ; FIX: take into account the previous tempo if it has been changed since the last-beat-checked.
   (with-slots (last-beat-checked tempo-at-beat elapsed-time) ptime
     (with-slots (tempo) *clock*
       (let ((beat (beat (pattern-parent ptime :class 'pbind))))
@@ -2464,7 +2464,7 @@ See also: `pwalk'")
                    :index-pat (pattern-as-pstream index-pat)
                    :wrap-p wrap-p)))
 
-(defmethod next ((pindex pindex-pstream)) ;; FIX: make this work for envelopes as well (the index should not be normalized)
+(defmethod next ((pindex pindex-pstream)) ; FIX: make this work for envelopes as well (the index should not be normalized)
   (with-slots (list-pat index-pat wrap-p) pindex
     (let ((list (next list-pat))
           (idx (next index-pat)))
@@ -2938,10 +2938,10 @@ Based on the pattern originally from the ddwPatterns SuperCollider library.
 
 Example:
 
-;; (next-upto-n (paccum #'+ 0 1) 5) ;; same as (pseries 0 1)
+;; (next-upto-n (paccum #'+ 0 1) 5) ; same as (pseries 0 1)
 ;; ;=> (0 1 2 3 4)
 
-;; (next-upto-n (paccum #'+ 0 1 :inf :lo 0 :hi 3 :bound-by #'wrap) 9) ;; same as above, wrapping between 0 and 3.
+;; (next-upto-n (paccum #'+ 0 1 :inf :lo 0 :hi 3 :bound-by #'wrap) 9) ; same as above, wrapping between 0 and 3.
 ;; ;=> (0 1 2 0 1 2 0 1 2)
 
 See also: `pseries', `pgeom', `pwalk'"

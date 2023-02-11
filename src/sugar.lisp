@@ -1,3 +1,5 @@
+;;;; sugar.lisp - deprecated sub-system for additional "sugar" functions.
+
 (in-package #:cl-patterns)
 
 (warn "The cl-patterns/sugar sub-system is deprecated; please either use-package or import the individual functions needed from the mutility library instead.")

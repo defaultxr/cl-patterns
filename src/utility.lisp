@@ -252,10 +252,10 @@ See also: `mapcar-longest', `split-event-by-lists'"
 
 Examples:
 
-;; (near-p 4 1 5) ;; => t
-;; (near-p 4 1) ;; => nil
-;; (near-p 0.5) ;; => t
-;; (near-p 0.5 0.6 1) ;; => t
+;; (near-p 4 1 5) ; => t
+;; (near-p 4 1) ; => nil
+;; (near-p 0.5) ; => t
+;; (near-p 0.5 0.6 1) ; => t
 
 See also: `alexandria:clamp', `wrap', `nearest'"
   (<= (abs (- number of))
@@ -307,7 +307,7 @@ See also: `to-range', `rerange'"
       ((:exp :exponential 1) (/ (log (/ input min))
                                 (log (/ max min))))
       ((:cos :cosine) (error "not done yet!"))
-      (t (error "not done yet!")) ;; curve (other)
+      (t (error "not done yet!")) ; curve (other)
       )))
 
 (defun to-range (input map)
@@ -327,7 +327,7 @@ See also: `from-range', `rerange'"
 
 Example:
 
-;; (rerange 64 (list 0 127) (list 0 1)) ;; map from [0..127] to [0..1]
+;; (rerange 64 (list 0 127) (list 0 1)) ; map from [0..127] to [0..1]
 ;; => 0.503937
 
 See also: `to-range', `from-range', `prerange'"
@@ -344,7 +344,7 @@ Example:
 
 ;; *dictionary-lookup-functions*
 ;; => (CL-PATTERNS::FIND-PDEF BDEF:BDEF)
-;; (play :foo) ;; will (play (pdef :foo)) if that pdef exists, or (play (bdef :foo)) if the bdef exists. If neither exists, it will throw an error.
+;; (play :foo) ; will (play (pdef :foo)) if that pdef exists, or (play (bdef :foo)) if the bdef exists. If neither exists, it will throw an error.
 
 See also: `play', `launch', `end', `stop'")
 
@@ -442,7 +442,7 @@ See also: `launch', `stop'"))
 
 See also: `play'"))
 
-(defmethod launch ((object t)) ;; forward to `play' if a more specific method hasn't been defined for a class.
+(defmethod launch ((object t)) ; forward to `play' if a more specific method hasn't been defined for a class.
   (play object))
 
 (defmethod launch ((symbol symbol))
@@ -457,7 +457,7 @@ See also: `play'"))
 
 See also: `end', `play'"))
 
-(defmethod stop ((object (eql t))) ;; (stop t) to stop all playing pdefs and nodes.
+(defmethod stop ((object (eql t))) ; (stop t) to stop all playing pdefs and nodes.
   (stop (clock-tasks))
   (dolist (backend (enabled-backends))
     (backend-panic backend)))
@@ -475,7 +475,7 @@ See also: `end', `play'"))
 (defgeneric end (object)
   (:documentation "End a task; it will stop when its current loop completes."))
 
-(defmethod end ((object t)) ;; forward to `stop' if a more specific method hasn't been defined for a class.
+(defmethod end ((object t)) ; forward to `stop' if a more specific method hasn't been defined for a class.
   (stop object))
 
 (defmethod end ((symbol symbol))

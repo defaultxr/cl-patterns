@@ -1,8 +1,8 @@
-(in-package #:cl-patterns/sc-compatibility)
-
 ;;;; sc-compatibility.lisp - SuperCollider-compatible versions of cl-patterns patterns.
 ;;; Defines functionality in the cl-patterns/sc-compatibility package when the cl-patterns/sc-compatibility system is loaded.
 ;;; This is a major work in progress and is considered low priority, so don't expect much.
+
+(in-package #:cl-patterns/sc-compatibility)
 
 ;;; punop
 

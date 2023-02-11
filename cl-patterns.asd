@@ -1,3 +1,5 @@
+;;;; cl-patterns.asd - the cl-patterns ASDF system definitions.
+
 (asdf:defsystem #:cl-patterns
   :name "cl-patterns"
   :description "Pattern library for algorithmic music composition and performance in Common Lisp"

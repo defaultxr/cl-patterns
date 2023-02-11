@@ -38,7 +38,7 @@ See also: `timestamp-incudine-samples'"
 (defvar *incudine-start-samples* 0
   "The result of `incudine:now' when `*incudine-start-timestamp*' was generated.")
 
-(defun timestamp-to-incudine (timestamp) ;; FIX: deprecated; remove
+(defun timestamp-to-incudine (timestamp) ; FIX: deprecated; remove
   "Convert a local-time timestamp to an Incudine sample number."
   (* (local-time:timestamp-difference timestamp *incudine-start-timestamp*)
      (incudine:rt-sample-rate)))
@@ -144,11 +144,11 @@ See also: `timestamp-incudine-samples'"
 
 ;; FIX: maybe use incudine.vug::with-reserved-node for this?
 (defmethod backend-control-node-at ((backend incudine) time (node symbol) params)
-  (if-let ((dsp (find node (incudine.vug:all-dsp-names) :test #'string-equal))) ;; FIX: can we just assume it will be in the incudine.scratch package?
+  (if-let ((dsp (find node (incudine.vug:all-dsp-names) :test #'string-equal))) ; FIX: can we just assume it will be in the incudine.scratch package?
     (let ((id (or (getf params :id)
-                  (incf incudine::*last-node-id*)))) ;; can we reserve a node ID with `incudine.vug::with-reserved-node' or the like?
+                  (incf incudine::*last-node-id*)))) ; can we reserve a node ID with `incudine.vug::with-reserved-node' or the like?
       (apply #'incudine:at time (fdefinition dsp) :id id params)
-      (incudine:node id)) ;; this will show :ID NIL but it does actually point to the correct node.
+      (incudine:node id)) ; this will show :ID NIL but it does actually point to the correct node.
     (error "Unable to find an Incudine DSP with name ~S." node)))
 
 (defmethod play ((node incudine:node))
@@ -165,7 +165,7 @@ See also: `timestamp-incudine-samples'"
          (dsp (backend-buffer-preview-synth backend))
          (dsp-controls (backend-instrument-controls 'incudine dsp)))
     (play (event :backend 'incudine
-                 ;; :type :play ;; to avoid automatically stopping it ;; FIX: implement this note type
+                 ;; :type :play ; to avoid automatically stopping it ; FIX: implement this note type
                  :instrument dsp
                  (find-buffer-symbol dsp-controls) buffer
                  :dur 16
