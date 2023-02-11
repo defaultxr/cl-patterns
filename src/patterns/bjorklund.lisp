@@ -1,9 +1,9 @@
-(in-package #:cl-patterns)
-
-;;;; bjorklund.lisp - patterns that generate euclidean rhythms via the bjorklund algorithm.
-
+;;;; bjorklund.lisp - euclidean rhythms generated with the bjorklund algorithm.
 ;;; TODO:
 ;; FIX: change :dur parameter to be a total duration, like in pfindur, and maybe make a new :dur-mul or similar parameter to provide the functionality that :dur currently has.
+;; FIX: add sustain-notes parameter which, when true, sustains each note until the next one instead of inserting rests.
+
+(in-package #:cl-patterns)
 
 (defun bjorklund (pulses &optional steps (offset 0))
   "Generate a list representing a Euclidean rhythm using the Bjorklund algorithm. PULSES is the number of \"hits\" in the sequence, STEPS is number of divisions of the sequence, and OFFSET is the number to rotate the sequence by. This function returns a list, where 1 represents a note and 0 represents a rest. If you want to use bjorklund in a pattern, you may be more interested in `pbjorklund' instead, which returns events with the correct duration and type.
@@ -11,32 +11,31 @@
 Example: (bjorklund 3 7) ;=> (1 0 1 0 1 0 0)
 
 See also: `pbjorklund'"
-  (if (and (null steps) (typep pulses 'ratio))
-      (bjorklund (numerator pulses) (denominator pulses))
-      (progn
-        (check-type steps (integer 1))
-        (assert (>= steps pulses) (pulses))
-        (labels ((from-array (arr)
-                   (destructuring-bind (a b) (split arr)
-                     (if (and (> (length b) 1) (> (length a) 0))
-                         (from-array (lace a b))
-                         (flatten (append a b)))))
-                 (split (arr)
-                   (let ((index (position (car (last arr)) arr :test #'equal)))
-                     (list (subseq arr 0 index)
-                           (subseq arr index))))
-                 (lace (a b)
-                   (append (loop
-                             :for x :in a
-                             :for i :from 0
-                             :collect (list x (nth i b)))
-                           (when (<= (length a) (length b))
-                             (subseq b (length a))))))
-          (rotate
-           (from-array
-            (append (make-list pulses :initial-element (list 1))
-                    (make-list (- steps pulses) :initial-element (list 0))))
-           offset)))))
+  (when (and (null steps) (typep pulses 'ratio))
+    (return-from bjorklund (bjorklund (numerator pulses) (denominator pulses))))
+  (check-type steps (integer 1))
+  (assert (>= steps pulses) (pulses))
+  (labels ((from-array (arr)
+             (destructuring-bind (a b) (split arr)
+               (if (and (> (length b) 1) (> (length a) 0))
+                   (from-array (lace a b))
+                   (flatten (append a b)))))
+           (split (arr)
+             (let ((index (position (car (last arr)) arr :test #'equal)))
+               (list (subseq arr 0 index)
+                     (subseq arr index))))
+           (lace (a b)
+             (append (loop
+                       :for x :in a
+                       :for i :from 0
+                       :collect (list x (nth i b)))
+                     (when (<= (length a) (length b))
+                       (subseq b (length a))))))
+    (rotate
+     (from-array
+      (append (make-list pulses :initial-element (list 1))
+              (make-list (- steps pulses) :initial-element (list 0))))
+     offset)))
 
 (defpattern pbjorklund (pattern)
   (pulses
@@ -59,8 +58,6 @@ See also: `bjorklund'"
                           :offset offset
                           :dur dur
                           :repeats repeats)))
-
-;; FIX: add sustain-notes parameter which, when true, sustains each note until the next one instead of inserting rests.
 
 (defmethod as-pstream ((pbjorklund pbjorklund))
   (with-slots (pulses steps offset dur repeats) pbjorklund
