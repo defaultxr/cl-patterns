@@ -258,3 +258,16 @@ Such a function should take into account all of the following:
 - pmeta special keys
 - backend-specific keys (i.e. the ones for MIDI backends like alsa-midi)
 - others?
+* add a webhook for circle-ci to send a notification to the matrix room on test failures.
+the old one used for travis-ci was:
+#+begin_src yaml
+# matrix notifications on failures
+notifications:
+  email: false
+  webhooks:
+    urls:
+      - "https://scalar.vector.im/api/neb/services/hooks/dHJhdmlzLWNpLyU0MGRlZmF1bHR4ciUzQXN0cnVjdC53cy8lMjFNT1JMTkN0YWdLUW1jdXBvZ28lM0FzdHJ1Y3Qud3M"
+    on_success: change # always|never|change
+    on_failure: always
+    on_start: never
+#+end_src
