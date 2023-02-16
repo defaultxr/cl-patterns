@@ -61,22 +61,12 @@ See also: `alsa-midi-instrument-program-number'"
         (gethash key-map *alsa-midi-cc-map*)
         key-map)))
 
-(uiop:with-deprecation (:error)
-  (defun get-alsa-midi-cc-mapping (key)
-    "Deprecated in favor of `alsa-midi-cc-mapping'."
-    (alsa-midi-cc-mapping key)))
-
 (defun alsa-midi-set-cc-mapping (cc-number description &optional event-key (mapper 'midi-truncate-clamp))
   "Set a mapping for CC-NUMBER. When EVENT-KEY is seen in an event being played by the alsa-midi backend, its value will be converted using the function specified by MAPPER, and then that value will be set for CC number CC-NUMBER just before the note itself is triggered. DESCRIPTION is a description of what the CC controls."
   (setf (gethash cc-number *alsa-midi-cc-map*)
         (list cc-number description event-key mapper))
   (dolist (event-key (ensure-list event-key))
     (setf (gethash event-key *alsa-midi-cc-map*) cc-number)))
-
-(uiop:with-deprecation (:error)
-  (defun set-alsa-midi-cc-mapping (cc-number description &optional event-key (mapper 'midi-truncate-clamp))
-    "Deprecated in favor of `alsa-midi-set-cc-mapping'."
-    (alsa-midi-set-cc-mapping cc-number description event-key mapper)))
 
 (defun alsa-midi-remap-key-value (key value)
   "Remap KEY and VALUE to their equivalent MIDI CC parameter and range. Returns a list of the format (CC-NUMBER CC-VALUE), or nil if the key is not a recognized CC key."
@@ -222,4 +212,4 @@ See also: `alsa-midi-instrument-program-number'"
   ;; FIX
   )
 
-(export '(alsa-midi-panic alsa-midi-instrument-program-number alsa-midi-cc-mapping get-alsa-midi-cc-mapping alsa-midi-set-cc-mapping set-alsa-midi-cc-mapping alsa-midi-remap-key-value))
+(export '(alsa-midi-panic alsa-midi-instrument-program-number alsa-midi-cc-mapping alsa-midi-set-cc-mapping alsa-midi-remap-key-value))

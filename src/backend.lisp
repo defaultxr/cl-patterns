@@ -132,7 +132,7 @@ See also: `backend-start', `backend-enabled-p'"))
 See also: `all-backends', `backend-enabled-p'"
   (remove-if-not #'backend-enabled-p (all-backends)))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun enable-backend (backend &rest params &key start-p &allow-other-keys)
     "Deprecated function; use `make-backend', `backend-start', and/or `backend-enabled-p' instead."
     (let ((backend (if (backend-p backend)

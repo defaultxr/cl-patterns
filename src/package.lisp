@@ -107,9 +107,6 @@
 
    ;;; scales.lisp
 
-   #:note-number ; deprecated
-   #:note-name ; deprecated
-
    #:tone-matrix
 
    #:define-tuning
@@ -187,8 +184,6 @@
 
    #:pattern-source
    #:pattern-parent
-   #:parent-pattern ; deprecated
-   #:parent-pbind ; deprecated
    #:pattern-children
    #:pstream-count
    #:pattern-metadata
@@ -229,7 +224,6 @@
    #:playing-pdef-names
    #:find-pdef
    #:pdef-name
-   #:pdef-key
    #:pdef-pattern
    #:pdef-pstream
    #:pdef-task

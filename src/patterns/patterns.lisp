@@ -203,15 +203,6 @@ See also: `pattern-children'"
         res
         pattern)))
 
-(uiop:with-deprecation (:error)
-  (defun parent-pattern (pattern)
-    "Deprecated alias for `pattern-parent'."
-    (pattern-parent pattern))
-
-  (defun parent-pbind (pattern)
-    "Deprecated forward to `pattern-parent'. Use (pattern-parent PATTERN :class 'pbind) instead."
-    (pattern-parent pattern :class 'pbind)))
-
 (defun pattern-children (pattern &key (num 1) (accumulate nil) (class 'pattern))
   "Get a list of all the direct child patterns of PATTERN, including any in slots or lists.
 

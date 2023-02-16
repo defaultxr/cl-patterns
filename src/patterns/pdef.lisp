@@ -7,15 +7,6 @@
 (defgeneric pdef-name (pdef)
   (:documentation "The name (\"key\") of PDEF."))
 
-(uiop:with-deprecation (:error)
-  (defun pdef-key (pdef)
-    "Deprecated alias for `pdef-name'."
-    (pdef-name pdef))
-
-  (defun (setf pdef-key) (value pdef)
-    "Deprecated alias for `(setf pdef-name)'."
-    (setf (pdef-name pdef) value)))
-
 (defgeneric pdef-pattern (pdef)
   (:documentation "The pattern that PDEF points to."))
 

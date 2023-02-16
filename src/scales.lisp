@@ -57,15 +57,6 @@ See also: `*abbreviations*'"
 
 ;;; notes
 
-(uiop:with-deprecation (:error)
-  (defun note-number (note)
-    "Deprecated alias for `note-chromatic-index'."
-    (note-chromatic-index note))
-
-  (defun note-name (note)
-    "Deprecated alias for `chromatic-index-note'."
-    (chromatic-index-note note)))
-
 (defun sharp-or-flat (string)
   "Given STRING, return a number representing how many semitones above or below its number it represents, by counting sharps (#) and flats (b).
 

@@ -53,11 +53,6 @@ See also: `raw-event-value', `event-value'"
     (setf event-plist (plist-set event-plist key value)))
   value)
 
-(uiop:with-deprecation (:error)
-  (defun raw-set-event-value (event key value)
-    "Set the value of KEY to VALUE in EVENT without running any conversion functions. Deprecated; use (setf (raw-event-value EVENT KEY) VALUE) instead."
-    (setf (raw-event-value event key) value)))
-
 (defun event-value (event key)
   "Get the value of KEY in EVENT, running any necessary conversion functions.
 

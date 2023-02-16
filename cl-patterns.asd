@@ -44,16 +44,6 @@
                (:file "extensions/sequence"))
   :in-order-to ((test-op (test-op "cl-patterns/tests"))))
 
-(asdf:defsystem #:cl-patterns/sugar ; deprecated, don't use
-  :name "cl-patterns/sugar"
-  :description "cl-patterns with additional syntax sugar exports. Deprecated system; use the mutility library or manually import functions instead."
-  :author "modula t."
-  :license "MIT"
-  :version "0.7"
-  :depends-on (#:cl-patterns)
-  :serial t
-  :components ((:file "src/sugar")))
-
 (asdf:defsystem #:cl-patterns/generic-cl
   :name "cl-patterns/generic-cl"
   :description "cl-patterns with additional methods for generic-cl"

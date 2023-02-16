@@ -171,12 +171,6 @@ See also: `ptrack', `ptrack-row'"))
     (setf (getf row-plist key) value
           (ptrack-row ptrack row) row-plist)))
 
-(uiop:with-deprecation (:error)
-  (defun ptracker (&rest args)
-    "Deprecated alias for `ptrack'."
-    (apply #'ptrack args)))
-(export 'ptracker)
-
 (defmacro pt (header &rest rows)
   "Syntax sugar for `ptrack'. Avoids the need to quote or use `list'.
 
