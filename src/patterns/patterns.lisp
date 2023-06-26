@@ -8,7 +8,7 @@
   "Get `*event*' if it's not nil, or get a fresh empty event."
   (or *event* (event)))
 
-(defvar *patterns* (list)
+(defvar *patterns* nil
   "List of the names of all defined pattern types.")
 
 (defmacro defpattern (name superclasses slots &key documentation defun)
@@ -716,17 +716,17 @@ See also: `pstream-elt', `phistory'"
 
 ;;; pbind
 
-(defvar *pbind-special-init-keys* (list)
+(defvar *pbind-special-init-keys* nil
   "The list of special keys for pbind that alters it during its initialization.
 
 See also: `define-pbind-special-init-key'")
 
-(defvar *pbind-special-wrap-keys* (list)
+(defvar *pbind-special-wrap-keys* nil
   "The list of special keys for pbind that causes the pbind to be replaced by another pattern during its initialization.
 
 See also: `define-pbind-special-wrap-key'")
 
-(defvar *pbind-special-process-keys* (list)
+(defvar *pbind-special-process-keys* nil
   "The list of special keys for pbind that alter the outputs of the pbind.
 
 See also: `define-pbind-special-process-key'")
@@ -806,7 +806,7 @@ See also: `pmono', `pb'"
 (defmethod keys ((pbind pbind))
   (keys (slot-value pbind 'pairs)))
 
-(defvar *pattern-function-translations* (list)
+(defvar *pattern-function-translations* nil
   "The list of names of functions and the forms they will be translated to in `pb' and other pattern macros.
 
 See also: `define-pattern-function-translation'")

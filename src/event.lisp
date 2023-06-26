@@ -30,7 +30,7 @@ See also: `event-value', `event-p', `e', `*event*'"
     (doplist (key value params ev)
       (setf (event-value ev key) value))))
 
-(defparameter *event-special-keys* (list)
+(defparameter *event-special-keys* nil
   "Plist mapping event special keys to their case lists.")
 
 (defun event-p (object)

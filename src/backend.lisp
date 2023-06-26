@@ -43,7 +43,7 @@
 See also: `all-backends', `enabled-backends'"
   (mapcar #'class-name (subclasses-of 'backend)))
 
-(defvar *backends* (list)
+(defvar *backends* nil
   "List of loaded and active cl-patterns backends. This variable generally shouldn't need to be modified by the user; instead register backends by loading the relevant cl-patterns sub-system, then use `make-backend' and/or `backend-start' to make and activate a backend.
 
 See also: `all-backends', `all-backend-types', `make-backend', `backend-start', `backend-stop'")
