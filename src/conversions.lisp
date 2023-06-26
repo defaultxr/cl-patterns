@@ -259,7 +259,7 @@ Note that this function is not aware of context and thus always returns the firs
                  (scale (scale-notes scale))))
          (steps-per-octave (or steps-per-octave (scale-steps-per-octave scale))) ; FIX: need to implement scale-steps-per-octave
          (base-key (+ (* steps-per-octave (floor degree (length list)))
-                      (elt-wrap list degree))))
+                      (elt-wrap list (truncate degree)))))
     (+ base-key (* accidental (/ steps-per-octave 12d0)))))
 
 (defconversion degree-freq (degree &rest args &key (root 0) (octave 4) (scale :major))
