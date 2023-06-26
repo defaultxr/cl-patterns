@@ -110,7 +110,7 @@ See also: `pt', `pcycles', `pbind'"
     ((member :error) (error "No ~A at ~S exists in ~S." (string-downcase type) name ptrack))
     (null nil)))
 
-(defgeneric ptrack-rows (ptrack &key if-does-not-exist)
+(defgeneric ptrack-rows (ptrack)
   (:documentation "Get the list of rows from PTRACK."))
 
 (defmethod ptrack-rows (ptrack)
