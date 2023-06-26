@@ -161,16 +161,6 @@ See also: `beat'"
 (defun (setf clock-latency) (value &optional (clock *clock*))
   (setf (slot-value clock 'latency) value))
 
-(define-symbol-macro *latency* (deprecated-latency))
-
-(defun deprecated-latency ()
-  "Deprecated alias for `(clock-latency *clock*)'."
-  (error "Using *latency* is deprecated; please use `clock-latency' instead."))
-
-(defun (setf deprecated-latency) (value)
-  "Deprecated alias for `(setf (clock-latency *clock*) ...)'."
-  (error "Using *latency* is deprecated; please use `clock-latency' instead."))
-
 (defun clock-add (item &optional (clock *clock*)) ; FIX: take event :beat into account
   "Add ITEM (usually a `pstream') to CLOCK's tasks. Generally you don't need to use this directly and would use `play' instead.
 
@@ -334,32 +324,6 @@ See also: `clock-condition-handler'"
   (setf (slot-value clock 'caught-conditions) value))
 
 ;;; basic clock-loop convenience functionality
-
-(define-symbol-macro *performance-mode* (deprecated-clock-condition-handler))
-
-(setf (documentation '*performance-mode* 'variable)
-      "Deprecated alias for (clock-condition-handler *clock*).")
-
-(defun deprecated-clock-condition-handler ()
-  "Deprecated alias for (clock-condition-handler *clock*)."
-  (error "Using *performance-mode* is deprecated; please use (clock-condition-handler) instead."))
-
-(defun (setf deprecated-clock-condition-handler) (value)
-  "Deprecated alias for (setf (clock-condition-handler *clock*) ...)."
-  (error "Setting *performance-mode* is deprecated; please use (setf (clock-condition-handler) ...) instead."))
-
-(define-symbol-macro *performance-errors* (deprecated-clock-caught-conditions))
-
-(setf (documentation '*performance-errors* 'variable)
-      "Deprecated alias for (clock-caught-conditions *clock*).")
-
-(defun deprecated-clock-caught-conditions ()
-  "Deprecated alias for (clock-caught-conditions *clock*)."
-  (error "Using *performance-errors* is deprecated; please use (clock-caught-conditions) instead."))
-
-(defun (setf deprecated-clock-caught-conditions) (value)
-  "Deprecated alias for (setf (clock-caught-conditions *clock*) ...)."
-  (error "Setting *performance-errors* is deprecated; please use (setf (clock-caught-conditions) ...) instead."))
 
 (defun clock-loop (clock &key (granularity (clock-latency clock)))
   "Convenience method for processing a clock's tasks in a loop.

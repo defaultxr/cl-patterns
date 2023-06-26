@@ -267,11 +267,6 @@
    #:backend-stop
 
    ;; deprecated functions
-   #:register-backend
-   #:enable-backend
-   #:disable-backend
-   #:start-backend
-   #:stop-backend
    #:enabled-backends
 
    ;;; render.lisp
@@ -290,9 +285,6 @@
    #:clock-process
    #:clock-condition-handler
    #:clock-caught-conditions
-
-   #:*performance-mode*
-   #:*performance-errors*
 
    #:clock-loop
    #:start-clock-loop)

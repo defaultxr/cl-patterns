@@ -60,11 +60,6 @@ See also: `note-midinote', `chromatic-index-note'"
 
 ;;; list stuff
 
-(uiop:with-deprecation (:error)
-  (defun gete (list key)
-    "Get a list of the value of KEY for each event in LIST."
-    (mapcar (fn (event-value _ key)) list)))
-
 (defun normalized-sum (list &optional (sum 1))
   "Get a copy of LIST \"normalized\" so all of its numbers summed together equal SUM.
 

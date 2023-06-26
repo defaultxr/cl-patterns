@@ -188,7 +188,7 @@ See also: `every-event-equal'"
                        events)
           :collect key))
 
-(uiop:with-deprecation (:warning)
+(uiop:with-deprecation (:error)
   (defun events-lists-differing-keys (&rest lists)
     "Get a list of the keys that differ between respective event in LISTS.
 

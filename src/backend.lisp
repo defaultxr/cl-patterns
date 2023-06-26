@@ -132,41 +132,6 @@ See also: `backend-start', `backend-enabled-p'"))
 See also: `all-backends', `backend-enabled-p'"
   (remove-if-not #'backend-enabled-p (all-backends)))
 
-(uiop:with-deprecation (:error)
-  (defun enable-backend (backend &rest params &key start-p &allow-other-keys)
-    "Deprecated function; use `make-backend', `backend-start', and/or `backend-enabled-p' instead."
-    (let ((backend (if (backend-p backend)
-                       backend
-                       (apply #'make-backend backend params))))
-      (setf (backend-enabled-p backend) t)
-      (when start-p
-        (apply #'backend-start backend params))
-      backend))
-
-  (defun disable-backend (backend &key (stop t))
-    "Deprecated function; use `backend-stop' and/or `backend-enabled-p' instead."
-    (let ((backend (if (backend-p backend)
-                       backend
-                       (find-backend backend :enabled-p t))))
-      (setf (backend-enabled-p backend) nil)
-      (when stop
-        (backend-stop backend))))
-
-  (defun register-backend (name)
-    "Deprecated function. This is no longer needed since subclasses of `backend' are automatically registered."
-    (declare (ignore name))
-    nil)
-
-;;; generics
-
-  (defun start-backend (&rest args)
-    "Deprecated alias for `backend-start'."
-    (apply #'backend-start args))
-
-  (defun stop-backend (&rest args)
-    "Deprecated alias for `backend-stop'."
-    (apply #'backend-stop args)))
-
 (defgeneric backend-responds-p (backend event)
   (:documentation "True if BACKEND should respond to EVENT."))
 
