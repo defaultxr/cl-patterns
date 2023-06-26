@@ -133,7 +133,7 @@ See also: `eseq-add'"))
 See also: `as-pstream'"))
 
 (defmethod as-eseq ((symbol symbol))
-  (as-eseq (find-pdef symbol t)))
+  (as-eseq (find-pdef symbol :errorp t)))
 
 (defmethod as-eseq ((list list))
   (eseq list :source list))
