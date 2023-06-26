@@ -66,21 +66,19 @@ CLOSED: [2018-08-09 Thu 19:39]
 ** TODO patterns automatically and correctly handle/coerce lists as values
 
 * ~pmetropolis~ - intellijel metropolis-inspired pattern class (maybe a mini-language for compactly representing durstutters, etc).
-** i.e., could be something like this:
+** maybe something like this:
 #+BEGIN_SRC lisp
-  (pmetropolis
-   (pbind :instrument :acid
-    :midinote (pseq '(60 59 58 57 56 55 54 53) :inf))
-   5s 2h+ 2r 2o 0 3 2h- 1)
+  (pbind :instrument :acid
+         :midinote (pseq '(60 59 58 57 56 55 54 53))
+         :embed (pmetropolis '(5s 2h+ 2r 2o 0 3 2h- 1)))
 #+END_SRC
 this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (~+~ meaning slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (~-~ means skip), play 53 for one pulse, and then loop.
-** maybe don't make it a macro so the step pattern could be a pseq, prand, etc?
-
 * ~pgatestorm~ - erogenous tones gatestorm-inspired pattern class with a mini-language for writing trigger-based patterns.
 
-* define a ~cl-patterns/basic~ system as a more minimal system that does not include clock or event special keys.
-** define ~cl-patterns/clock~ for the clock.
-** define ~cl-patterns/music-events~ for the event special keys.
+* split out cl-patterns functionality into independent sub-systems
+** ~cl-patterns/basic~ - minimal system that only includes patterns and not the clock or event special keys.
+** ~cl-patterns/clock~ - the clock.
+** ~cl-patterns/special-keys~ - the event special keys.
 * look into https://github.com/triss/ChordSymbol
 * ~pprocess~ - dsl for altering patterns. (maybe call it ~pfor~ instead?)
 ** accepts statements like these:
@@ -114,7 +112,7 @@ still trying to think of ideas for how to make a good "performance mode" without
 ** add a restart to re-add the broken pattern
 * pattern plotting
 ** via vgplot
-** interactively, via (Mc)CLIM
+** interactively, via (Mc)CLIM/Thundersnow
 * DONE pseries/pgeom fromEndPoints
 CLOSED: [2019-10-23 Wed 23:06]
 done as ~pseries*~ and ~pgeom*~
@@ -124,16 +122,18 @@ done as ~pseries*~ and ~pgeom*~
 * l-systems
 * tempo change curves
 - can tempo be represented as a key in patterns instead of a slot in the clock? or maybe as a pattern that is always playing, and can be referred to with ~(ptempo)~ or the like? that way we get curves, etc for free
-* ~pblend~ to blend between two patterns
+* ~pblend~ to blend between multiple patterns
 * DONE export patterns as SuperCollider ~Score~ files so they can be rendered in non-realtime
 CLOSED: [2021-04-02 Fri 18:00]
 ** DONE then make ~render~ or ~record~ functions
 CLOSED: [2021-04-02 Fri 18:00]
 ~render~ is complete.
 * make pstreams compatible with sequence functions: http://www.sbcl.org/manual/#Extensible-Sequences
+* subsystem for [[https://github.com/alex-gutev/generic-cl][generic-cl]] methods to make working with patterns even easier!
 * Renoise import/export
 see [[https://github.com/defaultxr/cl-renoise][cl-renoise]]
-* make sure communicating with pure data via OSC works
+* add an OSC backend
+** make sure communicating with pure data via OSC works
 * make sure our clock works with the cl-collider TempoClock so they can be used together/synced etc.
 ** same with [[https://github.com/byulparan/sc-extensions][sc-extensions]]
 * provide a quickproject template to quickly generate a cl-patterns project
@@ -168,12 +168,12 @@ https://depts.washington.edu/dxscdoc/Help/Overviews/Event_types.html
 | mtranspose       | modal transposition of degree within a scale                                 |
 | gtranspose       | gamut transposition of note within a ~steps-per-octave~ e.t. scale           |
 | ctranspose       | chromatic transposition of midinote within 12 tone e.t. scale                |
-* equivalent for SuperCollider's ~strum~ event key (maybe make it a pattern instead? ~pstrum~ ? something like ~parp~ ?)
+* equivalent for SuperCollider's ~strum~ event key
+maybe make it a pattern instead? ~pstrum~ ?
+~parp~ can already do something similar
 * DONE consider alternatives to ~nil~ for end of pattern
 CLOSED: [2022-02-28 Mon 20:43]
-(mainly because patterns like ~pif~ otherwise have no way to differentiate between "end of pattern" and "false"...)
-- perhaps use ~'cl-patterns:end~ as the end-of-pattern symbol instead? the symbol is already exported anyway, however it does refer to the ~end~ method
-- perhaps make a ~'cl-patterns:eop~ ("end of pattern") symbol?
+done - we now use ~cl-patterns:eop~ instead.
 * pattern that "curves" the time of another pattern (basically like the ~curve~ parameter for SuperCollider's envelopes does)
 * [[https://github.com/carrierdown/mutateful][mutateful]]-inspired pattern mini-language
 https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
@@ -182,6 +182,8 @@ https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
 * option to make changes to patterns affect their pstreams immediately
 ** it should be pretty easy to do this for ~eseq~.
 ** perhaps just make a pstream that is just a proxy to the pattern, auto-updated when the pattern changes?
+* more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
+** ~ipstream~
 * improve ~print-object~ methods
 take into account these variables (and maybe others?):
 - ~*print-readably*~
@@ -191,10 +193,8 @@ take into account these variables (and maybe others?):
 ...also look into ~make-load-form~ ?
 * DONE Include Emacs skeletons and other functionality for writing patterns faster
 CLOSED: [2021-11-11 Thu 12:03]
-* Subsystem for [[https://github.com/alex-gutev/generic-cl][generic-cl]] methods to make working with patterns even easier!
+done - see the ~res/emacs~ directory
 * [[https://web.archive.org/web/20100110004824/http://www.pawfal.org/index.php?page=BetaBlocker][betablocker]]-inspired pattern (perhaps related to ~pfsm~ or ~pdfsm~ or the like?)
-* more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
-** ~ipstream~
 * ~pswing~ pattern to apply swing to an input pattern
 * [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]]
 * "after actions"
@@ -242,23 +242,15 @@ where PATTERN is the input pattern, PROBABILITY is the probability (can be stati
 * patterns like ~pfindur~ and ~psync~ should allow you to configure whether they cut the notes at the end of their ~maxdur~
 * DONE allow the user to set default values for the ~repeats~ and ~length~ parameters instead of always being ~:inf~
 CLOSED: [2023-06-25 Sun 20:14]
-* [[https://ableton.github.io/link/][Link]] support
+done - ~*default-pattern-length*~ and ~*default-pattern-repeats*~
+** make the default value of ~repeats~ and ~length~ arguments customizable on a per-pattern basis? perhaps using class variables?
+* [[https://ableton.github.io/link/][Ableton Link]] support
 ** [[https://github.com/byulparan/LinkUGen][LinkUGen]] - possibly useful as a reference?
 * make some kind of function or pattern to get the mouse position, a la the ~mouse-x~ and ~mouse-y~ UGens, except from the Lisp side so we don't have to proxy them from the SC server.
-as per issue #28
-* make the default value of ~repeats~ and ~length~ arguments customizable; perhaps on a per-pattern basis using class variables?
+as per [[https://github.com/defaultxr/cl-patterns/issues/28][issue #28]]
 * ~as-ugen~ function that can convert a pattern object into a ugen graph for supported backends
 * pattern for doing feedback in patterns
 * some kind of bytebeat pattern
-* function to get information about event/pattern keys
-Since more and more special keys are being defined, there should be a programmatic way to query what a key can do.
-Such a function should take into account all of the following:
-- event builtins/conversions
-- information on event types
-- pbind special keys (init, wrap, process)
-- pmeta special keys
-- backend-specific keys (i.e. the ones for MIDI backends like alsa-midi)
-- others?
 * add a webhook for circle-ci to send a notification to the matrix room on test failures.
 the old one used for travis-ci was:
 #+begin_src yaml
@@ -275,3 +267,12 @@ notifications:
 maybe look at [[https://github.com/zzkt/osc/blob/endless/.github/workflows/ci.yaml][this]] for an example?
 * use something like [[https://asdf-system-connections.common-lisp.dev/][ASDF-System-Connections]] to automatically load relevant subsystems (such as ~cl-patterns/supercollider~) when the relevant other system (such as ~cl-collider~) is loaded.
 * something like [[https://nodalmusic.com/][Nodal]] or [[https://midinous.com/][Midinous]] perhaps? see [[https://www.youtube.com/watch?v=rtTWtzWav8I][this]] video for a demo.
+* make and export functions to add, remove, and list special keys
+Since more and more special keys are being defined, there should be a programmatic way to query what a key can do.
+Such a function should take into account all of the following:
+- event builtins/conversions
+- information on event types
+- pbind special keys (init, wrap, process)
+- pmeta special keys
+- backend-specific keys (i.e. the ones for MIDI backends like alsa-midi)
+- others?
