@@ -113,7 +113,7 @@ See also: `pt', `pcycles', `pbind'"
 (defgeneric ptrack-rows (ptrack &key if-does-not-exist)
   (:documentation "Get the list of rows from PTRACK."))
 
-(defmethod ptrack-rows (ptrack &key if-does-not-exist)
+(defmethod ptrack-rows (ptrack)
   (slot-value ptrack 'rows))
 
 (defgeneric ptrack-row (ptrack row &key if-does-not-exist)
@@ -158,7 +158,7 @@ See also: `ptrack', `ptrack-row'"))
 (defmethod ptrack-cell ((ptrack ptrack-pstream) row key &key if-does-not-exist)
   (etypecase row
     (symbol
-     (ptrack-cell ptrack nil row))
+     (ptrack-cell ptrack nil row :if-does-not-exist if-does-not-exist))
     (integer
      (if-let ((event (elt ptrack row)))
        (event-value event key)
