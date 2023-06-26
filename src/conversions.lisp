@@ -149,7 +149,7 @@ See also: `bipolar-unipolar'"
 
 (defconversion midinote-octave (midinote)
   "Get the octave number that MIDINOTE occurs in."
-  (+ 4 (truncate (/ (- midinote *c4-midinote*) 12))))
+  (+ 4 (floor (- midinote *c4-midinote*) 12)))
 
 ;; note
 
