@@ -16,6 +16,9 @@
 (defgeneric pdef-task (pdef)
   (:documentation "The task that PDEF was last being played in."))
 
+(defvar *pdef-dictionary* (make-hash-table :test 'eql)
+  "The pdef dictionary hash table.")
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defpattern pdef (pattern)
     ((name :reader pdef-name :type string-designator)
