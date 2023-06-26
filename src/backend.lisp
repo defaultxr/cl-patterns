@@ -89,7 +89,7 @@ See also: `backend-start'"))
     (apply #'make-instance found-backend rest)
     (apply #'no-applicable-method #'make-backend backend rest)))
 
-(defmethod initialize-instance :after ((backend backend) &rest rest &key &allow-other-keys)
+(defmethod initialize-instance :after ((backend backend) &key &allow-other-keys)
   (pushnew backend *backends*))
 
 (defgeneric backend-start (backend &rest args &key &allow-other-keys)
