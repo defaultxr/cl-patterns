@@ -42,7 +42,7 @@ See also: `pbjorklund'"
    steps
    (offset :initform 0)
    (dur :initform 1)
-   (repeats :initform :inf))
+   (repeats :initform *default-pattern-repeats*))
   :documentation "pbjorklund generates Euclidean rhythms using the Bjorklund algorithm. PULSES is the number of notes in the sequence, and STEPS is number of steps in the sequence. Additionally, OFFSET is the number to rotate the sequence by, DUR is the total duration one repeat of the sequence should be, and REPEATS is the number of repeats that should be yielded. This pattern outputs events which can be embedded into another pattern. Each pulse is a note, and each subdivision of the sequence that is not a pulse is a rest. If you just want the raw output from the Bjorklund algorithm (not in pattern form), use `bjorklund' instead.
 
 Example:
@@ -51,7 +51,7 @@ Example:
 ;; => ((EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :NOTE :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7) (EVENT :TYPE :REST :DUR 1/7))
 
 See also: `bjorklund'"
-  :defun (defun pbjorklund (pulses steps &key (offset 0) (dur 1) (repeats :inf))
+  :defun (defun pbjorklund (pulses steps &key (offset 0) (dur 1) (repeats *default-pattern-repeats*))
            (make-instance 'pbjorklund
                           :pulses pulses
                           :steps steps

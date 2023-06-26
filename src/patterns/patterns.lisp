@@ -100,6 +100,12 @@ See also: `pattern', `pdef', `all-patterns'"
 (defvar *max-pattern-yield-length* 256
   "The default maximum number of events or values that will be used by functions like `next-n' or patterns like `protate', in order to prevent hangs caused by infinite-length patterns.")
 
+(defvar *default-pattern-length* :inf
+  "The default value of a pattern's LENGTH parameter.")
+
+(defvar *default-pattern-repeats* :inf
+  "The default value of a pattern's REPEATS parameter.")
+
 ;;; pattern
 
 (defgeneric pattern-source (pattern)
@@ -1028,7 +1034,7 @@ See also: `pbind'"
 
 (defpattern pseq (pattern)
   (list
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (offset :initform 0)
    (current-repeats-remaining :state t))
   :documentation "Sequentially yield items from LIST, repeating the whole list REPEATS times. OFFSET is the offset to index into the list.
@@ -1060,7 +1066,7 @@ See also: `pser', `eseq'")
 
 (defpattern pser (pattern)
   (list
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (offset :initform 0)
    (current-repeats-remaining :state t)
    (current-index :state t))
@@ -1120,7 +1126,7 @@ See also: `pbind', `event-value', `*event*'")
 
 (defpattern prand (pattern)
   (list
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t))
   :documentation "Yield random values from LIST.
 
@@ -1141,7 +1147,7 @@ See also: `pxrand', `pwrand', `pwxrand'")
 
 (defpattern pxrand (pattern)
   (list
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (last-result :state t)
    (current-repeats-remaining :state t))
   :documentation "Yield random values from LIST, never repeating equal values twice in a row.
@@ -1176,7 +1182,7 @@ See also: `prand', `pwrand', `pwxrand'")
 (defpattern pwrand (pattern)
   (list
    (weights :initform :equal)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t))
   :documentation "Yield random elements from LIST weighted by respective values from WEIGHTS.
 
@@ -1205,7 +1211,7 @@ See also: `prand', `pxrand', `pwxrand'")
 (defpattern pwxrand (pattern)
   (list
    (weights :initform :equal)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (last-result :state t)
    (current-repeats-remaining :state t))
   :documentation "Yield random elements from LIST weighted by respective values from WEIGHTS, never repeating equivalent values twice in a row. This is effectively `pxrand' and `pwrand' combined.
@@ -1252,7 +1258,7 @@ See also: `prand', `pxrand', `pwrand'")
 
 (defpattern pfunc (pattern)
   ((func :type (or function-designator pattern))
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t))
   :documentation "Yield the result of evaluating FUNC. Note that the current event of the parent pattern is still accessible via the `*event*' special variable.
 
@@ -1302,7 +1308,7 @@ See also: `pf', `pnary', `plazy', `pif'")
 
 (defpattern pr (pattern)
   (pattern
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (current-value :state t :initform nil)
    (current-repeats-remaining :state t))
   :documentation "Repeat each value from PATTERN REPEATS times. If REPEATS is 0, the value is skipped.
@@ -1351,7 +1357,7 @@ See also: `pdurstutter', `pn', `pdrop', `parp'")
 
 (defpattern plazy (pattern)
   (func
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (current-pstream :state t :initform nil)
    (current-repeats-remaining :state t :initform nil))
   :documentation "Evaluates FUNC to generate a pattern, which is then yielded from until its end, at which point FUNC is evaluated again to generate the next pattern. The pattern is generated a total of REPEATS times.
@@ -1421,7 +1427,7 @@ See also: `pdrop', `phistory', `pscratch'")
 
 (defpattern pn (pattern)
   (pattern
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (current-repeats-remaining :state t)
    (current-pstream :state t :initform nil))
   :documentation "Embed the full PATTERN into the pstream REPEATS times.
@@ -1458,7 +1464,7 @@ See also: `pr'")
 
 (defpattern pshuf (pattern)
   (list
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (shuffled-list :state t)
    (current-repeats-remaining :state t))
   :documentation "Shuffle LIST, then yield each item from the shuffled list, repeating it REPEATS times.
@@ -1499,7 +1505,7 @@ See also: `prand'")
 (defpattern pwhite (pattern)
   ((lo :initform 0.0)
    (hi :initform 1.0)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t))
   :documentation "Linearly-distributed random numbers between LO and HI, inclusive.
 
@@ -1510,7 +1516,7 @@ Example:
 
 See also: `pexprand', `pbrown', `pgauss', `prand'"
   ;; FIX: see about using a symbol for the unprovided slots and just check/process this initialization code in the `next' method instead.
-  :defun (defun pwhite (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (length :inf))
+  :defun (defun pwhite (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (length *default-pattern-length*))
            ;; if only one argument is provided, we use it as the "hi" value.
            (make-instance 'pwhite
                           :lo (if hi-provided-p
@@ -1542,7 +1548,7 @@ See also: `pexprand', `pbrown', `pgauss', `prand'"
   ((lo :initform 0.0)
    (hi :initform 1.0)
    (step :initform 0.125)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t)
    (current-value :state t :initform nil))
   :documentation "Brownian motion within a range; each output randomly a maximum of STEP away from the previous. LO and HI define the lower and upper bounds of the range. STEP defaults to 1 if LO and HI are integers.
@@ -1554,7 +1560,7 @@ Example:
 
 See also: `pwhite', `pexprand', `pgauss'"
   ;; if only one argument is provided, we use it as the "hi" value.
-  :defun (defun pbrown (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (step 0.125 step-provided-p) (length :inf))
+  :defun (defun pbrown (&optional (lo 0.0 lo-provided-p) (hi 1.0 hi-provided-p) (step 0.125 step-provided-p) (length *default-pattern-length*))
            (let ((lo (if hi-provided-p
                          lo
                          (if (integerp lo) 0 0.0)))
@@ -1594,7 +1600,7 @@ See also: `pwhite', `pexprand', `pgauss'"
 (defpattern pexprand (pattern)
   ((lo :initform 0.0001)
    (hi :initform 1.0)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t))
   :documentation "Exponentially-distributed random numbers between LO and HI. Note that LO and HI cannot be 0, and that LO and HI must have the same sign or else complex numbers will be output.
 
@@ -1630,7 +1636,7 @@ See also: `pwhite', `pbrown', `pgauss', `prand'")
 (defpattern pgauss (pattern)
   ((mean :initform 0.0)
    (deviation :initform 1.0)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t))
   :documentation "Random numbers distributed along a normal (gaussian) curve. MEAN is the \"center\" of the distribution, DEVIATION is the standard deviation (i.e. the higher the value, the further the outputs are spread from MEAN).
 
@@ -1658,7 +1664,7 @@ See also: `pwhite', `pexprand', `pbrown'")
 (defpattern pseries (pattern)
   ((start :initform 0)
    (step :initform 1)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t)
    (current-value :state t))
   :documentation "Yield START, then generate subsequent outputs by adding STEP, for a total of LENGTH outputs.
@@ -1713,7 +1719,7 @@ See also: `pseries', `pgeom', `pgeom*'"
 (defpattern pgeom (pattern)
   ((start :initform 1)
    (grow :initform 2)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (current-repeats-remaining :state t)
    (current-value :state t))
   :documentation "Yield START, then generate subsequent outputs by multiplying by GROW, for a total of LENGTH outputs.
@@ -1803,7 +1809,7 @@ See also: `debug-backend', `debug-backend-recent-events'")
 
 (defpattern place (pattern)
   (list
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (current-repeat :state t :initform 0)
    (current-repeats-remaining :state t))
   :documentation "Yield each value from LIST in sequence. If the value is a list, the first element of that list is yielded. The second time that sub-list is encountered, its second element will be yielded; the third time, the third element, and so on. REPEATS controls the number of times LIST is repeated.
@@ -1836,7 +1842,7 @@ See also: `ppatlace'")
 
 (defpattern ppatlace (pattern)
   (list
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (current-repeats-remaining :state t))
   :documentation "Yield each value from LIST in sequence, or one output from each pattern in LIST per cycle of the list. If one of the patterns embedded in LIST ends sooner than the others, it is simply removed and the ppatlace continues to yield from the rest of the LIST. The entire LIST is yielded through a total of REPEATS times.
 
@@ -1984,7 +1990,7 @@ See also: `rerange', `pnary'")
 
 (defpattern pslide (pattern)
   (list
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (len :initform 3)
    (step :initform 1)
    (start :initform 0)
@@ -2917,7 +2923,7 @@ See also: `pclump'")
   ((operator :initform #'+)
    (start :initform 0)
    (step :initform 1)
-   (length :initform :inf)
+   (length :initform *default-pattern-length*)
    (lo :initform nil)
    (hi :initform nil)
    (bound-by :initform nil)
@@ -2937,7 +2943,7 @@ Example:
 
 See also: `pseries', `pgeom', `pwalk'"
   :defun
-  (defun paccum (&optional (operator #'+) (start 0) (step 1) (length :inf) &key lo hi bound-by)
+  (defun paccum (&optional (operator #'+) (start 0) (step 1) (length *default-pattern-length*) &key lo hi bound-by)
     (make-instance 'paccum
                    :operator operator
                    :start start
@@ -3015,7 +3021,7 @@ See also: `prs', `pdef'"
 
 ;;; prs
 
-(defun prs (pattern &optional (repeats :inf))
+(defun prs (pattern &optional (repeats *default-pattern-repeats*))
   "Syntax sugar for (pr (ps PATTERN) REPEATS). Useful, for example, to ensure that each cycle of a pattern only gets one value from the `ps'.
 
 See also: `pr', `ps'"

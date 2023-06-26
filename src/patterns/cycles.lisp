@@ -10,11 +10,11 @@
    (map :initform nil)
    (key :initform :value)
    (dur :initform 1)
-   (repeats :initform :inf)
+   (repeats :initform *default-pattern-repeats*)
    (parsed-list :state t)
    (current-repeats-remaining :state t))
   :documentation "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
-  :defun (defun pcycles (list &key map (key :value) (dur 1) (repeats :inf))
+  :defun (defun pcycles (list &key map (key :value) (dur 1) (repeats *default-pattern-repeats*))
            (let ((args (list :map map :key key :dur dur :repeats repeats)))
              (etypecase list
                (string

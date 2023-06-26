@@ -177,6 +177,8 @@
 
    #:defpattern
    #:*max-pattern-yield-length*
+   #:*default-pattern-length*
+   #:*default-pattern-repeats*
 
    #:pattern
    #:pattern-p

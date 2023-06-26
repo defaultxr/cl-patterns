@@ -240,7 +240,8 @@ where PATTERN is the input pattern, PROBABILITY is the probability (can be stati
 * use ~mutility:ringbuffer~ for pstream history
 * consider [[https://github.com/Shinmera/parachute][parachute]] instead of fiveam
 * patterns like ~pfindur~ and ~psync~ should allow you to configure whether they cut the notes at the end of their ~maxdur~
-* allow the user to set default values for the ~repeats~ and ~length~ parameters instead of always being ~:inf~
+* DONE allow the user to set default values for the ~repeats~ and ~length~ parameters instead of always being ~:inf~
+CLOSED: [2023-06-25 Sun 20:14]
 * [[https://ableton.github.io/link/][Link]] support
 ** [[https://github.com/byulparan/LinkUGen][LinkUGen]] - possibly useful as a reference?
 * make some kind of function or pattern to get the mouse position, a la the ~mouse-x~ and ~mouse-y~ UGens, except from the Lisp side so we don't have to proxy them from the SC server.

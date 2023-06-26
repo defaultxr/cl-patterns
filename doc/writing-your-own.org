@@ -15,7 +15,7 @@ For example, ~pser~ uses ~length~ because it only yields LENGTH outputs, while ~
 
 *** Provide sensible defaults for pattern slots, i.e. by default ~pseries~ starts at 0, increases by 1, and has a length of infinity. ~pgeom~ starts at 1, multiplies by 2, and has a length of infinity.
 
-**** Any length or repeats slots should default to ~:inf~ for infinity.
+**** Any ~length~ slots should default to ~*default-pattern-length*~, and any ~repeats~ slots should default to ~*default-pattern-repeats*~
 
 *** Avoid yielding values that might cause problems, i.e. if your pattern is likely to be used for a ~pbind~'s ~:dur~ key, avoid yielding 0. 0 may also cause problems when divided by.
 
