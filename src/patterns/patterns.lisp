@@ -443,6 +443,53 @@ See also: `remaining-p'"
   ;; fallback method; patterns should override their pstream subclasses with their own behaviors
   nil)
 
+(defvar *post-pattern-output-processors* (list 'remap-instrument-to-parameters)
+  "List of functions that are applied as the last step of pattern output generation. Each output yielded by an \"outermost\" pattern (i.e. one without a `pattern-parent') will be processed (along with the pstream as a second argument) through each function in this list, allowing for arbitrary transformations of the generated outputs. The return value of each function is used as the input to the next function, and the return value of the last function is used as the output yielded by the pattern.
+
+This can be used, for example, to implement mappings from friendly instrument names to the full parameters needed to specify the instrument in question for backends such as MIDI which require it; in fact this feature is already implemented more conveniently with the setf-able `instrument-mapping' function.
+
+See also: `*instrument-map*', `remap-instrument-to-parameters'")
+
+(defvar *instrument-map* (make-hash-table :test #'equal)
+  "Hash table mapping instrument names (as symbols) to arbitrary parameter lists. Used by `remap-instrument-to-parameters' as part of post-pattern output processing. Any events whose :instrument is not found in this table will not be affected.
+
+See also: `remap-instrument-to-parameters'")
+
+(defun remap-instrument-to-parameters (output &optional pstream)
+  "Remap OUTPUT's instrument key to arbitrary parameters specified in `*instrument-map*'. If OUTPUT is not an event or the instrument is not found in the map, it is passed through unchanged.
+
+See also: `instrument-mapping', `*instrument-map*', `*post-pattern-output-processors*'"
+  (declare (ignore pstream))
+  (unless (event-p output)
+    (return-from remap-instrument-to-parameters output))
+  (when-let ((mapping (gethash (event-value output :instrument) *instrument-map*)))
+    (etypecase mapping
+      (symbol
+       (setf (event-value output :instrument) mapping))
+      (list
+       (doplist (key value mapping)
+         (setf (event-value output key) value)))))
+  output)
+
+(defun instrument-mapping (instrument)
+  "Get a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which should be set in the event by `remap-instrument-to-parameters'.
+
+See also: `remap-instrument-to-parameters', `*instrument-map*'"
+  (gethash instrument *instrument-map*))
+
+(defun (setf instrument-mapping) (value instrument)
+  "Set a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which will be set in the event by `remap-instrument-to-parameters'. Setting an instrument to nil with this function removes it from the map.
+
+See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-map*'"
+  (assert (or (typep value '(or symbol number))
+              (and (listp value)
+                   (evenp (list-length value))))
+          (value)
+          "~S's VALUE argument must be a symbol, a number, or a plist; got ~S instead" 'instrument-mapping value)
+  (if value
+      (setf (gethash instrument *instrument-map*) value)
+      (remhash instrument *instrument-map*)))
+
 (defmethod next :around ((pstream pstream))
   (labels ((get-value-from-stack (pattern)
              (with-slots (number pattern-stack) pattern
@@ -497,53 +544,6 @@ See also: `remaining-p'"
           (dolist (proc *post-pattern-output-processors*)
             (setf result (funcall proc result pstream))))
         result))))
-
-(defvar *post-pattern-output-processors* (list 'remap-instrument-to-parameters)
-  "List of functions that are applied as the last step of pattern output generation. Each output yielded by an \"outermost\" pattern (i.e. one without a `pattern-parent') will be processed (along with the pstream as a second argument) through each function in this list, allowing for arbitrary transformations of the generated outputs. The return value of each function is used as the input to the next function, and the return value of the last function is used as the output yielded by the pattern.
-
-This can be used, for example, to implement mappings from friendly instrument names to the full parameters needed to specify the instrument in question for backends such as MIDI which require it; in fact this feature is already implemented more conveniently with the setf-able `instrument-mapping' function.
-
-See also: `*instrument-map*', `remap-instrument-to-parameters'")
-
-(defvar *instrument-map* (make-hash-table :test #'equal)
-  "Hash table mapping instrument names (as symbols) to arbitrary parameter lists. Used by `remap-instrument-to-parameters' as part of post-pattern output processing. Any events whose :instrument is not found in this table will not be affected.
-
-See also: `remap-instrument-to-parameters'")
-
-(defun remap-instrument-to-parameters (output &optional pstream)
-  "Remap OUTPUT's instrument key to arbitrary parameters specified in `*instrument-map*'. If OUTPUT is not an event or the instrument is not found in the map, it is passed through unchanged.
-
-See also: `instrument-mapping', `*instrument-map*', `*post-pattern-output-processors*'"
-  (declare (ignore pstream))
-  (unless (event-p output)
-    (return-from remap-instrument-to-parameters output))
-  (when-let ((mapping (gethash (event-value output :instrument) *instrument-map*)))
-    (etypecase mapping
-      (symbol
-       (setf (event-value output :instrument) mapping))
-      (list
-       (doplist (key value mapping)
-         (setf (event-value output key) value)))))
-  output)
-
-(defun instrument-mapping (instrument)
-  "Get a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which should be set in the event by `remap-instrument-to-parameters'.
-
-See also: `remap-instrument-to-parameters', `*instrument-map*'"
-  (gethash instrument *instrument-map*))
-
-(defun (setf instrument-mapping) (value instrument)
-  "Set a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which will be set in the event by `remap-instrument-to-parameters'. Setting an instrument to nil with this function removes it from the map.
-
-See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-map*'"
-  (assert (or (typep value '(or symbol number))
-              (and (listp value)
-                   (evenp (list-length value))))
-          (value)
-          "~S's VALUE argument must be a symbol, a number, or a plist; got ~S instead" 'instrument-mapping value)
-  (if value
-      (setf (gethash instrument *instrument-map*) value)
-      (remhash instrument *instrument-map*)))
 
 (defgeneric as-pstream (thing)
   (:documentation "Return THING as a pstream object.
