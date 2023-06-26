@@ -272,3 +272,6 @@ notifications:
     on_failure: always
     on_start: never
 #+end_src
+maybe look at [[https://github.com/zzkt/osc/blob/endless/.github/workflows/ci.yaml][this]] for an example?
+* use something like [[https://asdf-system-connections.common-lisp.dev/][ASDF-System-Connections]] to automatically load relevant subsystems (such as ~cl-patterns/supercollider~) when the relevant other system (such as ~cl-collider~) is loaded.
+* something like [[https://nodalmusic.com/][Nodal]] or [[https://midinous.com/][Midinous]] perhaps? see [[https://www.youtube.com/watch?v=rtTWtzWav8I][this]] video for a demo.
