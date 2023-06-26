@@ -267,7 +267,7 @@ Note that this function is not aware of context and thus always returns the firs
   (declare (ignore root octave scale))
   (midinote-freq (apply #'degree-midinote degree args)))
 
-(defconversion freq-degree (freq &key root octave (scale :major) quantization)
+(defconversion freq-degree (freq &key root octave (scale :major))
   "Convert a frequency to a scale degree."
   (midinote-degree (freq-midinote freq)
                    :root root
