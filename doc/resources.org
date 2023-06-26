@@ -9,3 +9,4 @@
 * Algorithmic music
 
 - [[https://cacm.acm.org/magazines/2011/7/109891-algorithmic-composition/fulltext][Algorithmic Composition: Computational Thinking in Music]]
+- [[https://github.com/ivanreese/visual-programming-codex/blob/main/implementations.md][Visual Programming Codex]]
