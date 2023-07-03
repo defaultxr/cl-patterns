@@ -117,7 +117,6 @@
   :depends-on (#:cl-patterns/debug
                #:fiveam
                #:mutility/test-helpers
-               #:cl-org-mode
                #:cl-ppcre)
   :pathname "t/"
   :serial t

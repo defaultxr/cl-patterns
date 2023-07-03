@@ -4,34 +4,7 @@
 
 (in-suite cl-patterns-tests)
 
-;;; cl-org-mode utility functions
-
-(defun child-nodes (node)
-  "Get the child nodes of NODE."
-  (slot-value node 'cl-org-mode::child-nodes))
-
-(defun node-text (node)
-  "Get the text of NODE."
-  (slot-value node 'cl-org-mode::text))
-
-(defun text-list-items (string)
-  "Get a list of all unordered list items in STRING."
-  (loop :for res :in (cl-ppcre:all-matches-as-strings (cl-ppcre:create-scanner "^- .*$" :multi-line-mode t) string)
-     :collect (subseq res 2)))
-
-(defun find-org-header (node contains)
-  "Recursively search NODE and its child nodes to find a header that contains CONTAINS."
-  (labels ((outline-node-p (node)
-             (typep node 'cl-org-mode::outline-node))
-           (recurse (node contains)
-             (loop :for header :in (child-nodes node)
-                   :if (and (outline-node-p header)
-                            (search contains (slot-value header 'cl-org-mode::heading)))
-                     :return header
-                   :if (outline-node-p header)
-                     :do (recurse header contains))))
-    (recurse node contains)))
-
+;;; utility
 
 (defun find-code-text (string)
   "Find all instances of text surrounded by tildes in STRING prior to the first \" - \"."
@@ -39,20 +12,19 @@
     (mapcar (lambda (str) (string-trim (list #\~) str))
             (cl-ppcre:all-matches-as-strings "~([^~]*?)~" string :end dash-loc))))
 
-(defun find-missing-keys (node header-name keys)
-  "Search for any missing in NODE under a header that contains HEADER-NAME.
-
-Returns nil if none of the keys are missing, otherwise returns the list of undocumented keys."
-  (let ((wrap-header (find-org-header node header-name)))
-    (loop :for key :in keys
-          :unless (find-org-header wrap-header (string-downcase key))
-            :collect key)))
+(defun find-missing-keys (file header-name keys)
+  "Get a list of all KEYS in FILE under a header that contains HEADER-NAME."
+  (multiple-value-bind (header content) (file-extract-org-header file header-name)
+    (declare (ignore header))
+    (set-difference keys
+                    (mapcan #'find-code-text (stream-extract-org-headers (make-string-input-stream content)))
+                    :test #'string-equal)))
 
 ;;; org files
 
-(defparameter *special-keys.org* (cl-org-mode::read-org-file (asdf:system-relative-pathname :cl-patterns "doc/special-keys.org")))
-
 (defparameter *patterns.org* (asdf:system-relative-pathname :cl-patterns "doc/patterns.org"))
+
+(defparameter *special-keys.org* (asdf:system-relative-pathname :cl-patterns "doc/special-keys.org"))
 
 ;;; tests
 
