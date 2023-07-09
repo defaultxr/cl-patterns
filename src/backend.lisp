@@ -282,6 +282,9 @@ See also: `backend-all-nodes'"))
 
 See also: `backend-all-instruments', `backend-node-p', `backend-panic'"))
 
+(defmethod backend-all-nodes (backend)
+  nil)
+
 (defgeneric backend-node-p (backend object)
   (:documentation "True if OBJECT is a node for the specified backend.
 
