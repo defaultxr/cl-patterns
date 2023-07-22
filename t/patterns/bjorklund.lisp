@@ -23,9 +23,10 @@
 
 (test pbjorklund
   "Test pbjorklund"
-  (for-all* ((pulses (gen-integer :min 1 :max 128))
-             (steps (gen-integer :min pulses :max 256)))
-    (is (equal (bjorklund pulses steps)
-               (mapcar (fn (if (rest-p _) 0 1))
-                       (next-upto-n (pbjorklund pulses steps :repeats 1) 400)))
-        "pbjorklund and bjorklund give differing results for ~S pulses and ~S steps" pulses steps)))
+  (for-all ((pulses (gen-integer :min 1 :max 128))
+            (steps (gen-integer :min 0 :max 128)))
+    (let ((steps (+ pulses steps)))
+      (is (equal (bjorklund pulses steps)
+                 (mapcar (fn (if (rest-p _) 0 1))
+                         (next-upto-n (pbjorklund pulses steps :repeats 1) 400)))
+          "pbjorklund and bjorklund give differing results for ~S pulses and ~S steps" pulses steps))))
