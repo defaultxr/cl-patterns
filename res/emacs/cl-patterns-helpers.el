@@ -43,7 +43,7 @@
 ;;   (define-key sly-mode-map (kbd "C-c P") 'cl-patterns-play-or-stop-context-or-select-pdef)
 ;;   (define-key sly-mode-map (kbd "C-c s") 'cl-patterns-stop-all)
 ;;   (define-key sly-doc-map (kbd "s") 'cl-patterns-supercollider-documentation))
-;; 
+;;
 ;; (add-hook 'sly-connected-hook 'cl-patterns-helpers-load)
 ;;
 ;; The above should also work with slime; just replace all instances of "sly"
@@ -275,19 +275,20 @@ This is used as the default function for `cl-patterns-name-generator', to genera
   "Populate `cl-patterns-supercollider-classes-list' if it is nil or FORCE is true."
   (when (or (not cl-patterns-supercollider-classes-list)
             force)
-    (let ((file (concat (temporary-file-directory) "supercollider-populate-classes-list.scd")))
+    (let ((separator "----- CLASSES -----")
+          (file (concat (temporary-file-directory) "supercollider-populate-classes-list.scd")))
       (with-temp-file file
-        (insert "\"-----\".postln;Object.allSubclasses.do(_.postcs);\"-----\".postln;0.exit;"))
-      (let ((sclang-classes-process (start-process "sclang-classes-process" "sclang-classes-output" "sclang" file)))
+        (insert "\"" separator "\".postln;Object.allSubclasses.do(_.postcs);\"" separator "\".postln;s.waitForBoot({s.quit;0.exit;});"))
+      (let ((sclang-classes-process (start-process "sclang-classes-process" "*sclang-classes-output*" "sclang" file)))
         (set-process-sentinel sclang-classes-process
                               (lambda (process event)
                                 (when (string= "finished\n" event)
-                                  (with-current-buffer "sclang-classes-output"
+                                  (with-current-buffer "*sclang-classes-output*"
                                     (goto-char (point-min))
-                                    (search-forward "\n-----\n")
+                                    (search-forward (concat "\n" separator "\n"))
                                     (setf cl-patterns-supercollider-classes-list
-                                          (sort (split-string (buffer-substring-no-properties (point) (- (save-excursion (search-forward "\n-----\n") (point)) 6)) "\n" t) #'string<)))
-                                  (kill-buffer "sclang-classes-output"))))))))
+                                          (sort (split-string (buffer-substring-no-properties (point) (- (save-excursion (search-forward (concat "\n" separator "\n")) (point)) 6)) "\n" t) #'string<)))
+                                  (kill-buffer "*sclang-classes-output*"))))))))
 
 (cl-patterns-populate-supercollider-classes-list)
 
