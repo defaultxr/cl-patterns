@@ -175,7 +175,7 @@ The ALSA MIDI backend has some functionality complete and should be usable for b
 *** formats
 
 - [[file:src/formats/midifile.lisp][midifile.lisp]] - functionality to interact with MIDI files (load the ~cl-patterns/midifile~ system to use this).
-- [[file:src/formats/supercollider-score.lisp][supercollider-score.lisp]] - functionality to interact with [[http://doc.sccode.org/Classes/Score.html][SuperCollider Score]] files (load the ~cl-patterns/supercollider/score~ system to use this).
+- [[file:src/formats/supercollider-score.lisp][supercollider-score.lisp]] - functionality to interact with [[http://doc.sccode.org/Classes/Score.html][SuperCollider Score]] files.
 
 *** extensions
 
