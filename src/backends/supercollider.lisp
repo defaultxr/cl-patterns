@@ -30,8 +30,8 @@
 (defmethod backend-start ((backend supercollider) &rest rest &key (set-cl-collider-default-p t) force-boot-p &allow-other-keys)
   (declare (ignore rest))
   (let ((server (backend-server backend)))
-    (unless (and set-cl-collider-default-p
-                 (null cl-collider:*s*))
+    (when (and set-cl-collider-default-p
+               (null cl-collider:*s*))
       (setf cl-collider:*s* server))
     (if (and (cl-collider:boot-p server)
              (not force-boot-p))
