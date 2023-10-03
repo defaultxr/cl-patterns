@@ -99,6 +99,17 @@
   :serial t
   :components ((:file "src/backends/alsa-midi")))
 
+(asdf:defsystem #:cl-patterns/bodge
+  :name "cl-patterns/bodge"
+  :description "cl-patterns with Bodge backend"
+  :author "modula t."
+  :license "MIT"
+  :version "0.7"
+  :depends-on (#:cl-patterns
+               #:cl-bodge)
+  :serial t
+  :components ((:file "src/backends/bodge")))
+
 (asdf:defsystem #:cl-patterns/midifile
   :name "cl-patterns/midifile"
   :description "cl-patterns with MIDI file functionality"
