@@ -84,7 +84,7 @@ See also: `pattern', `pdef', `all-patterns'"
                                                               ;; FIX: don't show arguments that are set to the defaults?
                                                               ))
                                                         slots))))))
-         (defclass ,name-pstream (,super-pstream ,name)
+         (defclass ,name-pstream (,super-pstream ,name) ; FIX: this will overwrite custom pstream classes when redefining the pattern class. should we refrain from redefining the pstream class if it's already defined? or is it possible to remove this definition entirely and just use the standard pstream class by default?
            ,(mapcar #'desugar-slot (remove-if-not #'state-slot-p slots))
            (:documentation ,(format nil "pstream for `~A'." (string-downcase name))))
          ,(let* ((gen-func-p (or (null defun)
@@ -992,6 +992,7 @@ See also: `pbind', `pdef'"
   pbind)
 
 ;;; prest
+;; FIX: allow `prest' to be used as an event on its own (it should parse as (event :type :rest :dur VALUE))
 
 (defclass prest ()
   ((value :initarg :value :initform 1))
@@ -2150,6 +2151,7 @@ See also: `plazy', `pfunc'")
 
 ;;; parp
 ;; FIX: should this be like `pchain' and accept an arbitrary number of input patterns?
+;; FIX: this name is misleading; it should be renamed to something like "pfor"
 
 (defpattern parp (pattern)
   (pattern
@@ -3022,7 +3024,7 @@ See also: `prs', `pdef'"
 ;;; prs
 
 (defun prs (pattern &optional (repeats *default-pattern-repeats*))
-  "Syntax sugar for (pr (ps PATTERN) REPEATS). Useful, for example, to ensure that each cycle of a pattern only gets one value from the `ps'.
+  "Syntax sugar for (pr (ps PATTERN) REPEATS). Useful, for example, to ensure that each loop of a pattern only gets one value from the `ps'.
 
 See also: `pr', `ps'"
   (pr (ps pattern) repeats))

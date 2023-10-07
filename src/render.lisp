@@ -7,14 +7,14 @@
   (merge-pathnames "cl-patterns/" (uiop:temporary-directory))
   "The default directory to store `render'ed files in.")
 
-;; FIX: implement padding-duration key
+;; FIX: implement padding-duration key. duration and max-duration's default values should be defined in terms of it.
 (defgeneric render (object output &key backend tempo max-length max-pattern-yield-length duration max-duration max-output-duration &allow-other-keys)
   (:documentation "Render a pattern or other object as audio or other format. OUTPUT is what the pattern should be rendered as. It can be one of the following values:
 
 - A string or pathname - Output file name (file format is determined by the file extension).
 - :file - Render to a file in the `*cl-patterns-temporary-directory*'.
 - :buffer - Render to a buffer in memory.
-- :bdef - Render to a `bdef:bdef' buffer object in memory. This type if the bdef library is loaded. Falls back to :buffer if bdef is not loaded.
+- :bdef - Render to a `bdef:bdef' buffer object in memory. This output type is only available if the bdef library is loaded, and falls back to :buffer if it is not.
 - :score - Render as a \"score\" in memory, i.e. the sequence type supported by the backend.
 - :eseq - Make an `eseq' from the pattern. Effectively defers to `as-eseq'.
 - :pstream - Make a `pstream' from the pattern. Effectively defers to `as-pstream'.

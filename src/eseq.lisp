@@ -198,5 +198,3 @@ See also: `as-pstream'"))
                                                                 (beat after)
                                                                 (dur eseq))
                                                             (beat next)))))))))))))
-
-

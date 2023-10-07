@@ -91,5 +91,3 @@
                    ((null accum) (push 0 accum))
                    (t accum))))
     (coerce (integer->bit-list integer) 'bit-vector)))
-
-

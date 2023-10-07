@@ -136,6 +136,7 @@ See also: `beat'"
     (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
 
 (defmethod (setf tempo) (value (clock clock))
+  ;; FIX: the "remove previous events" functionality should be a standard part of `clock-add' for :tempo events; it should remove any existing events with the same `beat'.
   (dolist (task (clock-tasks clock)) ; this tempo change event obsoletes any existing ones, so we remove them
     (with-slots (item) task
       (let ((event (pattern-source item)))
@@ -167,7 +168,7 @@ See also: `beat'"
 See also: `clock-remove', `play'"
   (unless clock
     (restart-case
-        (error "~S is null; perhaps try ~S or ~S" 'clock '(start-clock-loop) '(defparameter *clock* (make-clock)))
+        (error "~S is nil; use ~S to start a clock loop on a new thread" 'clock 'start-clock-loop)
       (start-clock ()
         :report (lambda (stream) (format stream "Start the clock loop with ~S" '(start-clock-loop)))
         (start-clock-loop))))

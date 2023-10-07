@@ -31,6 +31,8 @@ Lisp bindings to the [[https://www.openal.org/][OpenAL]] audio API, a cross-plat
 ** [[https://github.com/Shirakumo/harmony][Harmony]]
 A Common Lisp sound system. Most suited for use in a game system, but may feasibly also be used for more advanced things such as an audio processing tool.
 
+** [[https://github.com/tentaclius/cl-music][cl-music]]
+
 * Common Lisp audio-related
 
 Extensions and convenience functionality useful when working with the systems above.
@@ -43,6 +45,9 @@ Functionality to interface with [[https://www.renoise.com/][Renoise]] from Commo
 
 ** [[https://github.com/MegaLoler/Music][Music]]
 A framework for musical expression in Lisp with a focus on music theory. (Unrelated to Common Music)
+
+** [[https://github.com/ormf/incudine-gui][Incudine-gui]]
+A GUI addon for Incudine using Qt.
 
 * Common Lisp graphics
 
@@ -106,3 +111,5 @@ A Python library for creating and manipulating musical patterns, designed for us
 
 ** [[https://opusmodus.com][Opusmodus]]
 A comprehensive computer-aided environment for the whole work of music composition; a virtual space where a composer can develop ideas and experiments for projects large and small.
+
+There is [[https://ldbeth.sdf.org/articles/cm.html][an article]] about composing music with it.

@@ -109,6 +109,7 @@
                #:midi)
   :serial t
   :components ((:file "src/formats/midifile")))
+
 (asdf:defsystem #:cl-patterns/tests
   :name "cl-patterns tests"
   :description "FiveAM-based test suite for cl-patterns"
