@@ -278,7 +278,7 @@ This is used as the default function for `cl-patterns-name-generator', to genera
     (let ((separator "----- CLASSES -----")
           (file (concat (temporary-file-directory) "supercollider-populate-classes-list.scd")))
       (with-temp-file file
-        (insert "\"" separator "\".postln;Object.allSubclasses.do(_.postcs);\"" separator "\".postln;s.waitForBoot({s.quit;0.exit;});"))
+        (insert "\"" separator "\".postln;Object.allSubclasses.do(_.postcs);\"" separator "\".postln;s.isNil.if({0.exit},{s.waitForBoot({s.quit;0.exit;})});"))
       (let ((sclang-classes-process (start-process "sclang-classes-process" "*sclang-classes-output*" "sclang" file)))
         (set-process-sentinel sclang-classes-process
                               (lambda (process event)
