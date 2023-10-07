@@ -7,8 +7,7 @@
 (test pdef
   "Test basic `pdef'-related functionality"
   (with-fixture temporary-pdef-dictionary ()
-    (is (equal (list)
-               (all-pdefs))
+    (is (null (all-pdefs))
         "all-pdefs doesn't return an empty list when no pdefs are defined")
     (let* ((pat (pbind :quant 6/9))
            (pdef (pdef :x pat)))

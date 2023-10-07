@@ -121,7 +121,7 @@ See also: `pattern', `pdef', `all-patterns'"
    (source :initarg :source :initform nil :accessor pattern-source :documentation "The source object that this object was created from. For example, for a `pstream', this would be the pattern that `as-pstream' was called on.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :documentation "Whether or not the pattern should loop when played.")
-   (cleanup :initarg :cleanup :initform (list) :documentation "A list of functions that are run when the pattern ends or is stopped.")
+   (cleanup :initarg :cleanup :initform nil :documentation "A list of functions that are run when the pattern ends or is stopped.")
    (pstream-count :initform 0 :accessor pstream-count :documentation "The number of pstreams that have been made of this pattern.")
    (metadata :initarg :metadata :initform (make-hash-table) :type hash-table :documentation "Hash table of additional data associated with the pattern, accessible with the `pattern-metadata' function."))
   (:documentation "Abstract pattern superclass."))
@@ -613,7 +613,7 @@ See also: `t-pstream', `as-pstream'"
 
 (defmethod as-pstream :around ((object t))
   (let ((pstream (call-next-method)))
-    (with-slots (pstream-count source history) pstream
+    (with-slots (pstream-count source) pstream
       (setf pstream-count (if (slot-exists-p object 'pstream-count)
                               (slot-value object 'pstream-count)
                               0)
@@ -732,7 +732,7 @@ See also: `define-pbind-special-wrap-key'")
 See also: `define-pbind-special-process-key'")
 
 (defclass pbind (pattern)
-  ((pairs :initarg :pairs :initform (list) :accessor pbind-pairs :documentation "The pattern pairs of the pbind; a plist mapping its keys to their values."))
+  ((pairs :initarg :pairs :initform nil :accessor pbind-pairs :documentation "The pattern pairs of the pbind; a plist mapping its keys to their values."))
   (:documentation "Please refer to the `pbind' documentation."))
 
 (defun pbind (&rest pairs)
@@ -748,8 +748,8 @@ See also: `pmono', `pb'"
   (assert (evenp (length pairs)) (pairs) "~S's PAIRS argument must be a list of key/value pairs." 'pbind)
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
-  (let* ((res-pairs (list))
-         (pattern-chain (list))
+  (let* ((res-pairs nil)
+         (pattern-chain nil)
          (pattern (make-instance 'pbind)))
     (doplist (key value pairs)
       (when (pattern-p value)
@@ -760,10 +760,10 @@ See also: `pmono', `pb'"
             ((position key *pbind-special-wrap-keys*)
              (unless (null res-pairs)
                (setf (slot-value pattern 'pairs) res-pairs)
-               (setf res-pairs (list)))
+               (setf res-pairs nil))
              (unless (null pattern-chain)
                (setf pattern (apply #'pchain (append pattern-chain (list pattern))))
-               (setf pattern-chain (list)))
+               (setf pattern-chain nil))
              (setf pattern (funcall (getf *pbind-special-wrap-keys* key) value pattern)))
             (t
              (unless (typep pattern 'pbind)
@@ -3034,7 +3034,7 @@ See also: `pr', `ps'"
 ;;; ipstream
 
 (defpattern ipstream (pattern)
-  ((patterns :initform (list))
+  ((patterns :initform nil)
    (end-when-empty :initform nil)
    (granularity :initform 1/5)
    (lock :state t :initform (bt:make-recursive-lock "ipstream patterns slot lock")))
@@ -3043,7 +3043,7 @@ See also: `pr', `ps'"
 (defmethod as-pstream ((ipstream ipstream))
   (with-slots (patterns end-when-empty granularity) ipstream
     (let ((pstr (make-instance 'ipstream-pstream
-                               :patterns (list)
+                               :patterns nil
                                :end-when-empty end-when-empty
                                :granularity granularity
                                :lock (bt:make-recursive-lock "ipstream patterns slot lock"))))

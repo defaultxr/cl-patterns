@@ -14,7 +14,7 @@
   (:documentation "The raw plist containing the key/value pairs of the event."))
 
 (defclass event ()
-  ((event-plist :initarg :event-plist :initform (list) :reader event-plist :type list :documentation "The plist containing all of the event's keys and values.")
+  ((event-plist :initarg :event-plist :initform nil :reader event-plist :type list :documentation "The plist containing all of the event's keys and values.")
    (%beat :initform nil :type (or null number) :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
   (:documentation "Class representing a musical event."))
 
