@@ -15,7 +15,7 @@
 
 (defclass event ()
   ((event-plist :initarg :event-plist :initform nil :reader event-plist :type list :documentation "The plist containing all of the event's keys and values.")
-   (%beat :initform nil :type (or null number) :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
+   (%beat :initform nil :reader %beat :type (or null number) :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
   (:documentation "Class representing a musical event."))
 
 (defmethod print-object ((item event) stream)
@@ -99,6 +99,8 @@ See also: `event', `e', `raw-event-value'"
   "Removes KEY from EVENT."
   (with-slots (event-plist) event
     (setf event-plist (remove-from-plist event-plist key)))
+  (when (eql key :beat)
+    (setf (%beat event) nil))
   event)
 
 (defun e (key)
@@ -111,6 +113,12 @@ See also: `event-value', `event', `*event*'"
   (if (event-p *event*)
       (setf (event-value *event* key) value)
       (error "Can't setf ~S; ~S is not currently set to an event." `(e ,key) '*event*)))
+
+(defun (setf %beat) (value event)
+  "If EVENT has a `beat' key, set it to VALUE; otherwise, set its `%beat' \"hidden key\"."
+  (if (member :beat (keys event))
+      (setf (beat event) value)
+      (setf (slot-value event '%beat) value)))
 
 ;;; methods for generic functions
 
