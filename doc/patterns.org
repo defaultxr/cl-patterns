@@ -97,6 +97,9 @@ Patterns that allow you to write in a "pseudo-language" which may be more suited
 
 * UGen patterns
 Patterns whose functionalities are based on UGens.
+- ~pmouse~ - Get the mouse position of the display server (GUI).
+- ~pmousex~ - Get the mouse's x position on screen.
+- ~pmousey~ - Get the mouse's y position on screen.
 
 * Music patterns
 Patterns whose outputs are based on music-related formulae or data.

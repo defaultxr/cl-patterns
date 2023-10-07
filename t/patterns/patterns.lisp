@@ -97,7 +97,8 @@ See also: `pattern-test-argument'"
                                                    :p+ :p- :p* :p/ ; endless math patterns
                                                    :penv ; not yet implemented
                                                    :pdef :pk ; defers to source pattern
-                                                   :pbetablocker :ptsbuf :pperps :pquantize)
+                                                   :pbetablocker :ptsbuf :pperps :pquantize
+                                                   :pmouse :pmousex :pmousey)
                                                :test #'string=)))
                              (all-patterns))))
     (dolist (pattern patterns)
@@ -1405,3 +1406,16 @@ See also: `pattern-test-argument'"
              (next-n (pfilter (pseq (list 1 2 3) 1) 'evenp) 6))
       "pfilter yields incorrect results for finite source patterns"))
 
+(test pmouse
+  "Test pmouse"
+  (flet ((0..1 (number)
+           (<= 0 number 1)))
+    (skips-unless *display-server*
+      (is (every #'0..1 (next-upto-n (pmouse :x :relative) 5))
+          "pmouse :x does not yield numbers within the range 0..1")
+      (is (every #'0..1 (next-upto-n (pmouse :y :relative) 5))
+          "pmouse :x does not yield numbers within the range 0..1")
+      (is (every #'integerp (next-upto-n (pmouse :x :absolute) 5))
+          "pmouse :x does not yield integers")
+      (is (every #'integerp (next-upto-n (pmouse :y :absolute) 5))
+          "pmouse :x does not yield integers"))))

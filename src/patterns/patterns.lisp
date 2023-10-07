@@ -3137,3 +3137,103 @@ See also: `pfilter'"
                        (lambda (x) (not (eql predicate x))))))
 
 (pushnew 'pfilter-out *patterns*)
+
+;;; mouse location functionality
+;; FIX: this seems to be very slow... might be necessary to use FFI instead for decent performance.
+
+(defvar *display-server* (cond ((uiop:getenv "DISPLAY") :x)
+                               ;; ((uiop:getenv "WAYLAND_DISPLAY") :wayland) ; not supported.
+                               )
+  "The display server type that `mouse-location' should default to. Attempts to auto-detect the correct display server on load.")
+
+(defgeneric screen-size* (display-server))
+
+(defmethod screen-size* ((display-server null)) ; avoid "no applicable method" if loaded under an unsupported display server.
+  nil)
+
+(defmethod screen-size* ((display-server (eql :x)))
+  (let ((screen-str (first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines))))
+    (mapcar #'parse-integer
+            (subseq (string-split (subseq screen-str (+ 9 (search " current " screen-str)))
+                                  :char-bag '(#\space #\x #\,))
+                    0 2))))
+
+(defun screen-size (&optional (display-server *display-server*))
+  "Get the total dimensions of all monitors known by DISPLAY-SERVER."
+  (screen-size* display-server))
+
+(defvar *screen-size* (screen-size)
+  "The combined size of all monitors plugged into the machine that cl-patterns is running on. If you add or remove displays after loading cl-patterns, you may have to update this variable. To set the correct value, run (setf *screen-size* (screen-size)).
+
+See also: `*display-server*', `screen-size', `mouse-location', `pmouse'")
+
+(defgeneric mouse-location* (display-server)
+  (:documentation "Get the mouse location information for DISPLAY-SERVER. Typically you should just call `mouse-location' instead of using this directly."))
+
+(defmethod mouse-location* ((display-server t))
+  (error "Mouse location information; unsupported display server."))
+
+(defmethod mouse-location* ((display-server (eql :x)))
+  (destructuring-bind (x y screen window)
+      (mapcar (lambda (str)
+                (let ((pos (position #\= str :test #'char=)))
+                  (parse-integer (subseq str (1+ pos)))))
+              (uiop:run-program '("xdotool" "getmouselocation" "--shell") :output :lines))
+    ;; we have to use xrandr because "xdotool getdisplaygeometry" only shows the geometry of one display (does not work for multi-monitor setups). https://github.com/jordansissel/xdotool/issues/31
+    ;; (mapcar #'parse-integer (string-split (uiop:run-program '("xdotool" "getdisplaygeometry") :output '(:string :stripped t))))
+    (let* ((screen-str #.(first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines)))
+           (split (mapcar #'parse-integer
+                          (subseq (string-split (subseq screen-str (+ 9 (search " current " screen-str)))
+                                                :char-bag '(#\space #\x #\,))
+                                  0 2)))
+           (screen-width (first split))
+           (screen-height (second split)))
+      (list :x x :y y :screen-width screen-width :screen-height screen-height :screen screen :window window))))
+
+(defmethod mouse-location* ((display-server (eql :wayland)))
+  (error "Mouse location information is currently unsupported on Wayland."))
+
+(defun mouse-location (&optional (display-server *display-server*))
+  "Get a plist of the mouse location, total display size, and other information gleaned about DISPLAY-SERVER. DISPLAY-SERVER can be :x, :wayland, etc, but should default to the correct display server detected when cl-patterns is loaded. Will signal an error if the information cannot be determined (i.e. when the display server is not detected or not supported).
+
+NOTE: This is currently only implemented on X-based systems, so will not work on Windows, MacOS, and Wayland."
+  (mouse-location* display-server))
+
+(export '(*display-server* screen-size *screen-size* mouse-location))
+
+;;; pmouse/pmousex/pmousey
+
+(defpattern pmouse (pattern)
+  (orientation
+   (format :initform :relative))
+  :documentation "Get the mouse position of the display server (GUI). ORIENTATION can be :x or :y, and FORMAT can be either :relative (in which case the output is a number from 0 to 1 as a fraction of total display size) or :absolute (in which case the output is the actual X or Y position of the mouse).
+
+See also: `pmousex', `pmousey', `mouse-location'")
+
+(defmethod next ((pmouse pmouse-pstream))
+  (with-slots (orientation format) pmouse
+    (let ((loc (mouse-location)))
+      (/ (ecase orientation
+           (:x (getf loc :x))
+           (:y (getf loc :y)))
+         (ecase format
+           (:relative (getf loc (ecase orientation
+                                  (:x :screen-width)
+                                  (:y :screen-height))))
+           (:absolute 1))))))
+
+(defun pmousex (&optional (format :relative))
+  "Get the mouse's x position on screen. FORMAT can be either :relative (in which case the output is a number from 0 to 1 as a fraction of total display size) or :absolute (in which case the output is the actual X or Y position of the mouse).
+
+See also: `pmouse', `pmousey', `mouse-location'"
+  (pmouse :x format))
+
+(pushnew 'pmousex *patterns*)
+
+(defun pmousey (&optional (format :relative))
+  "Get the mouse's y position on screen. FORMAT can be either :relative (in which case the output is a number from 0 to 1 as a fraction of total display size) or :absolute (in which case the output is the actual X or Y position of the mouse).
+
+See also: `pmouse', `pmousex', `mouse-location'"
+  (pmouse :y format))
+
+(pushnew 'pmousey *patterns*)

@@ -14,6 +14,18 @@
 
 (in-suite cl-patterns-tests)
 
+(defmacro skip-unless (condition &body body)
+  "Generate a `fiveam::test-skipped' result if CONDITION is not true; otherwise, run BODY."
+  `(if (not ,condition) (skip "Skipped due to null ~S" ',condition) ,@body))
+
+(defmacro skips-unless (condition &body body)
+  "Generate a `fiveam::test-skipped' result for each item in BODY if CONDITION is not true; otherwise, run BODY.
+
+See also: `skip-unless'"
+  `(if (not ,condition)
+       (progn ,@(loop :repeat (length body) :collect `(skip "Skipped due to null ~S" ',condition)))
+       (progn ,@body)))
+
 (def-fixture debug-backend-and-clock (&rest clock-args)
   "Temporarily set the backend and clock for testing."
   (let* ((*clock* (apply #'make-clock clock-args))
