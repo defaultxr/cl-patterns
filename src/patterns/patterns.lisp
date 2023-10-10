@@ -3152,9 +3152,10 @@ See also: `pfilter'"
   nil)
 
 (defmethod screen-size* ((display-server (eql :x)))
-  (let ((screen-str (first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines))))
+  (when-let* ((screen-str (first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines)))
+              (idx (search " current " screen-str)))
     (mapcar #'parse-integer
-            (subseq (string-split (subseq screen-str (+ 9 (search " current " screen-str)))
+            (subseq (string-split (subseq screen-str (+ 9 idx))
                                   :char-bag '(#\space #\x #\,))
                     0 2))))
 
@@ -3181,13 +3182,14 @@ See also: `*display-server*', `screen-size', `mouse-location', `pmouse'")
               (uiop:run-program '("xdotool" "getmouselocation" "--shell") :output :lines))
     ;; we have to use xrandr because "xdotool getdisplaygeometry" only shows the geometry of one display (does not work for multi-monitor setups). https://github.com/jordansissel/xdotool/issues/31
     ;; (mapcar #'parse-integer (string-split (uiop:run-program '("xdotool" "getdisplaygeometry") :output '(:string :stripped t))))
-    (let* ((screen-str #.(first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines)))
-           (split (mapcar #'parse-integer
-                          (subseq (string-split (subseq screen-str (+ 9 (search " current " screen-str)))
-                                                :char-bag '(#\space #\x #\,))
-                                  0 2)))
-           (screen-width (first split))
-           (screen-height (second split)))
+    (when-let* ((screen-str #.(first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines)))
+                (idx (search " current " screen-str))
+                (split (mapcar #'parse-integer
+                               (subseq (string-split (subseq screen-str (+ 9 idx))
+                                                     :char-bag '(#\space #\x #\,))
+                                       0 2)))
+                (screen-width (first split))
+                (screen-height (second split)))
       (list :x x :y y :screen-width screen-width :screen-height screen-height :screen screen :window window))))
 
 (defmethod mouse-location* ((display-server (eql :wayland)))
