@@ -287,7 +287,7 @@ This is used as the default function for `cl-patterns-name-generator', to genera
                                     (goto-char (point-min))
                                     (search-forward (concat "\n" separator "\n"))
                                     (setf cl-patterns-supercollider-classes-list
-                                          (sort (split-string (buffer-substring-no-properties (point) (- (save-excursion (search-forward (concat "\n" separator "\n")) (point)) 6)) "\n" t) #'string<)))
+                                          (sort (split-string (buffer-substring-no-properties (point) (- (save-excursion (search-forward (concat "\n" separator "\n")) (point)) (length separator) 2)) "\n" t) #'string<)))
                                   (kill-buffer "*sclang-classes-output*"))))))))
 
 (cl-patterns-populate-supercollider-classes-list)
