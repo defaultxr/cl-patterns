@@ -67,17 +67,16 @@ See also: `all-backend-types', `enabled-backends'"
 See also: `find-backend', `all-backends'"
   (typep object 'backend))
 
-(defun find-backend (backend &key enabled-p)
-  "Find a registered backend whose name or type matches BACKEND. With ENABLED-P, only search through currently enabled backends.
+(defun find-backend (backend &rest args &key enabled-p started-p)
+  "Find a registered backend whose name or type matches BACKEND. With ENABLED-P, only search through currently enabled backends; with STARTED-P, only backends that have been started.
 
 See also: `all-backends', `enabled-backends'"
+  (declare (ignore enabled-p started-p))
   (when (typep backend 'backend)
     (return-from find-backend backend))
   (find-if (fn (or (string-equal backend (backend-name _))
                    (string-equal backend (class-name (class-of _)))))
-           (if enabled-p
-               (enabled-backends)
-               (all-backends))))
+           (apply #'all-backends args)))
 
 (defgeneric make-backend (backend &rest rest &key &allow-other-keys)
   (:documentation "Make a backend of the specified type.
