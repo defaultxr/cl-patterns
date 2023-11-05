@@ -34,15 +34,16 @@
 ;; Recommended setup for your Emacs init file:
 ;;
 ;; (defun cl-patterns-helpers-load ()
-;;   (interactive)
-;;   (sly-eval-async '(cl:namestring (asdf:system-source-directory (asdf:find-system 'cl-patterns)))
-;;     (lambda (path)
-;;       (load (concat path "res/emacs/cl-patterns-helpers") nil nil nil t)
-;;       (load (concat path "res/emacs/cl-patterns-skeletons") nil nil nil t)))
-;;   (define-key sly-mode-map (kbd "C-c p") 'cl-patterns-play-or-end-context-or-select-pdef)
-;;   (define-key sly-mode-map (kbd "C-c P") 'cl-patterns-play-or-stop-context-or-select-pdef)
-;;   (define-key sly-mode-map (kbd "C-c s") 'cl-patterns-stop-all)
-;;   (define-key sly-doc-map (kbd "s") 'cl-patterns-supercollider-documentation))
+;;     (interactive)
+;;     (sly-eval-async '(cl:let ((system (asdf:find-system "cl-patterns" nil)))
+;;                              (cl:when system (cl:namestring (asdf:system-source-directory system))))
+;;       (lambda (path)
+;;         (load (concat path "res/emacs/cl-patterns-helpers") nil nil nil t)
+;;         (load (concat path "res/emacs/cl-patterns-skeletons") nil nil nil t)))
+;;     (define-key sly-mode-map (kbd "C-c p") 'cl-patterns-play-or-end-context-or-select-pdef)
+;;     (define-key sly-mode-map (kbd "C-c P") 'cl-patterns-play-or-stop-context-or-select-pdef)
+;;     (define-key sly-mode-map (kbd "C-c s") 'cl-patterns-stop-all)
+;;     (define-key sly-doc-map (kbd "s") 'cl-patterns-supercollider-documentation))
 ;;
 ;; (add-hook 'sly-connected-hook 'cl-patterns-helpers-load)
 ;;
