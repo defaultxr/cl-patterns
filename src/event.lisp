@@ -481,7 +481,6 @@ See also: `rate', `midinote', `degree'")
 
 (define-event-special-key :degree ((:freq (freq-degree (event-value event :freq)
                                                        :root (event-value event :root)
-                                                       :octave (event-value event :octave)
                                                        :scale (event-value event :scale)))
                                    (:note (note-degree (event-value event :note)
                                                        :root (event-value event :root)
