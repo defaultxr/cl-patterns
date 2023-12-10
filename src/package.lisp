@@ -104,6 +104,7 @@
    #:bipolar-1-to-midi
    #:unipolar-1-to-midi
    #:frequency-to-midi
+   #:bipolar-1-to-midi-pitchbend
 
    ;;; scales.lisp
 
