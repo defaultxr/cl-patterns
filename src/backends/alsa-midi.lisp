@@ -227,4 +227,4 @@ See also: `alsa-midi-instrument-program-number'"
   ;; FIX
   )
 
-(export '(alsa-midi-panic *alsa-midi-pitchbend-range* alsa-midi-instrument-program-number alsa-midi-cc-mapping alsa-midi-set-cc-mapping alsa-midi-remap-key-value))
+(export '(alsa-midi alsa-midi-panic *alsa-midi-pitchbend-range* alsa-midi-instrument-program-number alsa-midi-cc-mapping alsa-midi-set-cc-mapping alsa-midi-remap-key-value))

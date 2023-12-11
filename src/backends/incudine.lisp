@@ -171,3 +171,5 @@ See also: `timestamp-incudine-samples'"
                  :dur 16
                  :quant 0
                  :latency 0))))
+
+(export '(incudine))

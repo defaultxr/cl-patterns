@@ -45,4 +45,4 @@ See also: `debug-backend-recent-events'"
 (defmethod backend-timestamps-for-event ((backend debug-backend) event task)
   nil)
 
-(export '(debug-backend-print-stream debug-backend-events debug-backend-recent-events debug-backend-clear-recent-events))
+(export '(debug-backend debug-backend-print-stream debug-backend-events debug-backend-recent-events debug-backend-clear-recent-events))
