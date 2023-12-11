@@ -370,5 +370,5 @@ See also: `parse-boolean'"
     (boolean (if boolean 127 0))))
 
 (defconversion bipolar-1-to-midi-pitchbend (number)
-  "Convert the range -1..1 to pitchbend message values used by the `alsa-midi' backend."
+  "Convert the range -1..1 to pitchbend message values used by the alsa-midi backend."
   (clamp (ceiling (* 8192 number)) -8192 8191))
