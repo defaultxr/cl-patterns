@@ -3141,9 +3141,9 @@ See also: `pfilter'"
 ;;; mouse location functionality
 ;; FIX: this seems to be very slow... might be necessary to use FFI instead for decent performance.
 
-(defvar *display-server* (cond ((uiop:getenv "DISPLAY") :x)
-                               ;; ((uiop:getenv "WAYLAND_DISPLAY") :wayland) ; not supported.
-                               )
+(defvar *display-server*
+  #+linux (find (friendly-symbol (uiop:getenvp "XDG_SESSION_TYPE")) (list :x11))
+  #-linux nil
   "The display server type that `mouse-location' should default to. Attempts to auto-detect the correct display server on load.")
 
 (defgeneric screen-size* (display-server))
@@ -3151,8 +3151,8 @@ See also: `pfilter'"
 (defmethod screen-size* ((display-server null)) ; avoid "no applicable method" if loaded under an unsupported display server.
   nil)
 
-(defmethod screen-size* ((display-server (eql :x)))
-  (when-let* ((screen-str (first (uiop:run-program '("xrandr") :ignore-error-status t :output :lines)))
+(defmethod screen-size* ((display-server (eql :x11)))
+  (when-let* ((screen-str (first (ignore-errors (uiop:run-program '("xrandr") :ignore-error-status t :output :lines))))
               (idx (search " current " screen-str)))
     (mapcar #'parse-integer
             (subseq (string-split (subseq screen-str (+ 9 idx))
@@ -3174,7 +3174,7 @@ See also: `*display-server*', `screen-size', `mouse-location', `pmouse'")
 (defmethod mouse-location* ((display-server t))
   (error "Mouse location information; unsupported display server."))
 
-(defmethod mouse-location* ((display-server (eql :x)))
+(defmethod mouse-location* ((display-server (eql :x11)))
   (destructuring-bind (x y screen window)
       (mapcar (lambda (str)
                 (let ((pos (position #\= str :test #'char=)))
@@ -3196,7 +3196,7 @@ See also: `*display-server*', `screen-size', `mouse-location', `pmouse'")
   (error "Mouse location information is currently unsupported on Wayland."))
 
 (defun mouse-location (&optional (display-server *display-server*))
-  "Get a plist of the mouse location, total display size, and other information gleaned about DISPLAY-SERVER. DISPLAY-SERVER can be :x, :wayland, etc, but should default to the correct display server detected when cl-patterns is loaded. Will signal an error if the information cannot be determined (i.e. when the display server is not detected or not supported).
+  "Get a plist of the mouse location, total display size, and other information gleaned about DISPLAY-SERVER. DISPLAY-SERVER can be :x11, :wayland, etc, but should default to the correct display server detected when cl-patterns is loaded. Will signal an error if the information cannot be determined (i.e. when the display server is not detected or not supported).
 
 NOTE: This is currently only implemented on X-based systems, so will not work on Windows, MacOS, and Wayland."
   (mouse-location* display-server))
