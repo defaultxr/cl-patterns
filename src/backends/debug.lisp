@@ -6,7 +6,8 @@
 (defclass debug-backend (backend)
   ((name :initform "debug")
    (print-stream :initarg :print-stream :initform nil :accessor debug-backend-print-stream :documentation "The stream to print debugging output to, or nil if no printing should be done.")
-   (events :initform nil :accessor debug-backend-events :type list :documentation "List of events received by the backend, with the most recent events first.")))
+   (events :initform nil :accessor debug-backend-events :type list :documentation "List of events received by the backend, with the most recent events first."))
+  (:documentation "Pseudo-backend for capturing generated events."))
 
 (setf (documentation 'debug-backend-print-stream 'function) "The stream to print debugging output to, or nil if no printing should be done."
       (documentation 'debug-backend-events 'function) "List of events received by the backend, with the most recent events first.")
