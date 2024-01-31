@@ -3,7 +3,8 @@
 (in-package #:cl-patterns)
 
 (defclass alsa-midi (backend)
-  ((name :initform "ALSA MIDI")))
+  ((name :initform "ALSA MIDI"))
+  (:documentation "Backend for controlling hardware and software via ALSA MIDI on Linux."))
 
 ;;; utility functions
 
