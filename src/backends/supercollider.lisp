@@ -161,7 +161,7 @@
          (lambda-list (getf val :lambda-list)))
     (multiple-value-bind (body declarations docstring) (parse-body (getf val :body) :documentation t)
       `(define-cl-collider-pseugen ,function ,lambda-list
-         ,docstring
+         ,@(when docstring (list docstring))
          ,@declarations
          (block ,function
            ,@body)))))
