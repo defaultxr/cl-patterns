@@ -50,7 +50,6 @@
            (backend-num-synths backend) synths
            (backend-num-groups backend) groups
            (backend-num-definitions backend) definitions
-           (cl-collider::server-options-hardware-samplerate (cl-collider:server-options (backend-server backend))) nominal-sample-rate
            (backend-last-status-reply-time backend) (get-internal-real-time))))
   (with-slots (status-requester-thread) backend
     (unless (and status-requester-thread
