@@ -79,7 +79,7 @@ See also: `all-backends', `enabled-backends'"
            (apply #'all-backends args)))
 
 (defgeneric make-backend (backend &rest rest &key &allow-other-keys)
-  (:documentation "Make a backend of the specified type.
+  (:documentation "Make a `backend' of the specified type and return it.
 
 See also: `backend-start'"))
 
@@ -92,32 +92,45 @@ See also: `backend-start'"))
   (pushnew backend *backends*))
 
 (defgeneric backend-start (backend &rest args &key &allow-other-keys)
-  (:documentation "Start BACKEND's server so it is ready to receive events. If BACKEND is the name of a backend rather than a `backend' instance, first make an instance of the backend as if `make-backend' was called, then call `backend-start' on that.
+  (:documentation "Start BACKEND so it is ready to handle events and return the backend object. If BACKEND is the name of a backend rather than a `backend' instance, first make an instance of the backend as if `make-backend' was called, then call `backend-start' on that.
 
 See also: `backend-stop', `backend-enabled-p', `make-backend'"))
 
 (defmethod backend-start ((name symbol) &rest args &key &allow-other-keys)
-  (let ((backend (apply #'make-backend name :allow-other-keys t args)))
-    (apply #'backend-start backend :allow-other-keys t args)))
+  (let ((backend (or (find-backend name)
+                     (apply #'make-backend name args))))
+    (if (backend-started-p backend)
+        (progn
+          (warn "Backend ~S already started" backend)
+          (return-from backend-start backend))
+        (apply #'backend-start backend :allow-other-keys t args))))
 
 (defmethod backend-start ((backend backend) &key &allow-other-keys)
   nil)
 
-(defmethod backend-start :after ((backend backend) &key &allow-other-keys)
-  (setf (backend-started-p backend) t))
+(defmethod backend-start :around ((backend backend) &key &allow-other-keys)
+  (call-next-method)
+  (setf (backend-started-p backend) t)
+  backend)
 
 (defgeneric backend-stop (backend)
-  (:documentation "Stop BACKEND's server if it is running.
+  (:documentation "Stop BACKEND's server if it is running and return a list of the affected backend(s).
 
 See also: `backend-start', `backend-enabled-p'"))
 
-(defmethod backend-stop ((backend symbol))
-  (dolist (c-backend (all-backends))
-    (when (string-equal backend (backend-name c-backend))
-      (backend-stop c-backend))))
+(defmethod backend-stop (backend)
+  nil)
 
-(defmethod backend-stop :after ((backend backend))
-  (setf (backend-started-p backend) nil))
+(defmethod backend-stop :around (backend)
+  (let ((backends (if (string-designator-p backend)
+                      (loop :for candidate :in (all-backends :started-p t)
+                            :if (or (string-equal backend (backend-name candidate))
+                                    (string-equal backend (class-name (class-of candidate))))
+                              :collect candidate)
+                      (ensure-list backend))))
+    (dolist (c-backend backends backends)
+      (call-next-method c-backend)
+      (setf (backend-started-p c-backend) nil))))
 
 ;; (defgeneric backend-handles-event-p (backend event) ; FIX: is this needed?
 ;;   (:documentation "True if BACKEND is currently available to handle EVENT."))
