@@ -29,13 +29,22 @@
 
 ;;; backend management
 
-(defclass backend ()
-  ((name :initarg :name :accessor backend-name :type string-designator :documentation "The name of the backend instance.")
-   (enabled-p :initarg :enabled-p :initform t :accessor backend-enabled-p :type boolean :documentation "Whether this backend instance is currently enabled. Events being played will only be sent to enabled and running backends.")
-   (started-p :initarg :started-p :initform nil :accessor backend-started-p :type boolean :documentation "Whether the backend is current enabled and running.")
-   (input-processors :initarg :input-processors :initform nil :accessor backend-input-processors :type list :documentation "List of functions that process incoming events. Similar to `*post-pattern-output-processors*' but per-backend.")
-   (metadata :initarg :metadata :initform nil :accessor backend-metadata :type list :documentation "Additional metadata associated with the backend instance."))
-  (:documentation "Abstract superclass for backends."))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass backend ()
+    ((name :initarg :name :accessor backend-name :type string-designator :documentation "The name of the backend instance.")
+     (enabled-p :initarg :enabled-p :initform t :accessor backend-enabled-p :type boolean :documentation "Whether this backend instance is currently enabled. Events being played will only be sent to enabled and running backends.")
+     (started-p :initarg :started-p :initform nil :accessor backend-started-p :type boolean :documentation "Whether the backend is current enabled and running.")
+     (input-processors :initarg :input-processors :initform nil :accessor backend-input-processors :type list :documentation "List of functions that process incoming events. Similar to `*post-pattern-output-processors*' but per-backend.")
+     (metadata :initarg :metadata :initform nil :accessor backend-metadata :type list :documentation "Additional metadata associated with the backend instance."))
+    (:documentation "Abstract superclass for backends.")))
+
+(defmethod initialize-instance :after ((backend backend) &key &allow-other-keys)
+  (pushnew backend *backends*))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (closer-mop:ensure-finalized (find-class 'backend)) ; needed for the following dolist:
+  (dolist (sym (list 'backend-name 'backend-enabled-p 'backend-started-p 'backend-input-processors 'backend-metadata))
+    (setf (documentation sym 'function) (documentation (find-class-slot 'backend :accessor sym) t))))
 
 (defun all-backend-types ()
   "Get a list of names of all defined backend types. A backend type is any class that inherits from `backend'.
@@ -87,9 +96,6 @@ See also: `backend-start'"))
   (if-let ((found-backend (find backend (all-backend-types) :test #'string-equal)))
     (apply #'make-instance found-backend rest)
     (apply #'no-applicable-method #'make-backend backend rest)))
-
-(defmethod initialize-instance :after ((backend backend) &key &allow-other-keys)
-  (pushnew backend *backends*))
 
 (defgeneric backend-start (backend &rest args &key &allow-other-keys)
   (:documentation "Start BACKEND so it is ready to handle events and return the backend object. If BACKEND is the name of a backend rather than a `backend' instance, first make an instance of the backend as if `make-backend' was called, then call `backend-start' on that.

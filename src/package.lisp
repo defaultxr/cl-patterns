@@ -259,6 +259,12 @@
    ;;; backend.lisp
 
    #:backend
+   #:backend-name
+   #:backend-enabled-p
+   #:backend-started-p
+   #:backend-input-processors
+   #:backend-metadata
+
    #:all-backend-types
    #:all-backends
    #:backend-p
