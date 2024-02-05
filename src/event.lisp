@@ -408,7 +408,7 @@ See also: `legato', `delta'")
                                    (t 0.8))
   :remove-keys (:sustain)
   :define-methods t
-  :documentation "How long the note should be held, in beats, as a factor of its total duration (`dur').
+  :documentation "How long the note should be held, as a factor of its total length in beats (`dur').
 
 See also: `sustain', `dur'")
 
