@@ -33,7 +33,7 @@
   ((name :initarg :name :accessor backend-name :type string-designator :documentation "The name of the backend instance.")
    (enabled-p :initarg :enabled-p :initform t :accessor backend-enabled-p :type boolean :documentation "Whether this backend instance is currently enabled. Events being played will only be sent to enabled and running backends.")
    (started-p :initarg :started-p :initform nil :accessor backend-started-p :type boolean :documentation "Whether the backend is current enabled and running.")
-   (input-processors :initarg :input-processors :initform nil :accessor backend-input-processors :type list :documentation "List of functions that process incoming events. Similar to `*post-pattern-output-processors*' but per-backend.") ; FIX: implement
+   (input-processors :initarg :input-processors :initform nil :accessor backend-input-processors :type list :documentation "List of functions that process incoming events. Similar to `*post-pattern-output-processors*' but per-backend.")
    (metadata :initarg :metadata :initform nil :accessor backend-metadata :type list :documentation "Additional metadata associated with the backend instance."))
   (:documentation "Abstract superclass for backends."))
 
@@ -207,6 +207,14 @@ See also: `backend-task-removed'"))
                  ;; FIX: should add NODE to the task's backend-resources slot, then free it when it stops
                  (when (backend-instrument-has-gate-p backend instrument)
                    (backend-control-node-at backend (second time) node (list :gate 0)))))))))))
+
+(defmethod backend-play-event :around (backend event task)
+  (call-next-method backend
+                    (loop :with result := event
+                          :for proc :in (backend-input-processors backend)
+                          :do (setf result (funcall proc result (task-item task)))
+                          :finally (return result))
+                    task))
 
 (defgeneric backend-tempo-change-at (backend clock timestamp)
   (:documentation "Set the backend's tempo to NEW-TEMPO at the timestamp provided."))
