@@ -13,7 +13,51 @@
    (repeats :initform *default-pattern-repeats*)
    (parsed-list :state t)
    (current-repeats-remaining :state t))
-  :documentation "pcycles yields values from LIST as events whose dur is (/ 1 list-length) and whose value is the original value in the list. This process recurses into sublists, subdividing their durs equally among the sublist's contents to be a fraction of what their dur originally would be. The total dur yielded by pcycles is always equal to 1. pcycles repeats the whole LIST once."
+  :documentation "Divide DUR between the elements in LIST. Child lists are recursively divided by the dur of their step. LIST can also be a string, in which case it is split into a list, each character converted into an integer or symbol.
+
+pcycles also supports the following keyword arguments:
+
+- MAP - Plist mapping symbols to the event to yield for that symbol. The symbols - (dash), _ (underscore), and . (period) are mapped to rest events by default.
+- KEY - The event key that should hold the value of that step. Can be convenient if you're :embed-ing pcycles into another pattern. Defaults to :value.
+- DUR - The total duration in beats of one cycle of LIST.
+- REPEATS - The number of times that LIST should be repeated before the pattern ends.
+
+Examples:
+
+;; (next-upto-n (pcycles '(1 - 2 - ) :repeats 1)) ; 4 items in LIST, so each output will be 1/4 beats long.
+;; ;=> ((EVENT :VALUE 1 :DUR 1/4)
+;; ;    (EVENT :TYPE :REST :DUR 1/4)
+;; ;    (EVENT :VALUE 2 :DUR 1/4)
+;; ;    (EVENT :TYPE :REST :DUR 1/4))
+
+;; (next-upto-n (pcycles '(1 - (2 3)) :repeats 1)) ; 3 items in LIST, so each will fit into 1/3 beats.
+;; ;=> ((EVENT :VALUE 1 :DUR 1/3)
+;; ;    (EVENT :TYPE :REST :DUR 1/3)
+;; ;    (EVENT :VALUE 2 :DUR 1/6) ; since 2 and 3 are a sublist, they will each be 1/2 of 1/3 beats long, thus 1/6.
+;; ;    (EVENT :VALUE 3 :DUR 1/6))
+
+;; (next-upto-n (pcycles '(foo 2 3) :map (list :foo (event :midinote 60)) :repeats 1)) ; map the symbol \"FOO\" to (event :midinote 60)
+;; ;=> ((EVENT :MIDINOTE 60 :DUR 1/3) ; note that the mapped event still contains the correct :dur.
+;; ;    (EVENT :VALUE 2 :DUR 1/3)
+;; ;    (EVENT :VALUE 3 :DUR 1/3))
+
+;; (next-upto-n (pcycles '(1 2) :key :bar :repeats 1)) ; the value of each item will be used as the value of the :key key -- in this case, :bar.
+;; ;=> ((EVENT :BAR 1 :DUR 1/2)
+;; ;    (EVENT :BAR 2 :DUR 1/2))
+
+;; (next-upto-n (pcycles '(1 2) :dur 4 :repeats 1)) ; set the total duration of each cycle of LIST to 4 beats.
+;; ;=> ((EVENT :VALUE 1 :DUR 2) ; 4 beats divided by 2 events = each event is 2 beats in length.
+;; ;    (EVENT :VALUE 2 :DUR 2))
+
+;; (next-upto-n (pcycles '(1 2) :repeats 2)) ; repeat the list 2 times before ending the pattern.
+;; ;=> ((EVENT :VALUE 1 :DUR 1/2) ; 2 items in list and 2 repeats results in 4 total outputs.
+;; ;    (EVENT :VALUE 2 :DUR 1/2)
+;; ;    (EVENT :VALUE 1 :DUR 1/2)
+;; ;    (EVENT :VALUE 2 :DUR 1/2))
+
+pcycles is based on and inspired by the TidalCycles live coding environment (see https://tidalcycles.org/ ), however most TidalCycles notation is not supported.
+
+See also: `cycles', `ptrack'"
   :defun (defun pcycles (list &key map (key :value) (dur 1) (repeats *default-pattern-repeats*))
            (let ((args (list :map map :key key :dur dur :repeats repeats)))
              (etypecase list
