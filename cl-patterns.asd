@@ -2,13 +2,13 @@
 
 (asdf:defsystem #:cl-patterns
   :name "cl-patterns"
-  :description "Pattern library for algorithmic music composition and performance in Common Lisp"
-  :author "modula t."
-  :license "MIT"
   :version "0.7"
+  :description "Pattern library for algorithmic music composition and performance in Common Lisp"
+  :license "MIT"
+  :author "modula t."
+  :mailto "modula-t at pm dot me"
   :homepage "https://w.struct.ws/cl-patterns/"
   :bug-tracker "https://github.com/defaultxr/cl-patterns/issues"
-  :mailto "defaultxr at gmail dot com"
   :source-control (:git "git@github.com:defaultxr/cl-patterns.git")
   :depends-on (#:alexandria
                #:mutility
