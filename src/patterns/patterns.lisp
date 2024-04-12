@@ -274,8 +274,7 @@ See also: `peek', `peek-n', `next', `next-upto-n'"
 (defgeneric next (pattern)
   (:documentation "Get the next value of a pstream, function, or other object, advancing the pstream forward in the process.
 
-See also: `next-n', `next-upto-n', `peek'")
-  (:method-combination pattern))
+See also: `next-n', `next-upto-n', `peek'"))
 
 (defmethod next ((object t))
   object)

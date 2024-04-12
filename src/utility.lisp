@@ -581,30 +581,6 @@ See also: `all-instruments', `playing-pdefs', `playing-p'"
 
 ;;; macros / MOP stuff
 
-(define-method-combination pattern ()
-  ((around (:around))
-   (before (:before))
-   (primary () :required t)
-   (after (:after)))
-  "Method combination type for patterns; specifically, the `next' function. Similar to the standard CLOS method combination, except that :around methods are called in reverse order, from the least specific to the most specific."
-  (flet ((call-methods (methods)
-           (mapcar #'(lambda (method)
-                       `(call-method ,method))
-                   methods)))
-    (let ((form (if (or before after (rest primary))
-                    `(multiple-value-prog1
-                         (progn ,@(call-methods before)
-                                (call-method ,(first primary)
-                                             ,(rest primary)))
-                       ,@(call-methods (reverse after)))
-                    `(call-method ,(first primary)))))
-      (if around
-          (let ((around (reverse around)))
-            `(call-method ,(first around)
-                          (,@(rest around)
-                           (make-method ,form))))
-          form))))
-
 (deftype slot-definition-slot () ; FIX: remove in favor of `mutility:find-class-slot' eventually
   "Slots of slot definitions. This is primarily used for `find-class-slot'.
 
