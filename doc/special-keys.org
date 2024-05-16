@@ -106,8 +106,10 @@ pbind also supports a set of special keys that effectively "wrap" the pbind in a
 
 Here is a listing of all such keys:
 
+** ~pfor~
+Results in ~(pfor (pbind ...) value)~
 ** ~parp~
-Results in ~(parp (pbind ...) value)~
+Deprecated alias for ~pfor~.
 ** ~pfin~
 Results in ~(pfin (pbind ...) value)~
 ** ~pfindur~

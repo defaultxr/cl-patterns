@@ -140,7 +140,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~PstepNfunc~
 
 - ~Ctl~
-- ~Parpf~ - parp fork
+- ~Parpf~ - parp (pfor) fork
 - ~PnC~
 
 - ~PkEnv~ - env played at audio (kr) rate

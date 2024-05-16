@@ -190,7 +190,7 @@ See also: `pattern-test-argument'"
                        (phistory (phistory child (pseq (list 0) 1)))
                        (pfuture (pfuture child (pseq (list 0) 1)))
                        (prerange (prerange child (list 0 1) (list 1 0)))
-                       (parp (parp child (pbind :foo (pseq (list 1 2 3)))))
+                       (pfor (pfor child (pbind :foo (pseq (list 1 2 3)))))
                        (ptsbuf (ptsbuf child 4))
                        (pdef (pdef :foo child))
                        (ptrack (ptrack (list :foo child) (list 0)))
@@ -710,7 +710,7 @@ See also: `pattern-test-argument'"
   (is (equal (list 0 1 1 1 3 3 eop)
              (next-n (pr (pseries) (pseq '(1 3 0 2) 1)) 7))
       "pr yields EOP at the end of its REPEATS pattern")
-  (is (equal ; FIX: make sure this works for all filter patterns (parp, etc)
+  (is (equal ; FIX: make sure this works for all filter patterns (pfor, etc)
        (list 1 2 2 3 3 3 1 2 2 3 3 3)
        (mapcar (fn (event-value _ :x))
                (next-upto-n
@@ -1011,8 +1011,8 @@ See also: `pattern-test-argument'"
                      5))
       "pif yields incorrect outputs"))
 
-(test parp
-  "Test parp"
+(test pfor
+  "Test pfor"
   (is-true (every-event-equal
             (list (event :foo 1 :bar 4)
                   (event :foo 1 :bar 5)
@@ -1023,10 +1023,10 @@ See also: `pattern-test-argument'"
                   (event :foo 3 :bar 4)
                   (event :foo 3 :bar 5)
                   (event :foo 3 :bar 6))
-            (next-n (parp (pbind :foo (pseq (list 1 2 3)))
+            (next-n (pfor (pbind :foo (pseq (list 1 2 3)))
                           (pbind :bar (pseq (list 4 5 6) 1)))
                     9))
-           "parp yields incorrect outputs")
+           "pfor yields incorrect outputs")
   (is-true (every-event-equal
             (list (event :freq 200 :xx 400)
                   (event :freq 200 :xx 200)
@@ -1035,10 +1035,10 @@ See also: `pattern-test-argument'"
                   (event :freq 400 :xx 800)
                   (event :freq 400 :xx 400)
                   eop)
-            (next-n (parp (pbind :freq (pseq (list 200 300 400) 1))
+            (next-n (pfor (pbind :freq (pseq (list 200 300 400) 1))
                           (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
                     7))
-           "parp yields incorrect outputs when the arpeggiator pattern references values from the base pattern via pk")
+           "pfor yields incorrect outputs when the arpeggiator pattern references values from the base pattern via pk")
   (is-true (every-event-equal
             (list (event :x 1 :y 3 :z 5)
                   (event :x 1 :y 3 :z 6)
@@ -1048,10 +1048,10 @@ See also: `pattern-test-argument'"
                   (event :x 2 :y 3 :z 6)
                   (event :x 2 :y 4 :z 5)
                   (event :x 2 :y 4 :z 6))
-            (next-upto-n (parp (pbind :x (pseq (list 1 2) 1))
-                               (parp (pbind :y (pseq (list 3 4) 1))
+            (next-upto-n (pfor (pbind :x (pseq (list 1 2) 1))
+                               (pfor (pbind :y (pseq (list 3 4) 1))
                                      (pbind :z (pseq (list 5 6) 1))))))
-           "triply-nested parp yields incorrect outputs"))
+           "triply-nested pfor yields incorrect outputs"))
 
 (test pfin
   "Test pfin"

@@ -52,7 +52,7 @@ see ~pcycles~
 ** or maybe have an ~:action~ key for patterns that can be used to fork the pattern, launch another pattern, etc...?
 ** DONE allow a pattern play another by using it for its ~:instrument~ key.
 CLOSED: [2019-10-15 Tue 20:48]
-see ~parp~ and ~pmeta~
+see ~pfor~ and ~pmeta~
 
 * ~:cleanup~ key for patterns. this can either contain a function or a list of functions. when the pattern ends or is stopped, the function or functions will be called.
 ** not sure if it should be called if the pattern is swapped out while playing, i.e. through pdef redefintion or the like.
@@ -182,14 +182,14 @@ https://depts.washington.edu/dxscdoc/Help/Overviews/Event_types.html
 | ctranspose       | chromatic transposition of midinote within 12 tone e.t. scale                |
 * equivalent for SuperCollider's ~strum~ event key
 maybe make it a pattern instead? ~pstrum~ ?
-~parp~ can already do something similar
+~pfor~ can already do something similar
 * DONE consider alternatives to ~nil~ for end of pattern
 CLOSED: [2022-02-28 Mon 20:43]
 done - we now use ~cl-patterns:eop~ instead.
 * pattern that "curves" the time of another pattern (basically like the ~curve~ parameter for SuperCollider's envelopes does)
 could this be generalized so that it can curve any parameter?
 ** curve parameter for ~pdurstutter~/~pr~
-*** maybe also a way to apply dur curves in general, i.e. so it can be used in ~parp~ as well?
+*** maybe also a way to apply dur curves in general, i.e. so it can be used in ~pfor~ as well?
 * [[https://github.com/carrierdown/mutateful][mutateful]]-inspired pattern mini-language
 https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
 * option to make changes to patterns affect their pstreams immediately

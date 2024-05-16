@@ -42,7 +42,7 @@ Example:
 ;; ;=> ((EVENT :X 1 :DUR 1) (EVENT :X 2 :DUR 1) ; from (pdef :foo)
 ;;      (EVENT :Y 0 :DUR 0.76958686) (EVENT :Y 1 :DUR 0.94850993) (EVENT :Y 2 :DUR 0.28190327)) ; from (pdef :bar)
 
-See also: `psym', `parp', `pdef', `pbind'"
+See also: `psym', `pfor', `pdef', `pbind'"
   :defun (defun pmeta (&rest pairs)
            (make-instance 'pmeta :pattern (if (length= 1 pairs)
                                               (car pairs)

@@ -114,7 +114,7 @@ Patterns that are used to define or debug others.
 - ~pdef~ - Pattern definition. Give a global name to a pattern, which allows it to be changed while it's playing.
 - ~ptrace~ - Prints the outputs of its source pattern; useful for debugging.
 - ~pchain~ - Chain patterns together by using the first source pattern's output as the input to the second, etc.
-- ~parp~ - "Arpeggiate" patterns by using each output of one pattern as input to a full play-through of the other.
+- ~pfor~ - Use each output of one pattern as input to a full play-through of another.
 - ~ppar~ - Play patterns in parallel so that their outputs appear together in one pstream while preserving timing.
 - ~pparchain~ - Define and play multiple patterns in parallel, each pattern using the previous's output as its input.
 - ~ppc~ - Syntax sugar for writing ~pparchain~ in the style of ~pb~.
@@ -122,4 +122,4 @@ Patterns that are used to define or debug others.
 - ~pmeta~ - Meta-control patterns by applying various transformations to them with a ~pbind~-like syntax.
 - ~ipstream~ - Insertable pstream; a pstream changeable while playing by the insertion of additional pstreams.
 
-# FIX: should there be a "fusion" category, for patterns like ~pchain~, ~parp~, ~ppar~, ~pparchain~, ~ppc~, ~pif~ ?
+# FIX: should there be a "fusion" category, for patterns like ~pchain~, ~pfor~, ~ppar~, ~pparchain~, ~ppc~, ~pif~ ?

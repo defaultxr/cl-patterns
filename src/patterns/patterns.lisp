@@ -912,7 +912,10 @@ See also: `pbind', `pdef'"
            (declare (ignorable value pattern))
            ,@body)))
 
-(define-pbind-special-wrap-key parp
+(define-pbind-special-wrap-key pfor
+  (pfor pattern value))
+
+(define-pbind-special-wrap-key parp ; deprecated
   (parp pattern value))
 
 (define-pbind-special-wrap-key pfin
@@ -1318,7 +1321,7 @@ Example:
 ;; (next-upto-n (pr (pseries) (pseq '(1 3 0 2) 1)))
 ;; ;=> (0 1 1 1 3 3)
 
-See also: `pdurstutter', `pn', `pdrop', `parp'")
+See also: `pdurstutter', `pn', `pdrop', `pfor'")
 
 (defmethod as-pstream ((pr pr))
   (with-slots (pattern repeats) pr
@@ -2148,11 +2151,10 @@ See also: `plazy', `pfunc'")
               (next true)
               (next false))))))
 
-;;; parp
+;;; pfor
 ;; FIX: should this be like `pchain' and accept an arbitrary number of input patterns?
-;; FIX: this name is misleading; it should be renamed to something like "pfor"
 
-(defpattern parp (pattern)
+(defpattern pfor (pattern)
   (pattern
    arpeggiator
    (current-pattern-event :state t :initform nil)
@@ -2161,7 +2163,7 @@ See also: `plazy', `pfunc'")
 
 Example:
 
-;; (next-upto-n (parp (pbind :foo (pseq '(1 2 3) 1))
+;; (next-upto-n (pfor (pbind :foo (pseq '(1 2 3) 1))
 ;;                    (pbind :bar (pseq '(4 5 6) 1))))
 ;; ;=> ((EVENT :FOO 1 :BAR 4) (EVENT :FOO 1 :BAR 5) (EVENT :FOO 1 :BAR 6)
 ;;      (EVENT :FOO 2 :BAR 4) (EVENT :FOO 2 :BAR 5) (EVENT :FOO 2 :BAR 6)
@@ -2169,17 +2171,17 @@ Example:
 
 See also: `psym', `pmeta', `pr'")
 
-(defmethod as-pstream ((parp parp))
-  (with-slots (pattern arpeggiator) parp
+(defmethod as-pstream ((pfor pfor))
+  (with-slots (pattern arpeggiator) pfor
     (let ((pstr (as-pstream pattern)))
-      (make-instance 'parp-pstream
+      (make-instance 'pfor-pstream
                      :pattern pstr
                      :arpeggiator arpeggiator
                      :current-pattern-event (next pstr)
                      :current-arpeggiator-stream (as-pstream arpeggiator)))))
 
-(defmethod next ((parp parp-pstream))
-  (with-slots (pattern arpeggiator current-pattern-event current-arpeggiator-stream) parp
+(defmethod next ((pfor pfor-pstream))
+  (with-slots (pattern arpeggiator current-pattern-event current-arpeggiator-stream) pfor
     (when (eop-p current-pattern-event)
       (return-from next eop))
     (let ((nxt (let ((*event* (combine-events (make-default-event)
@@ -2189,7 +2191,17 @@ See also: `psym', `pmeta', `pr'")
         (return-from next nxt))
       (setf current-pattern-event (next pattern)
             current-arpeggiator-stream (as-pstream arpeggiator))
-      (next parp))))
+      (next pfor))))
+
+;;; parp (deprecated)
+;; FIX: after deprecation, re-create parp as an actual arpeggiation pattern. perhaps look to https://github.com/carrierdown/mutateful#creating-an-arpeggio-from-a-sustained-note-and-a-chord for a way to implement an arpeggiation pattern?
+
+(uiop:with-deprecation (:style-warning)
+  (defun parp (&rest rest)
+    "Deprecated alias for `pfor'."
+    (apply #'pfor rest)))
+
+(export 'parp)
 
 ;;; pfin
 
