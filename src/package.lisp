@@ -292,6 +292,7 @@
    #:clock-process
    #:clock-condition-handler
    #:clock-caught-conditions
+   #:clock-caught-conditions-extra-data-function
 
    #:clock-loop
    #:start-clock-loop)

@@ -16,8 +16,7 @@
                #:bordeaux-threads
                #:closer-mop
                #:named-readtables
-               #:local-time
-               #:dissect)
+               #:local-time)
   :pathname "src/"
   :serial t
   :components ((:file "package")

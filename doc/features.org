@@ -63,11 +63,10 @@ See [[file:special-keys.org][special-keys.org]] for a full listing.
       (play (pbind :x (p/ 1 (pseq '(440 220 0)))))
 
       ;; ...and then the error occurs:
-      ;; WARNING: Task had condition #<DIVISION-BY-ZERO {1002EF08E3}>; invoked CL-PATTERNS::REMOVE-TASK restart and pushed the condition and stack to #<CL-PATTERNS::CLOCK :tempo 110/60 :beat 2.0>'s caught-conditions slot.
+      ;; WARNING: Task had condition #<DIVISION-BY-ZERO {1002EF08E3}>; invoked CL-PATTERNS::REMOVE-TASK restart and pushed the condition to #<CL-PATTERNS::CLOCK :tempo 110/60 :beat 2.0>'s caught-conditions slot.
 
       (car (clock-caught-conditions *clock*))
-      ;; => (:CONDITION #<DIVISION-BY-ZERO {10043ABA93}>
-      ;;     :STACK (#<DISSECT::SBCL-CALL [1] ...> ...))
+      ;; => (:CONDITION #<DIVISION-BY-ZERO {10043ABA93}>)
     #+end_src
 - SuperCollider backend: if a node is supplied as a value for a ~pbind~, the synth metadata for that node is used to set its ~input-bus~ or ~output-bus~ as the value instead:
   #+begin_src lisp
