@@ -30,6 +30,7 @@ CLOSED: [2018-08-02 Thu 23:03]
 ** can embed a ~sc:proxy~, in which case the pattern just takes values from the output of the proxy.
 ** can embed an Env, in which case a env-playing synth is mapped to the triggered synth's parameter.
 ** maybe make it possible to change whether to retrigger for each event or just have the synth/env play for the duration of the pattern. perhaps retrigger if the synth/env is the result of an embedded pbind, but play for the duration if it's just a lone env/synthdef.
+** create a pattern that takes a dur pattern and a value pattern and converts it to an LFO which can then be assigned to a key in a pbind
 
 * make it possible to send out values of a key at a different rate
 ** i.e.: ~(pbind :dur 1 :foo (pseq '(1 2 3)) :bar (pbind :dur 1/2 :val (pseq '(9 8 7))))~ results in ~:foo~ being set to 1, then 2, then 3 on every beat, while ~:bar~ is set to 9, then 8, then 7 on every half beat. effectively, the :bar sub-pattern is independent from the main pbind, it's just launched at the same time and ends at the same time.
@@ -320,3 +321,8 @@ example: ~C-C/Bb-F/A-Fm6/Ab-C/G-D/F-F-Fm6~ as per [[https://www.youtube.com/watc
 ** [[https://cicadas.surf/cgit/colin/gtwiwtg.git/about/][GTWIWTG]]
 * factor out "transformations" into regular common lisp functions
 for example the "curve the time of another pattern" stuff could maybe be factored out into a function
+* hexBeat, as described at 15:48 in [[https://www.youtube.com/watch?v=4lhoYmI_ivs&t=15m48s][this talk]]
+#+begin_src lisp
+  (hexbeat #x88) ;=> (1 0 0 0 1 0 0 0)
+#+end_src
+* function to get the name of a chord from a list of notes.
