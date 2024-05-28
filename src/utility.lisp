@@ -579,47 +579,6 @@ See also: `all-instruments', `playing-pdefs', `playing-p'"
       (backend-all-nodes backend)
       (apply #'append (mapcar #'playing-nodes (enabled-backends)))))
 
-;;; macros / MOP stuff
-
-(deftype slot-definition-slot () ; FIX: remove in favor of `mutility:find-class-slot' eventually
-  "Slots of slot definitions. This is primarily used for `find-class-slot'.
-
-See also: `find-class-slot'"
-  '(member
-    :allocation :location
-    :name
-    :initarg :initargs
-    :initform
-    :initfunction
-    :accessor :accessors
-    :reader :readers
-    :writer :writers
-    :type
-    :documentation))
-
-(defun find-class-slot* (class key value &key test) ; FIX: remove in favor of `mutility:find-class-slot' eventually
-  "Find a slot in CLASS whose slot option KEY is true when TESTed against VALUE."
-  (check-type key slot-definition-slot)
-  (let* ((class (etypecase class
-                  (standard-class class)
-                  (symbol (find-class class))))
-         (slots (append (closer-mop:class-direct-slots class)
-                        (closer-mop:class-slots class)))
-         (accessor (case key
-                     (:documentation (lambda (slot) (documentation slot t)))
-                     (t (intern (concat "SLOT-DEFINITION-" (case key
-                                                             (:initarg :initargs)
-                                                             ((:accessor :accessors :reader) :readers)
-                                                             (:writer :writers)
-                                                             (t key)))
-                                'closer-mop)))))
-    (find value slots :key accessor
-                      :test (or test
-                                (case key
-                                  ((:initarg :accessor :reader :writer) #'find)
-                                  (:documentation #'string=)
-                                  (t #'eql))))))
-
 ;; conditionally load swank extensions if swank is available
 ;; using conditional compilation with #+swank fails if cl-patterns is compiled with swank and then loaded without -- see issue #7.
 (eval-when (:compile-toplevel :load-toplevel :execute)

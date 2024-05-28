@@ -109,7 +109,7 @@ See also: `task-pattern', `clock-tasks'"
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (closer-mop:ensure-finalized (find-class 'clock)) ; needed for the following:
   (let ((sym 'clock-caught-conditions-extra-data-function))
-    (setf (documentation sym 'function) (documentation (find-class-slot* 'clock :accessor sym) t))))
+    (setf (documentation sym 'function) (documentation (find-class-slot 'clock :accessor sym) t))))
 
 (defmethod print-object ((clock clock) stream)
   (print-unreadable-object (clock stream :type t)
