@@ -10,7 +10,13 @@ Some event keys are used to set standard parameters for the synth (i.e. ~instrum
 The type of event being played. Currently the following event types supported:
 - ~note~ - Play a note and release it after the number of beats specified by its ~sustain~ key.
 - ~rest~ - Don't play anything during this event.
-- ~set~ - NOTE: Not implemented yet. Only set the parameters of a synth; don't start or stop any notes.
+- ~set~ - Only set the parameters of a synth; don't start or stop any notes. Note that this is only supported by the ~alsa-midi~ backend; for other backends, just provide the node/synth object as the pattern's  ~:instrument~, like so:
+  #+begin_src lisp
+    (defparameter *bass* (synth 'bass))
+
+    (pbind :instrument *bass*
+           ...)
+  #+end_src
 - ~mono~ - Either start a synth if none is playing, or set the synth's parameters if one is playing.
 - ~tempo~ - Change the tempo of the clock and backend to the value specified by the event's ~tempo~ key.
 
@@ -20,7 +26,7 @@ In the future, the following additional event types (and others) will be support
 - ~stop~ - Forcefully stop/free an object (node, buffer, etc) from the backend.
 - ~backend~ - Send a backend-specific message to make it perform a non-standard action.
 ** ~instrument~
-Name of the synth you want to trigger.
+Name of the synth you want to trigger, or the node that you want to change parameters of.
 ** ~group~
 Group to put the synth in on the server.
 
