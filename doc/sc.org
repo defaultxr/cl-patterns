@@ -260,7 +260,7 @@ Many (but not all) SuperCollider special keys are supported in cl-patterns. [[fi
 - ~octaveRatio~ - not implemented; just set the ~scale~ key to a scale that has the octave ratio you need.
 - ~harmonic~ - not implemented; just multiply the ~freq~ key, i.e. ~:freq (p* (pk :freq) N)~
 - ~detune~ - not implemented; just add to the ~freq~ key, i.e. ~:freq (p+ (pk :freq) N)~
-- ~midiToCps~ - not implemented; pitch calculations are automatically done by the system; set your ~scale~ key to your desired scale and provide pitch information as additional keys and the system should (in theory) calculate the the frequency for you. It's not necessary and not recommended to use the ~midinote~ key to notate non-12-tone scale music. If the system's pitch functionality is not enough, define your own ~scale~ or ~tuning~, or just specify the frequency directly via the ~freq~ key.
+- ~midiToCps~ - not implemented; pitch calculations are automatically done by the system; set your ~scale~ key to your desired scale and provide pitch information as additional keys and the system should calculate the frequency for you. It's not recommended to attempt to use the ~midinote~ key to notate non-12-tone scale music. If the system's built-in pitch functionality is not enough, you can specify frequencies directly with the ~freq~ key, or define your own ~scale~ or ~tuning~ and use the ~degree~ key to access its pitches.
 
 - ~mtranspose~ - not implemented; just add to the ~degree~ key instead, i.e. ~:degree (p+ (pk :degree) N)~
 - ~gtranspose~ - not implemented; just ensure your ~scale~ is set correctly and add to the ~note~ key instead, i.e. ~:note (p+ (pk :note) N)~
