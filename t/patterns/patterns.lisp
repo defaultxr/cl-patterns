@@ -772,10 +772,10 @@ See also: `pattern-test-argument'"
   (is (= 10
          (length (next-upto-n (pshuf (list 1 2 3 4 5) 2) 32)))
       "pshuf yields the wrong number of outputs when REPEATS is specified")
-  (is (equal
-       (list 1 2 3 4 5)
-       (next-upto-n (pseq (list 1 2 3 4 5) 1))) ; this list must be quoted and must be the same as one of the ones used in the pshuf test above.
-      "pshuf destructively modifies its input list"))
+  (let ((list (list 1 2 3 4 5)))
+    (next-upto-n (pshuf list 1))
+    (is (equal (list 1 2 3 4 5) list)
+        "pshuf destructively modifies its input list")))
 
 (test pwhite
   "Test pwhite"
