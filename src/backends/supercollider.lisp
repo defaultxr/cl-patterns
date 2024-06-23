@@ -217,6 +217,6 @@
     (apply #'cl-collider:buffer-write buffer path o-args)))
 
 (defmethod cl-collider:sr ((supercollider supercollider))
-  (cl-collider::server-options-hardware-samplerate (cl-collider::server-options (backend-server supercollider))))
+  (cl-collider:sr (backend-server supercollider)))
 
 (export '(supercollider))
