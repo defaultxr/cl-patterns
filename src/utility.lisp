@@ -88,7 +88,7 @@ See also: `normalized-sum'"
   (position-if (lambda (num) (> num n)) list))
 
 (defgeneric last-dur (object)
-  (:documentation "Get the beat position of the ending of the last event in the ESEQ."))
+  (:documentation "Get the beat position of the ending of the last event in OBJECT."))
 
 (defmethod last-dur ((list list))
   (if list
