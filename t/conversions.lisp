@@ -33,8 +33,7 @@
               (position nil (mapcar #'approx=
                                     input
                                     (mapcar #'freq-midinote (mapcar #'midinote-freq input)))))
-            "freq-midinote conversion is not equivalent to midinote-freq conversion")
-  )
+            "freq-midinote conversion is not equivalent to midinote-freq conversion"))
 
 (test pitch-octave-conversion
   "Test pitch/octave conversion functions"

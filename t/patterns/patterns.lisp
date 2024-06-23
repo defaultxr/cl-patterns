@@ -6,9 +6,8 @@
 
 (test embedding
   "Test embedding patterns in patterns"
-  (is (equal
-       (list 0 1 2 3 4 5 eop)
-       (next-n (pseq (list 0 (pseq (list 1 (pseq (list 2 3) 1) 4) 1) 5) 1) 7))
+  (is (equal (list 0 1 2 3 4 5 eop)
+             (next-n (pseq (list 0 (pseq (list 1 (pseq (list 2 3) 1) 4) 1) 5) 1) 7))
       "Stacked pseqs do not give correct results")
   (is-true (equal (list 0 0 0 1 1 1 2 2)
                   (mapcar (fn (event-value _ :inner))
@@ -134,13 +133,11 @@ See also: `pattern-test-argument'"
   (is (equal (list :foo :bar :baz)
              (keys (next (pbind :foo 1 :bar 2 :baz (pseq (list 1 2 3) 1)))))
       "pbind's output events don't have the expected keys")
-  (is (= 3
-         (length (next-upto-n (pbind :foo 1 :bar 2 :baz (pseq (list 1 2 3) 1)))))
+  (is (length= 3 (next-upto-n (pbind :foo 1 :bar 2 :baz (pseq (list 1 2 3) 1))))
       "pbind doesn't yield the correct number of events")
   (let* ((num (random 200))
          (*max-pattern-yield-length* num))
-    (is (= num
-           (length (next-upto-n (pbind :foo 1 :bar 2))))
+    (is (length= num (next-upto-n (pbind :foo 1 :bar 2)))
         "pbind doesn't yield the correct number of events by default for a ~S of ~A"
         '*max-pattern-yield-length*
         num))
@@ -237,18 +234,15 @@ See also: `pattern-test-argument'"
                                          :x (pf (beat *event*)))
                                   4)))
            "*event*'s beat key is not correct in basic patterns")
-  (is-true (every-event-equal
-            (list (event :beat 0)
-                  (event :beat 3))
-            (next-upto-n (pseq (list (event :beat 0) (event :beat 3)) 1)))
+  (is-true (every-event-equal (list (event :beat 0)
+                                    (event :beat 3))
+                              (next-upto-n (pseq (list (event :beat 0) (event :beat 3)) 1)))
            ":beat key is overwritten when events are yielded from pstreams")
-  (is-true (every-event-equal
-            (list
-             (event :beat 3 :x 0)
-             (event :beat 5 :x 1))
-            (next-upto-n (pbind :beat 2
-                                :embed (pbind :beat (p+ (pk :beat) (pseq (list 1 3) 1))
-                                              :x (pseries)))))
+  (is-true (every-event-equal (list (event :beat 3 :x 0)
+                                    (event :beat 5 :x 1))
+                              (next-upto-n (pbind :beat 2
+                                                  :embed (pbind :beat (p+ (pk :beat) (pseq (list 1 3) 1))
+                                                                :x (pseries)))))
            ":beat key is not accessible in embedded patterns")
   (is-true (equal (list 0 1/2 1 3/2 2 5/2 3 7/2)
                   (mapcar #'beat (next-upto-n (pseq (list (pbind :dur (pn 1/2 4))
@@ -293,18 +287,14 @@ See also: `pattern-test-argument'"
   (is (equal (list 3 3 3 eop eop)
              (next-n (t-pstream 3 3) 5))
       "t-pstream yields incorrect results")
-  (is (= 1
-         (length (next-upto-n (as-pstream 69))))
+  (is (length= 1 (next-upto-n (as-pstream 69)))
       "pstreams made from numbers are yielding the wrong number of outputs")
-  (is (= 1
-         (length (next-upto-n (as-pstream (lambda () (random 420))))))
+  (is (length= 1 (next-upto-n (as-pstream (lambda () (random 420)))))
       "pstreams made from functions are yielding the wrong number of outputs")
-  (is (= 3
-         (length (next-upto-n (pseq (list 1 2 3) 1))))
+  (is (length= 3 (next-upto-n (pseq (list 1 2 3) 1)))
       "patterns don't yield the correct number of values when their parameters are values coerced to pstreams")
-  (is (= 5
-         (let ((*max-pattern-yield-length* 5))
-           (length (next-upto-n (pfunc (lambda () (random 64)))))))
+  (is (length= 5 (let ((*max-pattern-yield-length* 5))
+                   (next-upto-n (pfunc (lambda () (random 64))))))
       "pfunc yields the wrong number of outputs when a function used as its input")
   (is-true (t-pstream-p (t-pstream :foo))
            "t-pstream-p gives incorrect results for t-pstreams")
@@ -362,30 +352,33 @@ See also: `pattern-test-argument'"
 
 (test special-keys
   "Test pbind special keys"
-  (is-true (every-event-equal
-            (list (event :bar 1 :qux 69 :dur 1/3)
-                  (event :bar 1 :qux 69 :dur 1/3)
-                  (event :bar 1 :qux 69 :dur 1/3)
-                  (event :bar 2 :qux 420 :dur 1/2)
-                  (event :bar 2 :qux 420 :dur 1/2)
-                  (event :bar 2 :qux 666 :dur 1)
-                  (event :bar 3 :qux 69 :dur 1/3)
-                  (event :bar 3 :qux 69 :dur 1/3)
-                  (event :bar 3 :qux 69 :dur 1/3)
-                  (event :bar 3 :qux 420 :dur 1/2)
-                  (event :bar 3 :qux 420 :dur 1/2)
-                  (event :bar 3 :qux 666 :dur 1))
-            (next-upto-n (pbind :bar (pseq (list 1 2 3) 1)
-                                :pr (pseq (list 1 2 3))
-                                :qux (pseq (list 69 420 666))
-                                :pdurstutter (pseq (list 3 2 1)))))
+  (is-true (every-event-equal (list (event :bar 1 :qux 69 :dur 1/3)
+                                    (event :bar 1 :qux 69 :dur 1/3)
+                                    (event :bar 1 :qux 69 :dur 1/3)
+                                    (event :bar 2 :qux 420 :dur 1/2)
+                                    (event :bar 2 :qux 420 :dur 1/2)
+                                    (event :bar 2 :qux 666 :dur 1)
+                                    (event :bar 3 :qux 69 :dur 1/3)
+                                    (event :bar 3 :qux 69 :dur 1/3)
+                                    (event :bar 3 :qux 69 :dur 1/3)
+                                    (event :bar 3 :qux 420 :dur 1/2)
+                                    (event :bar 3 :qux 420 :dur 1/2)
+                                    (event :bar 3 :qux 666 :dur 1))
+                              (next-upto-n (pbind :bar (pseq (list 1 2 3) 1)
+                                                  :pr (pseq (list 1 2 3))
+                                                  :qux (pseq (list 69 420 666))
+                                                  :pdurstutter (pseq (list 3 2 1)))))
            "pbind's pr and/or pdurstutter special keys do not work correctly"))
 
 (test special-wrap-keys ; FIX: should work for all filter patterns
   "Test behavior of wrap keys"
-  (is (every-event-equal
-       (list (event :foo 0 :x 1) (event :foo 1 :x 2) (event :foo 1 :x 2) (event :foo 2 :x 3) (event :foo 2 :x 3) (event :foo 2 :x 3))
-       (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
+  (is (every-event-equal (list (event :foo 0 :x 1)
+                               (event :foo 1 :x 2)
+                               (event :foo 1 :x 2)
+                               (event :foo 2 :x 3)
+                               (event :foo 2 :x 3)
+                               (event :foo 2 :x 3))
+                         (next-n (pr (pbind :foo (pseries) :x (pseq (list 1 2 3))) (pk :x)) 6))
       "pk in pr's repeats parameter can't access keys from pbind in pr's pattern parameter"))
 
 (test remaining-p ; FIX: test this for all patterns that use it.
@@ -393,25 +386,24 @@ See also: `pattern-test-argument'"
   (is (equal (list 1 2 3)
              (next-upto-n (pseq (list 1 2 3) 1)))
       "pseq yields the wrong number of outputs")
-  (is (= 64
-         (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq (list 1 2 3) :inf)))))
+  (is (length= 64
+               (let ((*max-pattern-yield-length* 64))
+                 (next-upto-n (pseq (list 1 2 3) :inf))))
       "pseq yields the wrong number of results when `next-upto-n' is called with its REPEATS as :inf")
-  (is (= 64
-         (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1) :inf))))))
+  (is (length= 64
+               (let ((*max-pattern-yield-length* 64))
+                 (next-upto-n (pseq (list 1 2 3) (pseq (list 1) :inf)))))
       "pseq yields the wrong number of results when its REPEATS is a pattern")
-  (is (= 3
-         (let ((*max-pattern-yield-length* 64))
-           (length (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) 1))))))
+  (is (length= 3
+               (let ((*max-pattern-yield-length* 64))
+                 (next-upto-n (pseq (list 1 2 3) (pseq (list 1 0) 1)))))
       "pseq yields the wrong number of results when its REPEATS is a pattern"))
 
 (test pstream-elt
   "Test the behavior of the `pstream-elt' function"
-  (is (eop-p
-       (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
-         (next-upto-n pstr)
-         (pstream-elt pstr -1)))
+  (is (eop-p (let ((pstr (as-pstream (pseq '(1 2 3) 1))))
+               (next-upto-n pstr)
+               (pstream-elt pstr -1)))
       "pstream-elt -1 does not return eop for ended pstreams")
   (is (= 99
          (let ((pstr (as-pstream (pseq '(1 2 99) 1))))
@@ -552,102 +544,85 @@ See also: `pattern-test-argument'"
                 (next-n bar 3) ;=> (2 3 NIL)
                 (subseq (slot-value bar 'cl-patterns::history) 0 13)))
       "pseq returns incorrect results when its REPEATS is used as a gate")
-  (is (equal
-       (list 6 7 5 6 7 5)
-       (next-upto-n (pseq (list 5 6 7) 2 1)))
+  (is (equal (list 6 7 5 6 7 5)
+             (next-upto-n (pseq (list 5 6 7) 2 1)))
       "pseq's OFFSET argument doesn't work with an integer")
-  (is (equal
-       (list 6 5 6)
-       (next-upto-n (pseq (list 5 6 7) 2 (pseq (list 1 2 -1) 1))))
+  (is (equal (list 6 5 6)
+             (next-upto-n (pseq (list 5 6 7) 2 (pseq (list 1 2 -1) 1))))
       "pseq's OFFSET argument doesn't work with a pattern"))
 
 (test pser
   "Test pser"
-  (is (equal
-       (list 1 2 3 eop eop eop)
-       (next-n (pser (list 1 2 3) 3) 6))
+  (is (equal (list 1 2 3 eop eop eop)
+             (next-n (pser (list 1 2 3) 3) 6))
       "pser yields the wrong number of outputs when its LENGTH is specified")
-  (is (equal
-       (list 1 2 3 1 2 1 1 2 3 1 2 1)
-       (next-upto-n (pser (list 1 2 3) (pseq (list 3 2 1 3 2 1 0) 1))))
+  (is (equal (list 1 2 3 1 2 1 1 2 3 1 2 1)
+             (next-upto-n (pser (list 1 2 3) (pseq (list 3 2 1 3 2 1 0) 1))))
       "pser yields incorrect results when its LENGTH is a pattern")
-  (is (equal
-       (list 1 1 0 0 2 2)
-       (next-upto-n (pser (list 0 1 2) :inf (pseq (list 1 0))) 6))
+  (is (equal (list 1 1 0 0 2 2)
+             (next-upto-n (pser (list 0 1 2) :inf (pseq (list 1 0))) 6))
       "pser's OFFSET argument doesn't work correctly with a pattern")
-  (is (equal
-       (list 1 1 0 0 2 2)
-       (next-upto-n (pser (list 0 1 2) :inf (pseq (list 1 0) 3))))
+  (is (equal (list 1 1 0 0 2 2)
+             (next-upto-n (pser (list 0 1 2) :inf (pseq (list 1 0) 3))))
       "pser's OFFSET argument doesn't work correctly with a finite pattern"))
 
 (test pk
   "Test pk"
-  (is (equal
-       (list 3)
-       (mapcar (fn (event-value _ :bar))
-               (next-n (pbind :foo (pseq (list 3) 1) :bar (pk :foo)) 1)))
+  (is (equal (list 3)
+             (mapcar (fn (event-value _ :bar))
+                     (next-n (pbind :foo (pseq (list 3) 1) :bar (pk :foo)) 1)))
       "pk yields incorrect results")
-  (is (equal
-       (list 1 2 3 nil)
-       (mapcar (fn (event-value _ :bar))
-               (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :foo)) 4)))
+  (is (equal (list 1 2 3 nil)
+             (mapcar (fn (event-value _ :bar))
+                     (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :foo)) 4)))
       "pk yields incorrect results")
-  (is (equal
-       (list 2 2 2 nil)
-       (mapcar (fn (event-value _ :bar))
-               (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :baz 2)) 4)))
+  (is (equal (list 2 2 2 nil)
+             (mapcar (fn (event-value _ :bar))
+                     (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :baz 2)) 4)))
       "pk yields incorrect results when a default is provided and its KEY is not in the source")
-  (is (=
-       3
-       (let ((*event* (event :foo 3)))
-         (event-value (next (pbind :bar (pk :foo))) :bar)))
+  (is (= 3
+         (let ((*event* (event :foo 3)))
+           (event-value (next (pbind :bar (pk :foo))) :bar)))
       "*event* is not propagated to pbinds when it is bound, resulting in pk yielding incorrect results"))
 
 (test prand
   "Test prand"
   (is (not (member nil (mapcar (lambda (x) (member x (list 1 2 3))) (next-upto-n (prand (list 1 2 3) :inf)))))
       "prand is yielding outputs not specified in its inputs")
-  (is (= 3
-         (length (next-upto-n (prand (list 1 2 3) 3))))
+  (is (length= 3 (next-upto-n (prand (list 1 2 3) 3)))
       "prand yields the correct number of outputs")
-  (is-false
-   (find-if-not (fn (member _ (list 1 2)))
-                (next-upto-n (prand (pf (list 1 2)))))
-   "prand returned incorrect results for LIST as a pattern"))
+  (is-false (find-if-not (fn (member _ (list 1 2)))
+                         (next-upto-n (prand (pf (list 1 2)))))
+            "prand returned incorrect results for LIST as a pattern"))
 
 (test pxrand
   "Test pxrand"
-  (is-true
-   (block pxrand-test-1
-     (let ((prev))
-       (dolist (cur (next-n (pxrand (list 1 2)) 1000))
-         (when (eql cur prev)
-           (return-from pxrand-test-1 nil))
-         (setf prev cur))
-       t))
-   "pxrand yielded the same item twice in a row")
+  (is-true (block pxrand-test-1
+             (let ((prev))
+               (dolist (cur (next-n (pxrand (list 1 2)) 1000))
+                 (when (eql cur prev)
+                   (return-from pxrand-test-1 nil))
+                 (setf prev cur))
+               t))
+           "pxrand yielded the same item twice in a row")
   (signals simple-error (pxrand (list 1 1 1))
     "pxrand does not signal an error for insufficient differing elements in its input list")
-  (is-false
-   (find-if-not (fn (member _ (list 1 2)))
-                (next-upto-n (pxrand (pf (list 1 2)))))
-   "pxrand returned incorrect results for LIST as a pattern"))
+  (is-false (find-if-not (fn (member _ (list 1 2)))
+                         (next-upto-n (pxrand (pf (list 1 2)))))
+            "pxrand returned incorrect results for LIST as a pattern"))
 
 (test pwrand
   "Test pwrand"
-  (is-false
-   (position 0 (next-n (pwrand (list 0 1) (list 0 1)) 1000))
-   "pwrand yielded an item whose weight was 0")
-  (is-false
-   (find-if-not (fn (member _ (list 1 2)))
-                (next-upto-n (pwrand (pf (list 1 2)))))
-   "pwrand returned incorrect results for LIST as a pattern")
-  (is-false
-   (find 1 (mapcar #'freq
-                   (next-upto-n (pbind :foo 0
-                                       :freq (pwrand (list 1 0)
-                                                     (list (pk :foo) 1))))))
-   "pwrand returned incorrect results for WEIGHTS with a pattern"))
+  (is-false (position 0 (next-n (pwrand (list 0 1) (list 0 1)) 1000))
+            "pwrand yielded an item whose weight was 0")
+  (is-false (find-if-not (fn (member _ (list 1 2)))
+                         (next-upto-n (pwrand (pf (list 1 2)))))
+            "pwrand returned incorrect results for LIST as a pattern")
+  (is-false (find 1 (mapcar #'freq
+                            (next-upto-n (pbind :foo 0
+                                                :freq (pwrand (list 1 0)
+                                                              (list (pk :foo) 1))))))
+            "pwrand returned incorrect results for WEIGHTS with a pattern"))
 
 (test pwxrand
   "Test pwxrand"
@@ -676,8 +651,7 @@ See also: `pattern-test-argument'"
 
 (test pfunc
   "Test pfunc"
-  (is (= 9
-         (length (next-upto-n (pfunc (lambda () (random 9))) 9)))
+  (is (length= 9 (next-upto-n (pfunc (lambda () (random 9))) 9))
       "pfunc yields the wrong number of outputs")
   (is (= 4
          (next (pfunc (lambda () (+ 2 2)))))
@@ -710,13 +684,12 @@ See also: `pattern-test-argument'"
   (is (equal (list 0 1 1 1 3 3 eop)
              (next-n (pr (pseries) (pseq '(1 3 0 2) 1)) 7))
       "pr yields EOP at the end of its REPEATS pattern")
-  (is (equal ; FIX: make sure this works for all filter patterns (pfor, etc)
-       (list 1 2 2 3 3 3 1 2 2 3 3 3)
-       (mapcar (fn (event-value _ :x))
-               (next-upto-n
-                (pr (pbind :x (pseq (list 1 2 3)))
-                    (pk :x))
-                12)))
+  (is (equal (list 1 2 2 3 3 3 1 2 2 3 3 3) ; FIX: make sure this works for all filter patterns (pfor, etc)
+             (mapcar (fn (event-value _ :x))
+                     (next-upto-n
+                      (pr (pbind :x (pseq (list 1 2 3)))
+                          (pk :x))
+                      12)))
       "pr's REPEATS parameter doesn't have access to the event generated by its source pattern"))
 
 (test plazy
@@ -749,28 +722,23 @@ See also: `pattern-test-argument'"
 
 (test pn
   "Test pn"
-  (is (equal
-       (list 1 eop eop)
-       (next-n (pn 1 1) 3))
+  (is (equal (list 1 eop eop)
+             (next-n (pn 1 1) 3))
       "pn yields incorrect outputs when its source pattern is a value")
-  (is (equal
-       (list 3 3 3 eop)
-       (next-n (pn 3 3) 4))
+  (is (equal (list 3 3 3 eop)
+             (next-n (pn 3 3) 4))
       "pn yields incorrect outputs when its source pattern is a value")
-  (is (equal
-       (list 1 2 3 1 2 3 1 2 3 eop eop eop)
-       (next-n (pn (pseq (list 1 2 3) 1) 3) 12))
+  (is (equal (list 1 2 3 1 2 3 1 2 3 eop eop eop)
+             (next-n (pn (pseq (list 1 2 3) 1) 3) 12))
       "pn yields incorrect outputs when its source pattern is a pattern")
   (is (eop-p (next (pn (pseq (list 1 2 3) 0) 1)))
       "pn does not yield eop when its source pattern yields no outputs"))
 
 (test pshuf
   "Test pshuf"
-  (is (= 5
-         (length (next-upto-n (pshuf (list 1 2 3 4 5) 1) 32)))
+  (is (length= 5 (next-upto-n (pshuf (list 1 2 3 4 5) 1) 32))
       "pshuf yields the wrong number of outputs when REPEATS is specified")
-  (is (= 10
-         (length (next-upto-n (pshuf (list 1 2 3 4 5) 2) 32)))
+  (is (length= 10 (next-upto-n (pshuf (list 1 2 3 4 5) 2) 32))
       "pshuf yields the wrong number of outputs when REPEATS is specified")
   (let ((list (list 1 2 3 4 5)))
     (next-upto-n (pshuf list 1))
@@ -1013,53 +981,48 @@ See also: `pattern-test-argument'"
 
 (test pfor
   "Test pfor"
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 4)
-                  (event :foo 1 :bar 5)
-                  (event :foo 1 :bar 6)
-                  (event :foo 2 :bar 4)
-                  (event :foo 2 :bar 5)
-                  (event :foo 2 :bar 6)
-                  (event :foo 3 :bar 4)
-                  (event :foo 3 :bar 5)
-                  (event :foo 3 :bar 6))
-            (next-n (pfor (pbind :foo (pseq (list 1 2 3)))
-                          (pbind :bar (pseq (list 4 5 6) 1)))
-                    9))
+  (is-true (every-event-equal (list (event :foo 1 :bar 4)
+                                    (event :foo 1 :bar 5)
+                                    (event :foo 1 :bar 6)
+                                    (event :foo 2 :bar 4)
+                                    (event :foo 2 :bar 5)
+                                    (event :foo 2 :bar 6)
+                                    (event :foo 3 :bar 4)
+                                    (event :foo 3 :bar 5)
+                                    (event :foo 3 :bar 6))
+                              (next-n (pfor (pbind :foo (pseq (list 1 2 3)))
+                                            (pbind :bar (pseq (list 4 5 6) 1)))
+                                      9))
            "pfor yields incorrect outputs")
-  (is-true (every-event-equal
-            (list (event :freq 200 :xx 400)
-                  (event :freq 200 :xx 200)
-                  (event :freq 300 :xx 600)
-                  (event :freq 300 :xx 300)
-                  (event :freq 400 :xx 800)
-                  (event :freq 400 :xx 400)
-                  eop)
-            (next-n (pfor (pbind :freq (pseq (list 200 300 400) 1))
-                          (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
-                    7))
+  (is-true (every-event-equal (list (event :freq 200 :xx 400)
+                                    (event :freq 200 :xx 200)
+                                    (event :freq 300 :xx 600)
+                                    (event :freq 300 :xx 300)
+                                    (event :freq 400 :xx 800)
+                                    (event :freq 400 :xx 400)
+                                    eop)
+                              (next-n (pfor (pbind :freq (pseq (list 200 300 400) 1))
+                                            (pbind :xx (p* (pk :freq 99) (pseq (list 2 1) 1))))
+                                      7))
            "pfor yields incorrect outputs when the arpeggiator pattern references values from the base pattern via pk")
-  (is-true (every-event-equal
-            (list (event :x 1 :y 3 :z 5)
-                  (event :x 1 :y 3 :z 6)
-                  (event :x 1 :y 4 :z 5)
-                  (event :x 1 :y 4 :z 6)
-                  (event :x 2 :y 3 :z 5)
-                  (event :x 2 :y 3 :z 6)
-                  (event :x 2 :y 4 :z 5)
-                  (event :x 2 :y 4 :z 6))
-            (next-upto-n (pfor (pbind :x (pseq (list 1 2) 1))
-                               (pfor (pbind :y (pseq (list 3 4) 1))
-                                     (pbind :z (pseq (list 5 6) 1))))))
+  (is-true (every-event-equal (list (event :x 1 :y 3 :z 5)
+                                    (event :x 1 :y 3 :z 6)
+                                    (event :x 1 :y 4 :z 5)
+                                    (event :x 1 :y 4 :z 6)
+                                    (event :x 2 :y 3 :z 5)
+                                    (event :x 2 :y 3 :z 6)
+                                    (event :x 2 :y 4 :z 5)
+                                    (event :x 2 :y 4 :z 6))
+                              (next-upto-n (pfor (pbind :x (pseq (list 1 2) 1))
+                                                 (pfor (pbind :y (pseq (list 3 4) 1))
+                                                       (pbind :z (pseq (list 5 6) 1))))))
            "triply-nested pfor yields incorrect outputs"))
 
 (test pfin
   "Test pfin"
-  (is (= 3
-         (length (next-upto-n (pfin (pseq (list 1 2 3) :inf) 3))))
+  (is (length= 3 (next-upto-n (pfin (pseq (list 1 2 3) :inf) 3)))
       "pfin doesn't correctly limit its source pattern when COUNT is a number")
-  (is (= 3
-         (length (next-upto-n (pfin (pseq (list 1 2 3) :inf) (pseq (list 3))))))
+  (is (length= 3 (next-upto-n (pfin (pseq (list 1 2 3) :inf) (pseq (list 3)))))
       "pfin doesn't correctly limit its source pattern when COUNT is a pattern"))
 
 (test pfindur
@@ -1067,35 +1030,33 @@ See also: `pattern-test-argument'"
   (is (= 5
          (reduce #'+ (mapcar #'dur (next-upto-n (pfindur (pbind :dur (pwhite 0.0 1.0)) 5)))))
       "pfindur patterns don't have a correct total duration")
-  (is (= 99
-         (length (next-upto-n (pfindur (pbind :dur 5) :inf) 99)))
+  (is (length= 99 (next-upto-n (pfindur (pbind :dur 5) :inf) 99))
       "pfindur doesn't properly handle :inf as its DUR")
   (is-false (remove-if-not (lambda (n) (> n 4))
                            (let (list)
                              (dotimes (n 100 list)
                                (push (reduce #'+ (next-upto-n (pfindur (pwhite 0.1 2.0 4) 4))) list))))
             "pfindur doesn't limit value patterns")
-  (is (= 2
-         (length (next-upto-n (pfindur (pbind :dur 2) 5 1))))
+  (is (length= 2 (next-upto-n (pfindur (pbind :dur 2) 5 1)))
       "pfindur's TOLERANCE argument doesn't work properly"))
 
 (test psync
   "Test psync"
-  (is-true (every-event-equal
-            (list (event :dur 5) (event :type :rest :dur 3))
-            (next-upto-n (psync (pbind :dur (pseq (list 5) 1)) 4)))
+  (is-true (every-event-equal (list (event :dur 5)
+                                    (event :type :rest :dur 3))
+                              (next-upto-n (psync (pbind :dur (pseq (list 5) 1)) 4)))
            "psync doesn't correctly quantize up to the next multiple of QUANT")
-  (is-true (equal
-            (list 5 5 5 1)
-            (mapcar #'dur (next-upto-n (psync (pbind :dur (pseq (list 5) 5)) 4 16))))
+  (is-true (equal (list 5 5 5 1)
+                  (mapcar #'dur (next-upto-n (psync (pbind :dur (pseq (list 5) 5)) 4 16))))
            "psync fails to limit its source pattern to MAXDUR")
-  (is-true (every-event-equal
-            (list (event :dur 2) (event :dur 2))
-            (next-upto-n (psync (pbind :dur 2) 5 5 1)))
+  (is-true (every-event-equal (list (event :dur 2)
+                                    (event :dur 2))
+                              (next-upto-n (psync (pbind :dur 2) 5 5 1)))
            "psync's TOLERANCE argument doesn't work properly")
-  (is-true (every-event-equal
-            (list (event :dur 2) (event :dur 2) (event :dur 1))
-            (next-upto-n (psync (pbind :dur 2) 5 5 0.5)))
+  (is-true (every-event-equal (list (event :dur 2)
+                                    (event :dur 2)
+                                    (event :dur 1))
+                              (next-upto-n (psync (pbind :dur 2) 5 5 0.5)))
            "psync with TOLERANCE doesn't cut off events after MAXDUR"))
 
 (test pdurstutter
@@ -1103,11 +1064,10 @@ See also: `pattern-test-argument'"
   (is (equal (list 2 3/2 3/2)
              (next-upto-n (pdurstutter (pseq (list 1 2 3) 1) (pseq (list 0 1 2) 1))))
       "pdurstutter yields incorrect outputs for value patterns")
-  (is (every-event-equal
-       (list (event :foo 1 :dur 1)
-             (event :foo 2 :dur 1/2)
-             (event :foo 2 :dur 1/2))
-       (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq (list 0 1 2) 1))))
+  (is (every-event-equal (list (event :foo 1 :dur 1)
+                               (event :foo 2 :dur 1/2)
+                               (event :foo 2 :dur 1/2))
+                         (next-upto-n (pdurstutter (pbind :foo (pseries)) (pseq (list 0 1 2) 1))))
       "pdurstutter yields incorrect outputs for event patterns"))
 
 (test pbeat
@@ -1140,9 +1100,8 @@ See also: `pattern-test-argument'"
 
 (test pindex
   "Test pindex"
-  (is (equal
-       (list 3 2 1 eop eop eop eop)
-       (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2) 1)) 7))
+  (is (equal (list 3 2 1 eop eop eop eop)
+             (next-n (pindex (list 3 2 1 0) (pseq (list 0 1 2) 1)) 7))
       "pindex yields incorrect outputs")
   (is (equal (list 99 98 97 99 98 97 99 98 97)
              (next-n (pindex (list 99 98 97) (pseries 0 1) t) 9))
@@ -1153,25 +1112,23 @@ See also: `pattern-test-argument'"
 
 (test prun
   "Test prun"
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 4)
-                  (event :foo 2 :bar 5)
-                  (event :foo 3 :bar 5)
-                  (event :foo 4 :bar 6)
-                  (event :foo 5 :bar 8))
-            (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1)
-                                :bar (prun (pseq (list 4 5 6 7 8) 1)
-                                           (pseq (list 1 2 0.5 0.5 1) 1)))))
+  (is-true (every-event-equal (list (event :foo 1 :bar 4)
+                                    (event :foo 2 :bar 5)
+                                    (event :foo 3 :bar 5)
+                                    (event :foo 4 :bar 6)
+                                    (event :foo 5 :bar 8))
+                              (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1)
+                                                  :bar (prun (pseq (list 4 5 6 7 8) 1)
+                                                             (pseq (list 1 2 0.5 0.5 1) 1)))))
            "prun yields incorrect outputs")
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 4)
-                  (event :foo 2 :bar 4)
-                  (event :foo 3 :bar 5)
-                  (event :foo 4 :bar 5)
-                  (event :foo 5 :bar 6))
-            (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1)
-                                :bar (prun (pseq (list 4 5 6 7 8) 1)
-                                           2))))
+  (is-true (every-event-equal (list (event :foo 1 :bar 4)
+                                    (event :foo 2 :bar 4)
+                                    (event :foo 3 :bar 5)
+                                    (event :foo 4 :bar 5)
+                                    (event :foo 5 :bar 6))
+                              (next-upto-n (pbind :foo (pseq (list 1 2 3 4 5) 1)
+                                                  :bar (prun (pseq (list 4 5 6 7 8) 1)
+                                                             2))))
            "prun doesn't support numbers as its DUR"))
 
 (test psym ; FIX: add more
@@ -1193,13 +1150,17 @@ See also: `pattern-test-argument'"
 
 (test pchain
   "Test pchain"
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 7) (event :foo 2 :bar 8) (event :foo 3 :bar 9) eop)
-            (next-n (pchain (pbind :foo (pseq (list 1 2 3))) (pbind :bar (pseq (list 7 8 9) 1))) 4))
+  (is-true (every-event-equal (list (event :foo 1 :bar 7)
+                                    (event :foo 2 :bar 8)
+                                    (event :foo 3 :bar 9)
+                                    eop)
+                              (next-n (pchain (pbind :foo (pseq (list 1 2 3))) (pbind :bar (pseq (list 7 8 9) 1))) 4))
            "pchain doesn't combines the outputs from each of its input patterns correctly")
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 1) (event :foo 2 :bar 2) (event :foo 3 :bar 3) eop)
-            (next-n (pchain (pbind :foo (pseq (list 1 2 3) 1)) (pbind :bar (pk :foo))) 4))
+  (is-true (every-event-equal (list (event :foo 1 :bar 1)
+                                    (event :foo 2 :bar 2)
+                                    (event :foo 3 :bar 3)
+                                    eop)
+                              (next-n (pchain (pbind :foo (pseq (list 1 2 3) 1)) (pbind :bar (pk :foo))) 4))
            "outputs from previous patterns are accessible in subsequent patterns when pchain'd"))
 
 (test pdiff
@@ -1235,15 +1196,12 @@ See also: `pattern-test-argument'"
 (test ppar
   "Test ppar"
   (is-true (let ((pat (pbind :dur (pn 4/3 8))))
-             (every-event-equal
-              (mapcar (lambda (ev) (combine-events ev (event :delta 4/3)))
-                      (next-upto-n pat))
-              (next-upto-n (ppar (list pat)))))
+             (every-event-equal (mapcar (lambda (ev) (combine-events ev (event :delta 4/3)))
+                                        (next-upto-n pat))
+                                (next-upto-n (ppar (list pat)))))
            "ppar yields incorrect outputs when its LIST has only one pattern")
-  (is-false (typep (quant (as-pstream (ppar (list (pseq (list 1 2 3) 1)))))
-                   'pstream)
-            "patterns that use the default as-pstream method have their quant converted to a t-pstream" ; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
-            )
+  (is-false (pstream-p (quant (as-pstream (ppar (list (pseq (list 1 2 3) 1))))))
+            "patterns that use the default as-pstream method have their quant converted to a t-pstream") ; FIX: rewrite this test so it doesn't depend on ppar not having its own as-pstream method and tests quant conversion more directly
   (is (< 10 (length (next-upto-n (ppar (list (pbind :x (pn 1 4)) (pbind :y (pseries)))) 20)))
       "ppar doesn't continue with the rest of the patterns after one ends")
   (is (equal (list 0 1 0 1 0 1 0 1 0 1 1 1)
@@ -1285,42 +1243,50 @@ See also: `pattern-test-argument'"
 
 (test pparchain
   "Test pparchain"
-  (is (every-event-equal
-       (list
-        (list (event :foo 0) (event :foo 3 :baz 1))
-        (list (event :foo 1) (event :foo 4 :baz 2))
-        (list (event :foo 2) (event :foo 5 :baz 3)))
-       (next-upto-n (pparchain (pbind :foo (pseries 0 1 3)) (pbind :baz (p+ (pk :foo) 1) :foo (p+ (pk :foo) 3)))))
+  (is (every-event-equal (list (list (event :foo 0)
+                                     (event :foo 3 :baz 1))
+                               (list (event :foo 1)
+                                     (event :foo 4 :baz 2))
+                               (list (event :foo 2)
+                                     (event :foo 5 :baz 3)))
+                         (next-upto-n (pparchain (pbind :foo (pseries 0 1 3)) (pbind :baz (p+ (pk :foo) 1) :foo (p+ (pk :foo) 3)))))
       "pparchain yields incorrect outputs"))
 
 (test ppc
   "Test ppc"
-  (is (every-event-equal
-       (list
-        (list (event :foo 1) (event :foo 1 :bar 3))
-        (list (event :foo 2) (event :foo 2 :bar 4))
-        (list (event :foo 3) (event :foo 3 :bar 5)))
-       (next-upto-n (ppc :foo (pseq (list 1 2 3) 1)
-                         :-
-                         :bar (p+ (pk :foo) 2))))
+  (is (every-event-equal (list (list (event :foo 1)
+                                     (event :foo 1 :bar 3))
+                               (list (event :foo 2)
+                                     (event :foo 2 :bar 4))
+                               (list (event :foo 3)
+                                     (event :foo 3 :bar 5)))
+                         (next-upto-n (ppc :foo (pseq (list 1 2 3) 1)
+                                        :-
+                                        :bar (p+ (pk :foo) 2))))
       "ppc yields incorrect outputs"))
 
 (test pclump
   "Test pclump"
-  (is-true (equal (list (list 0 1) (list 2 3) (list 4))
+  (is-true (equal (list (list 0 1)
+                        (list 2 3)
+                        (list 4))
                   (next-upto-n (pclump (pseries 0 1 5) 2)))
            "pclump yields incorrect outputs for constant N")
-  (is-true (equal (list (list 0) (list 1 2) (list 3 4 5) (list 6 7 8 9) (list 10 11 12 13 14))
+  (is-true (equal (list (list 0)
+                        (list 1 2)
+                        (list 3 4 5)
+                        (list 6 7 8 9)
+                        (list 10 11 12 13 14))
                   (next-upto-n (pclump (pseries 0 1) (pseries 1 1 5))))
            "pclump yields incorrect outputs for pattern N"))
 
 (test paclump
   "Test paclump"
-  (is-true (every-event-equal
-            (list (event :foo (list 1) :bar (list 0))
-                  (event :foo (list 1 2) :bar (list 1 2))
-                  (event :foo (list 1 2 3) :bar (list 3 4 5)))
-            (next-upto-n (pbind :foo (pseq (list (list 1) (list 1 2) (list 1 2 3)) 1) :bar (paclump (pseries)))))
+  (is-true (every-event-equal (list (event :foo (list 1) :bar (list 0))
+                                    (event :foo (list 1 2) :bar (list 1 2))
+                                    (event :foo (list 1 2 3) :bar (list 3 4 5)))
+                              (next-upto-n (pbind :foo (pseq (list (list 1) (list 1 2) (list 1 2 3)) 1)
+                                                  :bar (paclump (pseries)))))
            "paclump yields incorrect output"))
 
 (test paccum
@@ -1334,8 +1300,7 @@ See also: `pattern-test-argument'"
   (is (equal (list 1 2 4 8 16 32 64 72 56 88)
              (next-upto-n (paccum #'* 1 2 :inf :lo 0 :hi 100 :bound-by 'fold) 10))
       "paccum yields incorrect output for #'* as OPERATOR")
-  (is (= 2
-         (length (next-upto-n (paccum #'+ 0 1 2))))
+  (is (length= 2 (next-upto-n (paccum #'+ 0 1 2)))
       "paccum yields the wrong number of outputs when LENGTH is 2"))
 
 (test ps

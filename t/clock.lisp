@@ -15,10 +15,10 @@
              "clock's tempo is not set properly at creation time")
     (play (pbind :dur (pn 1 4)))
     (clock-process *clock* 5)
-    (is-true ; when this test fails it's usually due to the `pstream-elt-future' function being wrong
-     (apply #'/= (mapcar (fn (event-value _ :beat-at-start))
-                         (debug-backend-recent-events (find-backend 'debug-backend) 4)))
-     "events that should be separated are being played simultaneously")))
+    ;; when this test fails it's usually due to the `pstream-future-elt' function being wrong:
+    (is-true (apply #'/= (mapcar (fn (event-value _ :beat-at-start))
+                                 (debug-backend-recent-events (find-backend 'debug-backend) 4)))
+             "events that should be separated are being played simultaneously")))
 
 (test tempo-change
   "Test clock tempo-changing functionality")

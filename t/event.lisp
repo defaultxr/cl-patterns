@@ -75,13 +75,11 @@
 
 (test every-event-equal
   "Test every-event-equal"
-  (is-true (every-event-equal
-            (list (event :freq 440))
-            (list (event :freq 440)))
+  (is-true (every-event-equal (list (event :freq 440))
+                              (list (event :freq 440)))
            "every-event-equal doesn't return true for two lists of equivalent events")
-  (is-false (every-event-equal
-             (list (event :dur 1))
-             (list))
+  (is-false (every-event-equal (list (event :dur 1))
+                               (list))
             "every-event-equal doesn't return false for two lists of different length"))
 
 (test events-differing-keys
@@ -95,21 +93,17 @@
 
 (test combine-events
   "Test combine-events"
-  (is-true (event-equal
-            (event :foo 1 :bar 2 :baz 3)
-            (combine-events (event :foo 1) (event :bar 2 :baz 3)))
+  (is-true (event-equal (event :foo 1 :bar 2 :baz 3)
+                        (combine-events (event :foo 1) (event :bar 2 :baz 3)))
            "combine-events doesn't work correctly on two events")
-  (is-true (event-equal
-            (event :freq 450 :qux 69 :baz 3)
-            (combine-events (event :freq 450) (event :qux 69) (event :baz 3)))
+  (is-true (event-equal (event :freq 450 :qux 69 :baz 3)
+                        (combine-events (event :freq 450) (event :qux 69) (event :baz 3)))
            "combine-events doesn't work correctly on three events")
-  (is-true (event-equal
-            (event :freq 200)
-            (combine-events (event :freq 200) (event)))
+  (is-true (event-equal (event :freq 200)
+                        (combine-events (event :freq 200) (event)))
            "combine-events doesn't work correctly for empty second event")
-  (is-true (event-equal
-            (event :qux 69)
-            (combine-events (event) (event :qux 69)))
+  (is-true (event-equal (event :qux 69)
+                        (combine-events (event) (event :qux 69)))
            "combine-events doesn't work correctly for empty first event")
   (is-true (eop-p (combine-events eop (event :qux 69)))
            "combine-events doesn't work correctly for nil first event")
@@ -137,17 +131,15 @@
 
 (test split-event-by-lists
   "Test split-event-by-lists"
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 1 :baz 3)
-                  (event :foo 1 :bar 2 :baz 4)
-                  (event :foo 1 :bar 1 :baz 5))
-            (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
+  (is-true (every-event-equal (list (event :foo 1 :bar 1 :baz 3)
+                                    (event :foo 1 :bar 2 :baz 4)
+                                    (event :foo 1 :bar 1 :baz 5))
+                              (split-event-by-lists (event :foo 1 :bar (list 1 2) :baz (list 3 4 5))))
            "split-event-by-lists returns incorrect results")
-  (is-true (every-event-equal
-            (list (event :foo 1 :bar 1 :baz 3)
-                  (event :foo 1 :bar 2 :baz 4)
-                  (event :foo 1 :bar 1 :baz 5))
-            (split-event-by-lists (event :foo (list 1) :bar (list 1 2) :baz (list 3 4 5))))
+  (is-true (every-event-equal (list (event :foo 1 :bar 1 :baz 3)
+                                    (event :foo 1 :bar 2 :baz 4)
+                                    (event :foo 1 :bar 1 :baz 5))
+                              (split-event-by-lists (event :foo (list 1) :bar (list 1 2) :baz (list 3 4 5))))
            "split-event-by-lists returns incorrect results if one of the event values is a list of length 1")
   (is-true (equal (list 999)
                   (let ((event (event)))
@@ -162,8 +154,7 @@
 
 (test combine-events-via-lists
   "Test combine-events-via-lists"
-  (is-true (event-equal
-            (event :foo 1 :bar (list 2 3) :qux 4 :baz 5)
-            (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5)))
+  (is-true (event-equal (event :foo 1 :bar (list 2 3) :qux 4 :baz 5)
+                        (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5)))
            "combine-events-via-lists returns incorrect results"))
 

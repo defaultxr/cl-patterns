@@ -10,7 +10,7 @@
       "render :eseq does not coerce to an eseq")
   (is (typep (render (pseq (list 1 2 3)) :pstream) 'pstream)
       "render :pstream does not coerce to a pstream")
-  (is (typep (render (pseq (list 1 2 3)) :list) 'list)
+  (is (listp (render (pseq (list 1 2 3)) :list))
       "render :list does not coerce to a list")
   (is (length= 7 (render (pseq (list 1 2)) :list :max-length 7))
       "render :list with :max-length 7 renders the wrong number of items")
