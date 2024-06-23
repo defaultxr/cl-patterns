@@ -326,3 +326,5 @@ for example the "curve the time of another pattern" stuff could maybe be factore
   (hexbeat #x88) ;=> (1 0 0 0 1 0 0 0)
 #+end_src
 * function to get the name of a chord from a list of notes.
+* [[https://www.youtube.com/watch?v=XEfQje8jUjQ][Harmony Scaler]]-inspired pattern (WIP as ~pspiral~) to generate melodies based on pitches spiraling in a circle with offsets
+* rename ~cl-patterns/supercollider~ to ~cl-patterns/cl-collider~ for consistency with ~bdef~

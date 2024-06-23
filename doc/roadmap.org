@@ -119,18 +119,27 @@ and others
 
 ** general refactoring
 
-*** more shared/inherited functionality, i.e. make ~pbind~, ~pmeta~, etc. all use a common set of functions to process arguments
+*** more shared/inherited functionality, i.e. make ~pbind~, ~pmeta~, etc. all use a common set of functions to process arguments.
 
 ** "quantity objects"
 
 *** basically objects that represent values (i.e. for ~pitch~, ~volume~, etc.) with units to make them easier to use in functions and keep track of what they represent/convert between them. any keys like ~freq~, ~midinote~, ~amp~, etc. should automatically create a quantity object internally and store it in the pattern or event's ~pitch~, ~volume~, etc. key.
+
+** history/future improvements
+
+*** separate history and future (history uses a ringbuffer, future uses a queue).
+this should allow for cleaner code in various places, and both features will be less mentally taxing to use.
+
+** replace ~eseq~ with ~timeline~
+
+** "batch patterns"
 
 ** backend improvements
 
 *** DONE make each enabled backend its own object so it can have its own parameters rather than relying on global variables
 CLOSED: [2022-06-30 Thu 20:28]
 
-*** implement ~backend-disable~ restart
+*** implement ~backend-disable~ restart.
 
 ** clock improvements
 
