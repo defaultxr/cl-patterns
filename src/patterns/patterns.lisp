@@ -1776,7 +1776,7 @@ See also: `pgeom', `pseries', `pseries*'"
   ((trace :initform t)
    (prefix :initform nil)
    (stream :initform t))
-  :documentation "Print the PREFIX and each output of TRACE to STREAM. If TRACE is t, print `*event*'. If TRACE is a different symbol, print the value of that symbol in `*event*'. If TRACE is a pattern, ptrace yields its output unaffected. Otherwise, it yields t.
+  :documentation "Print the PREFIX and each output of TRACE to STREAM. If TRACE is t, print `*event*'. If TRACE is a different symbol, print the value of that symbol in `*event*'. Otherwise, ptrace yields TRACE unaffected.
 
 See also: `debug-backend', `debug-backend-recent-events'")
 
@@ -1803,7 +1803,7 @@ See also: `debug-backend', `debug-backend-recent-events'")
                                  (list symbol (event-value *event* symbol)))
                                (ensure-list trace)))
                t))
-            (pattern
+            (otherwise
              (let ((res (next trace)))
                (format stream "~&~@[~A ~]~S~%" prefix res)
                res)))))))
