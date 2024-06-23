@@ -108,6 +108,8 @@
 
    ;;; scales.lisp
 
+   #:redefining-melodic-alias
+
    #:tone-matrix
 
    #:define-tuning

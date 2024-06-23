@@ -10,7 +10,23 @@
 ;; - https://atactionpark.github.io/
 ;; - https://www.solfej.io/chords/c-major - scale and chord finder site
 
+;;; FIX: only signal `redefining-melodic-alias' when the new definition actually differs from the existing
+
 (in-package #:cl-patterns)
+
+(define-condition redefining-melodic-alias (warning)
+  ((alias :initarg :alias :reader redefining-melodic-alias-alias)
+   (existing-definition :initarg :existing-definition :reader redefining-melodic-alias-existing-definition)
+   (new-definition :initarg :new-definition :reader redefining-melodic-alias-new-definition))
+  (:report (lambda (condition stream)
+             (format stream "Redefining alias ~S (for ~S) to point to ~S" (redefining-melodic-alias-alias condition) (redefining-melodic-alias-existing-definition condition) (redefining-melodic-alias-new-definition condition))))
+  (:documentation "Condition for when changing an alias for a `tuning', `scale', or `chord'."))
+
+(defun redefining-melodic-alias (alias existing new)
+  "Signal a warning when changing an alias for a `tuning', `scale', or `chord'."
+  (warn 'redefining-melodic-alias :alias alias
+                                  :existing-definition existing
+                                  :new-definition new))
 
 ;;; utilities
 
@@ -154,7 +170,7 @@ See also: `tuning', `define-scale', `define-chord'"
       (if-let ((existing (gethash alias *tunings*)))
         (if (symbolp existing)
             (progn
-              (warn "Replacing existing alias \"~S\" (for ~S) with an alias for ~S." alias existing tuning)
+              (redefining-melodic-alias alias existing tuning)
               (setf (gethash alias *tunings*) key))
             (unless (eq existing tuning)
               (warn "Ignoring alias ~S that points to ~S (while trying to add it as an alias for ~S)." alias existing tuning)))
@@ -281,7 +297,7 @@ See also: `scale', `define-tuning', `define-chord'"
       (if-let ((existing (gethash alias *scales*)))
         (if (symbolp existing)
             (progn
-              (warn "Replacing existing alias \"~S\" (for ~S) with an alias for ~S." alias existing scale)
+              (redefining-melodic-alias alias existing scale)
               (setf (gethash alias *scales*) key))
             (unless (eq existing scale)
               (warn "Ignoring alias ~S that points to ~S (while trying to add it as an alias for ~S)." alias existing scale)))
@@ -384,7 +400,7 @@ See also: `scale', `define-tuning', `define-scale'"
       (if-let ((existing (gethash alias *chords*)))
         (if (symbolp existing)
             (progn
-              (warn "Replacing existing alias \"~S\" (for ~S) with an alias for ~S." alias existing chord)
+              (redefining-melodic-alias alias existing chord)
               (setf (gethash alias *chords*) key))
             (unless (eq existing chord)
               (warn "Ignoring alias ~S that points to ~S (while trying to add it as an alias for ~S)." alias existing chord)))
