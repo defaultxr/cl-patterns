@@ -15,18 +15,17 @@
 ;;; utilities
 
 (defparameter *abbreviations*
-  (list
-   (list "MAJOR" "MAJ")
-   (list "MINOR" "MIN")
-   (list "AUGMENTED" "AUG")
-   (list "DOMINANT" "DOM")
-   (list "DIMINISHED" "DIM")
-   (list "SUSPENDED" "SUS")
-   (list "TRIAD" "TRI")
-   (list "OTONALITY" "O")
-   (list "UTONALITY" "U")
-   (list "PENTATONIC" "PENT")
-   (list "HARMONIC" "HARM"))
+  (list (list "MAJOR" "MAJ")
+        (list "MINOR" "MIN")
+        (list "AUGMENTED" "AUG")
+        (list "DOMINANT" "DOM")
+        (list "DIMINISHED" "DIM")
+        (list "SUSPENDED" "SUS")
+        (list "TRIAD" "TRI")
+        (list "OTONALITY" "O")
+        (list "UTONALITY" "U")
+        (list "PENTATONIC" "PENT")
+        (list "HARMONIC" "HARM"))
   "List of abbreviations that should be used by `generate-aliases' to auto-generate aliases for `tuning's, `scale's, `chord's, etc.")
 
 (defun generate-aliases (name)
@@ -147,10 +146,9 @@ See also: `note-name-and-octave', `index-and-offset'"
 
 See also: `tuning', `define-scale', `define-chord'"
   (let ((key (friendly-symbol name))
-        (tuning (make-instance 'tuning
-                               :name name
-                               :pitches pitches
-                               :octave-ratio octave-ratio)))
+        (tuning (make-instance 'tuning :name name
+                                       :pitches pitches
+                                       :octave-ratio octave-ratio)))
     (setf (gethash key *tunings*) tuning)
     (dolist (alias (remove-duplicates (append (generate-aliases key) aliases)))
       (if-let ((existing (gethash alias *tunings*)))
@@ -273,10 +271,9 @@ Note that Scala refers to these as \"scales\" but in cl-patterns they are known 
 
 See also: `scale', `define-tuning', `define-chord'"
   (let ((key (friendly-symbol name))
-        (scale (make-instance 'scale
-                              :name name
-                              :notes notes
-                              :tuning tuning)))
+        (scale (make-instance 'scale :name name
+                                     :notes notes
+                                     :tuning tuning)))
     (unless (tuning tuning)
       (warn "Tuning ~S does not exist." tuning))
     (setf (gethash key *scales*) scale)
@@ -377,10 +374,9 @@ See also: `scale', `define-tuning', `define-chord'"
 
 See also: `scale', `define-tuning', `define-scale'"
   (let ((key (friendly-symbol name))
-        (chord (make-instance 'chord
-                              :name name
-                              :scale scale
-                              :indexes indexes)))
+        (chord (make-instance 'chord :name name
+                                     :scale scale
+                                     :indexes indexes)))
     (unless (scale scale)
       (warn "Scale ~S does not exist." scale))
     (setf (gethash key *chords*) chord)
