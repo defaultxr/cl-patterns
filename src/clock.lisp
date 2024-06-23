@@ -119,14 +119,13 @@ See also: `task-pattern', `clock-tasks'"
 (defun make-clock (&optional (tempo 1) &key (latency 1/10) play-expired-events condition-handler)
   "Create a clock with a tempo of TEMPO in beats per second (Hz).
 
-To start the clock so that it begins processing its tasks in a new thread, you can use `start-clock-loop'. Alternatively, you can call `clock-loop' yourself to start the loop in the current thread. The clock can also be advanced manually an arbitrary number of beats at a time with the `clock-process' function.
+Use `start-clock-loop' to start the clock so that it begins processing its tasks in a new thread, or call `clock-loop' to start the loop in the current thread. Alternatively, the clock can be advanced manually an arbitrary number of beats at a time using `clock-process'.
 
 See also: `clock-process', `clock-loop', `start-clock-loop'"
-  (make-instance 'clock
-                 :tempo tempo
-                 :latency latency
-                 :play-expired-events play-expired-events
-                 :condition-handler condition-handler))
+  (make-instance 'clock :tempo tempo
+                        :latency latency
+                        :play-expired-events play-expired-events
+                        :condition-handler condition-handler))
 
 (defmethod real-beat ((clock clock))
   "Get the \"real beat\" of the clock; i.e. compute what the beat number should actually be at this instant in time (whereas the beat slot for the clock is quantized to the clock's granularity).
