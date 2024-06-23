@@ -42,18 +42,6 @@
          (cl-patterns::index-of-greater-than 3 (list 1 2 3 3 4 4)))
       "index-of-greater-than returns incorrect results"))
 
-(test mapcar-longest
-  "Test the `mapcar-longest' function"
-  (is (equal (list 1 3 3)
-             (cl-patterns::mapcar-longest #'+ (list 0 1) (list 1) (list 0 1 2)))
-      "mapcar-longest returns incorrect results")
-  (is (equal (list 0 2 2 4 4 6)
-             (cl-patterns::mapcar-longest #'+ (list 0 1) (list 0 1 2 3 4 5)))
-      "mapcar-longest doesn't wrap indexes of the shorter lists correctly")
-  (is (equal (list (list 1 1) t)
-             (multiple-value-list (multi-channel-funcall #'dur (list (event :delta 1) (event :delta 2)))))
-      "mapcar-longest doesn't include additional return values from its last call"))
-
 (test last-dur
   "Test the `last-dur' function"
   (is (= 4 (cl-patterns::last-dur (list (event :dur 3 :beat 1) (event :dur 2 :beat 0))))
@@ -62,8 +50,11 @@
 (test multi-channel-funcall
   "Test the `multi-channel-funcall' function"
   (is (equal 3
-             (cl-patterns::multi-channel-funcall #'+ 2 1))
-      "multi-channel-funcall doesn't return a lone value when all its inputs are lone values"))
+             (multi-channel-funcall #'+ 2 1))
+      "multi-channel-funcall doesn't return a lone value when all its inputs are lone values")
+  (is (equal (list (list 1 1) t)
+             (multiple-value-list (multi-channel-funcall #'dur (list (event :delta 1) (event :delta 2)))))
+      "multi-channel-funcall doesn't include additional return values from its last call"))
 
 (test plist-set
   "Test the `plist-set' function"

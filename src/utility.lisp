@@ -97,29 +97,6 @@ See also: `normalized-sum'"
                           (event-value _ :dur))))
       0))
 
-(defun mapcar-longest (function &rest lists)
-  "Like `mapcar', but the resulting list is the length of the longest input list instead of the shortest. Indexes into shorter lists are wrapped. Additional return values from the last call are passed through as additional values from this function.
-
-Example:
-
-;; (mapcar-longest #'+ (list 1) (list 2 3 4))
-;; => (3 4 5)
-
-See also: `multi-channel-funcall'"
-  (let (more-values)
-    (apply #'values
-           (loop
-             :for i :from 0 :below (reduce #'max (mapcar #'length lists))
-             :for res := (multiple-value-list
-                          (apply function
-                                 (mapcar
-                                  (lambda (list)
-                                    (elt-wrap list i))
-                                  lists)))
-             :collect (car res)
-             :do (setf more-values (cdr res)))
-           more-values)))
-
 (defun multi-channel-funcall (function &rest args)
   "Call FUNCTION on the provided arguments. If one or more of the arguments is a list, funcall for each element of the list(s). The length of the resulting list will be the same as the longest input list.
 
@@ -128,9 +105,9 @@ Example:
 ;; (multi-channel-funcall #'+ 1 (list 1 2 3))
 ;; => (2 3 4)
 
-See also: `mapcar-longest', `split-event-by-lists'"
+See also: `mutility:mapwrap', `split-event-by-lists'"
   (if-let ((has-list (position-if #'listp args)))
-    (apply #'mapcar-longest function (mapcar #'ensure-list args))
+    (apply #'mapwrap function (mapcar #'ensure-list args))
     (apply #'funcall function args)))
 
 (defun plist-set (plist key value)
