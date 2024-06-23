@@ -784,8 +784,10 @@ See also: `pattern-test-argument'"
 
 (test pexprand
   "Test pexprand"
-  ;; FIX
-  )
+  (let* ((len (random *max-pattern-yield-length*))
+         (res (length (next-upto-n (pexprand 8 8 len)))))
+    (is (= len res)
+        "pexprand yields the wrong number of outputs (expected ~S, got ~S)" len res)))
 
 (test pgauss
   "Test pgauss"
