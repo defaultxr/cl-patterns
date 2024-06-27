@@ -73,37 +73,46 @@
       (replace-regexp-in-string "[^A-Za-z0-9-]+" "-" string)))
 
 (defun cl-patterns-random-word (&optional file)
-  "Get a random word from FILE, which defaults to /usr/share/dict/words. If no such file exists, simply returns nil."
+  "Get a random word from FILE, which defaults to /usr/share/dict/words. If no
+ such file exists, simply returns nil."
   (let ((file (or file "/usr/share/dict/words")))
     (when (file-exists-p file)
       (with-temp-buffer
         (insert-file-contents file)
         (delete-matching-lines "'s$")
-        (goto-line (random (count-lines (point-min) (point-max))))
+        (goto-char (point-min))
+        (forward-line (random (count-lines (point-min) (point-max))))
         (downcase (thing-at-point 'word))))))
 
 (defun cl-patterns-random-letters (&optional length)
-  "Generate a string of random letters of the specified LENGTH. If no length is provided, a random length between 3 and 12 letters is chosen."
+  "Generate a string of random letters of the specified LENGTH. If no length is
+ provided, a random length between 3 and 12 letters is chosen."
   (concat (let (res)
             (dotimes (n (or length (+ 3 (random 10))) res)
+              (ignore n)
               (push (elt "abcdefghijklmnopqrstuvwxyz" (random 26)) res)))))
 
 (defun cl-patterns-generate-random-name ()
-  "Generate a random \"name\" by either grabbing a random word from the system dictionary file if it exists, or generating random letters.
+  "Generate a random \"name\" by either grabbing a random word from the system
+dictionary file if it exists, or generating random letters.
 
-This is used as the default function for `cl-patterns-name-generator', to generate a name for a skeleton when the user supplies only a period."
+This is used as the default function for `cl-patterns-name-generator', to
+generate a name for a skeleton when the user supplies only a period."
   (concat ":" (or (cl-patterns-random-word)
                   (cl-patterns-random-letters))))
 
 (defun cl-patterns-increase-number-suffix (string)
-  "Increase the number at the end of STRING by 1. If there is no number at the end of STRING, suffix it with \"-1\". Note that dashes count as a separator, not as a negative sign."
+  "Increase the number at the end of STRING by 1. If there is no number at the end
+ of STRING, suffix it with \"-1\". Note that dashes count as a separator, not as
+ a negative sign."
   (if-let ((match (string-match "\\([[:digit:]]+\\)$" string)))
-      (concat (subseq string 0 (match-beginning 1))
+      (concat (cl-subseq string 0 (match-beginning 1))
               (number-to-string (1+ (string-to-number (match-string-no-properties 1 string)))))
     (concat string "-1")))
 
 (defun cl-patterns-ensure-symbol-syntax (string)
-  "Ensure that STRING starts with either a colon or an apostrophe; if neither, return it prefixed with a colon."
+  "Ensure that STRING starts with either a colon or an apostrophe; if neither,
+return it prefixed with a colon."
   (if (or (member (elt string 0) (list ?: ?'))
           (cl-every #'cl-digit-char-p string))
       string
@@ -118,18 +127,19 @@ This is used as the default function for `cl-patterns-name-generator', to genera
 (defun cl-patterns-lisp-interactive-eval (string)
   "Evaluate STRING via slime or sly."
   (let ((current-prefix-arg nil))
-    (if (fboundp 'slime-eval)
+    (if (fboundp 'slime-interactive-eval)
         (slime-interactive-eval string)
       (sly-interactive-eval string))))
 
 (defun cl-patterns-lisp-eval-region (start end)
   "Evaluate the specified region via slime or sly."
-  (if (fboundp 'slime-eval)
+  (if (fboundp 'slime-eval-region)
       (slime-eval-region start end)
     (sly-eval-region start end)))
 
 (defun cl-patterns-context ()
-  "Get the type (i.e., pdef, defsynth, proxy, etc) and name of the current context, or nil if there is nothing under the point."
+  "Get the type (i.e., pdef, defsynth, proxy, etc) and name of the current
+context, or nil if there is nothing under the point."
   (when-let ((bounds (bounds-of-thing-at-point 'defun)))
     (save-excursion
       (save-restriction
@@ -139,7 +149,9 @@ This is used as the default function for `cl-patterns-name-generator', to genera
         (list (ignore-errors (intern (match-string-no-properties 1))) (match-string-no-properties 2))))))
 
 (defun cl-patterns-get-name-of-previous-item (items)
-  "Get the name of the previous form whose type is one of ITEMS. For example, if ITEMS is '(defsynth proxy) then find the nearest defsynth or proxy before the point and return its name."
+  "Get the name of the previous form whose type is one of ITEMS. For example, if
+ ITEMS is \\='(defsynth proxy) then find the nearest defsynth or proxy before
+the point and return its name."
   (save-excursion
     (let ((context (or (cl-patterns-context)
                        (list nil))))
@@ -184,7 +196,8 @@ This is used as the default function for `cl-patterns-name-generator', to genera
      (completing-read prompt instruments nil nil (when (member guess instruments) guess) 'cl-patterns-instrument-history))))
 
 (defun cl-patterns-instrument-arguments (instrument)
-  "Get a list of INSTRUMENT's arguments, or nil if the arguments can't be determined."
+  "Get a list of INSTRUMENT's arguments, or nil if the arguments can't be
+determined."
   (unless (cl-every #'cl-digit-char-p instrument) ;; if INSTRUMENT is a number then it's likely referring to a midi backend, in which case we don't really have a standard way to get a list of said instrument's controls.
     (cl-patterns-lisp-eval
      `(cl:mapcar
@@ -196,12 +209,14 @@ This is used as the default function for `cl-patterns-name-generator', to genera
 ;;; Commands
 
 (defun cl-patterns-stop-all ()
-  "Stop all currently-playing patterns, nodes, etc. Sometimes referred to as \"MIDI panic\"."
+  "Stop all currently-playing patterns, nodes, etc. Sometimes referred to as
+\"MIDI panic\"."
   (interactive)
   (cl-patterns-lisp-eval '(cl-patterns:stop t)))
 
 (defun cl-patterns-play-or-end-context (&optional stop)
-  "Play or end the pdef, synthdef, bdef, etc, underneath the point. When STOP is true, play or stop instead."
+  "Play or end the pdef, synthdef, bdef, etc, underneath the point. When STOP is
+true, play or stop instead."
   (interactive)
   (let* ((context (cl-patterns-context))
          (type (car context))
@@ -226,7 +241,8 @@ This is used as the default function for `cl-patterns-name-generator', to genera
   (cl-patterns-play-or-end-context t))
 
 (defun cl-patterns--playing-stopped-pdefs ()
-  "Get a list of two elements: a list of playing pdefs' names, and a list of non-playing/stopped pdefs' names."
+  "Get a list of two elements: a list of playing pdefs' names, and a list of
+non-playing/stopped pdefs' names."
   (cl-patterns-lisp-eval
    `(cl:let* ((playing (cl-patterns:playing-pdef-names))
               (all (cl-patterns:all-pdef-names)))
@@ -239,11 +255,11 @@ This is used as the default function for `cl-patterns-name-generator', to genera
   (when-let* ((playing-stopped (cl-patterns--playing-stopped-pdefs))
               (pdefs (append (mapcar (lambda (pdef)
                                        (format "%s (playing)" pdef))
-                                     (first playing-stopped))
-                             (mapcar #'symbol-name (second playing-stopped))))
+                                     (cl-first playing-stopped))
+                             (mapcar #'symbol-name (cl-second playing-stopped))))
               (selection (completing-read (concat "Play or " (if stop "stop" "end") ": ") pdefs nil nil))
               (func (if stop "cl-patterns:play-or-stop" "cl-patterns:play-or-end")))
-    (cl-patterns-lisp-interactive-eval (concat "(" func " " (first (split-string selection)) ")"))))
+    (cl-patterns-lisp-interactive-eval (concat "(" func " " (cl-first (split-string selection)) ")"))))
 
 (defun cl-patterns-play-or-stop-pdef ()
   "Select a pdef to play or stop."
@@ -251,7 +267,9 @@ This is used as the default function for `cl-patterns-name-generator', to genera
   (cl-patterns-play-or-end-pdef t))
 
 (defun cl-patterns-play-or-end-context-or-select-pdef (&optional arg stop)
-  "Play or end the current context, or if no relevant context was found (and ARG was not provided), call `cl-patterns-play-or-end-pdef' to select a pdef to play/end. When STOP is true, stop instead of end."
+  "Play or end the current context, or if no relevant context was found (and ARG
+was not provided), call `cl-patterns-play-or-end-pdef' to select a pdef to
+play/end. When STOP is true, stop instead of end."
   (interactive "P")
   (let ((context (cl-patterns-context)))
     (if (or arg
@@ -260,7 +278,9 @@ This is used as the default function for `cl-patterns-name-generator', to genera
       (cl-patterns-play-or-end-context stop))))
 
 (defun cl-patterns-play-or-stop-context-or-select-pdef (&optional arg)
-  "Play or stop the current context, or if no relevant context was found (and ARG was not provided), call `cl-patterns-play-or-stop-pdef' to select a pdef to play/stop."
+  "Play or stop the current context, or if no relevant context was found (and ARG
+was not provided), call `cl-patterns-play-or-stop-pdef' to select a pdef to
+play/stop."
   (interactive "P")
   (let ((context (cl-patterns-context)))
     (if (or (not (car context)) arg)
@@ -270,7 +290,8 @@ This is used as the default function for `cl-patterns-name-generator', to genera
 ;;; SuperCollider documentation functionality
 
 (defvar cl-patterns-supercollider-classes-list nil
-  "List of SuperCollider classes for `cl-patterns-supercollider-populate-classes-list'.")
+  "List of SuperCollider classes for
+`cl-patterns-supercollider-populate-classes-list'.")
 
 (defun cl-patterns-populate-supercollider-classes-list (&optional force)
   "Populate `cl-patterns-supercollider-classes-list' if it is nil or FORCE is true."
@@ -283,6 +304,7 @@ This is used as the default function for `cl-patterns-name-generator', to genera
       (let ((sclang-classes-process (start-process "sclang-classes-process" "*sclang-classes-output*" "sclang" file)))
         (set-process-sentinel sclang-classes-process
                               (lambda (process event)
+                                (ignore process)
                                 (when (string= "finished\n" event)
                                   (with-current-buffer "*sclang-classes-output*"
                                     (goto-char (point-min))
