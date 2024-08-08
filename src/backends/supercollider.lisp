@@ -27,6 +27,12 @@
                                                                      :just-connect-p just-connect-p))
     backend))
 
+(eval-when (:compile-toplevel :load-toplevel :execute) ; needed for the following dolist form.
+  (closer-mop:ensure-finalized (find-class 'supercollider)))
+
+(dolist (sym (list 'backend-num-ugens 'backend-num-synths 'backend-num-groups 'backend-num-definitions))
+  (setf (documentation sym 'function) (documentation (find-class-slot 'supercollider :accessor sym) t)))
+
 (defmethod backend-start ((backend supercollider) &rest rest &key (set-cl-collider-default-p t) force-boot-p &allow-other-keys)
   (declare (ignore rest))
   (let ((server (backend-server backend)))

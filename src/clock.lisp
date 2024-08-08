@@ -106,10 +106,11 @@ See also: `task-pattern', `clock-tasks'"
      (beat-at-tempo :initform 0 :documentation "The number of beats on the clock when the tempo was last changed."))
     (:documentation "A musical time-based clock defining a tempo and pulse that its tasks synchronize to.")))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (closer-mop:ensure-finalized (find-class 'clock)) ; needed for the following:
-  (let ((sym 'clock-caught-conditions-extra-data-function))
-    (setf (documentation sym 'function) (documentation (find-class-slot 'clock :accessor sym) t))))
+(eval-when (:compile-toplevel :load-toplevel :execute) ; needed for the following let form.
+  (closer-mop:ensure-finalized (find-class 'clock)))
+
+(let ((sym 'clock-caught-conditions-extra-data-function))
+  (setf (documentation sym 'function) (documentation (find-class-slot 'clock :accessor sym) t)))
 
 (defmethod print-object ((clock clock) stream)
   (print-unreadable-object (clock stream :type t)

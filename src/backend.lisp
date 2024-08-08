@@ -41,10 +41,11 @@
 (defmethod initialize-instance :after ((backend backend) &key &allow-other-keys)
   (pushnew backend *backends*))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (closer-mop:ensure-finalized (find-class 'backend)) ; needed for the following dolist:
-  (dolist (sym (list 'backend-name 'backend-enabled-p 'backend-started-p 'backend-input-processors 'backend-metadata))
-    (setf (documentation sym 'function) (documentation (find-class-slot 'backend :accessor sym) t))))
+(eval-when (:compile-toplevel :load-toplevel :execute) ; needed for the following dolist form.
+  (closer-mop:ensure-finalized (find-class 'backend)))
+
+(dolist (sym (list 'backend-name 'backend-enabled-p 'backend-started-p 'backend-input-processors 'backend-metadata))
+  (setf (documentation sym 'function) (documentation (find-class-slot 'backend :accessor sym) t)))
 
 (defun all-backend-types ()
   "Get a list of names of all defined backend types. A backend type is any class that inherits from `backend'.
