@@ -67,19 +67,6 @@ could be used, for example, for a pattern that's set to ~:pfollow~ another patte
 ** DONE basic pre-backend multichannel expansion
 CLOSED: [2018-08-09 Thu 19:39]
 ** TODO patterns automatically and correctly handle/coerce lists as values
-
-* ~pmetropolis~ - intellijel metropolis-inspired pattern class (maybe a mini-language for compactly representing durstutters, etc).
-** maybe something like this:
-#+BEGIN_SRC lisp
-  (pbind :instrument :acid
-         :midinote (pseq '(60 59 58 57 56 55 54 53))
-         :embed (pmetropolis '(5s 2h+ 2r 2o 0 3 2h- 1)))
-#+END_SRC
-this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (~+~ meaning slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (~-~ means skip), play 53 for one pulse, and then loop.
-* ~pgatestorm~ (working name)
-[[https://erogenous-tones.com/modules/gatestorm-advanced-gate-generator-for-eurorack/][Erogenous Tones GateStorm]]-inspired pattern class with a mini-language for writing trigger-based patterns.
-[[https://www.youtube.com/playlist?list=PLQWlwKV1zlsc15Nc0Fsg_TntUA3_moRWH][playlist of instructional videos]]
-
 * split out cl-patterns functionality into independent sub-systems
 ** ~cl-patterns/basic~ - minimal system that only includes patterns and not the clock or event special keys.
 ** ~cl-patterns/clock~ - the clock.
@@ -191,10 +178,8 @@ done - we now use ~cl-patterns:eop~ instead.
 could this be generalized so that it can curve any parameter?
 ** curve parameter for ~pdurstutter~/~pr~
 *** maybe also a way to apply dur curves in general, i.e. so it can be used in ~pfor~ as well?
-* [[https://github.com/carrierdown/mutateful][mutateful]]-inspired pattern mini-language
-https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
 * option to make changes to patterns affect their pstreams immediately
-** it should be pretty easy to do this for ~eseq~ - actually, just do it for ~timeline~ instead.
+** it should be pretty easy to do this for ~timeline~.
 ** perhaps just make a pstream that is just a proxy to the pattern, auto-updated when the pattern changes?
 * more "hotswappable pstream" stuff; i.e. stuff to swap pstreams in the middle of the pattern as they're playing, with all changes applied immediately and continuing from the same beat
 see ~timeline~ (integrate the functionality of ~ipstream~ into it)
@@ -208,7 +193,6 @@ take into account these variables (and maybe others?):
 * DONE Include Emacs skeletons and other functionality for writing patterns faster
 CLOSED: [2021-11-11 Thu 12:03]
 done - see the [[file:~/misc/lisp/cl-patterns/res/emacs/][res/emacs]] directory
-* [[https://web.archive.org/web/20100110004824/http://www.pawfal.org/index.php?page=BetaBlocker][betablocker]]-inspired pattern (perhaps related to ~pfsm~ or ~pdfsm~ or the like?)
 * ~pswing~ pattern to easily apply swing to an input pattern
 * [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]]
 * "after actions"
@@ -326,5 +310,22 @@ for example the "curve the time of another pattern" stuff could maybe be factore
   (hexbeat #x88) ;=> (1 0 0 0 1 0 0 0)
 #+end_src
 * function to get the name of a chord from a list of notes.
-* [[https://www.youtube.com/watch?v=XEfQje8jUjQ][Harmony Scaler]]-inspired pattern (WIP as ~pspiral~) to generate melodies based on pitches spiraling in a circle with offsets
 * rename ~cl-patterns/supercollider~ to ~cl-patterns/cl-collider~ for consistency with ~bdef~
+* inspirations
+** ~pgatestorm~ (working name)
+[[https://erogenous-tones.com/modules/gatestorm-advanced-gate-generator-for-eurorack/][Erogenous Tones GateStorm]]-inspired pattern class with a mini-language for writing trigger-based patterns.
+[[https://www.youtube.com/playlist?list=PLQWlwKV1zlsc15Nc0Fsg_TntUA3_moRWH][playlist of instructional videos]]
+** [[https://www.youtube.com/watch?v=XEfQje8jUjQ][Harmony Scaler]]-inspired pattern (WIP as ~pspiral~) to generate melodies based on pitches spiraling in a circle with offsets
+** [[https://github.com/pichenettes/eurorack/tree/master/grids][Mutable Instruments Grids]]-inspired pattern
+perhaps make something that can auto-extract sequences from drumloop sound files?
+** [[https://github.com/carrierdown/mutateful][mutateful]]-inspired pattern mini-language
+https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
+** [[https://web.archive.org/web/20100110004824/http://www.pawfal.org/index.php?page=BetaBlocker][betablocker]]-inspired pattern (perhaps related to ~pfsm~ or ~pdfsm~ or the like?)
+** ~pmetropolis~ - intellijel metropolis-inspired pattern class (maybe a mini-language for compactly representing durstutters, etc).
+*** maybe something like this:
+#+BEGIN_SRC lisp
+  (pbind :instrument :acid
+         :midinote (pseq '(60 59 58 57 56 55 54 53))
+         :embed (pmetropolis '(5s 2h+ 2r 2o 0 3 2h- 1)))
+#+END_SRC
+this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (~+~ meaning slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (~-~ means skip), play 53 for one pulse, and then loop.
