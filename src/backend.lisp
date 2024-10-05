@@ -250,12 +250,11 @@ See also: `backend-play-event'"))
         (let ((last-output (last-output item)))
           (dolist (node nodes)
             (backend-control-node-at backend
-                                     (cadr
-                                      (backend-timestamps-for-event
-                                       backend
-                                       (event-with-raw-timing (combine-events last-output (event :legato 1))
-                                                              task)
-                                       task))
+                                     (cadr (backend-timestamps-for-event
+                                            backend
+                                            (event-with-raw-timing (combine-events latest-output (event :legato 1))
+                                                                   task)
+                                            task))
                                      node
                                      (list :gate 0)))))
     (when-let ((cleanup (and (slot-exists-p item 'cleanup)
@@ -285,8 +284,7 @@ See also: `backend-play-event'"))
       (loop :for param :in instrument-params
             :for sparam := (make-keyword (string-upcase param))
             :for val := (backend-convert-object backend (event-value event sparam) sparam)
-            :if (or (eql :gate sparam)
-                    val)
+            :if (or val (eql :gate sparam))
               :append (list (if (eql :group sparam) ; :group is an alias for :to
                                 :to
                                 sparam)

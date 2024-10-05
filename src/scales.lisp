@@ -86,7 +86,7 @@ See also: `note-name-and-octave', `index-and-offset'"
      (count #\# string :test #'string-equal)))
 
 (defun index-and-offset (num)
-  "Return a cons cell consisting of the input number and the offset its sharps/flats represent."
+  "Get a cons cell consisting of the input number and the offset its sharps/flats represent."
   (etypecase num
     (number (cons num 0))
     (symbol (index-and-offset (string num)))
