@@ -92,7 +92,7 @@ It should be fairly easy to write the Amen break based on textual notation. For 
 
 * 12-bar blues
 
-A nice 12-bar blues-style pattern, [[https://github.com/defaultxr/cl-patterns/commit/c715e4c64036bd0be67206c8e86675788d34359d#commitcomment-48846609][contributed]] by [[https://github.com/TatriX][TatriX]]. Best played with a cool, possibly guitar-like, ~instrument~. :)
+A cool 12-bar blues-style pattern, [[https://github.com/defaultxr/cl-patterns/commit/c715e4c64036bd0be67206c8e86675788d34359d#commitcomment-48846609][contributed]] by [[https://github.com/TatriX][TatriX]]. Best played with a nice, possibly guitar-like, ~instrument~. :)
 
 #+begin_src lisp
   (pb :12-bar-blues

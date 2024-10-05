@@ -102,6 +102,7 @@ make other libraries that expand upon cl-patterns' feature sets (i.e. libraries 
 ** support chord notation
 *** look into [[https://github.com/triss/ChordSymbol][ChordSymbol]]
 ** support I, II, III, IV, i, ii, iii, iv, etc. notation
+** support the [[https://www.youtube.com/watch?v=NmeogiNhdHI&t=32m28s][super-ultra-hyper-mega-meta-lydian scale]]
 * DONE clock condition handler (formerly known as "performance mode")
 CLOSED: [2018-07-01 Sun 18:02]
 ...where any pattern that signals a condition is automatically handled with the specified restart, so the music doesn't come to a screeching halt.
@@ -329,3 +330,14 @@ https://cdm.link/2019/10/mutateful-free-live-coding-ableton/
          :embed (pmetropolis '(5s 2h+ 2r 2o 0 3 2h- 1)))
 #+END_SRC
 this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide into 58 (~+~ meaning slide), rest for 2 pulses (instead of playing 58), play 57 for 1 pulse and then rest for a pulse, skip 56 entirely (0 pulses), play 55 once and then rest 2 pulses (default step mode is "once"), skip 54 entirely (~-~ means skip), play 53 for one pulse, and then loop.
+* "preset" patterns, i.e. amen break (and other common loops), optionally loadable via a function
+- amen break
+- 4 on the floor
+- drum patterns for various genres
+  - drum'n'bass
+  - house
+  - etc
+- [[https://www.youtube.com/watch?v=ZROR_E5bFEI][18 rhythms you should know]] - also explains swing/shuffle
+- "see also: pbjorklund"
+* rename ~pbjorklund~ to ~peuclid~ or similar?
+* give a better error message if ~*clock*~ is nil - for example, for issues like https://github.com/byulparan/cl-collider/issues/144

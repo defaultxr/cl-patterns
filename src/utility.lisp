@@ -514,6 +514,8 @@ See also: `eop-p', `last-output'"))
         nil)
       (play object)))
 
+;; FIX: move to clock.lisp ?
+;; FIX: solos and mutes should be properties of clock tasks. soloing/muting should not end/stop patterns but rather should simply adjust the relevant property of the task
 (defun play-solo (object &key (stop-type 'end) (clock *clock*))
   "End or stop all tasks on CLOCK and play OBJECT (or simply let it continue playing if it's already playing).
 
@@ -530,6 +532,7 @@ See also: `play', `end', `stop', `play-swap'"
     (unless (playing-p object)
       (play object))))
 
+;; FIX: move to clock.lisp ?
 (defun play-swap (play end &key (stop-type 'end) (clock *clock*))
   "Play PLAY, and end (or stop) END.
 
