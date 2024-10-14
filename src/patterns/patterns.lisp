@@ -2196,7 +2196,7 @@ See also: `psym', `pmeta', `pr'")
 ;;; parp (deprecated)
 ;; FIX: after deprecation, re-create parp as an actual arpeggiation pattern. perhaps look to https://github.com/carrierdown/mutateful#creating-an-arpeggio-from-a-sustained-note-and-a-chord for a way to implement an arpeggiation pattern?
 
-(uiop:with-deprecation (:style-warning)
+(uiop:with-deprecation (:warning)
   (defun parp (&rest rest)
     "Deprecated alias for `pfor'."
     (apply #'pfor rest)))

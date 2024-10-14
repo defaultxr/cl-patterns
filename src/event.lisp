@@ -196,20 +196,6 @@ See also: `every-event-equal'"
                        events)
           :collect key))
 
-(uiop:with-deprecation (:error)
-  (defun events-lists-differing-keys (&rest lists)
-    "Get a list of the keys that differ between respective event in LISTS.
-
-Example:
-
-;; (events-lists-differing-keys (list (event :foo 1 :bar 2) (event :bar 3)        (event :foo 1 :bar 3))
-;;                              (list (event :foo 1 :bar 2) (event :foo 1 :bar 3) (event :foo 2 :bar 3)))
-;; => (NIL (:FOO) (:FOO))
-
-See also: `every-event-equal'"
-    (loop :for idx :from 0 :below (reduce #'max (mapcar #'length lists))
-          :collect (apply #'events-differing-keys (mapcar (lambda (list) (nth idx list)) lists)))))
-
 (defun combine-events (&rest events)
   "Get a new event that inserts all the items in each event of EVENTS. Keys from the events listed first will be overwritten by later events.
 
