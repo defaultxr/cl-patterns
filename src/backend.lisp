@@ -252,7 +252,7 @@ See also: `backend-play-event'"))
             (backend-control-node-at backend
                                      (cadr (backend-timestamps-for-event
                                             backend
-                                            (event-with-raw-timing (combine-events latest-output (event :legato 1))
+                                            (event-with-raw-timing (combine-events last-output (event :legato 1))
                                                                    task)
                                             task))
                                      node
