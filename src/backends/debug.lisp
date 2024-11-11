@@ -16,7 +16,8 @@
   (format (debug-backend-print-stream backend) "~&Starting debug backend (i.e. doing nothing).~%"))
 
 (defmethod backend-stop ((backend debug-backend))
-  (format (debug-backend-print-stream backend) "~&Stopping debug backend (i.e. doing nothing).~%"))
+  (format (debug-backend-print-stream backend) "~&Stopping debug backend (i.e. doing nothing).~%")
+  backend)
 
 (defun (setf debug-backend-recent-events) (value &optional (backend (find-backend 'debug-backend)))
   (setf (debug-backend-events backend) value))

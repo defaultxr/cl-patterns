@@ -121,23 +121,23 @@ See also: `backend-stop', `backend-enabled-p', `make-backend'"))
   backend)
 
 (defgeneric backend-stop (backend)
-  (:documentation "Stop BACKEND's server if it is running and return a list of the affected backend(s).
+  (:documentation "Stop BACKEND's server if it is running and return the affected backend.
 
 See also: `backend-start', `backend-enabled-p'"))
 
 (defmethod backend-stop (backend)
   nil)
 
+(defmethod backend-stop ((backend-name symbol))
+  (if-let ((backend (find-backend backend-name :started-p t)))
+    (progn (backend-stop backend)
+           backend)
+    (error "Could not find a started backend of name or type ~S" backend-name)))
+
 (defmethod backend-stop :around (backend)
-  (let ((backends (if (string-designator-p backend)
-                      (loop :for candidate :in (all-backends :started-p t)
-                            :if (or (string-equal backend (backend-name candidate))
-                                    (string-equal backend (class-name (class-of candidate))))
-                              :collect candidate)
-                      (ensure-list backend))))
-    (dolist (c-backend backends backends)
-      (call-next-method c-backend)
-      (setf (backend-started-p c-backend) nil))))
+  (let ((backend (call-next-method)))
+    (setf (backend-started-p backend) nil)
+    backend))
 
 ;; (defgeneric backend-handles-event-p (backend event) ; FIX: is this needed?
 ;;   (:documentation "True if BACKEND is currently available to handle EVENT."))

@@ -160,7 +160,8 @@ See also: `alsa-midi-instrument-program-number'"
     (midihelper:start-midihelper)))
 
 (defmethod backend-stop ((backend alsa-midi))
-  (midihelper:stop-midihelper))
+  (midihelper:stop-midihelper)
+  backend)
 
 (defmethod backend-instrument-controls ((backend alsa-midi) instrument)
   (remove-if #'numberp (keys *alsa-midi-cc-map*)))

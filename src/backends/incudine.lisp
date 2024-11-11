@@ -88,7 +88,8 @@ See also: `timestamp-incudine-samples'"
         *incudine-start-samples* (incudine:now)))
 
 (defmethod backend-stop ((backend incudine))
-  (incudine:rt-stop))
+  (incudine:rt-stop)
+  backend)
 
 (defmethod backend-tempo-change-at ((backend incudine) clock timestamp)
   nil)

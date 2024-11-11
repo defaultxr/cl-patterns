@@ -46,7 +46,8 @@
         (cl-collider:server-boot server))))
 
 (defmethod backend-stop ((backend supercollider))
-  (cl-collider:server-quit (backend-server backend)))
+  (cl-collider:server-quit (backend-server backend))
+  backend)
 
 (defmethod backend-start-status-tracker ((backend supercollider))
   (cl-collider:add-reply-responder
