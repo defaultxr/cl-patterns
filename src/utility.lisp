@@ -335,10 +335,18 @@ See also: `find-pdef'"
 (defgeneric tempo (object)
   (:documentation "Get the tempo of OBJECT in beats per second. If OBJECT is a number, set the tempo of `*clock*' to that number.
 
-See also: `beat'"))
+See also: `bpm', `beat'"))
 
 (defmethod tempo ((symbol symbol))
   (tempo (find-object-by-id symbol)))
+
+(defun bpm (object)
+  "Get the tempo of OBJECT in beats per minute. If OBJECT is a number, set the tempo of `*clock*' to that number in beats per minute.
+
+See also: `tempo', `beat'"
+  (typecase object
+    (number (tempo (/ object 60)))
+    (t (* 60 (tempo object)))))
 
 (defgeneric beat (object)
   (:documentation "Get the beat that OBJECT occurs on, relative to its context's start. For example, for an `event', the beat is relative to the start of its source pattern, while for a `pstream' or clock object, the beat is the number of beats that have passed since its start.

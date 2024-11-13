@@ -22,6 +22,7 @@
    #:rerange
 
    #:tempo
+   #:bpm
    #:beat
    #:quant
    #:play-quant
