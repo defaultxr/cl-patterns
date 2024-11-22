@@ -2,6 +2,7 @@
 
 ;;; TODO:
 ;; FIX: remove this and write it as regular functions instead?
+;; FIX: ensure that events in MAP are "executed"; i.e. :map (list 'foo (event :value (lambda () (random 200)))) should replace 'foo in the input list with events whose :value are random numbers between 0 and 199.
 
 (in-package #:cl-patterns)
 

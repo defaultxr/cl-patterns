@@ -326,8 +326,8 @@ See also: `events-in-range'"))
 
 ;; FIX: can we avoid making this inherit from pattern?
 (defclass pstream (pattern #+#.(cl:if (cl:find-package "SEQUENCE") '(:and) '(:or)) sequence)
-  ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ; FIX: rename to this-index ?
-   (pattern-stack :initform (list) :documentation "The stack of pattern pstreams embedded in this pstream.")
+  ((number :initform 0 :documentation "The number of outputs yielded from this pstream and any sub-pstreams that have ended.") ; FIX: rename to outputs-yielded ?
+   (pattern-stack :initform nil :documentation "The stack of pattern pstreams embedded in this pstream.")
    (pstream-count :initarg :pstream-count :accessor pstream-count :type integer :documentation "How many times a pstream was made of this pstream's source prior to this pstream. For example, if it was the first time `as-pstream' was called on the pattern, this will be 0.")
    (beat :initform 0 :reader beat :type number :documentation "The number of beats that have elapsed since the start of the pstream.")
    (history :type vector :documentation "The history of outputs yielded by the pstream.")
@@ -546,7 +546,7 @@ See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-m
             (setf result (funcall proc result pstream))))
         result))))
 
-(defgeneric as-pstream (thing)
+(defgeneric as-pstream (thing) ; FIX: add &key to allow for stuff like specifying the history length?
   (:documentation "Return THING as a pstream object.
 
 See also: `pattern-as-pstream'"))

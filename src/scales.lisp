@@ -85,7 +85,7 @@ See also: `note-name-and-octave', `index-and-offset'"
   (+ (* -1 (count #\b string :test #'string-equal))
      (count #\# string :test #'string-equal)))
 
-(defun index-and-offset (num)
+(defun index-and-offset (num) ; FIX: use parse-number-and-string from mutility for this?
   "Get a cons cell consisting of the input number and the offset its sharps/flats represent."
   (etypecase num
     (number (cons num 0))

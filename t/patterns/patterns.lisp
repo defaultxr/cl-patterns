@@ -202,7 +202,7 @@ See also: `pattern-test-argument'"
               (eq parent (pattern-parent child)))
             "~S did not set itself as the parent of its child" pattern)))))
 
-(test children
+(test pattern-children
   "Test whether children of a pattern can be accessed"
   (is-true (let* ((child (pn 1 4))
                   (parent (pbind :foo child)))

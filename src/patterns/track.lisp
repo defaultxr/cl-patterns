@@ -160,7 +160,7 @@ See also: `ptrack', `ptrack-row'"))
     (symbol
      (ptrack-cell ptrack nil row :if-does-not-exist if-does-not-exist))
     (integer
-     (if-let ((event (elt ptrack row)))
+     (if-let ((event (elt ptrack row))) ; FIX: does (elt ptrack-pstream row) even work?
        (event-value event key)
        (values nil nil nil)))))
 

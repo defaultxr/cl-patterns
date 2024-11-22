@@ -310,7 +310,7 @@ See also: `to-range', `from-range', `prerange'"
 (defvar *dictionary-lookup-functions* (list 'find-pdef)
   "List of functions that can be used to look up the object that a symbol can name. Each function should return the object in question if it exists, or nil (or throw an error) if it doesn't.
 
-Functions like `play', `end', `launch', and `stop' will check symbols against each of these dictionaries in order and will apply themselves to the object from the first dictionary with a matching key. 
+Functions like `play', `end', `launch', and `stop' will check each of these functions in order and will apply themselves to the first non-nil object returned.
 
 Example:
 
@@ -366,7 +366,7 @@ A quant value takes the form (divisor phase offset) where all provided elements 
 
 - \"divisor\" is the divisor to quantize the clock to. The next time (mod (beat *clock*) divisor) is 0 is when OBJECT will start playing.
 - \"phase\" is the number of beats to add on to the position determined by \"divisor\".
-- \"offset\" is the number of seconds to add on to the position determined by \"divisor\" and \"phase\".
+- \"offset\" is the number of seconds to add on to the position determined by \"divisor\" and \"phase\". Note that this is not implemented yet.
 
 For example, a quant of (4) means it can start on any clock beat that is divisible by 4 (0, 4, 8, etc). A quant of (4 2) means the pstream can start 2 beats after any beat divisible by 4 (2, 6, 10, etc). And a quant of (4 0 1) means that the pstream can start 1 second after any beat that is divisible by 4.
 

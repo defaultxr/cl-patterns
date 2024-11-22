@@ -141,7 +141,7 @@ See also: `psym', `pfor', `pdef', `pbind'"
                                   (list nv)
                                   (event (event-plist nv)))))
                       (dolist (i (reverse nvp))
-                        (push i rest))))                   
+                        (push i rest))))
                    (t
                     (setf current-pstream (process-pattern-key-value pmeta key value))))
                  (if rest
