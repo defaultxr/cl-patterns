@@ -258,6 +258,18 @@
    #:as-eseq
    #:eseq-pstream
 
+   ;;; batch.lisp
+
+   #:pull
+   #:serial-pattern ; FIX: move
+   #:serial-pstream ; FIX: move
+   #:batch-pattern
+   #:batch-pstream
+   #:serialized-pstream ; FIX: move
+   #:as-serial-pstream ; FIX: move
+   #:batched-pstream
+   #:as-batch-pstream
+
    ;;; backend.lisp
 
    #:backend

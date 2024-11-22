@@ -27,6 +27,7 @@
                (:file "event")
                (:module patterns
                 :components ((:file "patterns")
+                             (:file "batch")
                              (:file "pdef")
                              (:file "pmeta")
                              (:file "bjorklund")
@@ -126,6 +127,7 @@
                (:file "event")
                (:module patterns
                 :components ((:file "patterns")
+                             (:file "batch")
                              (:file "pdef")
                              (:file "pmeta")
                              (:file "bjorklund")
