@@ -155,12 +155,7 @@ See also: `beat'"
 
 (defmethod tempo ((number number))
   ;; convenience method to quickly set the tempo of the default clock.
-  ;; any number 20 or above is interpreted as beats per minute. less is interpreted as beats per second (Hz).
-  ;; i.e. (tempo 110) sets *clock*'s tempo to 110 BPM, (tempo 1.1) sets *clock*'s tempo to 1.1 BPS.
-  ;; to avoid this, just call (setf (tempo *clock*) ...) directly.
-  (setf (tempo *clock*) (if (>= number 20)
-                            (/ number 60)
-                            number)))
+  (setf (tempo *clock*) number))
 
 (defun clock-latency (&optional (clock *clock*))
   "The default latency for events played on the clock; the number of seconds added onto the event's scheduled time, in order to allow the backend to process it without being \"late\"."
