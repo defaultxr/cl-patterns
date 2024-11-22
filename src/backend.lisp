@@ -98,6 +98,12 @@ See also: `backend-start'"))
     (apply #'make-instance found-backend rest)
     (apply #'no-applicable-method #'make-backend backend rest)))
 
+(defmethod backend-started-p ((backend symbol))
+  (backend-started-p (find-backend backend)))
+
+(defmethod backend-started-p ((null null))
+  nil)
+
 (defgeneric backend-start (backend &rest args &key &allow-other-keys)
   (:documentation "Start BACKEND so it is ready to handle events and return the backend object. If BACKEND is the name of a backend rather than a `backend' instance, first make an instance of the backend as if `make-backend' was called, then call `backend-start' on that.
 
