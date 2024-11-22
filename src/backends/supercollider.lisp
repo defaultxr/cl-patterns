@@ -97,7 +97,7 @@
   (let ((time (if-let ((timestamp (raw-event-value event :timestamp-at-start)))
                 (+ (local-time:timestamp-to-unix timestamp) (* (local-time:nsec-of timestamp) 1.0d-9))
                 (cl-collider:now))))
-    (list time (+ time (dur-time (sustain event))))))
+    (list time (+ time (dur-duration (sustain event))))))
 
 (defmethod backend-proxys-node ((backend supercollider) id)
   (let ((proxy-table (cl-collider::node-proxy-table (backend-server backend))))

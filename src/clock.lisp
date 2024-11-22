@@ -52,10 +52,10 @@
                             (next-beat-for-quant play-quant (beat *clock*))
                             e-beat)
                         (+ start-beat e-beat))
-                    (time-dur (or (raw-event-value event :latency) (clock-latency (task-clock task)))
-                              tempo)
-                    (time-dur (or (raw-event-value event :timing-offset) 0)
-                              tempo)
+                    (duration-dur (or (raw-event-value event :latency) (clock-latency (task-clock task)))
+                                  tempo)
+                    (duration-dur (or (raw-event-value event :timing-offset) 0)
+                                  tempo)
                     (if (> (length play-quant) 2)
                         (nth 2 play-quant)
                         0))))
@@ -140,7 +140,7 @@ See also: `beat'"
 (defun absolute-beats-to-timestamp (beats &optional (clock *clock*)) ; FIX: should this be moved to conversions.lisp?
   "Convert a clock's number of beats to a timestamp. The result is only guaranteed to be accurate if it's greater than the clock's beat-at-tempo slot."
   (with-slots (timestamp-at-tempo beat-at-tempo) clock
-    (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-time (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
+    (local-time:timestamp+ timestamp-at-tempo (truncate (* (dur-duration (- beats beat-at-tempo) (tempo clock)) 1000000000)) :nsec)))
 
 (defmethod (setf tempo) (value (clock clock))
   ;; FIX: the "remove previous events" functionality should be a standard part of `clock-add' for :tempo events; it should remove any existing events with the same `beat'.

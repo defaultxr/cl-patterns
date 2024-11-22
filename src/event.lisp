@@ -374,7 +374,14 @@ See also: `dur', `sustain'")
   :define-methods t
   :documentation "The total duration of the note, in beats.
 
-See also: `delta', `legato'")
+See also: `duration', `delta', `legato'")
+
+(define-event-special-key :duration ((t 1)) ; FIX: implement this, and maybe use it instead of sustain, since it clashes with fewer things? i.e. sustain can clash with "sustain level"
+  :remove-keys nil
+  :define-methods t
+  :documentation "The total duration of the note, in seconds.
+
+See also: `dur', `delta', `legato'")
 
 ;; sustain/legato
 ;; FIX: this should probably remove dur, not (just?) legato, because dur is closer to sustain than legato is?

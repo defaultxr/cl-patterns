@@ -43,19 +43,28 @@ See also: `bipolar-unipolar'"
 
 ;;; duration
 
-(defconversion dur-time (dur &optional tempo)
-  "Convert DUR in beats to time in seconds according to TEMPO in beats per second."
+(defconversion dur-duration (dur &optional tempo)
+  "Convert a DUR in beats to duration in seconds according to TEMPO in beats per second."
   (/ dur (or tempo
              (and *clock*
                   (tempo *clock*))
              1)))
 
-(defconversion time-dur (time &optional tempo)
-  "Convert TIME in seconds to duration in beats according to TEMPO in beats per second."
-  (* time (or tempo
-              (and *clock*
-                   (tempo *clock*))
-              1)))
+(defconversion duration-dur (duration &optional tempo)
+  "Convert a DURATION in seconds to a dur in beats according to TEMPO in beats per second."
+  (* duration (or tempo
+                  (and *clock*
+                       (tempo *clock*))
+                  1)))
+
+(uiop:with-deprecation (:style-warning)
+  (defun time-dur (time &optional tempo)
+    "Deprecated alias for `duration-dur'."
+    (duration-dur time tempo))
+
+  (defun dur-time (dur &optional tempo)
+    "Deprecated alias for `dur-duration'."
+    (dur-duration dur tempo)))
 
 (defconversion dur-freq (dur &optional tempo)
   "Convert DUR in beats to frequency in Hz according to TEMPO in beats per second."

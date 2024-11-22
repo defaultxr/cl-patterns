@@ -120,7 +120,7 @@ See also: `timestamp-incudine-samples'"
     (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (backend-start 'incudine) if you want to use Incudine, or disable its backend."))
   (let ((timestamp (or (raw-event-value event :timestamp-at-start)
                        (local-time:now))))
-    (mapcar #'timestamp-to-incudine (list timestamp (local-time:timestamp+ timestamp (dur-time (sustain event)) :sec)))))
+    (mapcar #'timestamp-to-incudine (list timestamp (local-time:timestamp+ timestamp (dur-duration (sustain event)) :sec)))))
 
 (defmethod backend-event-timestamps ((backend incudine) event task)
   (when (and (not (backend-start-timestamp backend))
@@ -129,7 +129,7 @@ See also: `timestamp-incudine-samples'"
   (let ((timestamp (or (raw-event-value event :timestamp-at-start)
                        (local-time:now))))
     (mapcar (rcurry #'timestamp-incudine-samples backend)
-            (list timestamp (local-time:timestamp+ timestamp (dur-time (sustain event)) :sec)))))
+            (list timestamp (local-time:timestamp+ timestamp (dur-duration (sustain event)) :sec)))))
 
 (defmethod backend-proxys-node ((backend incudine) id)
   ;; FIX?

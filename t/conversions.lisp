@@ -20,8 +20,8 @@
 (test time-conversion
   "Test time conversion functions"
   (is-true (let ((input (iota 22 :step 1/10)))
-             (equal input (mapcar #'time-dur (mapcar #'dur-time input))))
-           "time-dur conversion is not equivalent to dur-time conversion"))
+             (equal input (mapcar #'duration-dur (mapcar #'dur-duration input))))
+           "duration-dur conversion is not equivalent to dur-duration conversion"))
 
 (test pitch-midinote-conversion
   "Test pitch/midinote conversion functions"

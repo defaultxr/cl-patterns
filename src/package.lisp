@@ -51,6 +51,8 @@
    #:amp-db
    #:db-amp
 
+   #:dur-duration
+   #:duration-dur
    #:dur-time
    #:time-dur
    #:dur-freq
@@ -167,6 +169,7 @@
 
    #:delta
    #:dur
+   #:duration
 
    #:sustain
    #:legato

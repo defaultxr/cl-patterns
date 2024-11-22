@@ -2441,7 +2441,7 @@ See also: `pbeat', `prun', `beat'")
         (prog1
             (incf elapsed-time (if (null last-beat-checked)
                                    0
-                                   (dur-time (- beat last-beat-checked) tempo)))
+                                   (dur-duration (- beat last-beat-checked) tempo)))
           (setf last-beat-checked beat
                 tempo-at-beat tempo))))))
 
