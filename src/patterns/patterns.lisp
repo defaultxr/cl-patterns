@@ -9,7 +9,9 @@
   (or *event* (event)))
 
 (defvar *patterns* nil
-  "List of the names of all defined pattern types.")
+  "List of the names of all defined pattern types.
+
+See also: `all-patterns'")
 
 (defmacro defpattern (name superclasses slots &key documentation defun)
   "Define a pattern. This macro automatically generates the pattern's class, its pstream class, and the function to create an instance of the pattern, and makes them external in the cl-patterns package.
