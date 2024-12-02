@@ -3020,6 +3020,10 @@ See also: `prs', `pdef'"
            (make-instance 'ps
                           :pattern pattern)))
 
+(defmethod print-object ((ps ps) stream)
+  (print-unreadable-object (ps stream :type t)
+    (format stream "~S" (slot-value ps 'pattern))))
+
 (defmethod as-pstream ((ps ps))
   (with-slots (pattern pstream) ps
     (make-instance 'ps-pstream
