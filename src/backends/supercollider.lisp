@@ -91,7 +91,8 @@
   (typep object 'cl-collider::node))
 
 (defmethod backend-panic ((backend supercollider))
-  (cl-collider:group-free-all (backend-server backend)))
+  (let ((cl-collider:*s* (backend-server backend)))
+    (cl-collider:group-free-all 1)))
 
 (defmethod backend-timestamps-for-event ((backend supercollider) event task)
   (let ((time (if-let ((timestamp (raw-event-value event :timestamp-at-start)))
