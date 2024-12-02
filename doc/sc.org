@@ -1,10 +1,10 @@
 #+TITLE: SuperCollider Patterns and Keys
 
-This is a listing of many of the pattern classes from SuperCollider and various quarks, and the [[http://doc.sccode.org/Classes/Event.html#Useful%20keys%20for%20notes][event keys]]. Any patterns and keys that have equivalents in cl-patterns are marked as such. If a pattern you want is not yet implemented (or not listed here), feel free to open an issue requesting it (or if you're feeling inspired, code it yourself and open a pull request!).
+This document is a listing of many of the pattern classes and [[http://doc.sccode.org/Classes/Event.html#Useful%20keys%20for%20notes][event keys]] from standard SuperCollider/sclang and various quarks, and their implementation status and/or equivalent in cl-patterns. If a pattern you want is not yet implemented (or not listed here), feel free to open an issue requesting it (or if you're feeling inspired, code it yourself and open a pull request!).
 
-Note that this is just a simple rip of all the ~Pattern~ subclasses and that a pattern's inclusion in this list doesn't necessarily guarantee it will be implemented in the future.
+Note that this is just a simple rip of all the ~Pattern~ subclasses and that a pattern's inclusion in this list doesn't necessarily guarantee it will be implemented--or implemented exactly as it is in standard SC--in the future.
 
-Treat this list as a "quick reference" for users familiar with SuperCollider's patterns. For more in-depth information, have a look at the [[file:sc-differences.org][sc-differences.org]] file instead, which will give more details about the ways cl-patterns differs from SuperCollider.
+Treat this list as a "quick reference" for users familiar with SuperCollider's patterns. For more in-depth information, have a look at the [[file:sc-differences.org][sc-differences.org]] file instead, which gives a more high-level overview of the ways cl-patterns differs from SuperCollider.
 
 * list patterns
 - ~Pseq~ - done as ~pseq~.
@@ -27,6 +27,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pswitch~ - functionality covered by ~pindex~.
 - ~PseqFunc~ - functionality covered by ~pfunc~ and ~pseq~.
 - ~PserFunc~ - functionality covered by ~pfunc~ and ~pser~.
+
 * filter patterns
 - ~Pavaroh~
 - ~Pbus~
@@ -63,6 +64,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Psync~ - done as ~psync~. see also: ~pbind~'s ~:psync~ key.
 - ~Ptrace~ - done as ~ptrace~.
 - ~Pwrap~ - see also: ~(pnary #'wrap)~.
+
 * math / randomness patterns
 - ~Punop~ - done as ~punop~.
 - ~Pbinop~ - done as ~pbinop~.
@@ -82,6 +84,7 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Ppoisson~
 - ~Pprob~
 - ~Paccum~ - done as ~paccum~.
+
 * chaos patterns
 - ~Phenon~
 - ~Platoo~
@@ -91,15 +94,18 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pstandard~
 - ~Pgbman~
 - ~Pfhn~
+
 * timing patterns
 - ~Pseg~
 - ~Penv~
 - ~Ptempo~ - see also: ~(pk :tempo)~.
 - ~Ptime~ - done as ~pbeat~.
 - ~Pstep~ - done as ~prun~.
+
 * ugen emulation patterns (maybe defer these to Pseg or Penv or the like?)
 - ~PSinOsc~
 - ~POsc~
+
 * other / unsorted patterns
 - ~Pbind~ - done as ~pbind~.
 - ~Pbindf~
@@ -129,38 +135,45 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pspawner~ - functionality covered by ~pmeta~.
 - ~Spawner~ - functionality covered by ~pmeta~.
 
-* more (unsorted):
+* my custom patterns
+- ~Ctl~
+- ~PnC~ - conditional looping, like ~Pn~ but with a condition instead of a number of repeats - functionality will be covered by ~pn~, i.e. ~(pn repeat-this (lambda () (if my-condition 1 0)))~ - need to implement and add a test for it (FIX).
+- ~Ps~ - done as ~ps~.
+- ~Prs~ - done as ~prs~.
+- ~Ptrack~ - done as ~ptrack~.
+- ~Pfuse~
+- ~Pmix~
+- ~Pline~
+- ~Parp~ - done as ~pfor~.
+- ~Parpf~ - parp (~pfor~) fork; not implemented yet.
+- ~Parpm~ - like ~Parp~, but the pattern's notes are subdivided without retriggering (a la ~Pmono~).
+- ~Pf~ - filter a pattern based on the outputs of another pattern. done as ~pfilter~.
+- ~Pg~ - "global" ~Pseries~.
+- ~Pb~ - done as ~pb~.
+- ~Pm~ - functionality covered by ~(pbind :type :mono)~.
+- ~Pinject~ - functionality covered by the ~:embed~ special key.
+- ~Psyncer~ - combine a list of patterns into one event stream; the rest are looped for the full duration of the first. functionality covered by ~pmeta~'s ~:sync~ key.
+- ~Pcomp~ - functionality covered by ~pmeta~.
+- ~Pfwd~ - sends copies of the outputs of a pattern to the specified function. functionality covered by ~*event*~, i.e. ~(pbind :foo 1 :- (lambda () (print *event*) 1))~
+- ~Ppar2~
+- ~Pmod~ - play a modified copy of a stream in parallel.
+- ~PkEnv~ - start/control an ~EnvGen~ synth and yield the control bus it's outputting to.
+- ~PkLFO~ - start/control an LFO synth and yield the control bus it's outputting to.
+- ~Pfeed~ - after an initial value, a function is passed the previous output, to do "feedback", within an optional set of bounds.
 
+* more (unsorted):
 - ~Pcbrown~
 - ~Pevent~
 - ~Pstep3add~
 - ~PenvirGet~
 - ~Pstep2add~
-- ~Pstut~
 - ~PstepNfunc~
-
-- ~Ctl~
-- ~Parpf~ - parp (pfor) fork
-- ~PnC~
-
-- ~PkEnv~ - env played at audio (kr) rate
-- ~PkLFO~
-
 - ~Ppostln~
 - ~PintC~
 - ~PintN~
-- ~Pfwd~
 - ~PbindProxy~
-- ~Pmod~
-- ~Pinject~
 - ~PintL~
-- ~Pline~
 - ~Phenon~
-- ~Pg~
-- ~Pfeed~
-- ~Parpm~
-- ~Ptrack~
-- ~Pmix~
 - ~PstepDur~
 - ~PstepNadd~
 - ~PTimePoints~
@@ -201,7 +214,6 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~Pvbrown~
 - ~PbindMultiChan~
 - ~PbindArrayDefault~
-- ~Ppar2~
 - ~Pwshuf~
 - ~Phrand~
 - ~Pfpar~
@@ -215,10 +227,9 @@ Treat this list as a "quick reference" for users familiar with SuperCollider's p
 - ~PlazyEnvirN~
 
 * Special keys
-Many (but not all) SuperCollider special keys are supported in cl-patterns. [[file:special-keys.org][special-keys.org]] lists all of the supported keys in cl-patterns, but the implementation/equivalent status of all of the SuperCollider special keys are listed here for convenience.
+Many (but not all) of [[https://doc.sccode.org/Classes/Event.html#Useful%20keys%20for%20notes][SuperCollider's "special keys"]] are supported in cl-patterns. [[file:special-keys.org][special-keys.org]] lists all of the supported keys in cl-patterns, but the implementation/equivalent status of all of the SuperCollider special keys are listed here for convenience.
 
 ** serverEvent keys
-
 - ~server~ - not implemented; you probably want ~backend~ instead.
 - ~instrument~ - implemented.
 - ~group~ - implemented for the SuperCollider backend.
@@ -226,7 +237,6 @@ Many (but not all) SuperCollider special keys are supported in cl-patterns. [[fi
 - ~out~ - implemented.
 
 ** ampEvent keys
-
 - ~amp~ - implemented.
 - ~db~ - implemented.
 - ~pan~ - implemented.
@@ -234,7 +244,6 @@ Many (but not all) SuperCollider special keys are supported in cl-patterns. [[fi
 - ~trig~ - not implemented.
 
 ** durEvent keys
-
 - ~tempo~ - implemented.
 - ~dur~ - implemented.
 - ~stretch~ - not implemented; just multiply the ~:dur~ key, i.e. ~:dur (p* (pk :dur) N)~
@@ -247,7 +256,6 @@ Many (but not all) SuperCollider special keys are supported in cl-patterns. [[fi
 - ~sendGate~ - not implemented; the system automatically detects whether to send a gate parameter based on whether the instrument definition has one. You should ensure your instrument metadata and/or synth definitions are correct if you're having issues.
 
 ** pitchEvent keys
-
 - ~freq~ - implemented.
 - ~midinote~ - implemented.
 - ~note~ - implemented.
