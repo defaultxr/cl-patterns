@@ -576,14 +576,43 @@ See also: `pattern-test-argument'"
              (mapcar (fn (event-value _ :bar))
                      (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :foo)) 4)))
       "pk yields incorrect results")
-  (is (equal (list 2 2 2 nil)
-             (mapcar (fn (event-value _ :bar))
-                     (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk :baz 2)) 4)))
-      "pk yields incorrect results when a default is provided and its KEY is not in the source")
+  (is (every-event-equal (list (event :a -1 :b -2 :c -1)
+                               (event :a -1 :b -2 :c -2)
+                               (event :a -1 :b -2 :c -2)
+                               eop)
+                         (next-n (pbind :a -1 :b -2 :c (pseq (list (pk :a 1) (pk :b 2)) 1))
+                                 4))
+      "pk's LENGTH argument is not handled correctly")
   (is (= 3
          (let ((*event* (event :foo 3)))
            (event-value (next (pbind :bar (pk :foo))) :bar)))
       "*event* is not propagated to pbinds when it is bound, resulting in pk yielding incorrect results"))
+
+(test pk*
+  "Test pk*"
+  (is (equal (list 3)
+             (mapcar (fn (event-value _ :bar))
+                     (next-n (pbind :foo (pseq (list 3) 1) :bar (pk* :foo)) 1)))
+      "pk* yields incorrect results")
+  (is (equal (list 1 2 3 nil)
+             (mapcar (fn (event-value _ :bar))
+                     (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk* :foo)) 4)))
+      "pk* yields incorrect results")
+  (is (equal (list 2 2 2 nil)
+             (mapcar (fn (event-value _ :bar))
+                     (next-n (pbind :foo (pseq (list 1 2 3) 1) :bar (pk* :baz 2)) 4)))
+      "pk* yields incorrect results when a default is provided and its KEY is not in the source")
+  (is (every-event-equal (list (event :a -1 :b -2 :c -1)
+                               (event :a -1 :b -2 :c -2)
+                               (event :a -1 :b -2 :c -2)
+                               eop)
+                         (next-n (pbind :a -1 :b -2 :c (pseq (list (pk* :a 0 1) (pk* :b 0 2)) 1))
+                                 4))
+      "pk*'s LENGTH argument is not handled correctly")
+  (is (= 3
+         (let ((*event* (event :foo 3)))
+           (event-value (next (pbind :bar (pk* :foo))) :bar)))
+      "*event* is not propagated to pbinds when it is bound, resulting in pk* yielding incorrect results"))
 
 (test prand
   "Test prand"

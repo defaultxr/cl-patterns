@@ -1104,27 +1104,63 @@ See also: `pseq'")
 
 (defpattern pk (pattern)
   (key
-   (default :initform 1))
-  :documentation "Yield the value of KEY in the current `*event*' context, returning DEFAULT if that value is nil.
+   (length :initform *default-pattern-length*)
+   (current-repeats-remaining :state t))
+  :documentation "Yield the value of KEY in the current `*event*' context LENGTH times.
 
 Example:
 
 ;; (next-upto-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk :foo)))
 ;; ;=> ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))
 
-See also: `pbind', `event-value', `*event*'")
+See also: `pk*', `pbind', `event-value', `*event*'")
 
 (defmethod as-pstream ((pk pk))
-  (with-slots (key default) pk
+  (with-slots (key length) pk
     (make-instance 'pk-pstream
                    :key key
-                   :default default)))
+                   :length (as-pstream length))))
 
 (defmethod next ((pk pk-pstream))
-  (with-slots (key default) pk
+  (with-slots (key length) pk
+    (unless (remaining-p pk 'length)
+      (return-from next eop))
+    (decf-remaining pk)
     (or (event-value *event* key)
-        (if (string= :number key)
-            (slot-value pk 'number)
+        (when (string= :number key) ; FIX: probably shouldn't need to special-case this here (nor in `pk*'); this should work for any pattern/function (i.e. `event-value', `e', etc) automatically.
+          (slot-value pk 'number)))))
+
+;;; pk*
+
+(defpattern pk* (pattern)
+  (key
+   (default :initform 1)
+   (length :initform *default-pattern-length*)
+   (current-repeats-remaining :state t))
+  :documentation "Yield the value of KEY in the current `*event*' context LENGTH times, yielding DEFAULT if that value is nil.
+
+Example:
+
+;; (next-upto-n (pbind :foo (pseq '(1 2 3) 1) :bar (pk* :foo)))
+;; ;=> ((EVENT :FOO 1 :BAR 1) (EVENT :FOO 2 :BAR 2) (EVENT :FOO 3 :BAR 3))
+
+See also: `pk', `pbind', `event-value', `*event*'")
+
+(defmethod as-pstream ((pk* pk*))
+  (with-slots (key default length) pk*
+    (make-instance 'pk*-pstream
+                   :key key
+                   :default default
+                   :length (as-pstream length))))
+
+(defmethod next ((pk* pk*-pstream))
+  (with-slots (key default length) pk*
+    (unless (remaining-p pk* 'length)
+      (return-from next eop))
+    (decf-remaining pk*)
+    (or (event-value *event* key)
+        (if (string= :number key) ; FIX: probably shouldn't need to special-case this here (nor in `pk'); this should work for any pattern/function (i.e. `event-value', `e', etc) automatically.
+            (slot-value pk* 'number)
             default))))
 
 ;;; prand

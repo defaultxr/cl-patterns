@@ -73,7 +73,8 @@ Patterns that yield information about timing, or alter the timing of a source pa
 
 * Referential patterns
 Patterns that generate by referencing the outputs of other patterns.
-- ~pk~ - Gets the value of a previously-defined key from the enclosing pbind.
+- ~pk~ - Get the value of a previously-defined key from the enclosing pbind.
+- ~pk*~ - Get the value of a previously-defined key from the enclosing pbind, with optional default.
 - ~phistory~ - Get previous outputs of a pattern by their index in the pstream.
 - ~pscratch~ - "DJ-like" scratching or scrubbing through the outputs of its source pattern.
 - ~protate~ - Shift a pattern's outputs forward or backward in the pstream, similar to ~alexandria:rotate~.
