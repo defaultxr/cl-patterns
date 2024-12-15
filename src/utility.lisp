@@ -348,6 +348,9 @@ See also: `tempo', `beat'"
     (number (tempo (/ object 60)))
     (t (* 60 (tempo object)))))
 
+(defun (setf bpm) (value object)
+  (setf (tempo object) (/ value 60)))
+
 (defgeneric beat (object)
   (:documentation "Get the beat that OBJECT occurs on, relative to its context's start. For example, for an `event', the beat is relative to the start of its source pattern, while for a `pstream' or clock object, the beat is the number of beats that have passed since its start.
 
