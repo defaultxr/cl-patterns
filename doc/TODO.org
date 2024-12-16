@@ -333,11 +333,14 @@ this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide in
 * "preset" patterns, i.e. amen break (and other common loops), optionally loadable via a function
 - amen break
 - 4 on the floor
-- drum patterns for various genres
-  - drum'n'bass
-  - house
-  - etc
+- drum patterns for various genres, like drum'n'bass, house, etc.
 - [[https://www.youtube.com/watch?v=ZROR_E5bFEI][18 rhythms you should know]] - also explains swing/shuffle
 - "see also: pbjorklund"
 * rename ~pbjorklund~ to ~peuclid~ or similar?
 * give a better error message if ~*clock*~ is nil - for example, for issues like https://github.com/byulparan/cl-collider/issues/144
+* add a ~lag~ parameter to ~prun~ (maybe not with that name though) which will apply a lag to the outputs yielded by it, similar to how the ~lag.ar~ ugen does?
+* if a pattern's ~repeats~ or ~length~ is ~0~, it should simply yield ~eop~ immediately. for example, ~pn~.
+* ensure (test) that all parameters of all patterns support functions as their values, as per https://github.com/defaultxr/cl-patterns/issues/52#issuecomment-2537828949
+* document all the ways that patterns can be changed in FAQ.org, as per https://github.com/defaultxr/cl-patterns/issues/52#issuecomment-2515843450 - including the function-as-pattern-parameter trick mentioned in https://github.com/defaultxr/cl-patterns/issues/52#issuecomment-2537828949
+* random pattern generation function, a la the random button on some synthesizers
+* is it possible to override the "quit" restart when there is a condition in a pattern? would be nice if pressing ~q~ didn't stop the clock every time.
