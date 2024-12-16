@@ -256,57 +256,62 @@ See also: `clock-tasks'"
 
 See also: `clock-loop', `clock-tasks', `make-clock'"
   (bt:with-recursive-lock-held ((slot-value clock 'tasks-lock))
-    (let ((*clock* clock)
-          (clock-end-beat (+ (beat clock) beats))
-          (retries 0)
-          (prev-task nil))
-      (loop
-        :until (or (>= (beat *clock*) clock-end-beat)
-                   (null (clock-tasks clock)))
-        :for tasks := (remove-if-not (lambda (task)
-                                       (< (+ (slot-value task 'start-beat) (beat task)) clock-end-beat))
-                                     (clock-tasks clock))
-        :for task := (most #'< tasks :key (lambda (task) (+ (slot-value task 'start-beat) (beat task))))
-        :for item := (and task (task-item task))
-        :do (setf retries (if (eq task prev-task) (1+ retries) 0)
-                  prev-task task)
-        :if (or (null item) (eop-p item))
-          :do (loop-finish)
-        :if (>= retries 32)
-          :do (warn "Task ~S yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
-              (clock-remove task)
-        :else
-          :if (and (can-swap-now-p item (beat clock))
-                   (or (and (typep item 'pdef-pstream)
-                            (not (eq (slot-value item 'pattern) (pdef-pattern (pdef-name item)))))
-                       (not (loop-p task))
-                       (ended-p item)))
-            :do (if (not (loop-p task))
-                    (clock-remove task)
-                    (let ((prev-item-beat (beat item))
-                          (prev-start-beat (slot-value task 'start-beat)))
-                      (setf (task-item task) (as-pstream (slot-value item 'source))
-                            (slot-value task 'start-beat) (+ prev-start-beat prev-item-beat))))
-        :else
-          :do (restart-case
-                  (progn
-                    (setf (beat clock) (+ (slot-value task 'start-beat) (beat task)))
-                    (let ((event (next item)))
-                      (unless (eop-p event)
-                        (dolist (event (split-event-by-lists event))
-                          (let ((event (event-with-raw-timing event task)))
-                            (if (or (local-time:timestamp>= (event-value event :timestamp-at-start) (local-time:now))
-                                    (eql t (slot-value clock 'play-expired-events)))
-                                (clock-process-event clock task event (event-value event :type))
-                                (when (eql :warn (slot-value clock 'play-expired-events))
-                                  (warn "Clock skipped expired event ~S from task ~S." event task))))))))
-                (skip-event ()
-                  :report "Skip this event, preserving the task on the clock so it can be run again."
-                  nil)
-                (remove-task ()
-                  :report "Remove this task from the clock."
-                  (clock-remove task clock))))
-      (setf (beat clock) clock-end-beat))))
+    (loop
+      :with *clock* := clock
+      :with clock-end-beat := (+ (beat clock) beats)
+      :with retries := 0
+      :with prev-task := nil
+      :until (or (>= (beat *clock*) clock-end-beat)
+                 (null (clock-tasks clock)))
+      :for tasks := (remove-if-not (lambda (task)
+                                     (< (+ (slot-value task 'start-beat) (beat task)) clock-end-beat))
+                                   (clock-tasks clock))
+      :for task := (most #'< tasks :key (lambda (task) (+ (slot-value task 'start-beat) (beat task))))
+      :for item := (and task (task-item task))
+      :do (setf retries (if (eq task prev-task) (1+ retries) 0)
+                prev-task task)
+      :if (or (null item) (eop-p item))
+        :do (loop-finish)
+      :if (>= retries 32)
+        :do (warn "Task ~S yielded NIL 32 times in a row; removing from clock to avoid locking into an infinite loop." task)
+            (clock-remove task)
+      :else
+        :if (and (can-swap-now-p item (beat clock))
+                 (or (and (typep item 'pdef-pstream)
+                          (not (eq (slot-value item 'pattern) (pdef-pattern (pdef-name item)))))
+                     (not (loop-p task))
+                     (ended-p item)))
+          :do (if (not (loop-p task))
+                  (clock-remove task)
+                  (let ((prev-item-beat (beat item))
+                        (prev-start-beat (slot-value task 'start-beat)))
+                    (setf (task-item task) (as-pstream (slot-value item 'source))
+                          (slot-value task 'start-beat) (+ prev-start-beat prev-item-beat))))
+      :else
+        :do (restart-case
+                (progn
+                  (setf (beat clock) (+ (slot-value task 'start-beat) (beat task)))
+                  (let ((event (next item)))
+                    (unless (eop-p event)
+                      (dolist (event (split-event-by-lists event))
+                        (let ((event (event-with-raw-timing event task)))
+                          (if (or (local-time:timestamp>= (event-value event :timestamp-at-start) (local-time:now))
+                                  (eql t (slot-value clock 'play-expired-events)))
+                              (clock-process-event clock task event (event-value event :type))
+                              (when (eql :warn (slot-value clock 'play-expired-events))
+                                (warn "Clock skipped expired event ~S from task ~S." event task))))))))
+              (skip-event ()
+                :report "Skip this event, preserving the task on the clock so it can be run again."
+                nil)
+              (restart-task ()
+                :report (lambda (stream) (format stream "Remove the task from the clock and re-add its item to play at its next play-quant ~S." (play-quant (task-item task))))
+                (clock-remove task clock)
+                (let ((*clock* clock))
+                  (play (task-item task))))
+              (remove-task ()
+                :report "Remove this task from the clock."
+                (clock-remove task clock)))
+      :finally (setf (beat clock) clock-end-beat))))
 
 (defun clock-condition-handler (&optional (clock *clock*))
   "The restart to invoke when a condition occurs during task processing. If nil, the clock will not attempt to handle any conditions. If non-nil, all conditions signaled within a task will be caught and the specified restart will be invoked automatically to prevent the clock from pausing. Caught conditions will be printed as a warning and recorded in the clock's caught-conditions slot with the condition and any extra data generated by the function in the clock's `caught-conditions-extra-data-function' slot.

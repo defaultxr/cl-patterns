@@ -25,17 +25,14 @@ See also: `pbjorklund'"
                (list (subseq arr 0 index)
                      (subseq arr index))))
            (lace (a b)
-             (append (loop
-                       :for x :in a
-                       :for i :from 0
-                       :collect (list x (nth i b)))
+             (append (loop :for x :in a
+                           :for i :from 0
+                           :collect (list x (nth i b)))
                      (when (<= (length a) (length b))
                        (subseq b (length a))))))
-    (rotate
-     (from-array
-      (append (make-list pulses :initial-element (list 1))
-              (make-list (- steps pulses) :initial-element (list 0))))
-     offset)))
+    (rotate (from-array (append (make-list pulses :initial-element (list 1))
+                                (make-list (- steps pulses) :initial-element (list 0))))
+            offset)))
 
 (defpattern pbjorklund (pattern)
   (pulses

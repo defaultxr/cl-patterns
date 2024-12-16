@@ -300,16 +300,13 @@ Additionally, because :define-methods is true, we can also do the following:
   (unless (position name cases :key #'car)
     (push (list name (list 'raw-event-value 'event name)) cases))
   `(progn
-     (setf *event-special-keys*
-           (plist-set *event-special-keys* ,name (list
-                                                  (list ,@(loop
-                                                            :for (key value) :in cases
-                                                            :append (list
-                                                                     key
-                                                                     `(lambda (event)
-                                                                        (declare (ignorable event))
-                                                                        ,value))))
-                                                  (list ,@(ensure-list remove-keys)))))
+     (setf *event-special-keys* (plist-set *event-special-keys*
+                                           ,name (list (list ,@(loop :for (key value) :in cases
+                                                                     :collect key
+                                                                     :collect `(lambda (event)
+                                                                                 (declare (ignorable event))
+                                                                                 ,value)))
+                                                       (list ,@(ensure-list remove-keys)))))
      ,(when define-methods
         (let ((clp-name (ensure-symbol name 'cl-patterns)))
           `(progn
@@ -353,7 +350,7 @@ Additionally, because :define-methods is true, we can also do the following:
 
 ;;; dur/delta
 
-(define-event-special-key :tempo ((t (if (and (boundp '*clock*) (not (null *clock*)))
+(define-event-special-key :tempo ((t (if (and (boundp '*clock*) *clock*)
                                          (values (tempo *clock*) :tempo)
                                          1)))
   :define-methods t)
