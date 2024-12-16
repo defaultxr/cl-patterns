@@ -10,13 +10,20 @@
 
 ;;; task
 
-(defclass task ()
-  ((item :initarg :item :initform nil :accessor task-item :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
-   (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
-   (start-beat :initarg :start-beat :initform nil :type (or null number) :documentation "The beat of the clock when the task started.")
-   (clock :initarg :clock :accessor task-clock :type clock :documentation "The clock that the task is running on.")
-   (backend-resources :initarg :backend-resources :initform nil :documentation "Resources associated with this task that should be freed by it, i.e. nodes it triggered, buffers it loaded, etc."))
-  (:documentation "An item scheduled to be run on the clock."))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass task ()
+    ((item :initarg :item :initform nil :accessor task-item :documentation "The actual playing item that the task refers to. Typically this is a pstream or similar.")
+     (loop-p :initarg :loop-p :documentation "Whether the task should loop. If left unbound, the task's item's loop-p slot is referred to instead.")
+     (start-beat :initarg :start-beat :initform nil :type (or null number) :documentation "The beat of the clock when the task started.")
+     (clock :initarg :clock :accessor task-clock :type clock :documentation "The clock that the task is running on.")
+     (backend-resources :initarg :backend-resources :initform nil :accessor task-backend-resources :type list :documentation "Resources associated with this task that should be stopped when the task is stopped, i.e. nodes it triggered, etc."))
+    (:documentation "An item scheduled to be run on the clock.")))
+
+(eval-when (:compile-toplevel :load-toplevel :execute) ; needed for the following let form.
+  (closer-mop:ensure-finalized (find-class 'task)))
+
+(let ((sym 'task-backend-resources))
+  (setf (documentation sym 'function) (documentation (find-class-slot 'task :accessor sym) t)))
 
 (defmethod print-object ((task task) stream)
   (print-unreadable-object (task stream :type t)

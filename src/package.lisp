@@ -301,6 +301,7 @@
    ;;; clock.lisp
 
    #:task-pattern
+   #:task-backend-resources
    #:pattern-tasks
 
    #:make-clock
