@@ -62,17 +62,19 @@ See also: `event', `e', `raw-event-value'"
   (when (eop-p event)
     (return-from event-value (values nil nil)))
   (let* ((cases (car (getf *event-special-keys* key)))
-         (cases (if (position key (keys cases)) ; FIX: move this to when the special-key is defined instead?
+         (cases (if (member key (keys cases)) ; FIX: move this to when the special-key is defined instead?
                     cases
                     (list* key (lambda (event) (raw-event-value event key)) cases)))
          (cases-keys (keys cases))
-         (key (car (or (member-if (lambda (k) (position k (keys event))) cases-keys)
-                       (member t cases-keys))))
-         (func (getf cases key))
+         (key-from (car (or (member-if (lambda (k) (member k (keys event))) cases-keys)
+                            (member t cases-keys))))
+         (func (getf cases key-from))
          (res (if func
-                  (multiple-value-list (funcall func event))
+                  (if (consp (raw-event-value event key-from))
+                      (multiple-value-list (multi-channel-funcall func (split-event-by-lists event)))
+                      (multiple-value-list (funcall func event)))
                   (list nil nil))))
-    (values (first res) (or (second res) key))))
+    (values (first res) (or (second res) key-from))))
 
 (defun (setf event-value) (value event key)
   "Set the value of KEY to VALUE in EVENT, running any conversion functions that exist."

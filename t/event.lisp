@@ -45,7 +45,13 @@
            "event-value doesn't provide :tempo when getting the tempo from *clock*")
   (is-true (= 110
               (event-value (event :octave 2) :freq))
-           "(event :octave 2) doesn't set the correct freq"))
+           "(event :octave 2) doesn't set the correct freq")
+  (is (listp (event-value (event :degree (list 0 1 2 3)) :freq))
+      "event doesn't multi-channel expand into a list")
+  (is (length= 4 (event-value (event :degree (list 0 1 2 3)) :freq))
+      "event doesn't multi-channel expand to a list of the correct length")
+  (is (atom (event-value (event :degree 3 :bar (list 0 1 2 3)) :freq))
+      "event multi-channel expands event values that are atoms"))
 
 (test event-beat
   "Test the beat key for events"
@@ -157,4 +163,3 @@
   (is-true (event-equal (event :foo 1 :bar (list 2 3) :qux 4 :baz 5)
                         (combine-events-via-lists (event :foo 1 :bar 2 :qux 4) (event :foo 1 :bar 3 :baz 5)))
            "combine-events-via-lists returns incorrect results"))
-
