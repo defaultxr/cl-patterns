@@ -78,6 +78,10 @@ See also: `bjorklund'"
               (eop-p val)
               (null val))
           eop
-          (event :type (if (= 1 val) (e :type) :rest)
+          (event :type (if (= 1 val)
+                           (if *event*
+                               (e :type)
+                               :note)
+                           :rest)
                  :dur (* (/ 1 steps) dur))))))
 
