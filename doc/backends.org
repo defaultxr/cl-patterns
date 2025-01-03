@@ -24,7 +24,7 @@ The following is a table giving information on the various known backends as wel
 
 ** Table Legend
 
-- SC = SuperCollider
+- SC = SuperCollider/cl-collider
 - INC = Incudine
 - AMIDI = ALSA MIDI
 - RN = Renoise
@@ -55,10 +55,19 @@ Allows cl-patterns' ~play~, ~stop~, ~launch~, ~end~, etc, methods to control the
 If the backend has its own generics, cl-patterns may define methods on them so you can use them to control its objects. For example, cl-collider's ~free~ has a method to act like ~stop~ when used on a cl-patterns pattern.
 
 *** multichannel expansion
+cl-patterns will multi-channel expand for the backend.
+
 *** pattern import
+The ability to convert from a backend's sequence format(s) into a cl-patterns pattern. For example, for the Renoise backend, this would be the ability for cl-patterns to read a project file and convert its sequences into patterns.
+
 *** pattern export
+The ability to convert from a cl-patterns pattern into a sequence format supported by the backend. For example, SuperCollider's score format, which scsynth can use to perform non-realtime (NRT) rendering.
+
 *** rendering
+Functionality to render a pattern or event as an audio file or buffer via the backend.
+
 *** other (backend-specific)
+It's possible some backends may have additional functionality we may want to support. If that is found to be the case, they will be noted here.
 
 * Backends
 
