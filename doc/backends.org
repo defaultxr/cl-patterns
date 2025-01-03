@@ -4,39 +4,37 @@ cl-patterns comes by default with several backends. The "primary" backend that u
 
 The following is a list of the backends included with cl-patterns, as well as all other known Lisp systems that include backends of their own (or integrate in other ways).
 
-Of course, if you want to control something that cl-patterns doesn't already have a backend for, in theory all you need to do is define a few methods... However, pre-1.0, cl-patterns' API for doing so is not guaranteed to be stable, so do so at your own risk. Information about implementing a backend is included at the end of this document. [[file:../src/backends/supercollider.lisp][The SuperCollider backend]] for an example.
+Of course, if you want to control something that cl-patterns doesn't already have a backend for, in theory all you need to do is define a few methods... However, pre-1.0, cl-patterns' API for doing so is not guaranteed to be stable, so do so at your own risk. Information about implementing a backend is included at the end of this document. See [[file:../src/backends/supercollider.lisp][the SuperCollider backend]] for an example.
 
 * Backend Implementation Status
 
 The following is a table giving information on the various known backends as well as the status of the implementation of various cl-patterns features. Obviously, the information here might lag a bit behind the actual code.
 
-| feature                  | SC | INC | AMIDI | DEBUG | EMACS | RENOISE | CLP | BODGE | WORM | BDEF | AL |
-| basic sequencing         | Y  | Y   | Y     | Y     | N/A   | N       | N   | N     | N    | Y    |    |
-| standard backend methods | Y  | S   | S     | Y     | N     | N       |     |       |      | Y    |    |
-| clock sync               | N  | N   | N     | N/A   | A     | N       | N/A | N/A   |      | N/A  |    |
-| play/stop/etc            | Y  | S   | N     | N/A   | N/A   |         | N   | S     |      | N/A  |    |
-| backend's own methods    | Y  | N   |       |       |       |         |     |       |      | Y    |    |
-| multichannel expansion   | Y  | S   |       | ?     |       |         | N   |       |      | N/A  |    |
-| pattern import           | N  | N   |       | N/A   |       |         | N/A |       |      | N/A  |    |
-| pattern export           | N  | N   |       |       |       |         | N/A |       |      | N/A  |    |
-| rendering                | N  | N   |       |       |       |         | N   |       |      | N/A  |    |
-| other (backend-specific) |    |     |       |       |       |         |     |       |      |      |    |
+| feature                  | SC | INC | AMIDI | DEBUG | EMACS | RN | CLP | WORM | BDEF |
+| basic sequencing         | ✅ | ✅  | ✅    | ✅    | 🚫    | ❌ | ❌  | ❌   | ✅   |
+| standard backend methods | ✅ | 🟡  | 🟡    | ✅    | ❌    | ❌ |     |      | ✅   |
+| clock sync               | ❌ | ❌  | ❌    | 🚫    | 🟡    | ❌ | 🚫  |      | 🚫   |
+| play/stop/etc            | ✅ | 🟡  | ❌    | 🚫    | 🚫    |    | ❌  |      | 🚫   |
+| backend's own methods    | ✅ | ❌  |       |       |       |    |     |      | ✅   |
+| multichannel expansion   | ✅ | 🟡  |       |       |       |    | ❌  |      | 🚫   |
+| pattern import           | ❌ | ❌  |       | 🚫    |       |    | 🚫  |      | 🚫   |
+| pattern export           | ❌ | ❌  |       |       |       |    | 🚫  |      | 🚫   |
+| rendering                | ❌ | ❌  |       |       |       |    | ❌  |      | 🚫   |
+| other (backend-specific) |    |     |       |       |       |    |     |      |      |
 
 ** Table Legend
 
-- SC=supercollider
-- INC=incudine
-- AMIDI=alsa-midi
-- CLP=cl-patterns
-- BODGE=cl-bodge
-- BDEF=[[https://github.com/defaultxr/bdef][bdef]]
-- AL=OpenAL
+- SC = SuperCollider
+- INC = Incudine
+- AMIDI = ALSA MIDI
+- RN = Renoise
+- CLP = cl-patterns
+- BDEF = [[https://github.com/defaultxr/bdef][bdef]]
 
-- Y = 75-100% implemented
-- S = 25-75% implemented
-- N = 0-25% implemented
-- N/A = not applicable
-- A = not all aspects of this feature apply but at least some of those that do are implemented.
+- ✅ = 75-100% implemented
+- 🟡 = 25-75% implemented
+- ❌ = 0-25% implemented
+- 🚫 = not applicable
 - blank = unknown
 
 ** Feature Descriptions
@@ -74,17 +72,15 @@ The Incudine backend is cl-patterns' other main synthesis backend. Incudine is u
 
 At the moment, the Incudine backend may lag a bit behind the SuperCollider one, mostly because I am not as familiar with it yet. However it is very interesting for the reasons listed above and I definitely want to make it as good as the SuperCollider backend!
 
-** alsa-midi
+** ALSA MIDI
 
 ** debug
 
-** emacs
+** Emacs
 
-** renoise
+** Renoise
 
 ** cl-patterns
-
-** bodge
 
 ** worm
 
