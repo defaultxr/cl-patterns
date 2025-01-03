@@ -18,40 +18,46 @@ In addition to emulating most of SuperCollider's patterns system, another goal i
 
 Make sure you have [[https://www.quicklisp.org/beta/][Quicklisp]] installed and working with your Lisp implementation, then load cl-patterns:
 
-#+BEGIN_SRC lisp
+#+begin_src lisp
   (ql:quickload 'cl-patterns)
   (use-package 'cl-patterns)
-#+END_SRC
+#+end_src
 
 Create a pattern like so:
 
-#+BEGIN_SRC lisp
+#+begin_src lisp
   (defparameter *pat* (pbind :foo (pseq '(1 2 3))
                              :bar (prand '(9 8 7) 5)))
-#+END_SRC
+#+end_src
 
 Since patterns are basically "templates", you need to turn them into ~pstream~ objects in order to actually get output from them:
 
-#+BEGIN_SRC lisp
+#+begin_src lisp
   (defparameter *pstream* (as-pstream *pat*))
-#+END_SRC
+#+end_src
 
 Then, you can get results from the pstream one at a time with ~next~, or many at a time with ~next-n~ or ~next-upto-n~:
 
-#+BEGIN_SRC lisp
+#+begin_src lisp
   (next-n *pstream* 3)
   ;; => ((EVENT :FOO 1 :BAR 8) (EVENT :FOO 2 :BAR 9) (EVENT :FOO 3 :BAR 8))
-#+END_SRC
+#+end_src
 
 To actually hear sound output, you'll need to start an audio server. Right now, SuperCollider is the main audio server that cl-patterns is tested against, but there is also preliminary support for [[http://incudine.sourceforge.net/][Incudine]] as well as MIDI output through ALSA.
 
-To use the SuperCollider backend, simply load the ~cl-patterns/supercollider~ system with quicklisp. This will automatically take care of loading the required [[https://github.com/byulparan/cl-collider][cl-collider]] library for you:
+To use the SuperCollider backend, load the ~cl-patterns/supercollider~ system with quicklisp. This will automatically take care of loading the required [[https://github.com/byulparan/cl-collider][cl-collider]] library for you:
 
-#+BEGIN_SRC lisp
+#+begin_src lisp
   (ql:quickload :cl-patterns/supercollider)
-#+END_SRC
+#+end_src
 
-From here, you can take a look at the code in the [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] file for a short example of how to define your own synths and play them with patterns. You may also be interested in [[https://defaultxr.github.io/cl-collider-tutorial/][my cl-collider tutorial]] for a more in-depth introduction to cl-collider.
+Once loaded, you can start a backend using the ~backend-start~ function:
+
+#+begin_src lisp
+  (backend-start 'supercollider)
+#+end_src
+
+From here, you can take a look at the code in the [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] file for a quick example of how to define your own synths and play them with patterns. You may also be interested in [[https://defaultxr.github.io/cl-collider-tutorial/][my cl-collider tutorial]] for a more in-depth introduction to cl-collider.
 
 For more information on how to use cl-patterns, refer to [[file:doc/tutorial.org][tutorial.org]] for an introduction.
 

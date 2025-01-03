@@ -1,7 +1,6 @@
 #+TITLE: cl-patterns Tutorial
 
 * Introduction
-
 cl-patterns is a library for creating and manipulating patterns. "Patterns" in this case refers to a set of functions and classes provided by the library that produce numeric or compound output. The term "pattern" can also refer to the structures built out of these functions.
 
 Though it can be used for any purpose, cl-patterns is primarily written with music composition and performance in mind. In this regard, it can be thought of as a sequencing library, however unlike most step sequencers or piano rolls, cl-patterns offers much more flexibility, and can be used to define far more complex and dynamic behaviors.
@@ -11,7 +10,6 @@ cl-patterns is based on and inspired by SuperCollider's patterns system; however
 If you're familiar with SuperCollider's patterns, you may find it useful to look at [[file:sc-differences.org][sc-differences.org]] instead. This document is meant for people who are not familiar with SuperCollider's patterns system at all, and need a general overview of what it is and how to use it.
 
 * Basics
-
 As mentioned above, this library is based around the idea of "patterns", which are basically functions that produce a sequence of related or unrelated outputs.
 
 Outputs typically take the form of numbers or "events". An event is similar to a hash table or dictionary, but specialized for cl-patterns' purposes with specific get/set methods that wrap extra functionality. Events are usually used to represent actions for a music synthesizer to take, such as playing a note or changing a parameter.
@@ -59,9 +57,72 @@ When we run this line of code, we get a pstream object instead of a pattern. Now
 This is because patterns are basically "templates" that define behavior; they don't keep track of execution state. Only pstreams keep track of execution state.
 
 * Events
-
 cl-patterns also has patterns that output events, as described above. ~pbind~ is the primary of these, as it's used to define most note, rest, and parameter change events. Most of the time, when you're using cl-patterns with an audio server, playing a pbind will trigger sounds to occur. 
 
 * More Patterns
 
 There are, of course, many other types of patterns aside from pseq and pbind. You can use the ~(all-patterns)~ function to get a list of all of the pattern classes defined by the library. All patterns have documentation strings which describe what they do as well as provide examples and lists of related patterns or functions. For an overview of the patterns included with cl-patterns, refer to [[file:patterns.org][patterns.org]].
+* Backends
+Since cl-patterns is just a sequencing library, it does not produce any audio on its own. Instead, cl-patterns utilizes one or more backends for this task.
+
+The backend with the most popularity, development, and testing behind it is the ~supercollider~ backend, which communicates with the [[https://supercollider.github.io][SuperCollider]] sound server via the [[https://github.com/byulparan/cl-collider][cl-collider]] library. Aside from it, there is also a backend for interacting with [[https://incudine.sourceforge.net][Incudine]], and another for sending MIDI via the ALSA system on Linux.
+
+** Starting a backend
+
+To make use of a backend, do the following:
+
+1. Load its sub-system. Usually the name of the sub-system is ~cl-patterns/backend-name~. So for the ~supercollider~ backend:
+
+#+begin_src lisp
+(ql:quickload :cl-patterns/supercollider)
+#+end_src
+
+   Or for ALSA MIDI:
+
+#+begin_src lisp
+(ql:quickload :cl-patterns/alsa-midi)
+#+end_src
+
+2. Start the backend. This can be done with the ~backend-start~ function, optionally with additional keyword arguments to adjust parameters of the backend.
+
+   For example, the ~supercollider~ backend can be started like so:
+
+#+begin_src lisp
+  (backend-start 'supercollider)
+#+end_src
+
+# FIX: explain backend-enable vs backend-start, also give examples of use of keyword options for backend-start
+
+3. Actually, that's it!
+
+** Using backends
+
+Once a backend is loaded and started, it can be used by ~play~-ing events or patterns:
+
+#+begin_src lisp
+  (play (event :instrument :synth-name :midinote 64 :amp 0.1))
+
+  (play (pbind :instrument :synth-name :degree (pseries 0 1 8) :dur 1/4))
+#+end_src
+
+If only one backend is enabled and started, it will be the one used. You can also enable more than one, though, in which case the system will use the backend that was started first as the default one.
+
+To see the currently enabled backends:
+
+#+begin_src lisp
+(enabled-backends)
+#+end_src
+
+The first one listed is the default.
+
+You can specify that an event or pattern should be played with a different backend using the ~:backend~ key. For example, to trigger a MIDI note via the ALSA MIDI backend, you can do something like the following:
+
+#+begin_src lisp
+(play (event :backend :alsa-midi :instrument 0))
+#+end_src
+
+Different backends may use event keys in different ways, or may support keys that others don't. For example, the ~supercollider~ backend uses the ~:instrument~ key to specify the name of the synth to play the note with.
+
+Contrast that with the ~alsa-midi~ backend, which uses ~:instrument~ to specify the program number to play the note with. When ~:instrument~ is specified in an event that ~alsa-midi~ plays, it will send a MIDI program change event on the channel before sending the MIDI note on event.
+
+# FIX: provide more details about behaviors/keys/etc particular to each backend, or how to find/introspect that information.

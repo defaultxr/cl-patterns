@@ -10,7 +10,9 @@
 
 ;; (Note: if you get an error, make sure that sc:*sc-synth-program* is the same as the output of "which scsynth" from your command line. You may also need to set sc:*sc-plugin-paths* if you get errors about UGens not being installed.)
 
-;; then define a few synths...
+;; oh yeah, and if you don't hear sound, you'll probably want to use a program like qjackctl or similar to check that the SuperCollider server is actually connected to your audio output device.
+
+;; after starting the backend you can define a few synths:
 
 (in-package #:cl-collider)
 
@@ -25,31 +27,32 @@
          (sig (sin-osc.ar freq 0 0.2)))
     (out.ar out (pan2.ar sig 0 env))))
 
-;; then, enable cl-patterns's supercollider backend:
+;; next, start the clock that patterns will be played on:
 
 (in-package #:cl-patterns)
 
-;; start the clock that patterns will be played on:
-
-;; the clock keeps tempo in beats per second; thus 110/60 = 110 beats per minute
-(start-clock-loop :tempo 110/60)
+(start-clock-loop :tempo 110/60) ; the clock keeps tempo in beats per second; thus 110/60 = 110 beats per minute
 
 ;; ...and then go ahead and write some patterns!
 
-(pb :foo ;; define a new pattern named :foo
-  :instrument :kik ;; use the :kik synth we defined above
-  :play-quant 4 ;; make sure the pattern will only start on a beat that is divisible by 4, to stay in sync
-  :dur 1 ;; give each event a duration of 1 beat
-  :pfin 4 ;; limit the length of the pattern to 4 events (the default is infinite events)
+(pb :foo ; define a new pattern named :foo
+  :instrument :kik ; use the :kik synth we defined above
+  :play-quant 4 ; specify that the pattern should only start on a beat that is divisible by 4 (i.e. to stay in sync)
+  :dur 1 ; give each event a duration of 1 beat
+  :pfin 4 ; limit the length of the pattern to 4 events (the default is infinite events).
   )
 
-(pb :bar
+;; pb is basically a more convenient way of writing a pdef and pbind in one go.
+;; in other words, (pb :foo :instrument :default ...) is equivalent to (pdef :foo (pbind :instrument :default ...)).
+;; a pdef is used to define a pattern with a name that can be referred back to later, for example to change its definition, start or stop playing it, etc.
+
+(pb :bar ; define another pattern, this one being named :bar
   :instrument :default
   :play-quant 4
   :dur 1/2
-  :scale :major ;; select the major scale
-  :degree (pwhite 0 7) ;; pick a random note from the first 7 notes in the selected scale
-  :pfindur 4 ;; limit the length of the pattern to 4 beats. pfindur causes the pattern to be limited based on its duration in beats, rather than the number of events.
+  :scale :major ; select the major scale
+  :degree (pwhite 0 7) ; pick a random note from the first 7 notes in the selected scale
+  :pfindur 4 ; limit the length of the pattern to 4 beats. pfindur causes the pattern to be limited based on its duration in beats, rather than the number of events.
   )
 
 ;; start playing the defined patterns:
@@ -59,7 +62,7 @@
 (play :bar)
 
 ;; pdefs will loop by default when played. so even though the above patterns have finite durations (as set with the :pfin and :pfindur keys), triggering them via their containing pdefs will cause them to continue to play until you specifically stop them.
-;; while they're playing you can modify them by editing the code and re-evaluating it. the changes you make will be reflected the next time the patterns loops.
+;; while they're playing you can modify them by editing the code and re-evaluating it. the changes you make will be reflected the next time the pattern's loop ends and starts over at the beginning.
 
 ;; when you're done with them, you can stop playing the patterns like so:
 
