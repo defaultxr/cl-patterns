@@ -105,7 +105,7 @@ See also: `as-supercollider-score', `supercollider-score-write-encoded'"
 (defun supercollider-score-write-encoded (score stream)
   "Write SCORE as an encoded score to STREAM. Note that the score's events must be in order based on start time, and all start times must be double floats. Additionally, all instrument parameters must be either integers or single floats."
   (dolist (bundle score)
-    (let ((msg (sc-osc::encode-bundle (cadr bundle) (- (car bundle) osc::+unix-epoch+))))
+    (let ((msg (sc-osc::encode-bundle (cadr bundle) (round (* (car bundle) osc::+2^32+)))))
       (write-sequence (osc::encode-int32 (length msg)) stream)
       (write-sequence msg stream))))
 
