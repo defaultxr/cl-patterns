@@ -39,7 +39,7 @@ CLOSED: [2018-08-02 Thu 23:03]
 CLOSED: [2019-10-15 Tue 20:47]
 see ~pcycles~
 
-* add more tests to [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests.lisp]]
+* add more tests to [[file:../src/tests.lisp][tests.lisp]]
 ** add tests for clock behavior
 * make patterns able to trigger other patterns
 ** maybe something like this?
@@ -98,7 +98,7 @@ CLOSED: [2018-07-01 Sun 18:02]
 * generalize the library
 make other libraries that expand upon cl-patterns' feature sets (i.e. libraries for live coding conveience macros, etc.)
 * music theory
-** make sure the functionality in [[file:~/misc/lisp/cl-patterns/src/scales.lisp][scales.lisp]], etc, is correct.
+** make sure the functionality in [[file:../src/scales.lisp][scales.lisp]], etc, is correct.
 ** support chord notation
 *** look into [[https://github.com/triss/ChordSymbol][ChordSymbol]]
 ** support I, II, III, IV, i, ii, iii, iv, etc. notation
@@ -193,7 +193,7 @@ take into account these variables (and maybe others?):
 - also look into ~make-load-form~
 * DONE Include Emacs skeletons and other functionality for writing patterns faster
 CLOSED: [2021-11-11 Thu 12:03]
-done - see the [[file:~/misc/lisp/cl-patterns/res/emacs/][res/emacs]] directory
+done - see the [[file:../res/emacs/][res/emacs]] directory
 * ~pswing~ pattern to easily apply swing to an input pattern
 * [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]]
 * "after actions"
@@ -297,7 +297,7 @@ synths that are currently playing are not updated to point at the new instance o
 *** [[https://github.com/iainctduncan/scheme-for-pd][scheme-for-pd github repo]]
 *** [[https://www.youtube.com/watch?v=NW_KxEK_k2M][Scheme for Pure Data video demonstration]]
 *** [[https://www.youtube.com/watch?v=ErirIFCTdjg&t=2s&ab_channel=MusicwithLisp][Scheme for Max video demonstration]]
-** include Pd abstractions/examples in [[file:~/misc/lisp/cl-patterns/res/][res/]]
+** include Pd abstractions/examples in [[file:../res/][res/]]
 * function to convert chord progressions into patterns
 example: ~C-C/Bb-F/A-Fm6/Ab-C/G-D/F-F-Fm6~ as per [[https://www.youtube.com/watch?v=gJMKuMIBBJ8&t=4m47s][this part of this video]] and explanation in [[https://www.youtube.com/watch?v=f9eoD_dR4fA&t=2m30s][this video]]
 * use generators instead of manual pattern class implementation?

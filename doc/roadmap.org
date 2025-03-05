@@ -19,7 +19,7 @@ CLOSED: [2017-07-06 Thu 03:07]
 ** DONE SuperCollider backend
 CLOSED: [2019-11-09 Sat 15:17]
 
-** DONE [[file:~/misc/lisp/cl-patterns/src/tests.lisp][tests]] for all patterns, event keys, clock, etc.
+** DONE [[file:../src/tests.lisp][tests]] for all patterns, event keys, clock, etc.
 CLOSED: [2019-11-09 Sat 15:17]
 
 ** DONE documentation for all patterns and exported symbols

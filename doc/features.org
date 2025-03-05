@@ -109,4 +109,4 @@ Hash table associated with each pattern for storing additional data. Access with
     (next (pbind :instrument :bar))
     ;; => (EVENT :TEST 3 :INSTRUMENT :QUX)
   #+end_src
-- Various unit conversion functions (i.e. ~midinote-freq~ to convert from a midi note number to a frequency in Hz) that also work on UGens when used in cl-collider synthdefs. see [[file:~/misc/lisp/cl-patterns/src/conversions.lisp][conversions.lisp]] for the conversion functions.
+- Various unit conversion functions (i.e. ~midinote-freq~ to convert from a midi note number to a frequency in Hz) that also work on UGens when used in cl-collider synthdefs. see [[file:../src/conversions.lisp][conversions.lisp]] for the conversion functions.

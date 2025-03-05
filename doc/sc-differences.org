@@ -48,7 +48,7 @@ This is because their ~loop-p~ slot defaults to ~t~. Set it to ~nil~ to prevent 
 
 - ~midi~ is not a standard event type; instead, specify the event's ~backend~ to have the event sent exclusively to a specific backend.
 
-  The backend then interprets the event according to its capabilities. For example, the ~alsa-midi~ backend automatically coerces pitch keys (~freq~, ~midinote~, etc) into standard MIDI note numbers, ~amp~ into standard MIDI velocity values, and additional keys into control change (CC) messages. See the [[file:~/misc/lisp/cl-patterns/src/backends/alsa-midi.lisp][alsa-midi.lisp]] file for the ALSA MIDI backend implementation and [[file:backends.org][backends.lisp]] for more information on supported backends and their capabilities.
+  The backend then interprets the event according to its capabilities. For example, the ~alsa-midi~ backend automatically coerces pitch keys (~freq~, ~midinote~, etc) into standard MIDI note numbers, ~amp~ into standard MIDI velocity values, and additional keys into control change (CC) messages. See the [[file:../src/backends/alsa-midi.lisp][alsa-midi.lisp]] file for the ALSA MIDI backend implementation and [[file:backends.org][backends.lisp]] for more information on supported backends and their capabilities.
 
 - ~pfin~, ~pfindur~, ~pstutter~, ~pdurstutter~, etc, have their source pattern as the first input instead of the second, for consistency.
 # FIX: remove "etc" above, list all patterns with argument order changed
