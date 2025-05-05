@@ -219,7 +219,7 @@ See also: `pattern-parent'"
         res)
     (dotimes (n num res)
       (setf cur (remove-if-not (lambda (pattern) (typep pattern class))
-                               (mapcan #'%pattern-children cur)))
+                               (mappend #'%pattern-children cur)))
       (if accumulate
           (appendf res cur)
           (setf res cur)))))
@@ -228,9 +228,9 @@ See also: `pattern-parent'"
   nil)
 
 (defmethod %pattern-children ((pattern pattern))
-  (mapcan (lambda (slot)
-            (copy-list (ensure-list (slot-value pattern (closer-mop:slot-definition-name slot)))))
-          (closer-mop:class-direct-slots (class-of pattern))))
+  (mappend (lambda (slot)
+             (copy-list (ensure-list (slot-value pattern (closer-mop:slot-definition-name slot)))))
+           (closer-mop:class-direct-slots (class-of pattern))))
 
 (defgeneric pattern-metadata (pattern &optional key)
   (:documentation "Get the value of PATTERN's metadata for KEY. Returns true as a second value if the metadata had an entry for KEY, or nil if it did not."))
@@ -604,13 +604,13 @@ See also: `t-pstream', `as-pstream'"
          (slots (remove 'parent (mapcar #'closer-mop:slot-definition-name (closer-mop:class-slots class)))))
     (apply #'make-instance
            (pattern-pstream-class-name name)
-           (mapcan (fn (when (slot-boundp pattern _)
-                         (let ((kw (make-keyword _)))
-                           (list kw (funcall (if (member kw (list :length :repeats))
-                                                 #'as-pstream
-                                                 #'pattern-as-pstream)
-                                             (slot-value pattern _))))))
-                   slots))))
+           (mappend (fn (when (slot-boundp pattern _)
+                          (let ((kw (make-keyword _)))
+                            (list kw (funcall (if (member kw (list :length :repeats))
+                                                  #'as-pstream
+                                                  #'pattern-as-pstream)
+                                              (slot-value pattern _))))))
+                    slots))))
 
 (defmethod as-pstream :around ((object t))
   (let ((pstream (call-next-method)))
@@ -796,13 +796,13 @@ See also: `pmono', `pb'"
   (format stream "(~S~{ ~S ~S~})" 'pbind (slot-value pbind 'pairs)))
 
 (defmethod %pattern-children ((pbind pbind))
-  (mapcan (lambda (slot)
-            (let ((slot-name (closer-mop:slot-definition-name slot)))
-              (copy-list (ensure-list
-                          (if (eql slot-name 'pairs)
-                              (loop :for (k v) :on (slot-value pbind slot-name) :by #'cddr :collect v)
-                              (slot-value pbind slot-name))))))
-          (closer-mop:class-direct-slots (find-class 'pbind))))
+  (mappend (lambda (slot)
+             (let ((slot-name (closer-mop:slot-definition-name slot)))
+               (copy-list (ensure-list
+                           (if (eql slot-name 'pairs)
+                               (loop :for (k v) :on (slot-value pbind slot-name) :by #'cddr :collect v)
+                               (slot-value pbind slot-name))))))
+           (closer-mop:class-direct-slots (find-class 'pbind))))
 
 (defmethod keys ((pbind pbind))
   (keys (slot-value pbind 'pairs)))

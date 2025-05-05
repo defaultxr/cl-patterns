@@ -17,7 +17,7 @@
   (multiple-value-bind (header content) (file-extract-org-header file header-name)
     (declare (ignore header))
     (set-difference keys
-                    (mapcan #'find-code-text (stream-extract-org-headers (make-string-input-stream content)))
+                    (mappend #'find-code-text (stream-extract-org-headers (make-string-input-stream content)))
                     :test #'string-equal)))
 
 ;;; org files
