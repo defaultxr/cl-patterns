@@ -184,13 +184,19 @@ the point and return its name."
   "Find the nearest bdef name before point."
   (cl-patterns-get-name-of-previous-item (list 'bdef)))
 
+(defun cl-patterns-all-instruments ()
+  "Get a list of the names of all defined instruments, or nil if we can't
+acquire the list (i.e. if cl-patterns is not running)."
+  (cl-patterns-lisp-eval
+   `(cl:when (cl:find-package "CL-PATTERNS")
+             (cl:mapcar (cl:lambda (x) (cl:string-downcase (cl:write-to-string x)))
+                        (uiop:symbol-call '#:cl-patterns '#:all-instruments)))))
+
 (defun cl-patterns-select-instrument (&optional prompt)
   "Select an instrument from the list of currently-defined instruments."
   (interactive)
   (let* ((prompt (or prompt "Instrument? "))
-         (instruments (cl-patterns-lisp-eval
-                       `(cl:mapcar (cl:lambda (x) (cl:string-downcase (cl:write-to-string x)))
-                                   (cl-patterns:all-instruments))))
+         (instruments (cl-patterns-all-instruments))
          (guess (cl-patterns-guess-instrument)))
     (cl-patterns-ensure-symbol-syntax
      (completing-read prompt instruments nil nil (when (member guess instruments) guess) 'cl-patterns-instrument-history))))
