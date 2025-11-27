@@ -3,10 +3,16 @@
 #+OPTIONS: num:nil
 
 * Music
-
 - [[https://music.stackexchange.com/questions/57261/are-there-geometric-symmetries-in-musical-harmonics][Are there geometric symmetries in musical harmonics?]]
 
 * Algorithmic music
-
 - [[https://cacm.acm.org/magazines/2011/7/109891-algorithmic-composition/fulltext][Algorithmic Composition: Computational Thinking in Music]]
 - [[https://github.com/ivanreese/visual-programming-codex/blob/main/implementations.md][Visual Programming Codex]]
+
+* Analysis
+- [[https://www.youtube.com/watch?v=yMbewdnupwU][A Fast, Open-Source C++ Loop Classifier and Tempo Estimator: New Tempo Detection Feature in Audacity]]
+  Talk describing the algorithm used by the loop classifier and tempo estimator in Audacity.
+
+* Ideas
+Things that provide ideas.
+- [[https://www.youtube.com/watch?v=xTgSgTGoBLc][POLYRHYTHMUS -- a modular, euclidean sequencer, arpeggio-builder and a lot more]]

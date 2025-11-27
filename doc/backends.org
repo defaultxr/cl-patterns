@@ -18,8 +18,8 @@ The following is a table giving information on the various known backends as wel
 | backend's own methods    | ✅ | ❌  |       |       |       |    |     |      | ✅   |
 | multichannel expansion   | ✅ | 🟡  |       |       |       |    | ❌  |      | 🚫   |
 | pattern import           | ❌ | ❌  |       | 🚫    |       |    | 🚫  |      | 🚫   |
-| pattern export           | ❌ | ❌  |       |       |       |    | 🚫  |      | 🚫   |
-| rendering                | ❌ | ❌  |       |       |       |    | ❌  |      | 🚫   |
+| pattern export           | 🟡 | ❌  |       |       |       |    | 🚫  |      | 🚫   |
+| rendering                | 🟡 | ❌  |       |       |       |    | ❌  |      | 🚫   |
 | other (backend-specific) |    |     |       |       |       |    |     |      |      |
 
 ** Table Legend
@@ -74,7 +74,7 @@ It's possible some backends may have additional functionality we may want to sup
 ** SuperCollider
 The SuperCollider backend is the "main" backend that cl-patterns is developed and tested against the most. Any backend-agnostic functionality will most likely be implemented in this one first.
 
-Note that cl-patterns doesn't control SuperCollider directly; instead it does so via [[https://github.com/byulparan/cl-collider][cl-collider]]. I try to keep cl-patterns' functionality consistent with cl-collider and make it easy to use both libraries in tandem. For example, generics like ~play~, ~stop~, etc, should work just as well on cl-collider objects as they do on cl-patterns.
+Note that cl-patterns doesn't control SuperCollider directly; instead it does so through [[https://github.com/byulparan/cl-collider][cl-collider]]. I try to keep cl-patterns' functionality consistent with cl-collider and make it easy to use both libraries in tandem. For example, generics like ~play~, ~stop~, etc, should work just as well on cl-collider objects as they do on cl-patterns.
 
 ** Incudine
 The Incudine backend is cl-patterns' other main synthesis backend. Incudine is unique in that it is designed from the start to be used with Lisp. It is also unique in that it supports the concept of "virtual ugens" or "VUGs" which make it simpler to write synthesis routines at a lower level than SuperCollider.
@@ -110,7 +110,8 @@ The following is a list of some of the generic functions defined by cl-patterns.
 - ~events-in-range~
 - ~ended-p~
 - ~as-pstream~ - ?
-- ~last-output~ - ?
+- ~pstream-history-elt~ - ?
+- ~pstream-future-elt~ - ?
 *** backend functions
 - ~backend-start~
 - ~backend-stop~

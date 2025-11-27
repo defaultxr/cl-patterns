@@ -117,7 +117,7 @@ See also: `timestamp-incudine-samples'"
 (defmethod backend-timestamps-for-event ((backend incudine) event task)
   (when (and (not *incudine-start-timestamp*)
              (not (eql (incudine:rt-status) :started)))
-    (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (backend-start 'incudine) if you want to use Incudine, or disable its backend."))
+    (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (backend-start 'incudine) if you want to use Incudine, or disable its backend"))
   (let ((timestamp (or (raw-event-value event :timestamp-at-start)
                        (local-time:now))))
     (mapcar #'timestamp-to-incudine (list timestamp (local-time:timestamp+ timestamp (dur-duration (sustain event)) :sec)))))
@@ -125,7 +125,7 @@ See also: `timestamp-incudine-samples'"
 (defmethod backend-event-timestamps ((backend incudine) event task)
   (when (and (not (backend-start-timestamp backend))
              (not (eql (incudine:rt-status) :started)))
-    (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (backend-start 'incudine) if you want to use Incudine, or disable its backend."))
+    (error "cl-patterns cannot generate a timestamp for Incudine as Incudine is not running. Try (backend-start 'incudine) if you want to use Incudine, or disable its backend"))
   (let ((timestamp (or (raw-event-value event :timestamp-at-start)
                        (local-time:now))))
     (mapcar (rcurry #'timestamp-incudine-samples backend)
@@ -150,7 +150,7 @@ See also: `timestamp-incudine-samples'"
                   (incf incudine::*last-node-id*)))) ; can we reserve a node ID with `incudine.vug::with-reserved-node' or the like?
       (apply #'incudine:at time (fdefinition dsp) :id id params)
       (incudine:node id)) ; this will show :ID NIL but it does actually point to the correct node.
-    (error "Unable to find an Incudine DSP with name ~S." node)))
+    (error "Unable to find an Incudine DSP with name ~S" node)))
 
 (defmethod play ((node incudine:node))
   t)

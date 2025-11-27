@@ -81,4 +81,3 @@ See also: `bjorklund'"
                                :note)
                            :rest)
                  :dur (* (/ 1 steps) dur))))))
-

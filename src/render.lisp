@@ -77,7 +77,7 @@ See also: `render'"
                     (when-let ((backend (find-backend-supporting-render ,type)))
                       (return-from render
                         (apply #'render object backend args)))
-                    (error "No enabled backend supports rendering as ~S." ,type)))
+                    (error "No enabled backend supports rendering as ~S" ,type)))
                (list :buffer :file :score)))
 
 (defmethod render (object (output-filename string) &rest args &key &allow-other-keys)

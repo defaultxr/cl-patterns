@@ -3225,7 +3225,7 @@ See also: `*display-server*', `screen-size', `mouse-location', `pmouse'")
   (:documentation "Get the mouse location information for DISPLAY-SERVER. Typically you should just call `mouse-location' instead of using this directly."))
 
 (defmethod mouse-location* ((display-server t))
-  (error "Mouse location information; unsupported display server."))
+  (error "Mouse location information; unsupported display server"))
 
 (defmethod mouse-location* ((display-server (eql :x11)))
   (destructuring-bind (x y screen window)
@@ -3246,7 +3246,7 @@ See also: `*display-server*', `screen-size', `mouse-location', `pmouse'")
       (list :x x :y y :screen-width screen-width :screen-height screen-height :screen screen :window window))))
 
 (defmethod mouse-location* ((display-server (eql :wayland)))
-  (error "Mouse location information is currently unsupported on Wayland."))
+  (error "Mouse location information is currently unsupported on Wayland"))
 
 (defun mouse-location (&optional (display-server *display-server*))
   "Get a plist of the mouse location, total display size, and other information gleaned about DISPLAY-SERVER. DISPLAY-SERVER can be :x11, :wayland, etc, but should default to the correct display server detected when cl-patterns is loaded. Will signal an error if the information cannot be determined (i.e. when the display server is not detected or not supported).

@@ -155,7 +155,7 @@ CLOSED: [2022-06-30 Thu 20:28]
 
 *** allow the clock to be paused and restarted
 
-*** generalize how the clock handles tasks, i.e. method/function to return a list of events within a specific time range, separated from the function that processes said events to backends. perhaps using ~ipstream~.
+*** generalize how the clock handles tasks, i.e. method/function to return a list of events within a specific time range, separated from the function that processes said events to backends. likely using ~timeline~.
 
 * 0.9
 

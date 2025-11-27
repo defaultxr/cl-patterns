@@ -1,4 +1,5 @@
 #+TITLE: cl-patterns
+#+DESCRIPTION: Common Lisp library for sequencing music and noise.
 
 A library for writing patterns to generate or process (a)musical sequences of mathematically (un)related (non-)compound values in Lisp.
 
@@ -61,7 +62,7 @@ From here, you can take a look at the code in the [[file:doc/supercollider-examp
 
 For more information on how to use cl-patterns, refer to [[file:doc/tutorial.org][tutorial.org]] for an introduction.
 
-You can get a list of all defined patterns using ~(all-patterns)~. Every pattern should have usage information and examples in its docstring, which of course can be accessed using the standand ~describe~ or ~documentation~ functions.
+You can get a list of all defined patterns using ~(all-patterns)~. Each pattern has usage information and an example in its docstring, which of course can be accessed using Common Lisp's standand ~describe~ and ~documentation~ functions.
 
 * Features
 
@@ -97,50 +98,48 @@ Here's the recommended setup to load these libraries automatically via your Emac
   (add-hook 'sly-connected-hook 'cl-patterns-helpers-load)
 #+end_src
 
-The above should also work with slime; just replace all instances of "sly" with "slime".
+The above should also work with slime; just replace all instances of ~sly~ with ~slime~.
 
 * Status
 
-Right now, the library may be described as being in a "late alpha" stage, as fewer and fewer major changes are still being made. Most of the included patterns and exported functionality now have relatively stable APIs as well as tests to guard against regressions. There may still be the occasional change of functionality in the library, though most user-facing changes will be gracefully deprecated and documented in commit messages, so check those if you have any issues after updating.
+Right now, the library may be described as being in a "late alpha" stage. Fewer and fewer major changes are being made, but a few major refactors and API changes are in the works. Most of the included patterns and exported functionality now have relatively stable APIs as well as [[file:t/][tests]] to guard against regressions. There may still be the occasional change of functionality in the library, though most user-facing changes will be gracefully deprecated and documented in commit messages, so check those if you have any issues after updating.
 
 Despite that, lots of functionality is already written and the library should be stable enough for normal usage in most cases.
 
-Many [[file:t/][tests]] have already been written to help guard against regressions.
+There is already a decent amount of documentation in the [[file:doc/][doc]] directory, and all exported symbols are documented (in fact, one of the tests checks that all exported symbols have docstrings). If any aspect of the library isn't clear, please ask so the documentation can be made more complete.
 
-Much documentation is still being written, but there is already a good amount of information in the [[file:doc/][doc]] directory, and in the docstrings for the patterns, functions, etc.
-
-See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] for a listing of tasks that need to be completed and ideas for future features. The code itself is also littered with comments marked "FIX" noting various known issues and possible changes and optimizations that could be made.
+See [[file:doc/TODO.org][TODO.org]] and [[file:doc/roadmap.org][roadmap.org]] for a listing of tasks that need to be completed and ideas for future features. The code itself is also littered with comments marked ~FIX~, to note known issues and possible improvements or optimizations that could be made.
 
 ** Backends
 
-The SuperCollider backend is the primary backend that cl-patterns is tested against so it should generally work the best and should be usable for most purposes.
+The SuperCollider backend is the primary backend that cl-patterns is tested against, so for the most part its functionality should "just work".
 
-The Incudine backend should work for most purposes, though currently multichannel expansion does not work.
+The Incudine backend is missing various functionality such as multichannel expansion, and has not been thoroughly tested in some time, so it may have bit-rotted as the library has evolved. This backend is planned to be greatly improved once the core of the library (i.e. the clock and timeline abstractions) has been fully reworked.
 
-The ALSA MIDI backend has some functionality complete and should be usable for basic tasks, but is still very much a work in progress.
+Most of the ALSA MIDI backend's basic functionality is complete, but it has not been tested or expanded upon as much as the SuperCollider backend yet.
 
 * Tour
 
-- [[file:README.org][README.org]] - this file. self-expanatory, I'd hope.
-- [[file:LICENSE][LICENSE]] - the MIT license.
-- [[file:cl-patterns.asd][cl-patterns.asd]] - cl-patterns systems definition file.
+- [[file:README.org][README.org]] - This file. Self-explanatory.
+- [[file:LICENSE][LICENSE]] - The MIT license.
+- [[file:cl-patterns.asd][cl-patterns.asd]] - File containing the definitions of cl-patterns' ASDF systems.
 
 ** doc
 
-- [[file:doc/backends.org][backends.org]] - information about cl-patterns backends, including how to write your own.
-- [[file:doc/cookbook.org][cookbook.org]] - a cookbook of ideas and inspiration for your cl-patterns hacking.
-- [[file:doc/features.org][features.org]] - listing of notable features of cl-patterns.
-- [[file:doc/isobar.org][isobar.org]] - list of patterns in [[https://github.com/ideoforms/isobar][isobar]] and their equivalents in cl-patterns.
-- [[file:doc/other-libraries.org][other-libraries.org]] - listing of other libraries that have similar goals or may be useful in conjunction with cl-patterns.
-- [[file:doc/patterns.org][patterns.org]] - organized index of the pattern classes included in cl-patterns.
-- [[file:doc/roadmap.org][roadmap.org]] - general overview of major goals for the future development of cl-patterns.
-- [[file:doc/sc.org][sc.org]] - a list of pattern classes and special keys in SuperCollider and their cl-patterns implementation status.
-- [[file:doc/sc-differences.org][sc-differences.org]] - listing of things that differ between cl-patterns and SuperCollider.
-- [[file:doc/special-keys.org][special-keys.org]] - description of keys that have special effects when used in an event or pbind.
-- [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] - short example of how to use cl-patterns with cl-collider.
-- [[file:doc/TODO.org][TODO.org]] - a list of things and ideas that have not yet been implemented into cl-patterns, but may be in the future.
-- [[file:doc/tutorial.org][tutorial.org]] - explanation of the basic concepts of cl-patterns, meant for people who have never used SuperCollider's patterns.
-- [[file:doc/writing-your-own.org][writing-your-own.org]] - information about how to write your own pattern classes.
+- [[file:doc/backends.org][backends.org]] - Information about cl-patterns backends, including how to write your own.
+- [[file:doc/cookbook.org][cookbook.org]] - A "cookbook" containing ideas and inspiration for your cl-patterns hacking.
+- [[file:doc/features.org][features.org]] - Listing of notable features of cl-patterns.
+- [[file:doc/isobar.org][isobar.org]] - List of patterns in [[https://github.com/ideoforms/isobar][isobar]] and their equivalents in cl-patterns.
+- [[file:doc/other-libraries.org][other-libraries.org]] - Listing of other libraries that have similar goals or may be useful in conjunction with cl-patterns.
+- [[file:doc/patterns.org][patterns.org]] - Organized index of the pattern classes included in cl-patterns.
+- [[file:doc/roadmap.org][roadmap.org]] - General overview of major goals for the future development of cl-patterns.
+- [[file:doc/sc.org][sc.org]] - A list of pattern classes and special keys in SuperCollider, and the status of their implementation in cl-patterns.
+- [[file:doc/sc-differences.org][sc-differences.org]] - A listing of (some of the) things that differ between cl-patterns and SuperCollider.
+- [[file:doc/special-keys.org][special-keys.org]] - Description of keys that (by default) have special effects when used in an event or pbind.
+- [[file:doc/supercollider-example.lisp][supercollider-example.lisp]] - A short example of how to use cl-patterns with cl-collider.
+- [[file:doc/TODO.org][TODO.org]] - A list of things and ideas that have not yet been implemented into cl-patterns, but may be in the future.
+- [[file:doc/tutorial.org][tutorial.org]] - Explanation of the basics of cl-patterns, meant for people who aren't familiar with SuperCollider's patterns.
+- [[file:doc/writing-your-own.org][writing-your-own.org]] - Information about how to write your own pattern classes.
 
 ** res
 
@@ -151,49 +150,50 @@ The ALSA MIDI backend has some functionality complete and should be usable for b
 
 ** src
 
-- [[file:src/package.lisp][package.lisp]] - the package definition file.
-- [[file:src/utility.lisp][utility.lisp]] - general utility functions and special variable definitions.
-- [[file:src/conversions.lisp][conversions.lisp]] - functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
-- [[file:src/scales.lisp][scales.lisp]] - musical pitch (scales/tuning) data and structs.
-- [[file:src/event.lisp][event.lisp]] - code to represent and deal with events. includes the ~event~ class, information about special keys (i.e. ~freq~, ~amp~...), etc.
-- [[file:src/eseq.lisp][eseq.lisp]] - event sequence class and functionality.
-- [[file:src/backend.lisp][backend.lisp]] - code to handle "backends"; i.e. how cl-patterns will actually "play" events.
-- [[file:src/render.lisp][render.lisp]] - generic functionality for rendering patterns.
-- [[file:src/clock.lisp][clock.lisp]] - the scheduling functionality to make sure that each event is played at the proper time.
+- [[file:src/package.lisp][package.lisp]] - File containing the definition of cl-patterns' Common Lisp package.
+- [[file:src/utility.lisp][utility.lisp]] - General utility functions and special variable definitions.
+- [[file:src/conversions.lisp][conversions.lisp]] - Functions to convert between units (i.e. midinote to frequency, decibels to amplitude, etc.).
+- [[file:src/scales.lisp][scales.lisp]] - Data, structs, and functionality relating to musical pitch (i.e. scales, tuning, etc).
+- [[file:src/event.lisp][event.lisp]] - Code to represent and deal with events. The ~event~ class, special keys (i.e. ~freq~, ~amp~...), etc.
+- [[file:src/timeline.lisp][timeline.lisp]] - Timeline class and functionality.
+- [[file:src/backend.lisp][backend.lisp]] - Generic functionality for working with the backends, which do the work of actually generating audio.
+- [[file:src/render.lisp][render.lisp]] - Functionality for rendering patterns in non-realtime.
+- [[file:src/clock.lisp][clock.lisp]] - Scheduling, to make sure that patterns are kept in sync and events are played at the proper time.
 
 *** patterns
 
-- [[file:src/patterns/patterns.lisp][patterns.lisp]] - general pattern macros and functionality + the standard set of patterns; includes the ~pattern~ superclass, ~pbind~, ~pseq~, ~pk~, etc.
+- [[file:src/patterns/patterns.lisp][patterns.lisp]] - General pattern functionality and the set of fundamental patterns - the ~pattern~ superclass, ~pbind~, ~pseq~, ~pk~, etc.
 - [[file:src/patterns/pdef.lisp][pdef.lisp]] - ~pdef~ and associated functionality to define and reference "named patterns".
 - [[file:src/patterns/pmeta.lisp][pmeta.lisp]] - ~pmeta~; meta-pattern for embedding and controlling other patterns.
-- [[file:src/patterns/bjorklund.lisp][bjorklund.lisp]] - Euclidean pattern functionality such as ~pbjorklund~, etc.
+- [[file:src/patterns/bjorklund.lisp][bjorklund.lisp]] - Euclidean pattern functionality - ~pbjorklund~ and related functions.
 - [[file:src/patterns/cycles.lisp][cycles.lisp]] - TidalCycles-inspired patterns and notation, i.e. ~pcycles~, etc.
-- [[file:src/patterns/track.lisp][track.lisp]] - tracker-inspired patterns and notation, i.e. ~ptrack~ and associated functions, macros, reader macros, etc.
-- [[file:src/patterns/sc-compatibility.lisp][sc-compatibility.lisp]] - patterns intended to be fully compatible with SuperCollider's patterns system.
-- [[file:src/patterns/export.lisp][export.lisp]] - export all defined patterns in the ~*patterns*~ list.
+- [[file:src/patterns/track.lisp][track.lisp]] - Tracker-inspired patterns and notation - ~ptrack~ and related functions and (reader) macros.
+- [[file:src/patterns/sc-compatibility.lisp][sc-compatibility.lisp]] - Patterns intended to be fully compatible with SuperCollider's patterns system.
+- [[file:src/patterns/export.lisp][export.lisp]] - Export all defined patterns in the ~*patterns*~ list.
 
 *** backends
 
-- [[file:src/backends/supercollider.lisp][supercollider.lisp]] - code to interface cl-patterns with [[https://supercollider.github.io/][SuperCollider]] via the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
-- [[file:src/backends/incudine.lisp][incudine.lisp]] - code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
-- [[file:src/backends/debug.lisp][debug.lisp]] - basic debug backend. responds to all events, printing and storing them without any audio output.
-- [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - code to interface cl-patterns with [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
+- [[file:src/backends/supercollider.lisp][supercollider.lisp]] - Code to interface cl-patterns with [[https://supercollider.github.io/][SuperCollider]] via the [[https://github.com/byulparan/cl-collider][cl-collider]] library.
+- [[file:src/backends/incudine.lisp][incudine.lisp]] - Code to interface cl-patterns with [[https://github.com/titola/incudine][Incudine]].
+- [[file:src/backends/debug.lisp][debug.lisp]] - Basic debugging backend for printing and/or storing output events without producing audio.
+- [[file:src/backends/alsa-midi.lisp][alsa-midi.lisp]] - Code to interface cl-patterns with ALSA MIDI via [[https://github.com/defaultxr/cl-alsaseq][cl-alsaseq]].
 
 *** formats
 
-- [[file:src/formats/midifile.lisp][midifile.lisp]] - functionality to interact with MIDI files (load the ~cl-patterns/midifile~ system to use this).
-- [[file:src/formats/supercollider-score.lisp][supercollider-score.lisp]] - functionality to interact with [[http://doc.sccode.org/Classes/Score.html][SuperCollider Score]] files.
+- [[file:src/formats/midifile.lisp][midifile.lisp]] - MIDI file functionality (load the ~cl-patterns/midifile~ system to use this).
+- [[file:src/formats/renoise.lisp][renoise.lisp]] - Renoise project file functionality (load the ~cl-patterns/renoise~ system to use this).
+- [[file:src/formats/supercollider-score.lisp][supercollider-score.lisp]] - [[http://doc.sccode.org/Classes/Score.html][SuperCollider Score]] file functionality (part of the ~cl-patterns/supercollider~ system).
 
 *** extensions
 
-- [[file:src/extensions/generic-cl.lisp][generic-cl.lisp]] - additional methods for [[https://github.com/alex-gutev/generic-cl][generic-cl]]. enable by loading the ~cl-patterns/generic-cl~ subsystem.
-- [[file:src/extensions/sequence.lisp][sequence.lisp]] - additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].
-- [[file:src/extensions/swank.lisp][swank.lisp]] - creature comforts for slime/swank users.
-- [[file:src/extensions/slynk.lisp][slynk.lisp]] - creature comforts for sly/slynk users.
+- [[file:src/extensions/generic-cl.lisp][generic-cl.lisp]] - Additional methods for [[https://github.com/alex-gutev/generic-cl][generic-cl]] (load the ~cl-patterns/generic-cl~ system to enable them).
+- [[file:src/extensions/sequence.lisp][sequence.lisp]] - Additional methods for implementations that support [[http://www.sbcl.org/manual/#Extensible-Sequences][extensible sequences]].
+- [[file:src/extensions/swank.lisp][swank.lisp]] - Creature comforts for SLIME/SWANK users.
+- [[file:src/extensions/slynk.lisp][slynk.lisp]] - Creature comforts for Sly/Slynk users.
 
 ** t
 
-contains the files for the [[https://github.com/sionescu/fiveam][FiveAM]]-based test suite for the library.
+Contains the files for the [[https://github.com/sionescu/fiveam][FiveAM]]-based test suite for the library.
 
 * Community
 

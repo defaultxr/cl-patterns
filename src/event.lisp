@@ -114,7 +114,7 @@ See also: `event-value', `event', `*event*'"
 (defun (setf e) (value key)
   (if (event-p *event*)
       (setf (event-value *event* key) value)
-      (error "Can't setf ~S; ~S is not currently set to an event." `(e ,key) '*event*)))
+      (error "Can't setf ~S; ~S is not currently set to an event" `(e ,key) '*event*)))
 
 (defun (setf %beat) (value event)
   "If EVENT has a `beat' key, set it to VALUE; otherwise, set its `%beat' \"hidden key\"."

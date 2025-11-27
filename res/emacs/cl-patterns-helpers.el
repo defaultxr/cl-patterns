@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2021 modula t.
 
-;; Author: modula t. <defaultxr AT gmail DOT com>
+;; Author: modula t. <modula-t at pm dot me>
 ;; Homepage: https://github.com/defaultxr/cl-patterns
 ;; Version: 0.5
 ;; Package-Requires: ((emacs "24.4") cl-lib)
@@ -198,7 +198,7 @@ the point and return its name."
 (defun cl-patterns-instrument-arguments (instrument)
   "Get a list of INSTRUMENT's arguments, or nil if the arguments can't be
 determined."
-  (unless (cl-every #'cl-digit-char-p instrument) ;; if INSTRUMENT is a number then it's likely referring to a midi backend, in which case we don't really have a standard way to get a list of said instrument's controls.
+  (unless (cl-every #'cl-digit-char-p instrument) ; if INSTRUMENT is a number then it's likely referring to a midi backend, in which case we don't really have a standard way to get a list of said instrument's controls.
     (cl-patterns-lisp-eval
      `(cl:mapcar
        (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))

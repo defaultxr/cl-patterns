@@ -260,7 +260,7 @@ Note that this function is not aware of context and thus always returns the firs
   (when (string-designator-p scale)
     (let ((found-scale (scale scale)))
       (unless found-scale
-        (error "No scale defined with name ~S." scale))
+        (error "No scale defined with name ~S" scale))
       (return-from degree-key
         (degree-key degree :scale found-scale :steps-per-octave steps-per-octave))))
   (let* ((list (typecase scale

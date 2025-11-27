@@ -24,10 +24,10 @@
 (defun midi-pitchbend (bend midinote)
   "Return a pitchbend MIDI value, given BEND, on a range of -1.0..1.0, and MIDINOTE. If BEND is non-nil, convert it to the appropriate number for the MIDI message. Otherwise, if MIDINOTE has a decimal part, return the amount of pitchbend necessary to detune it. This allows for microtonality to be expressed as a fraction of a midinote, or auto-converted from the :freq event key. If both BEND and a fractional MIDINOTE are given, only BEND is considered."
   (cond (bend (bipolar-1-to-midi-pitchbend bend))
-	(midinote (let ((decimal (mod midinote 1)))
-		    (unless (zerop decimal)
-		      (bipolar-1-to-midi-pitchbend
-		       (/ decimal *alsa-midi-pitchbend-range*)))))))
+        (midinote (let ((decimal (mod midinote 1)))
+                    (unless (zerop decimal)
+                      (bipolar-1-to-midi-pitchbend
+                       (/ decimal *alsa-midi-pitchbend-range*)))))))
 
 ;;; instrument mapping
 
@@ -201,8 +201,8 @@ See also: `alsa-midi-instrument-program-number'"
                                            15))
              (note (midi-truncate-clamp (event-value event :midinote)))
              (velocity (unipolar-1-to-midi (event-value event :amp))) ; FIX: maybe this shouldn't be linear?
-	     (bend (midi-pitchbend (event-value event :bend)
-				   (event-value event :midinote)))
+             (bend (midi-pitchbend (event-value event :bend)
+                                   (event-value event :midinote)))
              (time (or (raw-event-value event :timestamp-at-start) (local-time:now)))
              (extra-params (loop :for key :in (keys event)
                                  :for cc-mapping := (alsa-midi-remap-key-value key (event-value event key))
@@ -217,8 +217,8 @@ See also: `alsa-midi-instrument-program-number'"
              (setf (nth channel *alsa-midi-channels-instruments*) pgm))
            (dolist (param extra-params)
              (midihelper:send-event (midihelper:ev-cc channel (first param) (second param))))
-	   (when bend
-	     (midihelper:send-event (midihelper:ev-pitchbend channel bend)))
+           (when bend
+             (midihelper:send-event (midihelper:ev-pitchbend channel bend)))
            (unless (eql type :set)
              (midihelper:send-event (midihelper:ev-noteon channel note velocity))
              (sleep (max 0 (dur-duration (sustain event) (tempo (task-clock task)))))

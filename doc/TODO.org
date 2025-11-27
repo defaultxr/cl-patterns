@@ -103,6 +103,7 @@ make other libraries that expand upon cl-patterns' feature sets (i.e. libraries 
 *** look into [[https://github.com/triss/ChordSymbol][ChordSymbol]]
 ** support I, II, III, IV, i, ii, iii, iv, etc. notation
 ** support the [[https://www.youtube.com/watch?v=NmeogiNhdHI&t=32m28s][super-ultra-hyper-mega-meta-lydian scale]]
+** look into [[https://github.com/byulparan/sc-extensions/blob/master/pc.lisp][pc.lisp from sc-extensions]]
 * DONE clock condition handler (formerly known as "performance mode")
 CLOSED: [2018-07-01 Sun 18:02]
 ...where any pattern that signals a condition is automatically handled with the specified restart, so the music doesn't come to a screeching halt.
@@ -195,7 +196,7 @@ take into account these variables (and maybe others?):
 CLOSED: [2021-11-11 Thu 12:03]
 done - see the [[file:../res/emacs/][res/emacs]] directory
 * ~pswing~ pattern to easily apply swing to an input pattern
-* [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]]
+* [[https://en.wikipedia.org/wiki/ABC_notation][ABC notation]] - work started in [[file:../src/abc.lisp][src/abc.lisp]]
 * "after actions"
 determine what pattern should be played or action should be taken at the end of this pattern, by providing a list to the ~:after~ slot/key of a pattern.
 - could theoretically be a replacement/generalization of ~loop-p~, i.e. ~loop-p~ would be the same as a "loop current" after action.
@@ -344,3 +345,9 @@ this pattern would stutter 60 for 5 pulses, hold 59 for 2 pulses with a slide in
 * document all the ways that patterns can be changed in FAQ.org, as per https://github.com/defaultxr/cl-patterns/issues/52#issuecomment-2515843450 - including the function-as-pattern-parameter trick mentioned in https://github.com/defaultxr/cl-patterns/issues/52#issuecomment-2537828949
 * random pattern generation function, a la the random button on some synthesizers
 * is it possible to override the "quit" restart when there is a condition in a pattern? would be nice if pressing ~q~ didn't stop the clock every time.
+* maybe allow ~clock~'s ~condition-handler~ to be a function that selects the condition to run
+this would, for example, allow a function to first try ~skip-event~, and then ~remove-task~ if the task is still generating errors
+* ~unwind-protect~ on the ~clock-loop~ to restart it automatically if the user chooses the quit restart when an error occurs during the ~clock-loop~ ?
+* rename ~instrument~ to something shorter and better
+has to be generic enough to make sense for different types of values. for example, it can't be ~synth~ because the user might control something that isn't a synth. likewise for ~patch~. maybe ~target~ could work? but i think that would conflict with cl-collider's usage...
+* something like [[https://github.com/cofinley/why-does-that-sound-good][why-does-that-sound-good]] ?

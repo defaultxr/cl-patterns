@@ -107,7 +107,7 @@ See also: `pt', `pcycles', `pbind'"
 
 (defun ptrack-does-not-exist (ptrack type name if-does-not-exist)
   (etypecase if-does-not-exist
-    ((member :error) (error "No ~A at ~S exists in ~S." (string-downcase type) name ptrack))
+    ((member :error) (error "No ~A at ~S exists in ~S" (string-downcase type) name ptrack))
     (null nil)))
 
 (defgeneric ptrack-rows (ptrack)

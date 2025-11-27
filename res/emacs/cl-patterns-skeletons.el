@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2021 modula t.
 
-;; Author: modula t. <defaultxr AT gmail DOT com>
+;; Author: modula t. <modula-t at pm dot me>
 ;; Homepage: https://github.com/defaultxr/cl-patterns
 ;; Version: 0.5
 ;; Package-Requires: ((emacs "24.4"))
