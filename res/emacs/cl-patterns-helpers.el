@@ -206,11 +206,12 @@ acquire the list (i.e. if cl-patterns is not running)."
 determined."
   (unless (cl-every #'cl-digit-char-p instrument) ; if INSTRUMENT is a number then it's likely referring to a midi backend, in which case we don't really have a standard way to get a list of said instrument's controls.
     (cl-patterns-lisp-eval
-     `(cl:mapcar
-       (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))
-       (cl-patterns::backend-instrument-controls
-        (cl:car (cl-patterns:all-backends :enabled-p t :started-p t))
-        ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument))))))))
+     `(cl:when (cl:find-package "CL-PATTERNS")
+               (cl:mapcar
+                (cl:lambda (x) (cl:symbol-name (cl:car (alexandria:ensure-list x))))
+                (uiop:symbol-call '#:cl-patterns '#:backend-instrument-controls
+                                  (cl:car (uiop:symbol-call '#:cl-patterns '#:all-backends :enabled-p t :started-p t))
+                                  ,(intern (upcase (cl-patterns-ensure-symbol-syntax instrument)))))))))
 
 ;;; Commands
 
