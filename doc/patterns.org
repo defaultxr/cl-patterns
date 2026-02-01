@@ -121,6 +121,5 @@ Patterns that are used to define or debug others.
 - ~ppc~ - Syntax sugar for writing ~pparchain~ in the style of ~pb~.
 - ~psym~ - Define a sequence of patterns by name to play in succession and/or parallel.
 - ~pmeta~ - Meta-control patterns by applying various transformations to them with a ~pbind~-like syntax.
-- ~ipstream~ - Insertable pstream; a pstream changeable while playing by the insertion of additional pstreams.
 
 # FIX: should there be a "fusion" category, for patterns like ~pchain~, ~pfor~, ~ppar~, ~pparchain~, ~ppc~, ~pif~ ?
