@@ -251,17 +251,6 @@
 
    #:pt
 
-   ;;; eseq.lisp
-
-   #:eseq
-   #:eseq-p
-   #:eseq-events
-   #:eseq-length
-   #:eseq-add
-   #:eseq-remove
-   #:as-eseq
-   #:eseq-pstream
-
    ;;; batch.lisp
 
    #:pull

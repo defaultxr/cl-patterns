@@ -62,8 +62,3 @@
        (null (elt this 0))))
 
 ;; FIX: add more (see URL above)
-
-;;; eseq
-
-(defmethod sequence:length ((eseq eseq))
-  (length (eseq-events eseq)))

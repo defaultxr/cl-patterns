@@ -13,9 +13,6 @@
 (defmethod generic-cl:coerce ((pattern pattern) (type (eql 'pstream)))
   (as-pstream pattern))
 
-(defmethod generic-cl:coerce ((pattern pattern) (type (eql 'eseq)))
-  (as-eseq pattern))
-
 (defmethod generic-cl:coerce ((scale scale) (type (eql 'list)))
   (scale-notes scale))
 

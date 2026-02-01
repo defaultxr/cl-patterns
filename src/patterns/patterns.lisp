@@ -1048,7 +1048,7 @@ Example:
 ;; (next-upto-n (pseq '(5 6 7) 2 1))
 ;; ;=> (6 7 5 6 7 5)
 
-See also: `pser', `eseq'")
+See also: `pser'")
 
 (defmethod next ((pseq pseq-pstream))
   (with-slots (number list offset) pseq

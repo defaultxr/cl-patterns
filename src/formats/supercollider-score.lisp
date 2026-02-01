@@ -6,7 +6,7 @@
 
 (in-package #:cl-patterns)
 
-(defclass supercollider-score () ; FIX: this is not actually used, but it should be, to differentiate a score from a regular list of `event's or the like. or should we just use `eseq' ?
+(defclass supercollider-score () ; FIX: this is not actually used, but it should be, to differentiate a score from a regular list of `event's or the like. or should we just use `timeline' ?
   ((list :initarg :list :accessor score-list :documentation "The list of directives in the score."))
   (:documentation "A list of instructions for the SuperCollider server to `render' in non-realtime."))
 

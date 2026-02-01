@@ -16,7 +16,6 @@
 - :buffer - Render to a buffer in memory.
 - :bdef - Render to a `bdef:bdef' buffer object in memory. This output type is only available if the bdef library is loaded, and falls back to :buffer if it is not.
 - :score - Render as a \"score\" in memory, i.e. the sequence type supported by the backend.
-- :eseq - Make an `eseq' from the pattern. Effectively defers to `as-eseq'.
 - :pstream - Make a `pstream' from the pattern. Effectively defers to `as-pstream'.
 - :list - Get a list of up to the first MAX-LENGTH outputs from this object using `next-upto-n'.
 
@@ -27,12 +26,8 @@ The following additional keyword arguments are also supported, depending on the 
 - TEMPO - The tempo of the result in beats per second. Defaults to `*clock*''s current tempo.
 - MAX-LENGTH - Maximum number of outputs to grab from the source pattern. Must be an integer (cannot be :inf). Defaults to `*max-pattern-yield-length*'.
 - DURATION - The total duration of the output in seconds.
-- MAX-DURATION - The maximum duration of the output in seconds. Defaults to infinite, in which case the pattern is limited by MAX-PATTERN-YIELD-LENGTH.
+- MAX-DURATION - The maximum duration of the output in seconds. Defaults to infinite, in which case the pattern is limited by MAX-PATTERN-YIELD-LENGTH."))
 
-See also: `as-eseq'"))
-
-(defmethod render (object (output (eql :eseq)) &key)
-  (as-eseq object))
 
 (defmethod render (object (output (eql :pstream)) &key)
   (as-pstream object))

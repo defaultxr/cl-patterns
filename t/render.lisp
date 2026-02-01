@@ -6,8 +6,6 @@
 
 (test render
   "Test the `render' function"
-  (is (typep (render (pbind :dur 1) :eseq) 'eseq)
-      "render :eseq does not coerce to an eseq")
   (is (pstream-p (render (pseq (list 1 2 3)) :pstream))
       "render :pstream does not coerce to a pstream")
   (is (listp (render (pseq (list 1 2 3)) :list))

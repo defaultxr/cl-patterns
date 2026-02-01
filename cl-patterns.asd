@@ -35,7 +35,6 @@
                              (:file "cycles")
                              (:file "track")
                              (:file "export")))
-               (:file "eseq")
                (:file "backend")
                (:file "render")
                (:file "clock")
@@ -135,7 +134,6 @@
                              (:file "cycles")
                              (:file "track")))
                ;; FIX: add formats/ tests
-               (:file "eseq")
                ;; (:file "backend")
                (:file "render")
                (:file "clock")
