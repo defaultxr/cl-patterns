@@ -2,8 +2,9 @@
 ;;; Note that additional exports are done in other files as well such as export.lisp.
 
 (uiop:define-package #:cl-patterns
-  (:use #:cl
+  (:mix #:cl
         #:alexandria
+        #:trivial-types
         #:mutility)
   (:export
 

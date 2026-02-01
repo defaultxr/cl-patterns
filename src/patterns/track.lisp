@@ -28,7 +28,7 @@ Example:
 
 See also: `pt', `pcycles', `pbind'"
   :defun (defun ptrack (header rows &key (repeats *default-pattern-repeats*))
-           (assert (evenp (length header)) (header))
+           (check-type header property-list)
            (make-instance 'ptrack
                           :header header
                           :rows rows

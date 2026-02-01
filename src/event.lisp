@@ -14,8 +14,8 @@
   (:documentation "The raw plist containing the key/value pairs of the event."))
 
 (defclass event ()
-  ((event-plist :initarg :event-plist :initform nil :reader event-plist :type list :documentation "The plist containing all of the event's keys and values.")
-   (%beat :initform nil :reader %beat :type (or null number) :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
+  ((event-plist :initarg :event-plist :initform nil :reader event-plist :type property-list :documentation "The plist containing all of the event's keys and values.")
+   (%beat :initform nil :reader %beat :type (or null beat) :documentation "The time in beats when this event occurred in the pstream. Generally you should use `beat' instead."))
   (:documentation "Class representing a musical event."))
 
 (defmethod print-object ((item event) stream)
@@ -25,7 +25,7 @@
   "Create an event, using the PARAMS as its keys/values.
 
 See also: `event-value', `event-p', `e', `*event*'"
-  (assert (evenp (length params)) (params) "PARAMS must be a list of key/value pairs; got ~S" params)
+  (check-type params property-list)
   (let ((ev (make-instance 'event)))
     (doplist (key value params ev)
       (setf (event-value ev key) value))))

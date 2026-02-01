@@ -2,6 +2,10 @@
 
 (in-package #:cl-patterns)
 
+(deftype midi-number () ; FIX: should this be in a different file?
+  "A number from 0 to 127."
+  '(integer 0 127))
+
 (defclass alsa-midi (backend)
   ((name :initform "ALSA MIDI"))
   (:documentation "Backend for controlling hardware and software via ALSA MIDI on Linux."))
@@ -45,7 +49,7 @@
   "Set a mapping from INSTRUMENT (an instrument name as a string or symbol) to a MIDI program number. Setting an instrument to nil with this function removes it from the map.
 
 See also: `alsa-midi-instrument-program-number'"
-  (check-type value (or null (integer 0 127)))
+  (check-type value (or null midi-number))
   (if value
       (setf (gethash instrument *alsa-midi-instrument-map*) value)
       (remhash instrument *alsa-midi-instrument-map*)))
@@ -61,8 +65,7 @@ See also: `alsa-midi-instrument-program-number'"
     (when (and (>= (length sym-name) 3)
                (string= "CC-" sym-name :end2 3))
       (let ((num (parse-integer (subseq sym-name 2) :junk-allowed t)))
-        (when (and (integerp num)
-                   (<= 0 num 127))
+        (when (typep num 'midi-number)
           (list num (format nil "CC ~S" num) key 'identity))))))
 
 (defun alsa-midi-cc-mapping (key)

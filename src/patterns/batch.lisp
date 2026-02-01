@@ -39,7 +39,7 @@ See also: `serial-pstream'"))
 
 (defclass serialized-pstream (serial-pstream)
   ((batch-pstream :initarg :batch-pstream :reader batch-pstream :type pstream :documentation "The source pstream being serialized.")
-   (batch-dur :initarg :batch-dur :initform 1/8 :reader batch-dur :type positive-number :documentation "The dur in beats of each `pull' from the `batch-pstream'.")
+   (batch-dur :initarg :batch-dur :initform 1/8 :reader batch-dur :type interval :documentation "The dur in beats of each `pull' from the `batch-pstream'.")
    (current-batch :initform nil :accessor current-batch :documentation "The outputs yet to be serialized from the most recent batch.")
    (batch-beat :initform 0 :accessor batch-beat :documentation "The start beat of the current batch of the serialized-pstream."))
   (:documentation "A `batch-pstream' whose outputs are being yielded one at a time via `next'."))

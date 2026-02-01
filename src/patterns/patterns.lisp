@@ -24,7 +24,7 @@ SLOTS is a list of slots that the pattern and pstreams derived from it have. Eac
 
 DOCUMENTATION is a docstring describing the pattern. We recommend providing at least one example, and a \"See also\" section to refer to similar pattern classes.
 
-DEFUN can either be a full defun form for the pattern, or an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically you'd use this for inserting `assert' statements, for example.
+DEFUN can either be a full defun form for the pattern, or an expression which will be inserted into the pattern creation function prior to initialization of the instance. Typically this would be used for `check-type' statements or similar.
 
 See also: `pattern', `pdef', `all-patterns'"
   (let* ((superclasses (or superclasses (list 'pattern)))
@@ -119,7 +119,7 @@ See also: `pattern', `pdef', `all-patterns'"
 (defclass pattern ()
   ((play-quant :initarg :play-quant :documentation "A list of numbers representing when the pattern's pstream can start playing. See `play-quant' and `quant'.")
    (end-quant :initarg :end-quant :accessor end-quant :type list :documentation "A list of numbers representing when a pattern can end playing and when a `pdef' can be swapped out for a new definition. See `end-quant' and `quant'.")
-   (end-condition :initarg :end-condition :initform nil :accessor end-condition :type (or null function) :documentation "Nil or a function that is called by the clock with the pattern as its argument to determine whether the pattern should end or swap to a new definition.")
+   (end-condition :initarg :end-condition :initform nil :accessor end-condition :type (or null function-designator) :documentation "Nil or a function that is called by the clock with the pattern as its argument to determine whether the pattern should end or swap to a new definition.")
    (source :initarg :source :initform nil :accessor pattern-source :documentation "The source object that this object was created from. For example, for a `pstream', this would be the pattern that `as-pstream' was called on.")
    (parent :initarg :parent :initform nil :documentation "When a pattern is embedded in another pattern, the embedded pattern's parent slot points to the pattern it is embedded in.")
    (loop-p :initarg :loop-p :documentation "Whether or not the pattern should loop when played.")
@@ -482,11 +482,7 @@ See also: `remap-instrument-to-parameters', `*instrument-map*'"
   "Set a mapping from INSTRUMENT (an instrument name as a string or symbol) to a plist of parameters which will be set in the event by `remap-instrument-to-parameters'. Setting an instrument to nil with this function removes it from the map.
 
 See also: `instrument-mapping', `remap-instrument-to-parameters', `*instrument-map*'"
-  (assert (or (typep value '(or symbol number))
-              (and (listp value)
-                   (evenp (list-length value))))
-          (value)
-          "~S's VALUE argument must be a symbol, a number, or a plist; got ~S instead" 'instrument-mapping value)
+  (check-type value (or symbol number property-list))
   (if value
       (setf (gethash instrument *instrument-map*) value)
       (remhash instrument *instrument-map*)))
@@ -746,7 +742,7 @@ Example:
 ;; ;=> ((EVENT :FOO 1 :BAR :HELLO) (EVENT :FOO 2 :BAR :HELLO) (EVENT :FOO 3 :BAR :HELLO) EOP)
 
 See also: `pmono', `pb'"
-  (assert (evenp (length pairs)) (pairs) "~S's PAIRS argument must be a list of key/value pairs." 'pbind)
+  (check-type pairs property-list)
   (when (> (count :pdef (keys pairs)) 1)
     (warn "More than one :pdef key detected in pbind."))
   (let* ((res-pairs nil)
@@ -1027,7 +1023,7 @@ See also: `pbind', `pbind''s :type key"
   "pmono defines a mono instrument event pstream. It's effectively the same as `pbind' with its :type key set to :mono.
 
 See also: `pbind'"
-  (assert (evenp (length pairs)) (pairs) "~S's PAIRS argument must be a list of key/value pairs." 'pmono)
+  (check-type pairs property-list)
   (apply #'pbind
          :instrument instrument
          :type :mono

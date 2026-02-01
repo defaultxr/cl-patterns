@@ -14,8 +14,8 @@
      (num-synths :initform 0 :accessor backend-num-synths :type (integer 0) :documentation "The last-reported number of Synths running on the server.")
      (num-groups :initform 0 :accessor backend-num-groups :type (integer 0) :documentation "The last-reported number of Groups active on the server.")
      (num-definitions :initform 0 :accessor backend-num-definitions :type (integer 0) :documentation "The last-reported number of SynthDefs known by the server.")
-     (last-status-reply-time :initform nil :accessor backend-last-status-reply-time :type (or null integer) :documentation "The internal-real-time when we last got a status update from the backend.")
-     (status-request-interval :initform 7/10 :accessor backend-status-request-interval :type (real 0) :documentation "The time in seconds to sleep between each status request to the backend.")
+     (last-status-reply-time :initform nil :accessor backend-last-status-reply-time :type (or null (integer 0)) :documentation "The internal-real-time when we last got a status update from the backend.")
+     (status-request-interval :initform 7/10 :accessor backend-status-request-interval :type interval :documentation "The time in seconds to sleep between each status request to the backend.")
      (status-requester-thread :initform nil :accessor backend-status-requester-thread :type (or null bt:thread) :documentation "The thread periodically requesting status updates from the backend, or nil if it is not currently running."))
     (:documentation "cl-patterns SuperCollider backend via the cl-collider system.")))
 

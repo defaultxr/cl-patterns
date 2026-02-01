@@ -2,6 +2,20 @@
 
 (in-package #:cl-patterns)
 
+;;; types
+
+(deftype beat ()
+  "When--in musical time."
+  '(real 0))
+
+(deftype dur ()
+  "A duration, measured in beats."
+  '(real 0))
+
+(deftype interval ()
+  "The amount of time between regular occurrences; a positive number."
+  '(real (0)))
+
 ;;; special variables
 
 (defvar *event* nil

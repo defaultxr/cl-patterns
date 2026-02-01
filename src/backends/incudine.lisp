@@ -7,7 +7,7 @@
   ((name :initform "Incudine")
    (buffer-preview-synth :initarg :buffer-preview-synth :initform :spt :accessor backend-buffer-preview-synth :type symbol :documentation "The name of the synth to use to preview buffers.")
    (start-timestamp :initform nil :accessor backend-start-timestamp :type (or null local-time:timestamp) :documentation "The local-time timestamp when Incudine was started.")
-   (start-samples :initform 0 :accessor backend-start-samples :type integer :documentation "The result of `incudine:now' when `backend-start-timestamp' was generated."))
+   (start-samples :initform 0 :accessor backend-start-samples :type (integer 0) :documentation "The result of `incudine:now' when `backend-start-timestamp' was generated."))
   (:documentation "cl-patterns Incudine backend."))
 
 ;; (defmethod make-backend ((backend (eql 'incudine)) &rest rest &key &allow-other-keys)
